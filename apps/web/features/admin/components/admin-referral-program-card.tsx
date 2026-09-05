@@ -82,15 +82,15 @@ export function AdminReferralProgramCard() {
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-0.5">
           <div className="flex items-center gap-1.5">
-            <h2 className="text-sm font-semibold text-slate-900">
+            <h2 className="text-sm font-semibold text-foreground">
               {t("title")}
             </h2>
             <InfoTooltip content={t("tooltip")} />
           </div>
-          <p className="max-w-sm text-xs text-slate-500">{t("description")}</p>
+          <p className="max-w-sm text-xs text-muted-foreground">{t("description")}</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <span className="text-xs text-slate-500">
+          <span className="text-xs text-muted-foreground">
             {isActive ? t("active") : t("paused")}
           </span>
           <Switch
@@ -107,7 +107,7 @@ export function AdminReferralProgramCard() {
           <div className="flex items-center gap-1.5">
             <Label
               htmlFor="ref-initial"
-              className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+              className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
             >
               {t("initialRewardLabel")}
             </Label>
@@ -120,14 +120,14 @@ export function AdminReferralProgramCard() {
             onChange={(e) => setReferrerCredit(e.target.value)}
             placeholder="e.g. 1000"
           />
-          <p className="text-[11px] text-slate-400">{t("initialRewardSub")}</p>
+          <p className="text-[11px] text-muted-foreground">{t("initialRewardSub")}</p>
         </div>
 
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
             <Label
               htmlFor="ref-recurring"
-              className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+              className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
             >
               {t("recurringRewardLabel")}
             </Label>
@@ -140,7 +140,7 @@ export function AdminReferralProgramCard() {
             onChange={(e) => setRecurringCredit(e.target.value)}
             placeholder="e.g. 250"
           />
-          <p className="text-[11px] text-slate-400">
+          <p className="text-[11px] text-muted-foreground">
             {t("recurringRewardSub")}
           </p>
         </div>
@@ -149,7 +149,7 @@ export function AdminReferralProgramCard() {
           <div className="flex items-center gap-1.5">
             <Label
               htmlFor="ref-max"
-              className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+              className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
             >
               {t("maxTripsLabel")}
             </Label>
@@ -161,14 +161,14 @@ export function AdminReferralProgramCard() {
             value={recurringMax}
             onChange={(e) => setRecurringMax(e.target.value)}
           />
-          <p className="text-[11px] text-slate-400">{t("maxTripsSub")}</p>
+          <p className="text-[11px] text-muted-foreground">{t("maxTripsSub")}</p>
         </div>
 
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
             <Label
               htmlFor="ref-window"
-              className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+              className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
             >
               {t("windowLabel")}
             </Label>
@@ -180,14 +180,14 @@ export function AdminReferralProgramCard() {
             value={windowDays}
             onChange={(e) => setWindowDays(e.target.value)}
           />
-          <p className="text-[11px] text-slate-400">{t("windowSub")}</p>
+          <p className="text-[11px] text-muted-foreground">{t("windowSub")}</p>
         </div>
 
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
             <Label
               htmlFor="ref-delay"
-              className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+              className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
             >
               {t("delayLabel")}
             </Label>
@@ -199,12 +199,12 @@ export function AdminReferralProgramCard() {
             value={delayHours}
             onChange={(e) => setDelayHours(e.target.value)}
           />
-          <p className="text-[11px] text-slate-400">{t("delaySub")}</p>
+          <p className="text-[11px] text-muted-foreground">{t("delaySub")}</p>
         </div>
 
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
-            <Label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {t("welcomeCampaignLabel")}
             </Label>
             <InfoTooltip content={t("welcomeCampaignTooltip")} />
@@ -227,38 +227,38 @@ export function AdminReferralProgramCard() {
               ))}
             </SelectContent>
           </Select>
-          <p className="text-[11px] text-slate-400">
+          <p className="text-[11px] text-muted-foreground">
             {t("welcomeCampaignSub")}
           </p>
         </div>
       </div>
 
       {/* Fraud protection summary — always-on, no toggles */}
-      <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 px-4 py-3.5">
+      <div className="rounded-xl border border-success/20 bg-success/10 px-4 py-3.5">
         <div className="flex items-center justify-between gap-2.5">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="size-4 shrink-0 text-emerald-600" />
-            <p className="text-sm font-semibold text-emerald-800">
+            <ShieldCheck className="size-4 shrink-0 text-success" />
+            <p className="text-sm font-semibold text-success">
               {t("fraudTitle")}
             </p>
           </div>
           <InfoTooltip
             content={t("fraudTooltip")}
-            iconClassName="text-emerald-600 hover:text-emerald-800"
+            iconClassName="text-success hover:text-success/80"
           />
         </div>
         <ul className="mt-2.5 space-y-1 pl-6">
           {(t.raw("fraudItems") as string[]).map((item) => (
             <li
               key={item}
-              className="flex items-center gap-2 text-xs text-emerald-700"
+              className="flex items-center gap-2 text-xs text-foreground"
             >
-              <span className="size-1.5 shrink-0 rounded-full bg-emerald-500" />
+              <span className="size-1.5 shrink-0 rounded-full bg-success" />
               {item}
             </li>
           ))}
         </ul>
-        <p className="mt-2 pl-0 text-[11px] text-emerald-600/70">
+        <p className="mt-2 pl-0 text-[11px] text-muted-foreground">
           {t("fraudFooter")}
         </p>
       </div>

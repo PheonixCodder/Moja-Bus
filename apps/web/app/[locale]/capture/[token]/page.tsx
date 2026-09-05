@@ -26,13 +26,13 @@ interface CapturePageProps {
 
 function CaptureHeader({ label }: { label: string }) {
   return (
-    <header className="border-b border-slate-200 bg-white px-4 py-3">
+    <header className="border-b border-border bg-card px-4 py-3">
       <div className="max-w-lg mx-auto flex items-center gap-2">
-        <MapPin className="size-5 text-[#ee237c]" />
-        <Link href="/" className="text-sm font-bold text-slate-900">
+        <MapPin className="size-5 text-primary" />
+        <Link href="/" className="text-sm font-bold text-foreground">
           Moja Ride
         </Link>
-        <span className="text-xs text-slate-500 ml-auto">{label}</span>
+        <span className="text-xs text-muted-foreground ml-auto">{label}</span>
       </div>
     </header>
   );
@@ -48,19 +48,19 @@ function CaptureErrorScreen({
   homeLabel: string;
 }) {
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       <CaptureHeader label="Moja Ride" />
       <div className="max-w-md mx-auto px-4 py-12 text-center space-y-4">
-        <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-slate-100">
-          <MapPin className="size-8 text-slate-400" strokeWidth={1.5} />
+        <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-muted">
+          <MapPin className="size-8 text-muted-foreground" strokeWidth={1.5} />
         </div>
-        <h1 className="text-xl font-extrabold text-slate-900 font-[Montserrat]">
+        <h1 className="text-xl font-extrabold text-foreground font-[Montserrat]">
           {title}
         </h1>
-        <p className="text-sm text-slate-600 leading-relaxed">{body}</p>
+        <p className="text-sm text-muted-foreground leading-relaxed">{body}</p>
         <Link
           href="/"
-          className="inline-block text-sm font-semibold text-[#ee237c] hover:underline"
+          className="inline-block text-sm font-semibold text-primary hover:underline"
         >
           {homeLabel}
         </Link>
@@ -93,7 +93,7 @@ export default async function CapturePage({ params }: CapturePageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       <CaptureHeader label={t("header")} />
       <CapturePageView token={token} initialInfo={info} />
     </div>

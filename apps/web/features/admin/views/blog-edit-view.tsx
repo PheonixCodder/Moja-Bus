@@ -55,14 +55,14 @@ const MdxEditorWrapper = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-[500px] flex items-center justify-center bg-slate-50 border border-slate-200 rounded-lg">
-        <Loader2 className="size-6 animate-spin text-slate-400" />
+      <div className="h-[500px] flex items-center justify-center bg-muted/40 border border-border rounded-lg">
+        <Loader2 className="size-6 animate-spin text-muted-foreground" />
       </div>
     ),
   },
 );
 
-// â”€â”€â”€ Zod schema â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Zod schema ─────────────────────────────────────────────────────────────
 
 const editPostSchema = z
   .object({
@@ -123,41 +123,41 @@ const editPostSchema = z
 
 type EditPostFormValues = z.infer<typeof editPostSchema>;
 
-// â”€â”€â”€ Status config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Status config ──────────────────────────────────────────────────────────
 
 const STATUS_CONFIG = {
   PUBLISHED: {
     icon: Globe,
-    cls: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    cls: "bg-success/15 text-success border-success/20",
     label: "Published",
   },
   DRAFT: {
     icon: FileText,
-    cls: "bg-slate-100 text-slate-600 border-slate-200",
+    cls: "bg-muted text-muted-foreground border-border",
     label: "Draft",
   },
   REVIEW: {
     icon: Eye,
-    cls: "bg-yellow-50 text-yellow-700 border-yellow-200",
+    cls: "bg-warning/15 text-warning border-warning/20",
     label: "In Review",
   },
   SCHEDULED: {
     icon: Clock,
-    cls: "bg-indigo-50 text-indigo-700 border-indigo-200",
+    cls: "bg-primary/15 text-primary border-primary/20",
     label: "Scheduled",
   },
   ARCHIVED: {
     icon: Archive,
-    cls: "bg-red-50 text-red-700 border-red-200",
+    cls: "bg-destructive/15 text-destructive border-destructive/20",
     label: "Archived",
   },
 } as const;
 
-// â”€â”€â”€ Tab content components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Tab content components ─────────────────────────────────────────────────
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">
       {children}
     </p>
   );
@@ -165,7 +165,7 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-[10px] font-extrabold text-slate-800 uppercase tracking-widest mb-2">
+    <p className="text-xs font-extrabold text-foreground uppercase tracking-widest mb-2">
       {children}
     </p>
   );
@@ -332,26 +332,26 @@ export function BlogEditView({ postId }: { postId: string }) {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="h-full flex flex-col overflow-hidden bg-white"
+      className="h-full flex flex-col overflow-hidden bg-background"
     >
-      {/* â”€â”€ Top Bar â”€â”€ */}
-      <div className="flex items-center justify-between px-5 py-2.5 border-b border-slate-200 bg-white shrink-0 z-10">
+      {/* ── Top Bar ── */}
+      <div className="flex items-center justify-between px-5 py-2.5 border-b border-border bg-card shrink-0 z-10">
         <div className="flex items-center gap-3 min-w-0">
           <Button
             type="button"
             variant="ghost"
             size="sm"
-            className="h-8 w-8 p-0 text-slate-400 hover:text-slate-900 shrink-0"
+            className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground shrink-0"
             onClick={() => router.push("/dashboard/admin/content/posts")}
           >
             <ArrowLeft className="size-4" />
           </Button>
           <div className="min-w-0 flex items-center gap-2">
-            <p className="text-sm font-semibold text-slate-900 truncate max-w-xs">
+            <p className="text-sm font-semibold text-foreground truncate max-w-xs">
               {watch("title") || t("untitledPost")}
             </p>
             {isDirty && (
-              <Badge className="bg-amber-50 text-amber-600 border-amber-200 text-[10px] font-bold shrink-0 py-0">
+              <Badge className="bg-warning/15 text-warning border-warning/20 text-xs font-bold shrink-0 py-0">
                 {t("unsaved")}
               </Badge>
             )}
@@ -360,7 +360,7 @@ export function BlogEditView({ postId }: { postId: string }) {
 
         <div className="flex items-center gap-2 shrink-0">
           <span
-            className={`hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] uppercase font-extrabold tracking-wider border ${cfg.cls}`}
+            className={`hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs uppercase font-extrabold tracking-wider border ${cfg.cls}`}
           >
             <StatusIcon className="w-3 h-3" />
             {cfg.label}
@@ -370,7 +370,7 @@ export function BlogEditView({ postId }: { postId: string }) {
             type="submit"
             variant="outline"
             size="sm"
-            className="h-8 gap-1.5 text-xs font-semibold border-slate-200"
+            className="h-8 gap-1.5 text-xs font-semibold"
             disabled={updatePost.isPending}
           >
             {updatePost.isPending ? (
@@ -379,15 +379,15 @@ export function BlogEditView({ postId }: { postId: string }) {
               <Save className="size-3.5" />
             )}
             {t("save")}
-            <kbd className="hidden sm:inline-flex items-center text-[10px] text-slate-400 font-mono ml-0.5 gap-0.5">
-              âŒ˜S
+            <kbd className="hidden sm:inline-flex items-center text-xs text-muted-foreground font-mono ml-0.5 gap-0.5">
+              ⌘S
             </kbd>
           </Button>
 
           <Button
             type="button"
             size="sm"
-            className="h-8 gap-1.5 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white"
+            className="h-8 gap-1.5 text-xs font-semibold"
             disabled={updatePost.isPending || watchedStatus === "PUBLISHED"}
             onClick={() => {
               void handleSubmit(onPublish)();
@@ -399,30 +399,30 @@ export function BlogEditView({ postId }: { postId: string }) {
         </div>
       </div>
 
-      {/* â”€â”€ Main Area (70% content, 30% settings) â”€â”€ */}
+      {/* ── Main Area (70% content, 30% settings) ── */}
       <div className="flex-1 flex overflow-hidden w-full">
         {/* Editor Column (70%) */}
         <div className="w-[70%] min-w-0 h-full overflow-y-auto overflow-x-hidden p-6 space-y-5 flex flex-col">
           {/* Title */}
           <div>
-            <input
+            <Input
               {...register("title")}
               placeholder={t("postTitle")}
-              className="w-full text-[28px] font-bold text-slate-900 placeholder-slate-300 bg-transparent border-none outline-none leading-tight"
+              className="w-full text-2xl font-bold text-foreground placeholder:text-muted-foreground bg-transparent border-none outline-none shadow-none focus-visible:ring-0 p-0 h-auto leading-tight"
             />
             {errors.title && (
-              <p className="flex items-center gap-1 text-xs text-red-600 mt-1">
+              <p className="flex items-center gap-1 text-xs text-destructive mt-1">
                 <AlertCircle className="size-3" /> {errors.title.message}
               </p>
             )}
           </div>
 
-          <Separator className="bg-slate-100" />
+          <Separator />
 
           {/* MDX Content */}
           <div className="space-y-2 min-w-0 w-full">
             <FieldLabel>{t("content")}</FieldLabel>
-            <div className="border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-white w-full min-w-0">
+            <div className="border border-border rounded-xl overflow-hidden shadow-sm bg-card w-full min-w-0">
               <Controller
                 name="content"
                 control={control}
@@ -436,7 +436,7 @@ export function BlogEditView({ postId }: { postId: string }) {
               />
             </div>
             {errors.content && (
-              <p className="flex items-center gap-1 text-xs text-red-600">
+              <p className="flex items-center gap-1 text-xs text-destructive">
                 <AlertCircle className="size-3" /> {errors.content.message}
               </p>
             )}
@@ -446,7 +446,7 @@ export function BlogEditView({ postId }: { postId: string }) {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <FieldLabel>{t("excerpt")}</FieldLabel>
-              <span className="text-[10px] text-slate-400">
+              <span className="text-xs text-muted-foreground">
                 {(watchedExcerpt ?? "").length}/500
               </span>
             </div>
@@ -460,31 +460,33 @@ export function BlogEditView({ postId }: { postId: string }) {
         </div>
 
         {/* Sidebar Column (30%) */}
-        <div className="w-[30%] min-w-0 h-full flex flex-col border-l border-slate-200 bg-slate-50/40 overflow-hidden">
+        <div className="w-[30%] min-w-0 h-full flex flex-col border-l border-border bg-muted/20 overflow-hidden">
           {/* Manual tab bar */}
-          <div className="shrink-0 border-b border-slate-200 bg-white px-1 pt-1">
+          <div className="shrink-0 border-b border-border bg-card px-1 pt-1">
             <div className="flex">
               {tabs.map(({ id, label, icon: Icon }) => (
-                <button
+                <Button
                   key={id}
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setActiveTab(id)}
-                  className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-semibold transition-all border-b-2 -mb-px ${
+                  className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-semibold rounded-none border-b-2 -mb-px ${
                     activeTab === id
-                      ? "border-slate-900 text-slate-900"
-                      : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+                      ? "border-primary text-foreground"
+                      : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted"
                   }`}
                 >
                   <Icon className="size-3.5" />
                   {label}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
 
           {/* Tab content */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {/* â”€â”€ POST TAB â”€â”€ */}
+            {/* ── POST TAB ── */}
             {activeTab === "post" && (
               <>
                 <div className="space-y-1.5">
@@ -497,37 +499,37 @@ export function BlogEditView({ postId }: { postId: string }) {
                         value={field.value}
                         onValueChange={field.onChange}
                       >
-                        <SelectTrigger className="w-full h-9 text-sm bg-white">
+                        <SelectTrigger className="w-full h-9 text-sm bg-background">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="DRAFT">
                             <div className="flex items-center gap-2">
-                              <FileText className="size-3.5 text-slate-500" />{" "}
+                              <FileText className="size-3.5 text-muted-foreground" />{" "}
                               {t("draft")}
                             </div>
                           </SelectItem>
                           <SelectItem value="REVIEW">
                             <div className="flex items-center gap-2">
-                              <Eye className="size-3.5 text-yellow-500" />{" "}
+                              <Eye className="size-3.5 text-warning" />{" "}
                               {t("inReview")}
                             </div>
                           </SelectItem>
                           <SelectItem value="SCHEDULED">
                             <div className="flex items-center gap-2">
-                              <Clock className="size-3.5 text-indigo-500" />{" "}
+                              <Clock className="size-3.5 text-primary" />{" "}
                               {t("scheduled")}
                             </div>
                           </SelectItem>
                           <SelectItem value="PUBLISHED">
                             <div className="flex items-center gap-2">
-                              <Globe className="size-3.5 text-emerald-500" />{" "}
+                              <Globe className="size-3.5 text-success" />{" "}
                               {t("published")}
                             </div>
                           </SelectItem>
                           <SelectItem value="ARCHIVED">
                             <div className="flex items-center gap-2">
-                              <Archive className="size-3.5 text-red-500" />{" "}
+                              <Archive className="size-3.5 text-destructive" />{" "}
                               {t("archived")}
                             </div>
                           </SelectItem>
@@ -554,7 +556,7 @@ export function BlogEditView({ postId }: { postId: string }) {
                             )
                           }
                           placeholder={t("selectPublicationTime")}
-                          className="bg-white text-sm"
+                          className="bg-background text-sm"
                         />
                       )}
                     />
@@ -568,10 +570,10 @@ export function BlogEditView({ postId }: { postId: string }) {
                   <Input
                     {...register("slug")}
                     placeholder={t("myPostSlug")}
-                    className="h-9 text-sm font-mono bg-white"
+                    className="h-9 text-sm font-mono bg-background"
                   />
                   {errors.slug && (
-                    <p className="flex items-center gap-1 text-[10px] text-red-600">
+                    <p className="flex items-center gap-1 text-xs text-destructive">
                       <AlertCircle className="size-3" /> {errors.slug.message}
                     </p>
                   )}
@@ -588,7 +590,7 @@ export function BlogEditView({ postId }: { postId: string }) {
                     <Input
                       {...register("displayAuthorName")}
                       placeholder={t("overrideName")}
-                      className="h-8 text-sm bg-white"
+                      className="h-8 text-sm bg-background"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -596,7 +598,7 @@ export function BlogEditView({ postId }: { postId: string }) {
                     <Textarea
                       {...register("displayAuthorBio")}
                       placeholder={t("overrideBio")}
-                      className="text-sm resize-none min-h-[56px] bg-white"
+                      className="text-sm resize-none min-h-[56px] bg-background"
                       rows={2}
                     />
                   </div>
@@ -605,15 +607,15 @@ export function BlogEditView({ postId }: { postId: string }) {
                 <Separator />
 
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="bg-white rounded-lg border border-slate-200 p-3">
+                  <div className="bg-card rounded-lg border border-border p-3">
                     <FieldLabel>{t("views")}</FieldLabel>
-                    <p className="text-xl font-bold text-slate-900 mt-0.5">
+                    <p className="text-xl font-bold text-foreground mt-0.5">
                       {post.viewCount.toLocaleString()}
                     </p>
                   </div>
-                  <div className="bg-white rounded-lg border border-slate-200 p-3">
+                  <div className="bg-card rounded-lg border border-border p-3">
                     <FieldLabel>{t("words")}</FieldLabel>
-                    <p className="text-xl font-bold text-slate-900 mt-0.5">
+                    <p className="text-xl font-bold text-foreground mt-0.5">
                       {post.wordCount.toLocaleString()}
                     </p>
                   </div>
@@ -621,7 +623,7 @@ export function BlogEditView({ postId }: { postId: string }) {
               </>
             )}
 
-            {/* â”€â”€ SETTINGS TAB â”€â”€ */}
+            {/* ── SETTINGS TAB ── */}
             {activeTab === "settings" && (
               <>
                 <div className="space-y-1.5">
@@ -636,12 +638,12 @@ export function BlogEditView({ postId }: { postId: string }) {
                           field.onChange(v === "__none__" ? "" : v)
                         }
                       >
-                        <SelectTrigger className="w-full h-9 text-sm bg-white">
+                        <SelectTrigger className="w-full h-9 text-sm bg-background">
                           <SelectValue placeholder={t("noCategory")} />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="__none__">
-                            <span className="text-slate-400">
+                            <span className="text-muted-foreground">
                               {t("noCategory")}
                             </span>
                           </SelectItem>
@@ -686,79 +688,81 @@ export function BlogEditView({ postId }: { postId: string }) {
                       return (
                         <div className="space-y-2.5">
                           {/* Selected tag badges */}
-                          <div className="flex flex-wrap gap-1.5 min-h-[26px] p-2 rounded-lg border border-slate-200 bg-white shadow-3xs">
+                          <div className="flex flex-wrap gap-1.5 min-h-[26px] p-2 rounded-lg border border-border bg-card shadow-3xs">
                             {field.value.length === 0 ? (
-                              <span className="text-[10px] text-slate-400 italic">
+                              <span className="text-xs text-muted-foreground italic">
                                 {t("noTagsSelected")}
                               </span>
                             ) : (
                               allTags
                                 .filter((t) => selectedIds.has(t.id))
                                 .map((tag) => (
-                                  <button
+                                  <Button
                                     key={tag.id}
                                     type="button"
+                                    size="sm"
+                                    variant="secondary"
                                     onClick={() => toggleTag(tag.id)}
-                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-[10px] font-semibold text-white hover:bg-slate-800 transition-colors"
+                                    className="h-6 gap-1 px-2 rounded-full text-xs font-semibold"
                                   >
                                     {tag.name}
-                                    <X className="size-2.5 text-slate-300" />
-                                  </button>
+                                    <X className="size-2.5 text-muted-foreground" />
+                                  </Button>
                                 ))
                             )}
                           </div>
 
                           {/* Search Tag input */}
                           <div className="relative">
-                            <Search className="absolute left-2.5 top-2 size-3 text-slate-400" />
+                            <Search className="absolute left-2.5 top-2 size-3 text-muted-foreground" />
                             <Input
                               type="text"
                               placeholder={t("searchTagsToAdd")}
                               value={tagSearch}
                               onChange={(e) => setTagSearch(e.target.value)}
-                              className="h-7 pl-7 text-[11px] bg-white border-slate-200"
+                              className="h-7 pl-7 text-xs bg-background border-border"
                             />
                             {tagSearch && (
-                              <button
+                              <Button
                                 type="button"
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => setTagSearch("")}
-                                className="absolute right-2 top-2 text-slate-400 hover:text-slate-600"
+                                className="absolute right-1 top-1 h-5 w-5 p-0 text-muted-foreground hover:text-foreground"
                               >
                                 <X className="size-3" />
-                              </button>
+                              </Button>
                             )}
                           </div>
 
                           {/* Tags list options */}
-                          <div className="max-h-36 overflow-y-auto border border-slate-200 rounded-lg p-1.5 bg-white space-y-1">
+                          <div className="max-h-36 overflow-y-auto border border-border rounded-lg p-1.5 bg-card space-y-1">
                             {filteredTags.length === 0 ? (
-                              <p className="text-[10px] text-slate-400 text-center py-2">
+                              <p className="text-xs text-muted-foreground text-center py-2">
                                 {t("noMatchingTagsFound")}
                               </p>
                             ) : (
                               filteredTags.map((tag) => {
                                 const isSelected = selectedIds.has(tag.id);
                                 return (
-                                  <button
+                                  <Button
                                     key={tag.id}
                                     type="button"
+                                    variant={isSelected ? "secondary" : "ghost"}
+                                    size="sm"
                                     onClick={() => toggleTag(tag.id)}
-                                    className={`w-full flex items-center justify-between px-2 py-1 text-left text-xs rounded-md transition-colors ${
-                                      isSelected
-                                        ? "bg-slate-50 font-semibold text-slate-900"
-                                        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                                    }`}
+                                    className="w-full justify-between h-7 px-2 text-xs font-normal"
                                   >
                                     <span className="flex items-center gap-1.5">
-                                      <Hash className="size-3 text-slate-400" />
+                                      <Hash className="size-3 text-muted-foreground" />
                                       {tag.name}
                                     </span>
                                     {isSelected && (
-                                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                                      <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider">
                                         {t("added")}
                                       </span>
                                     )}
-                                  </button>
+                                  </Button>
                                 );
                               })
                             )}
@@ -795,10 +799,10 @@ export function BlogEditView({ postId }: { postId: string }) {
                       className="flex items-center justify-between"
                     >
                       <div>
-                        <p className="text-sm font-medium text-slate-700">
+                        <p className="text-sm font-medium text-foreground">
                           {label}
                         </p>
-                        <p className="text-[10px] text-slate-400">{desc}</p>
+                        <p className="text-xs text-muted-foreground">{desc}</p>
                       </div>
                       <Controller
                         name={name}
@@ -807,7 +811,6 @@ export function BlogEditView({ postId }: { postId: string }) {
                           <Switch
                             checked={field.value}
                             onCheckedChange={field.onChange}
-                            size="sm"
                           />
                         )}
                       />
@@ -847,10 +850,10 @@ export function BlogEditView({ postId }: { postId: string }) {
                               ? t("descriptiveAltText")
                               : t("photoByUnsplash")
                           }
-                          className="h-8 text-sm bg-white"
+                          className="h-8 text-sm bg-background"
                         />
                         {errors[f] && (
-                          <p className="text-[10px] text-red-600">
+                          <p className="text-xs text-destructive">
                             {errors[f]?.message}
                           </p>
                         )}
@@ -861,14 +864,14 @@ export function BlogEditView({ postId }: { postId: string }) {
               </>
             )}
 
-            {/* â”€â”€ SEO TAB â”€â”€ */}
+            {/* ── SEO TAB ── */}
             {activeTab === "seo" && (
               <>
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <SectionLabel>{t("seoTitle")}</SectionLabel>
                     <span
-                      className={`text-[10px] font-bold ${(watchedSeoTitle?.length ?? 0) > 60 ? "text-amber-600" : "text-slate-400"}`}
+                      className={`text-xs font-bold ${(watchedSeoTitle?.length ?? 0) > 60 ? "text-warning" : "text-muted-foreground"}`}
                     >
                       {watchedSeoTitle?.length ?? 0}/70
                     </span>
@@ -876,10 +879,10 @@ export function BlogEditView({ postId }: { postId: string }) {
                   <Input
                     {...register("seoTitle")}
                     placeholder={t("overrideTitleInSearchResults")}
-                    className="h-9 text-sm bg-white"
+                    className="h-9 text-sm bg-background"
                   />
                   {errors.seoTitle && (
-                    <p className="text-[10px] text-red-600">
+                    <p className="text-xs text-destructive">
                       {errors.seoTitle.message}
                     </p>
                   )}
@@ -889,7 +892,7 @@ export function BlogEditView({ postId }: { postId: string }) {
                   <div className="flex items-center justify-between">
                     <SectionLabel>{t("seoDescription")}</SectionLabel>
                     <span
-                      className={`text-[10px] font-bold ${(watchedSeoDescription?.length ?? 0) > 140 ? "text-amber-600" : "text-slate-400"}`}
+                      className={`text-xs font-bold ${(watchedSeoDescription?.length ?? 0) > 140 ? "text-warning" : "text-muted-foreground"}`}
                     >
                       {watchedSeoDescription?.length ?? 0}/160
                     </span>
@@ -897,11 +900,11 @@ export function BlogEditView({ postId }: { postId: string }) {
                   <Textarea
                     {...register("seoDescription")}
                     placeholder={t("metaDescriptionShownInSearch")}
-                    className="resize-none text-sm min-h-[72px] bg-white"
+                    className="resize-none text-sm min-h-[72px] bg-background"
                     rows={3}
                   />
                   {errors.seoDescription && (
-                    <p className="text-[10px] text-red-600">
+                    <p className="text-xs text-destructive">
                       {errors.seoDescription.message}
                     </p>
                   )}
@@ -912,10 +915,10 @@ export function BlogEditView({ postId }: { postId: string }) {
                   <Input
                     {...register("canonicalUrl")}
                     placeholder={t("https")}
-                    className="h-9 text-sm bg-white"
+                    className="h-9 text-sm bg-background"
                   />
                   {errors.canonicalUrl && (
-                    <p className="text-[10px] text-red-600">
+                    <p className="text-xs text-destructive">
                       {errors.canonicalUrl.message}
                     </p>
                   )}
@@ -926,10 +929,10 @@ export function BlogEditView({ postId }: { postId: string }) {
                   <Input
                     {...register("ogImage")}
                     placeholder={t("https")}
-                    className="h-9 text-sm bg-white"
+                    className="h-9 text-sm bg-background"
                   />
                   {errors.ogImage && (
-                    <p className="text-[10px] text-red-600">
+                    <p className="text-xs text-destructive">
                       {errors.ogImage.message}
                     </p>
                   )}
@@ -958,7 +961,7 @@ export function BlogEditView({ postId }: { postId: string }) {
                         <Textarea
                           {...register(f)}
                           placeholder={t("twitterDescription")}
-                          className="resize-none text-sm min-h-[56px] bg-white"
+                          className="resize-none text-sm min-h-[56px] bg-background"
                           rows={2}
                         />
                       ) : (
@@ -969,11 +972,11 @@ export function BlogEditView({ postId }: { postId: string }) {
                               ? t("https")
                               : t("twitterTitle")
                           }
-                          className="h-8 text-sm bg-white"
+                          className="h-8 text-sm bg-background"
                         />
                       )}
                       {errors[f] && (
-                        <p className="text-[10px] text-red-600">
+                        <p className="text-xs text-destructive">
                           {errors[f]?.message}
                         </p>
                       )}

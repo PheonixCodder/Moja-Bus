@@ -92,8 +92,8 @@ export function ScheduleCard({
             className={cn(
               "inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold",
               schedule.isActive
-                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                : "bg-slate-50 text-slate-500 border-slate-200",
+                ? "bg-success/15 text-success border-success/20"
+                : "bg-muted text-muted-foreground border-border",
             )}
           >
             {schedule.isActive ? t("active") : t("inactive")}
@@ -131,7 +131,7 @@ export function ScheduleCard({
         </div>
 
         {!schedule.preferredBus || schedule.preferredBus.status !== "ACTIVE" ? (
-          <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-100 rounded-md px-2 py-1.5">
+          <p className="text-[11px] text-warning bg-warning/10 border border-warning/20 rounded-md px-2 py-1.5">
             {schedule.preferredBus
               ? t("busInactiveWarning", {
                   plate: schedule.preferredBus.registrationPlate,
@@ -176,7 +176,7 @@ export function ScheduleCard({
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-7 px-2 text-[10px] text-muted-foreground hover:text-amber-700 hover:bg-amber-50 font-semibold gap-1"
+                className="h-7 px-2 text-[10px] text-muted-foreground hover:text-warning hover:bg-warning/10 font-semibold gap-1"
                 onClick={() => onRetire(schedule)}
                 aria-label={t("retireAria")}
               >

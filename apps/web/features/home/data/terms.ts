@@ -231,7 +231,7 @@ const en: TermsData = {
           ["Between 7 and 29 days", "75%"],
           ["30 days or more", "100%"],
         ],
-        refundColor: "text-[#ee237c]",
+        refundColor: "text-primary",
       },
       extras: [
         "• Extras (seat reservations, additional luggage): refunded at 100%.",
@@ -463,7 +463,7 @@ const fr: TermsData = {
           ["Entre 7 et 29 jours", "75%"],
           ["30 jours ou plus", "100%"],
         ],
-        refundColor: "text-[#ee237c]",
+        refundColor: "text-primary",
       },
       extras: [
         "• Suppléments (réservation de siège, bagages supplémentaires) : remboursés à 100%.",

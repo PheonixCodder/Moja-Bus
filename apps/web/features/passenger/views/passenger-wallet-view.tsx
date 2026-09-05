@@ -106,15 +106,15 @@ export function PassengerWalletView() {
   return (
     <div className="space-y-6">
       {topupStatus === "pending" && (
-        <div className="flex items-center gap-3 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs shadow-sm">
-          <AlertCircle className="size-4 text-amber-600 shrink-0" />
+        <div className="flex items-center gap-3 p-4 rounded-2xl bg-warning/10 border border-warning/20 text-foreground text-xs shadow-sm">
+          <AlertCircle className="size-4 text-warning shrink-0" />
           <div className="space-y-0.5">
             <span className="font-bold">{t("verificationPending")}</span>
-            <p className="text-amber-700">
+            <p className="text-muted-foreground">
               {t("verificationPendingDesc", { ref: pendingRef ?? "" })}
             </p>
           </div>
-          <Spinner className="size-4 text-amber-600 ml-auto" />
+          <Spinner className="size-4 text-warning ml-auto" />
         </div>
       )}
 

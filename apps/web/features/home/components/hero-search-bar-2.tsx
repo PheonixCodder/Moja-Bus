@@ -108,7 +108,7 @@ export function HeroSearchBar({
         <div className="flex flex-col md:flex-row gap-4 items-end">
           {/* From */}
           <div className="flex-1 w-full">
-            <label className="block text-sm font-bold text-slate-900 mb-2">
+            <label className="block text-sm font-bold text-foreground mb-2">
               {t("from")}
             </label>
             <CityAutocompleteField
@@ -116,13 +116,13 @@ export function HeroSearchBar({
               value={origin}
               onChange={setOrigin}
               hideIcon={true}
-              inputClassName="w-full h-12 px-4 rounded-xl border-none bg-slate-100 text-sm font-medium text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#ee237c]/20 transition-all outline-none"
+              inputClassName="w-full h-12 px-4 rounded-xl border-none bg-muted text-sm font-medium text-foreground focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all outline-none"
             />
           </div>
 
           {/* To */}
           <div className="flex-1 w-full">
-            <label className="block text-sm font-bold text-slate-900 mb-2">
+            <label className="block text-sm font-bold text-foreground mb-2">
               {t("to")}
             </label>
             <CityAutocompleteField
@@ -130,29 +130,30 @@ export function HeroSearchBar({
               value={destination}
               onChange={setDestination}
               hideIcon={true}
-              inputClassName="w-full h-12 px-4 rounded-xl border-none bg-slate-100 text-sm font-medium text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#ee237c]/20 transition-all outline-none"
+              inputClassName="w-full h-12 px-4 rounded-xl border-none bg-muted text-sm font-medium text-foreground focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all outline-none"
             />
           </div>
 
           {/* Date */}
           <div className="w-full md:w-[220px]">
-            <label className="block text-sm font-bold text-slate-900 mb-2">
+            <label className="block text-sm font-bold text-foreground mb-2">
               {t("date")}
             </label>
             <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
               <PopoverTrigger
                 render={
-                  <button
+                  <Button
                     type="button"
-                    className="relative w-full h-12 px-4 rounded-xl border-none bg-slate-100 text-sm font-medium text-left flex items-center hover:bg-slate-200 focus:bg-white focus:ring-2 focus:ring-[#ee237c]/20 transition-all outline-none text-slate-800"
+                    variant="ghost"
+                    className="relative w-full h-12 px-4 rounded-xl border-none bg-muted text-sm font-medium text-left flex items-center justify-start hover:bg-muted/80 focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all outline-none text-foreground shadow-none font-normal"
                   />
                 }
               >
-                <Calendar className="w-4 h-4 text-slate-500 mr-2 shrink-0 pointer-events-none" />
+                <Calendar className="w-4 h-4 text-muted-foreground mr-2 shrink-0 pointer-events-none" />
                 <span className="flex-1 truncate">
                   {date ? format(parseLocalDate(date)!, "PPP") : t("pickDate")}
                 </span>
-                <ChevronDown className="w-4 h-4 text-slate-500 ml-2 shrink-0 pointer-events-none" />
+                <ChevronDown className="w-4 h-4 text-muted-foreground ml-2 shrink-0 pointer-events-none" />
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <CalendarComponent
@@ -174,14 +175,14 @@ export function HeroSearchBar({
 
           {/* Passengers */}
           <div className="w-full md:w-[130px]">
-            <label className="block text-sm font-bold text-slate-900 mb-2">
+            <label className="block text-sm font-bold text-foreground mb-2">
               {t("passengers")}
             </label>
             <Select
               value={String(travelers)}
               onValueChange={(val) => setTravelers(Number(val))}
             >
-              <SelectTrigger className="w-full h-[48px]! px-4 rounded-lg border-none bg-slate-100 text-sm font-medium text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#ee237c]/20 transition-all outline-none">
+              <SelectTrigger className="w-full h-[48px]! px-4 rounded-lg border-none bg-muted text-sm font-medium text-foreground focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all outline-none">
                 <SelectValue placeholder={t("guest", { count: 1 })} />
               </SelectTrigger>
               <SelectContent>
@@ -200,7 +201,7 @@ export function HeroSearchBar({
           <div className="w-full md:w-auto">
             <Button
               type="submit"
-              className="w-full md:w-auto h-12 px-8 rounded-xl bg-[#ee237c] text-white font-bold text-sm hover:bg-[#c71d65] hover:shadow-lg transition-all flex items-center justify-center border-0"
+              className="w-full md:w-auto h-12 px-8 rounded-xl font-bold text-sm shadow-sm transition-all flex items-center justify-center border-0"
             >
               {t("search")}
               <Plane className="w-4 h-4 ml-2" />
@@ -210,18 +211,20 @@ export function HeroSearchBar({
 
         {/* Popular destinations */}
         <div className="flex flex-wrap items-center gap-2 mt-5">
-          <span className="text-xs text-slate-500 font-medium">
+          <span className="text-xs text-muted-foreground font-medium">
             {t("popular")}
           </span>
           {POPULAR.map((dest) => (
-            <button
+            <Button
               key={dest}
               type="button"
+              variant="outline"
+              size="sm"
               onClick={() => setDestination({ id: "", text: dest })}
-              className="text-xs font-medium px-3 py-1 rounded-full bg-slate-50 hover:bg-pink-50 text-slate-600 hover:text-[#ee237c] border border-slate-200 hover:border-pink-200 transition-all duration-150"
+              className="text-xs font-medium px-3 py-1 h-auto rounded-full bg-muted/40 hover:bg-primary/10 text-muted-foreground hover:text-primary border-border hover:border-primary/20 transition-all duration-150 shadow-none"
             >
               {dest}
-            </button>
+            </Button>
           ))}
         </div>
       </form>

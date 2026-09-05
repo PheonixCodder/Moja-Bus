@@ -3,12 +3,10 @@ import {
 	View,
 	Text,
 	ScrollView,
-	TouchableOpacity,
 	Switch,
 	ActivityIndicator,
 	Alert,
 	Linking,
-	StyleSheet,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -38,7 +36,8 @@ import { getActiveTelemetryHealth } from "@/lib/telemetry";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { colors } from "@/constants/theme";
+import { UserAvatar } from "@/components/ui/avatar";
+import { colors, Palette } from "@/constants/theme";
 
 export function ProfileView() {
 	const { t } = useTranslation("passport");
@@ -134,646 +133,361 @@ export function ProfileView() {
 	};
 
 	const driverName = profile?.user?.fullName ?? t("fallbackName");
-	const initials = driverName
-		.split(" ")
-		.map((n: string) => n[0])
-		.join("")
-		.slice(0, 2)
-		.toUpperCase();
 
 	return (
-		<View style={styles.root}>
+		<View className="flex-1 bg-background">
 			{/* Top Passport Header */}
-			<View style={[styles.headerBar, { paddingTop: insets.top + 12 }]}>
-				<Text style={styles.headerTitle}>{t("headerTitle")}</Text>
-				<Text style={styles.headerSubtitle}>
+			<View
+				className="px-5 pb-3.5 border-b border-border bg-background"
+				style={{ paddingTop: insets.top + 12 }}
+			>
+				<Text className="text-xl font-extrabold text-foreground tracking-tight">{t("headerTitle")}</Text>
+				<Text className="text-xs text-muted-foreground mt-0.5">
 					{t("headerSubtitle")}
 				</Text>
 			</View>
 
 			<ScrollView
-				style={styles.scroll}
-				contentContainerStyle={[
-					styles.scrollContent,
-					{ paddingBottom: Math.max(insets.bottom, 24) + 80 },
-				]}
+				className="flex-1"
+				contentContainerStyle={{
+					paddingHorizontal: 16,
+					paddingTop: 16,
+					paddingBottom: Math.max(insets.bottom, 24) + 80,
+				}}
 				showsVerticalScrollIndicator={false}
 			>
-				{/* Driver ID Card */}
-				<Card className="p-5 gap-4">
-					<View style={styles.idRow}>
-						<View style={styles.avatarBox}>
-							<Text style={styles.avatarText}>{initials}</Text>
-						</View>
-						<View style={styles.idInfo}>
-							<Text style={styles.driverName} numberOfLines={1}>
-								{driverName}
-							</Text>
-							<View style={styles.verifiedRow}>
-								<HugeiconsIcon icon={SecurityCheckIcon} size={14} color="#10b981" />
-								<Text style={styles.verifiedText}>
-							{profile?.licenseCategory
-									? t("licenseClass", { category: profile.licenseCategory })
-									: t("verifiedBadge")}
-								</Text>
-							</View>
-							<Text style={styles.licenseNumber}>
-								{t("licenseLabel", { number: profile?.licenseNumber ?? t("licenseNA") })}
-							</Text>
-						</View>
-					</View>
-
-					{/* Shift On-Duty Toggle */}
-					<View style={styles.toggleRow}>
-						<View style={styles.toggleTextWrap}>
-							<Text style={styles.toggleTitle}>{t("shift.title")}</Text>
-							<Text style={styles.toggleSub}>
-								{isShiftActive
-									? t("shift.active", { minutes: elapsedMinutes })
-									: t("shift.inactive")}
-							</Text>
-						</View>
-						{toggleShiftMutation.isPending ? (
-							<ActivityIndicator size="small" color={colors.primary.rose} />
-						) : (
-							<Switch
-								value={isShiftActive}
-								onValueChange={handleToggleShift}
-								trackColor={{ false: "#27272a", true: "#ee237c" }}
-								thumbColor="#ffffff"
+				<View className="gap-4">
+					{/* Driver ID Card */}
+					<Card className="p-5 gap-4">
+						<View className="flex-row items-center gap-3.5">
+							<UserAvatar
+								name={driverName}
+								src={profile?.user?.image}
+								seed={profile?.user?.id || driverName}
+								size="xl"
+								className="w-14 h-14 rounded-2xl"
 							/>
-						)}
-					</View>
-
-					{/* Marketplace Availability Toggle */}
-					<View style={styles.toggleRow}>
-						<View style={styles.toggleTextWrap}>
-							<View style={styles.toggleIconLabel}>
-								<HugeiconsIcon icon={Briefcase01Icon} size={14} color="#a1a1aa" />
-								<Text style={styles.toggleTitle}>{t("marketplace.title")}</Text>
+							<View className="flex-1">
+								<Text className="text-lg font-extrabold text-foreground" numberOfLines={1}>
+									{driverName}
+								</Text>
+								<View className="flex-row items-center gap-1.5 mt-0.5">
+									<HugeiconsIcon icon={SecurityCheckIcon} size={14} color={colors.semantic.success} />
+									<Text className="text-xs font-semibold text-emerald-400">
+										{profile?.licenseCategory
+											? t("licenseClass", { category: profile.licenseCategory })
+											: t("verifiedBadge")}
+									</Text>
+								</View>
+								<Text className="text-xs text-muted-foreground font-mono mt-0.5">
+									{t("licenseLabel", { number: profile?.licenseNumber ?? t("licenseNA") })}
+								</Text>
 							</View>
-							<Text style={styles.toggleSub}>
-								{servicePreference?.isAvailableForHire
-									? t("marketplace.visible")
-									: t("marketplace.hidden")}
+						</View>
+
+						{/* Shift On-Duty Toggle */}
+						<View className="flex-row items-center justify-between bg-background p-3.5 rounded-2xl border border-border">
+							<View className="flex-1 pr-3">
+								<Text className="text-sm font-bold text-foreground">{t("shift.title")}</Text>
+								<Text className="text-xs text-muted-foreground mt-0.5">
+									{isShiftActive
+										? t("shift.active", { minutes: elapsedMinutes })
+										: t("shift.inactive")}
+								</Text>
+							</View>
+							{toggleShiftMutation.isPending ? (
+								<ActivityIndicator size="small" color={colors.primary.rose} />
+							) : (
+								<Switch
+									value={isShiftActive}
+									onValueChange={handleToggleShift}
+									trackColor={{ false: colors.neutral.border, true: colors.primary.rose }}
+									thumbColor={Palette.zinc[50]}
+								/>
+							)}
+						</View>
+
+						{/* Marketplace Availability Toggle */}
+						<View className="flex-row items-center justify-between bg-background p-3.5 rounded-2xl border border-border">
+							<View className="flex-1 pr-3">
+								<View className="flex-row items-center gap-1.5">
+									<HugeiconsIcon icon={Briefcase01Icon} size={14} color={colors.neutral.textSecondary} />
+									<Text className="text-sm font-bold text-foreground">{t("marketplace.title")}</Text>
+								</View>
+								<Text className="text-xs text-muted-foreground mt-0.5">
+									{servicePreference?.isAvailableForHire
+										? t("marketplace.visible")
+										: t("marketplace.hidden")}
+								</Text>
+							</View>
+							{setPreferenceMutation.isPending ? (
+								<ActivityIndicator size="small" color={colors.primary.rose} />
+							) : (
+								<Switch
+									value={servicePreference?.isAvailableForHire ?? false}
+									onValueChange={async (val) => {
+										DriverFeedback.tap();
+										try {
+											await setPreferenceMutation.mutateAsync({
+												isAvailableForHire: val,
+												preferredType: servicePreference?.preferredType ?? "EXCLUSIVE_INTERCITY",
+												cityBase: servicePreference?.cityBase ?? null,
+												routeExperience: servicePreference?.routeExperience ?? [],
+											});
+											DriverFeedback.successScan();
+										} catch (err: any) {
+											DriverFeedback.invalidScan();
+											Alert.alert(t("errors.preference"), err.message || t("errors.preferenceMsg"));
+										}
+									}}
+									trackColor={{ false: colors.neutral.border, true: colors.semantic.success }}
+									thumbColor={Palette.zinc[50]}
+								/>
+							)}
+						</View>
+
+						{/* Edit Marketplace Profile Link */}
+						<Button
+							variant="outline"
+							onPress={() => {
+								DriverFeedback.tap();
+								router.push("/(auth)/preferences");
+							}}
+							className="justify-between px-3.5 py-3 h-auto min-h-[56px] rounded-2xl border-border bg-background"
+						>
+							<View className="flex-row items-center gap-2.5 flex-1">
+								<HugeiconsIcon icon={Edit02Icon} size={16} color={colors.semantic.info} />
+								<View className="flex-1">
+									<Text className="text-sm font-bold text-primary">
+										{t("editProfile.title")}
+									</Text>
+									<Text className="text-xs text-muted-foreground mt-0.5">
+										{servicePreference?.cityBase
+											? t("editProfile.base", { city: servicePreference.cityBase, count: servicePreference.routeExperience?.length ?? 0 })
+											: t("editProfile.subtitle")}
+									</Text>
+								</View>
+							</View>
+							<HugeiconsIcon icon={Briefcase01Icon} size={16} color={colors.neutral.textMuted} />
+						</Button>
+
+						{/* Language Selector Link */}
+						<Button
+							variant="outline"
+							onPress={() => {
+								DriverFeedback.tap();
+								router.push("/language");
+							}}
+							className="justify-between px-3.5 py-3 h-auto min-h-[56px] rounded-2xl border-border bg-background"
+						>
+							<View className="flex-row items-center gap-2.5 flex-1">
+								<HugeiconsIcon icon={Globe02Icon} size={16} color={colors.primary.rose} />
+								<View className="flex-1">
+									<Text className="text-sm font-bold text-primary">
+										{t("language.title")}
+									</Text>
+									<Text className="text-xs text-muted-foreground mt-0.5">
+										{t("language.subtitle")}
+									</Text>
+								</View>
+							</View>
+							<Badge variant="outline" label={t("language.badge")} size="sm" />
+						</Button>
+					</Card>
+
+					{/* Earnings Summary Card */}
+					<Card className="p-5 gap-3">
+						<View className="flex-row items-center justify-between">
+							<View className="flex-row items-center gap-2">
+								<HugeiconsIcon icon={Coins01Icon} size={18} color={colors.semantic.warning} />
+								<Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t("earnings.title")}</Text>
+							</View>
+							<Text className="text-xs font-mono font-bold text-emerald-400">{t("earnings.currency")}</Text>
+						</View>
+
+						<View className="flex-row items-baseline gap-2 pt-1">
+							<Text className="text-3xl font-extrabold text-foreground font-mono">
+								{(earnings?.todayEarningsXof ?? 0).toLocaleString()}
+							</Text>
+							<Text className="text-xs font-bold text-muted-foreground">{t("earnings.today")}</Text>
+						</View>
+
+						<View className="flex-row items-center justify-between bg-background p-3 rounded-xl border border-border">
+							<View className="flex-row items-center gap-1.5">
+								<HugeiconsIcon icon={Clock01Icon} size={13} color={colors.neutral.textMuted} />
+								<Text className="text-xs text-muted-foreground">
+									{currentShift ? t("earnings.serviceActive", { minutes: elapsedMinutes }) : t("earnings.serviceInactive")}
+								</Text>
+							</View>
+							<Text className="text-xs text-muted-foreground font-semibold">
+								{t("earnings.week", { amount: (earnings?.weekEarningsXof ?? 0).toLocaleString() })}
 							</Text>
 						</View>
-						{setPreferenceMutation.isPending ? (
-							<ActivityIndicator size="small" color={colors.primary.rose} />
-						) : (
-							<Switch
-								value={servicePreference?.isAvailableForHire ?? false}
-								onValueChange={async (val) => {
-									DriverFeedback.tap();
-									try {
-										await setPreferenceMutation.mutateAsync({
-											isAvailableForHire: val,
-											preferredType: servicePreference?.preferredType ?? "EXCLUSIVE_INTERCITY",
-											cityBase: servicePreference?.cityBase ?? null,
-											routeExperience: servicePreference?.routeExperience ?? [],
-										});
-										DriverFeedback.successScan();
-									} catch (err: any) {
-										DriverFeedback.invalidScan();
-										Alert.alert(t("errors.preference"), err.message || t("errors.preferenceMsg"));
-									}
-								}}
-								trackColor={{ false: "#27272a", true: "#10b981" }}
-								thumbColor="#ffffff"
+					</Card>
+
+					{/* Telemetry Health */}
+					<Card className="p-5 gap-3">
+						<View className="flex-row items-center justify-between">
+							<View className="flex-row items-center gap-2">
+								<HugeiconsIcon icon={Activity01Icon} size={18} color={colors.semantic.info} />
+								<Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t("telemetryHealth")}</Text>
+							</View>
+							<Badge
+								variant={
+									health.needsReauth
+										? "error"
+										: health.adaptiveMode === "OFFLINE"
+											? "default"
+											: "success"
+								}
+								label={
+									health.adaptiveMode === "HIGH_RATE"
+										? t("streaming")
+										: health.adaptiveMode === "STATIONARY"
+											? t("idleTracking")
+											: t("offline")
+								}
 							/>
-						)}
-					</View>
-
-					{/* Edit Marketplace Profile Link */}
-					<TouchableOpacity
-						onPress={() => {
-							DriverFeedback.tap();
-							router.push("/(auth)/preferences");
-						}}
-						activeOpacity={0.8}
-						style={styles.editProfileBtn}
-					>
-						<View style={styles.editProfileLeft}>
-							<HugeiconsIcon icon={Edit02Icon} size={16} color="#38bdf8" />
-							<View>
-								<Text style={styles.editProfileTitle}>
-									{t("editProfile.title")}
-								</Text>
-								<Text style={styles.editProfileSub}>
-									{servicePreference?.cityBase
-										? t("editProfile.base", { city: servicePreference.cityBase, count: servicePreference.routeExperience?.length ?? 0 })
-										: t("editProfile.subtitle")}
-								</Text>
-							</View>
 						</View>
-						<HugeiconsIcon icon={Briefcase01Icon} size={16} color="#71717a" />
-					</TouchableOpacity>
 
-					{/* Language Selector Link */}
-					<TouchableOpacity
-						onPress={() => {
-							DriverFeedback.tap();
-							router.push("/language");
-						}}
-						activeOpacity={0.8}
-						style={styles.editProfileBtn}
-					>
-						<View style={styles.editProfileLeft}>
-							<HugeiconsIcon icon={Globe02Icon} size={16} color="#ee237c" />
-							<View>
-								<Text style={[styles.editProfileTitle, { color: "#ee237c" }]}>
-									{t("language.title")}
-								</Text>
-								<Text style={styles.editProfileSub}>
-									{t("language.subtitle")}
-								</Text>
-							</View>
-						</View>
-						<Badge variant="outline" label={t("language.badge")} size="sm" />
-					</TouchableOpacity>
-				</Card>
-
-				{/* Earnings Summary Card */}
-				<Card className="p-5 gap-3">
-					<View style={styles.cardHeaderRow}>
-						<View style={styles.cardHeaderLeft}>
-							<HugeiconsIcon icon={Coins01Icon} size={18} color="#f59e0b" />
-							<Text style={styles.cardHeaderTitle}>{t("earnings.title")}</Text>
-						</View>
-						<Text style={styles.currencyBadge}>{t("earnings.currency")}</Text>
-					</View>
-
-					<View style={styles.earningsAmountRow}>
-						<Text style={styles.earningsAmount}>
-							{(earnings?.todayEarningsXof ?? 0).toLocaleString()}
-						</Text>
-						<Text style={styles.earningsSub}>{t("earnings.today")}</Text>
-					</View>
-
-					<View style={styles.earningsMetaRow}>
-						<View style={styles.earningsMetaLeft}>
-							<HugeiconsIcon icon={Clock01Icon} size={13} color="#71717a" />
-							<Text style={styles.earningsMetaText}>
-								{currentShift ? t("earnings.serviceActive", { minutes: elapsedMinutes }) : t("earnings.serviceInactive")}
-							</Text>
-						</View>
-						<Text style={styles.earningsWeekText}>
-							{t("earnings.week", { amount: (earnings?.weekEarningsXof ?? 0).toLocaleString() })}
-						</Text>
-					</View>
-				</Card>
-
-				{/* Telemetry Health */}
-				<Card className="p-5 gap-3">
-					<View style={styles.cardHeaderRow}>
-						<View style={styles.cardHeaderLeft}>
-							<HugeiconsIcon icon={Activity01Icon} size={18} color="#38bdf8" />
-							<Text style={styles.cardHeaderTitle}>{t("telemetryHealth")}</Text>
-						</View>
-						<Badge
-							variant={
-								health.needsReauth
-									? "error"
-									: health.adaptiveMode === "OFFLINE"
-										? "default"
-										: "success"
-							}
-							label={
-								health.adaptiveMode === "HIGH_RATE"
-									? t("streaming")
-									: health.adaptiveMode === "STATIONARY"
-										? t("idleTracking")
-										: t("offline")
-							}
-						/>
-					</View>
-
-					<View style={styles.earningsMetaRow}>
-						<View style={styles.earningsMetaLeft}>
-							<HugeiconsIcon icon={Clock01Icon} size={13} color="#71717a" />
-							<Text style={styles.earningsMetaText}>
-								{health.lastPingAt
-									? t("pingAgo", {
-											minutes: Math.max(
-												0,
-												Math.round(
-													(Date.now() - new Date(health.lastPingAt).getTime()) / 60000
+						<View className="flex-row items-center justify-between bg-background p-3 rounded-xl border border-border">
+							<View className="flex-row items-center gap-1.5">
+								<HugeiconsIcon icon={Clock01Icon} size={13} color={colors.neutral.textMuted} />
+								<Text className="text-xs text-muted-foreground">
+									{health.lastPingAt
+										? t("pingAgo", {
+												minutes: Math.max(
+													0,
+													Math.round(
+														(Date.now() - new Date(health.lastPingAt).getTime()) / 60000
+													),
 												),
-											),
-										})
-									: t("noPingYet")}
+											})
+										: t("noPingYet")}
+								</Text>
+							</View>
+							<Text className="text-xs text-muted-foreground font-semibold">
+								{t("queued", { count: health.queueLength })}
 							</Text>
 						</View>
-						<Text style={styles.earningsWeekText}>
-							{t("queued", { count: health.queueLength })}
-						</Text>
+
+						{health.needsReauth && (
+							<View className="flex-row items-center gap-2 bg-destructive/10 border border-destructive/30 p-3 rounded-xl">
+								<HugeiconsIcon icon={Alert02Icon} size={14} color={colors.semantic.error} />
+								<Text className="text-xs text-destructive flex-1">{t("reauthHint")}</Text>
+							</View>
+						)}
+					</Card>
+
+					{/* Lifetime Career Achievements */}
+					<View className="flex-row flex-wrap gap-3">
+						<Card className="flex-1 min-w-36 p-4 gap-1">
+							<View className="flex-row items-center gap-2 mb-1">
+								<HugeiconsIcon icon={StarIcon} size={18} color={colors.semantic.warning} />
+								<Text className="text-xs text-muted-foreground font-bold">{t("metric.rating")}</Text>
+							</View>
+							<Text className="text-2xl font-extrabold text-foreground font-mono">
+								{(earnings?.averageRating ?? 5.0).toFixed(2)}
+							</Text>
+							<Text className="text-xs text-muted-foreground">
+								{t("metric.reviews", { count: profile?._count?.reviews ?? 0 })}
+							</Text>
+						</Card>
+
+						<Card className="flex-1 min-w-36 p-4 gap-1">
+							<View className="flex-row items-center gap-2 mb-1">
+								<HugeiconsIcon icon={SecurityCheckIcon} size={18} color={colors.semantic.success} />
+								<Text className="text-xs text-muted-foreground font-bold">{t("metric.safety")}</Text>
+							</View>
+							<Text className="text-2xl font-extrabold font-mono text-emerald-400">
+								{earnings?.safetyScore ?? profile?.safetyScore ?? 98}/100
+							</Text>
+							<Text className="text-xs text-muted-foreground">{t("metric.safetySub")}</Text>
+						</Card>
+
+						<Card className="flex-1 min-w-36 p-4 gap-1">
+							<View className="flex-row items-center gap-2 mb-1">
+								<HugeiconsIcon icon={Route01Icon} size={18} color={colors.semantic.info} />
+								<Text className="text-xs text-muted-foreground font-bold">{t("metric.trips")}</Text>
+							</View>
+							<Text className="text-2xl font-extrabold text-foreground font-mono">
+								{profile?.totalTripsCompleted ?? earnings?.totalTripsCompleted ?? 0}
+							</Text>
+							<Text className="text-xs text-muted-foreground">{t("metric.tripsSub")}</Text>
+						</Card>
+
+						<Card className="flex-1 min-w-36 p-4 gap-1">
+							<View className="flex-row items-center gap-2 mb-1">
+								<HugeiconsIcon icon={Award01Icon} size={18} color={colors.primary.rose} />
+								<Text className="text-xs text-muted-foreground font-bold">{t("metric.distance")}</Text>
+							</View>
+							<Text className="text-2xl font-extrabold text-foreground font-mono">
+								{Math.round(profile?.totalDistanceKm ?? earnings?.totalDistanceKm ?? 0).toLocaleString()}
+							</Text>
+							<Text className="text-xs text-muted-foreground">{t("metric.distanceSub")}</Text>
+						</Card>
 					</View>
 
-					{health.needsReauth && (
-						<View style={styles.reauthAlert}>
-							<HugeiconsIcon icon={Alert02Icon} size={14} color="#fb7185" />
-							<Text style={styles.reauthText}>{t("reauthHint")}</Text>
-						</View>
-					)}
-				</Card>
-
-				{/* Lifetime Career Achievements */}
-				<View style={styles.metricsGrid}>
-					<Card className="flex-1 min-w-[140px] p-4 gap-1">
-						<View style={styles.metricHeader}>
-							<HugeiconsIcon icon={StarIcon} size={18} color="#f59e0b" />
-							<Text style={styles.metricLabel}>{t("metric.rating")}</Text>
-						</View>
-						<Text style={styles.metricValue}>
-							{(earnings?.averageRating ?? 5.0).toFixed(2)}
+					{/* Affiliated Carriers */}
+					<Card className="p-4 gap-3">
+						<Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+							{t("carriers.title")}
 						</Text>
-						<Text style={styles.metricSub}>
-							{t("metric.reviews", { count: profile?._count?.reviews ?? 0 })}
-						</Text>
-					</Card>
 
-					<Card className="flex-1 min-w-[140px] p-4 gap-1">
-						<View style={styles.metricHeader}>
-							<HugeiconsIcon icon={SecurityCheckIcon} size={18} color="#10b981" />
-							<Text style={styles.metricLabel}>{t("metric.safety")}</Text>
-						</View>
-						<Text style={[styles.metricValue, styles.metricSafety]}>
-							{earnings?.safetyScore ?? profile?.safetyScore ?? 98}/100
-						</Text>
-						<Text style={styles.metricSub}>{t("metric.safetySub")}</Text>
-					</Card>
+						{profile?.companyAffiliations && profile.companyAffiliations.length > 0 ? (
+							profile.companyAffiliations.map((aff: any) => (
+								<View key={aff.id} className="bg-background p-3 rounded-2xl border border-border flex-row items-center justify-between">
+									<View className="flex-row items-center gap-3 flex-1 mr-2">
+										<HugeiconsIcon icon={Building01Icon} size={18} color={colors.primary.rose} />
+										<View className="flex-1">
+											<Text className="text-sm font-bold text-foreground" numberOfLines={1}>
+												{aff.company?.name ?? t("carriers.fallback")}
+											</Text>
+											<Text className="text-xs text-muted-foreground font-mono">
+												{t("carriers.badge", { number: aff.companyBadgeNumber ?? aff.company?.slug ?? t("carriers.active") })}
+											</Text>
+										</View>
+									</View>
 
-					<Card className="flex-1 min-w-[140px] p-4 gap-1">
-						<View style={styles.metricHeader}>
-							<HugeiconsIcon icon={Route01Icon} size={18} color="#38bdf8" />
-							<Text style={styles.metricLabel}>{t("metric.trips")}</Text>
-						</View>
-						<Text style={styles.metricValue}>
-							{profile?.totalTripsCompleted ?? earnings?.totalTripsCompleted ?? 0}
-						</Text>
-						<Text style={styles.metricSub}>{t("metric.tripsSub")}</Text>
-					</Card>
+									{aff.company?.phone && (
+										<Button
+											variant="outline"
+											size="sm"
+											onPress={() => handleCallCarrier(aff.company.phone)}
+											className="w-8 h-8 min-h-8 p-0 rounded-xl mr-2"
+										>
+											<HugeiconsIcon icon={Call02Icon} size={14} color={colors.semantic.info} />
+										</Button>
+									)}
 
-					<Card className="flex-1 min-w-[140px] p-4 gap-1">
-						<View style={styles.metricHeader}>
-							<HugeiconsIcon icon={Award01Icon} size={18} color="#a855f7" />
-							<Text style={styles.metricLabel}>{t("metric.distance")}</Text>
-						</View>
-						<Text style={styles.metricValue}>
-							{Math.round(profile?.totalDistanceKm ?? earnings?.totalDistanceKm ?? 0).toLocaleString()}
-						</Text>
-						<Text style={styles.metricSub}>{t("metric.distanceSub")}</Text>
-					</Card>
-				</View>
-
-				{/* Affiliated Carriers */}
-				<Card className="p-4 gap-3">
-					<Text style={styles.sectionTitle}>
-						{t("carriers.title")}
-					</Text>
-
-					{profile?.companyAffiliations && profile.companyAffiliations.length > 0 ? (
-						profile.companyAffiliations.map((aff: any) => (
-							<View key={aff.id} style={styles.carrierRow}>
-								<View style={styles.carrierRowLeft}>
+									<Badge variant="success" label={t("carriers.active")} size="sm" />
+								</View>
+							))
+						) : (
+							<View className="bg-background p-3 rounded-2xl border border-border flex-row items-center justify-between">
+								<View className="flex-row items-center gap-3 flex-1 mr-2">
 									<HugeiconsIcon icon={Building01Icon} size={18} color={colors.primary.rose} />
-									<View style={styles.carrierInfoWrap}>
-										<Text style={styles.carrierName} numberOfLines={1}>
-											{aff.company?.name ?? t("carriers.fallback")}
-										</Text>
-										<Text style={styles.carrierBadgeNumber}>
-											{t("carriers.badge", { number: aff.companyBadgeNumber ?? aff.company?.slug ?? t("carriers.active") })}
-										</Text>
+									<View>
+										<Text className="text-sm font-bold text-foreground">{t("carriers.direct")}</Text>
+										<Text className="text-xs text-muted-foreground font-mono">{t("carriers.contract")}</Text>
 									</View>
 								</View>
-
-								{aff.company?.phone && (
-									<TouchableOpacity
-										onPress={() => handleCallCarrier(aff.company.phone)}
-										activeOpacity={0.8}
-										style={styles.carrierCallBtn}
-									>
-										<HugeiconsIcon icon={Call02Icon} size={14} color="#38bdf8" />
-									</TouchableOpacity>
-								)}
-
-								<Badge variant="success" label={t("carriers.active")} size="sm" />
+								<Badge variant="outline" label={t("carriers.independent")} size="sm" />
 							</View>
-						))
-					) : (
-						<View style={styles.carrierRow}>
-							<View style={styles.carrierRowLeft}>
-								<HugeiconsIcon icon={Building01Icon} size={18} color={colors.primary.rose} />
-								<View>
-								<Text style={styles.carrierName}>{t("carriers.direct")}</Text>
-								<Text style={styles.carrierBadgeNumber}>{t("carriers.contract")}</Text>
-								</View>
-							</View>
-							<Badge variant="outline" label={t("carriers.independent")} size="sm" />
-						</View>
-					)}
-				</Card>
+						)}
+					</Card>
 
-				{/* Sign Out Button */}
-				<Button
-					title={t("signOut.button")}
-					variant="outline"
-					size="lg"
-					onPress={handleSignOut}
-					icon={<HugeiconsIcon icon={Logout01Icon} size={18} color="#ef4444" />}
-					textClassName="text-[#ef4444]"
-					className="border-[#ef4444]/30 mt-2"
-				/>
+					{/* Sign Out Button */}
+					<Button
+						title={t("signOut.button")}
+						variant="destructive"
+						size="lg"
+						onPress={handleSignOut}
+						icon={<HugeiconsIcon icon={Logout01Icon} size={18} color={Palette.zinc[50]} />}
+						className="mt-2"
+					/>
+				</View>
 			</ScrollView>
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	root: {
-		flex: 1,
-		backgroundColor: "#09090b",
-	},
-	headerBar: {
-		paddingHorizontal: 20,
-		paddingBottom: 14,
-		borderBottomWidth: 1,
-		borderBottomColor: "#27272a",
-		backgroundColor: "#09090b",
-	},
-	headerTitle: {
-		fontSize: 20,
-		fontWeight: "800",
-		color: "#fafafa",
-		letterSpacing: -0.3,
-	},
-	headerSubtitle: {
-		fontSize: 11,
-		color: "#a1a1aa",
-		marginTop: 2,
-	},
-	scroll: {
-		flex: 1,
-	},
-	scrollContent: {
-		paddingHorizontal: 16,
-		paddingTop: 16,
-		gap: 16,
-	},
-	idRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 14,
-	},
-	avatarBox: {
-		width: 56,
-		height: 56,
-		borderRadius: 18,
-		backgroundColor: "rgba(238, 35, 124, 0.1)",
-		borderWidth: 1,
-		borderColor: "rgba(238, 35, 124, 0.2)",
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	avatarText: {
-		fontSize: 20,
-		fontWeight: "800",
-		color: "#ee237c",
-	},
-	idInfo: {
-		flex: 1,
-	},
-	driverName: {
-		fontSize: 18,
-		fontWeight: "800",
-		color: "#fafafa",
-	},
-	verifiedRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 6,
-		marginTop: 2,
-	},
-	verifiedText: {
-		fontSize: 12,
-		fontWeight: "600",
-		color: "#34d399",
-	},
-	licenseNumber: {
-		fontSize: 11,
-		color: "#71717a",
-		fontFamily: "monospace",
-		marginTop: 2,
-	},
-	toggleRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-		backgroundColor: "#09090b",
-		padding: 14,
-		borderRadius: 16,
-		borderWidth: 1,
-		borderColor: "#27272a",
-	},
-	toggleTextWrap: {
-		flex: 1,
-		paddingRight: 12,
-	},
-	toggleIconLabel: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 6,
-	},
-	toggleTitle: {
-		fontSize: 14,
-		fontWeight: "700",
-		color: "#fafafa",
-	},
-	toggleSub: {
-		fontSize: 11,
-		color: "#a1a1aa",
-		marginTop: 2,
-	},
-	editProfileBtn: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-		backgroundColor: "#09090b",
-		padding: 14,
-		borderRadius: 16,
-		borderWidth: 1,
-		borderColor: "#27272a",
-	},
-	editProfileLeft: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 10,
-		flex: 1,
-	},
-	editProfileTitle: {
-		fontSize: 14,
-		fontWeight: "700",
-		color: "#38bdf8",
-	},
-	editProfileSub: {
-		fontSize: 11,
-		color: "#71717a",
-		marginTop: 2,
-	},
-	cardHeaderRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-	},
-	cardHeaderLeft: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 8,
-	},
-	cardHeaderTitle: {
-		fontSize: 11,
-		fontWeight: "700",
-		color: "#a1a1aa",
-		textTransform: "uppercase",
-		letterSpacing: 0.5,
-	},
-	currencyBadge: {
-		fontSize: 11,
-		fontFamily: "monospace",
-		fontWeight: "700",
-		color: "#34d399",
-	},
-	earningsAmountRow: {
-		flexDirection: "row",
-		alignItems: "baseline",
-		gap: 8,
-		paddingTop: 4,
-	},
-	earningsAmount: {
-		fontSize: 28,
-		fontWeight: "800",
-		color: "#fafafa",
-		fontFamily: "monospace",
-	},
-	earningsSub: {
-		fontSize: 12,
-		fontWeight: "700",
-		color: "#a1a1aa",
-	},
-	earningsMetaRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-		backgroundColor: "#09090b",
-		padding: 12,
-		borderRadius: 12,
-		borderWidth: 1,
-		borderColor: "#27272a",
-	},
-	earningsMetaLeft: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 6,
-	},
-	earningsMetaText: {
-		fontSize: 12,
-		color: "#d4d4d8",
-	},
-	earningsWeekText: {
-		fontSize: 12,
-		color: "#a1a1aa",
-		fontWeight: "600",
-	},
-	reauthAlert: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 8,
-		backgroundColor: "rgba(239, 68, 68, 0.1)",
-		borderWidth: 1,
-		borderColor: "rgba(239, 68, 68, 0.3)",
-		padding: 12,
-		borderRadius: 12,
-	},
-	reauthText: {
-		fontSize: 12,
-		color: "#fb7185",
-		flex: 1,
-	},
-	metricsGrid: {
-		flexDirection: "row",
-		flexWrap: "wrap",
-		gap: 12,
-	},
-	metricHeader: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 8,
-		marginBottom: 4,
-	},
-	metricLabel: {
-		fontSize: 12,
-		color: "#a1a1aa",
-		fontWeight: "700",
-	},
-	metricValue: {
-		fontSize: 24,
-		fontWeight: "800",
-		color: "#fafafa",
-		fontFamily: "monospace",
-	},
-	metricSafety: {
-		color: "#34d399",
-	},
-	metricSub: {
-		fontSize: 11,
-		color: "#71717a",
-	},
-	sectionTitle: {
-		fontSize: 11,
-		fontWeight: "700",
-		color: "#a1a1aa",
-		textTransform: "uppercase",
-		letterSpacing: 0.5,
-	},
-	carrierRow: {
-		backgroundColor: "#09090b",
-		padding: 12,
-		borderRadius: 16,
-		borderWidth: 1,
-		borderColor: "#27272a",
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-	},
-	carrierRowLeft: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 12,
-		flex: 1,
-		marginRight: 8,
-	},
-	carrierInfoWrap: {
-		flex: 1,
-	},
-	carrierName: {
-		fontSize: 14,
-		fontWeight: "700",
-		color: "#fafafa",
-	},
-	carrierBadgeNumber: {
-		fontSize: 11,
-		color: "#a1a1aa",
-		fontFamily: "monospace",
-	},
-	carrierCallBtn: {
-		width: 32,
-		height: 32,
-		borderRadius: 10,
-		backgroundColor: "#18181b",
-		alignItems: "center",
-		justifyContent: "center",
-		borderWidth: 1,
-		borderColor: "#27272a",
-		marginRight: 8,
-	},
-});

@@ -41,14 +41,14 @@ export function AdminOutboxDeadLettersView() {
   return (
     <div className="space-y-4 p-4 md:p-6">
       <div>
-        <h1 className="text-lg font-semibold text-slate-900">{t("title")}</h1>
-        <p className="text-sm text-slate-500">{t("description")}</p>
+        <h1 className="text-lg font-semibold text-foreground">{t("title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("description")}</p>
       </div>
-      <Card className="divide-y overflow-hidden">
+      <Card className="divide-y divide-border overflow-hidden bg-card border-border">
         {listQuery.isLoading ? (
-          <p className="p-4 text-sm text-slate-500">{t("loading")}</p>
+          <p className="p-4 text-sm text-muted-foreground">{t("loading")}</p>
         ) : items.length === 0 ? (
-          <p className="p-4 text-sm text-slate-500">{t("empty")}</p>
+          <p className="p-4 text-sm text-muted-foreground">{t("empty")}</p>
         ) : (
           items.map((m) => (
             <div
@@ -56,18 +56,18 @@ export function AdminOutboxDeadLettersView() {
               className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="space-y-0.5 text-sm min-w-0">
-                <p className="font-medium text-slate-900">
+                <p className="font-medium text-foreground">
                   {m.type} · {m.status}
                 </p>
-                <p className="text-xs text-slate-500 font-mono truncate">
+                <p className="text-xs text-muted-foreground font-mono truncate">
                   {m.idempotencyKey}
                 </p>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-muted-foreground">
                   {t("attempts")} {m.attempts}/{m.maxAttempts} ·{" "}
                   {new Date(m.updatedAt).toLocaleString()}
                 </p>
                 {m.lastError ? (
-                  <p className="text-xs text-red-600 break-words">
+                  <p className="text-xs text-destructive break-words">
                     {m.lastError}
                   </p>
                 ) : null}

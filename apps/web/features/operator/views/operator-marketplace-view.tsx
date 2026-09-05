@@ -69,14 +69,14 @@ function countActiveFilters(
 function MarketplaceEmptyState({ onClear }: { onClear: () => void }) {
   return (
     <div className="col-span-full flex flex-col items-center justify-center py-20 text-center space-y-4">
-      <div className="rounded-full bg-slate-100 p-5">
-        <Users className="size-8 text-slate-400" />
+      <div className="rounded-full bg-muted p-5">
+        <Users className="size-8 text-muted-foreground" />
       </div>
       <div>
-        <p className="text-base font-bold text-slate-700">
+        <p className="text-base font-bold text-foreground">
           No drivers match your filters
         </p>
-        <p className="text-sm text-slate-500 mt-1 max-w-sm">
+        <p className="text-sm text-muted-foreground mt-1 max-w-sm">
           Try widening your search area, changing the license category, or
           reducing the minimum rating and safety score requirements.
         </p>
@@ -146,10 +146,10 @@ function AdvancedFilterPopover({
       />
       <PopoverContent align="end" className="w-72 space-y-5 p-5">
         <div>
-          <h4 className="text-sm font-bold text-slate-800 mb-1">
+          <h4 className="text-sm font-bold text-foreground mb-1">
             Advanced Filters
           </h4>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-muted-foreground">
             Filter by driver quality metrics.
           </p>
         </div>
@@ -172,7 +172,7 @@ function AdvancedFilterPopover({
             }
             className="w-full"
           />
-          <div className="flex justify-between text-[10px] text-slate-400">
+          <div className="flex justify-between text-[10px] text-muted-foreground">
             <span>Any</span>
             <span>4.0</span>
             <span>5.0 ★</span>
@@ -199,7 +199,7 @@ function AdvancedFilterPopover({
             }
             className="w-full"
           />
-          <div className="flex justify-between text-[10px] text-slate-400">
+          <div className="flex justify-between text-[10px] text-muted-foreground">
             <span>Any</span>
             <span>75</span>
             <span>100</span>

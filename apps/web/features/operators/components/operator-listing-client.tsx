@@ -20,7 +20,7 @@ export function OperatorListingClient() {
         {[...Array(6)].map((_, i) => (
           <div
             key={i}
-            className="bg-slate-100 rounded-3xl h-64 animate-pulse"
+            className="bg-muted rounded-3xl h-64 animate-pulse"
           />
         ))}
       </div>
@@ -30,14 +30,14 @@ export function OperatorListingClient() {
   if (!operators || operators.length === 0) {
     return (
       <div className="text-center py-24">
-        <Bus className="h-16 w-16 text-slate-300 mx-auto mb-6" />
-        <h3 className="text-xl font-bold text-slate-700 mb-2">
+        <Bus className="h-16 w-16 text-muted-foreground/40 mx-auto mb-6" />
+        <h3 className="text-xl font-bold text-foreground mb-2">
           {t("emptyTitle")}
         </h3>
-        <p className="text-slate-400 mb-8">{t("emptyDesc")}</p>
+        <p className="text-muted-foreground mb-8">{t("emptyDesc")}</p>
         <Link
           href="/become-a-partner"
-          className="inline-flex items-center gap-2 bg-[#ee237c] text-white px-6 py-3 rounded-2xl font-bold hover:bg-[#d01867] transition-all"
+          className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-2xl font-bold hover:bg-primary/90 transition-all shadow-xs"
         >
           {t("emptyButton")} <ArrowRight className="h-4 w-4" />
         </Link>
@@ -59,10 +59,10 @@ export function OperatorListingClient() {
           <Link
             key={op.id}
             href={`/operators/${op.slug}`}
-            className="group bg-white border border-slate-200 rounded-3xl p-8 flex flex-col hover:shadow-xl hover:-translate-y-1 transition-all duration-300 hover:border-[#ee237c]/20"
+            className="group bg-card border border-border rounded-3xl p-8 flex flex-col hover:shadow-xl hover:-translate-y-1 transition-all duration-300 hover:border-primary/20"
           >
             {/* Logo */}
-            <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-5 border border-slate-200 overflow-hidden">
+            <div className="w-16 h-16 bg-muted/40 rounded-2xl flex items-center justify-center mb-5 border border-border overflow-hidden">
               {op.logoUrl ? (
                 <Image
                   src={op.logoUrl}
@@ -72,30 +72,30 @@ export function OperatorListingClient() {
                   className="object-cover"
                 />
               ) : (
-                <span className="text-xl font-black text-slate-300">
+                <span className="text-xl font-black text-muted-foreground/50">
                   {abbr}
                 </span>
               )}
             </div>
 
             {/* Info */}
-            <h3 className="text-lg font-bold text-slate-900 mb-1 group-hover:text-[#ee237c] transition-colors">
+            <h3 className="text-lg font-bold text-foreground mb-1 group-hover:text-primary transition-colors">
               {op.name}
             </h3>
             {op.description && (
-              <p className="text-slate-500 text-sm leading-relaxed mb-4 line-clamp-2">
+              <p className="text-muted-foreground text-sm leading-relaxed mb-4 line-clamp-2">
                 {op.description}
               </p>
             )}
 
             {/* Stats */}
-            <div className="flex items-center gap-4 text-xs text-slate-500 mb-4">
+            <div className="flex items-center gap-4 text-xs text-muted-foreground mb-4">
               <span className="flex items-center gap-1.5">
-                <Route className="h-3.5 w-3.5 text-[#ee237c]/60" />
+                <Route className="h-3.5 w-3.5 text-primary/60" />
                 {t("routes", { count: op._count.routes })}
               </span>
               <span className="flex items-center gap-1.5">
-                <Bus className="h-3.5 w-3.5 text-[#ee237c]/60" />
+                <Bus className="h-3.5 w-3.5 text-primary/60" />
                 {t("buses", { count: op._count.fleet })}
               </span>
             </div>
@@ -106,7 +106,7 @@ export function OperatorListingClient() {
                 {op.cityNames.slice(0, 4).map((city) => (
                   <span
                     key={city}
-                    className="flex items-center gap-1 px-2.5 py-0.5 bg-slate-100 text-slate-600 rounded-full text-xs"
+                    className="flex items-center gap-1 px-2.5 py-0.5 bg-muted text-muted-foreground rounded-full text-xs"
                   >
                     <MapPin className="h-2.5 w-2.5" />
                     {city}
@@ -115,7 +115,7 @@ export function OperatorListingClient() {
               </div>
             )}
 
-            <div className="mt-auto flex items-center gap-2 text-[#ee237c] font-bold text-sm group-hover:gap-4 transition-all">
+            <div className="mt-auto flex items-center gap-2 text-primary font-bold text-sm group-hover:gap-4 transition-all">
               <span>{t("viewOperator")}</span>
               <ArrowRight className="h-4 w-4" />
             </div>

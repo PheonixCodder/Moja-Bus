@@ -7,6 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ActionDrawer } from "@moja/ui/components/ui/action-drawer";
 import { Label } from "@moja/ui/components/ui/label";
+import { Input } from "@moja/ui/components/ui/input";
 import { DatePicker } from "@moja/ui/components/ui/date-picker";
 import { Spinner } from "@moja/ui/components/ui/spinner";
 import { Eye, Trash2, FileUp, AlertTriangle } from "lucide-react";
@@ -246,21 +247,21 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                       <div className="space-y-1 min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-semibold text-foreground truncate max-w-[150px] inline-block">
+                          <span className="font-semibold text-foreground truncate max-w-36 inline-block">
                             {uploaded.fileName}
                           </span>
                           {uploaded.status === "APPROVED" && (
-                            <span className="px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[9px] font-bold tracking-wider shrink-0">
+                            <span className="px-1.5 py-0.5 rounded-full bg-success/15 text-success text-[9px] font-bold tracking-wider shrink-0">
                               {t("status.APPROVED")}
                             </span>
                           )}
                           {uploaded.status === "PENDING" && (
-                            <span className="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[9px] font-bold tracking-wider shrink-0">
+                            <span className="px-1.5 py-0.5 rounded-full bg-warning/15 text-warning text-[9px] font-bold tracking-wider shrink-0">
                               {t("status.PENDING")}
                             </span>
                           )}
                           {uploaded.status === "REJECTED" && (
-                            <span className="px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 text-[9px] font-bold tracking-wider shrink-0">
+                            <span className="px-1.5 py-0.5 rounded-full bg-destructive/15 text-destructive text-[9px] font-bold tracking-wider shrink-0">
                               {t("status.REJECTED")}
                             </span>
                           )}
@@ -284,12 +285,12 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
                                 className={cn(
                                   "truncate",
                                   new Date(uploaded.expiresAt) < new Date()
-                                    ? "text-red-500 font-bold"
+                                    ? "text-destructive font-bold"
                                     : new Date(uploaded.expiresAt) <
                                         new Date(
                                           Date.now() + 30 * 24 * 60 * 60 * 1000,
                                         )
-                                      ? "text-amber-500 font-bold"
+                                      ? "text-warning font-bold"
                                       : "",
                                 )}
                               >
@@ -306,24 +307,28 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
                       </div>
 
                       <div className="flex items-center gap-2 shrink-0 pl-2">
-                        <button
+                        <Button
                           type="button"
+                          variant="ghost"
+                          size="icon"
                           onClick={() =>
                             handleViewDocument(uploaded.id, uploaded.objectKey!)
                           }
-                          className="inline-flex items-center justify-center w-7 h-7 border border-border hover:bg-slate-50 rounded text-muted-foreground transition-colors shrink-0"
+                          className="h-7 w-7 border border-border text-muted-foreground shrink-0"
                           title={t("viewDocument")}
                         >
                           <Eye className="w-3.5 h-3.5" />
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                           type="button"
+                          variant="ghost"
+                          size="icon"
                           onClick={() => setDeletingId(uploaded.id)}
-                          className="inline-flex items-center justify-center w-7 h-7 border border-border hover:bg-red-50 hover:text-red-500 transition-colors rounded text-muted-foreground shrink-0"
+                          className="h-7 w-7 border border-border hover:bg-destructive/10 hover:text-destructive text-muted-foreground shrink-0"
                           title={t("deleteDocument")}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   ) : (
@@ -339,7 +344,8 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
                         <span className="text-[10px] text-muted-foreground mt-0.5">
                           {t("dropHint")}
                         </span>
-                        <input
+                        {/* Hidden file input for file upload interaction */}
+                        <Input
                           type="file"
                           id={`uploader-${slot.key}`}
                           accept="application/pdf, image/png, image/jpeg"
@@ -347,7 +353,7 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
                           className="hidden"
                         />
                       </Label>
-                      <div className="mt-2 space-y-1 w-full max-w-[200px] mx-auto text-left">
+                      <div className="mt-2 space-y-1 w-full max-w-48 mx-auto text-left">
                         <Label
                           htmlFor={`expiry-${slot.key}`}
                           className="text-[10px] text-muted-foreground ml-1"
@@ -397,8 +403,8 @@ export function DocumentsDrawer({ isOpen, onClose }: DocumentsDrawerProps) {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-red-100 mb-4">
-              <AlertTriangle className="size-6 text-red-600" />
+            <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-destructive/10 mb-4">
+              <AlertTriangle className="size-6 text-destructive" />
             </div>
             <AlertDialogTitle>{t("dialog.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>

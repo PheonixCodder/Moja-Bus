@@ -66,11 +66,13 @@ const bannerSchema = z.object({
 
 type FormValues = z.infer<typeof bannerSchema>;
 
+import { Palette } from "@moja/theme/tokens";
+
 const GRADIENT_PRESETS = [
-  { label: "Rose / Purple (Signature)", colors: ["#ee237c", "#9333ea"] },
-  { label: "Midnight / Rose", colors: ["#0f172a", "#ee237c"] },
-  { label: "Sunset Amber", colors: ["#f59e0b", "#ee237c"] },
-  { label: "Emerald Teal", colors: ["#059669", "#0d9488"] },
+  { label: "Rose / Zinc (Signature)", colors: [Palette.rose[500], Palette.zinc[900]] },
+  { label: "Midnight / Rose", colors: [Palette.zinc[950], Palette.rose[500]] },
+  { label: "Sunset Amber", colors: [Palette.amber[500], Palette.rose[500]] },
+  { label: "Emerald / Blue", colors: [Palette.emerald[600], Palette.blue[600]] },
 ];
 
 export function BannerFormDialog({
@@ -123,19 +125,21 @@ export function BannerFormDialog({
 
   useEffect(() => {
     if (banner) {
-      const payload = banner.actionPayload || {};
+      const matchingPreset = GRADIENT_PRESETS.find(
+        (p) => JSON.stringify(p.colors) === JSON.stringify(banner.gradientColors)
+      );
       reset({
         title: banner.title,
         subtitle: banner.subtitle || "",
         badge: banner.badge || "",
         imageUrl: banner.imageUrl,
         actionType: banner.actionType,
-        targetTab: payload.targetTab || "search",
-        searchOrigin: payload.originSlug || "",
-        searchDestination: payload.destinationSlug || "",
-        blogSlug: payload.slug || "",
-        externalUrl: payload.url || "",
-        gradientPreset: "Rose / Purple (Signature)",
+        targetTab: banner.actionPayload?.targetTab || "search",
+        searchOrigin: banner.actionPayload?.origin || "",
+        searchDestination: banner.actionPayload?.destination || "",
+        blogSlug: banner.actionPayload?.slug || "",
+        externalUrl: banner.actionPayload?.url || "",
+        gradientPreset: matchingPreset?.label || GRADIENT_PRESETS[0]!.label,
         isActive: banner.isActive,
         sortOrder: banner.sortOrder,
       });
@@ -151,7 +155,7 @@ export function BannerFormDialog({
         searchDestination: "",
         blogSlug: "",
         externalUrl: "",
-        gradientPreset: "Rose / Purple (Signature)",
+        gradientPreset: GRADIENT_PRESETS[0]!.label,
         isActive: true,
         sortOrder: 0,
       });
@@ -192,7 +196,7 @@ export function BannerFormDialog({
     );
     const gradientColors = selectedPreset
       ? selectedPreset.colors
-      : ["#ee237c", "#9333ea"];
+      : [Palette.rose[500], Palette.zinc[900]];
 
     try {
       if (banner) {
@@ -233,7 +237,7 @@ export function BannerFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-md max-h-screen overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {banner ? t("editBanner") : t("newBannerDialogTitle")}
@@ -244,11 +248,11 @@ export function BannerFormDialog({
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
           {/* Banner Image Upload */}
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-slate-700">
+            <label className="text-xs font-semibold text-foreground">
               {t("form.bannerImage")}
             </label>
             {watchImageUrl ? (
-              <div className="relative aspect-[21/9] w-full rounded-lg overflow-hidden border border-slate-200 group">
+              <div className="relative aspect-[21/9] w-full rounded-lg overflow-hidden border border-border group">
                 <Image
                   unoptimized
                   src={watchImageUrl}
@@ -258,7 +262,7 @@ export function BannerFormDialog({
                 />
                 <label className="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                   {t("form.changeImage")}
-                  <input
+                  <Input
                     type="file"
                     accept="image/*"
                     className="hidden"
@@ -267,18 +271,18 @@ export function BannerFormDialog({
                 </label>
               </div>
             ) : (
-              <label className="flex flex-col items-center justify-center aspect-[21/9] w-full rounded-lg border-2 border-dashed border-slate-200 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer">
+              <label className="flex flex-col items-center justify-center aspect-[21/9] w-full rounded-lg border-2 border-dashed border-border bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer">
                 {uploading ? (
-                  <Loader2 className="size-6 text-rose-500 animate-spin" />
+                  <Loader2 className="size-6 text-primary animate-spin" />
                 ) : (
                   <>
-                    <ImagePlus className="size-6 text-slate-400 mb-1" />
-                    <span className="text-xs font-medium text-slate-600">
+                    <ImagePlus className="size-6 text-muted-foreground mb-1" />
+                    <span className="text-xs font-medium text-muted-foreground">
                       {t("form.uploadImagePrompt")}
                     </span>
                   </>
                 )}
-                <input
+                <Input
                   type="file"
                   accept="image/*"
                   className="hidden"
@@ -287,14 +291,14 @@ export function BannerFormDialog({
               </label>
             )}
             {errors.imageUrl && (
-              <p className="text-xs text-red-500">{errors.imageUrl.message}</p>
+              <p className="text-xs text-destructive">{errors.imageUrl.message}</p>
             )}
           </div>
 
           {/* Title & Subtitle */}
           <div className="space-y-3">
             <div>
-              <label className="text-xs font-semibold text-slate-700">
+              <label className="text-xs font-semibold text-foreground">
                 {t("form.title")}
               </label>
               <Input
@@ -303,12 +307,12 @@ export function BannerFormDialog({
                 className="mt-1"
               />
               {errors.title && (
-                <p className="text-xs text-red-500">{errors.title.message}</p>
+                <p className="text-xs text-destructive">{errors.title.message}</p>
               )}
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-700">
+              <label className="text-xs font-semibold text-foreground">
                 {t("form.subtitle")}
               </label>
               <Input
@@ -320,7 +324,7 @@ export function BannerFormDialog({
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-semibold text-slate-700">
+                <label className="text-xs font-semibold text-foreground">
                   {t("form.badgeLabel")}
                 </label>
                 <Input
@@ -331,7 +335,7 @@ export function BannerFormDialog({
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-700">
+                <label className="text-xs font-semibold text-foreground">
                   {t("form.sortOrder")}
                 </label>
                 <Input
@@ -344,13 +348,13 @@ export function BannerFormDialog({
           </div>
 
           {/* Action Type & Target Configurator */}
-          <div className="space-y-3 pt-2 border-t border-slate-100">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+          <div className="space-y-3 pt-2 border-t border-border">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               {t("form.clickBehaviorHeading")}
             </h4>
 
             <div>
-              <label className="text-xs font-semibold text-slate-700">
+              <label className="text-xs font-semibold text-foreground">
                 {t("form.actionType")}
               </label>
               <Controller
@@ -382,9 +386,9 @@ export function BannerFormDialog({
 
             {/* Target Configurator by Action Type */}
             {watchActionType === "SEARCH" && (
-              <div className="grid grid-cols-2 gap-2 p-3 bg-slate-50 rounded-lg border border-slate-200">
+              <div className="grid grid-cols-2 gap-2 p-3 bg-muted/30 rounded-lg border border-border">
                 <div>
-                  <label className="text-[11px] font-semibold text-slate-600">
+                  <label className="text-[11px] font-semibold text-muted-foreground">
                     {t("form.originCity")}
                   </label>
                   <Input
@@ -394,7 +398,7 @@ export function BannerFormDialog({
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold text-slate-600">
+                  <label className="text-[11px] font-semibold text-muted-foreground">
                     {t("form.destCity")}
                   </label>
                   <Input
@@ -407,8 +411,8 @@ export function BannerFormDialog({
             )}
 
             {watchActionType === "APP_SCREEN" && (
-              <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-                <label className="text-[11px] font-semibold text-slate-600">
+              <div className="p-3 bg-muted/30 rounded-lg border border-border">
+                <label className="text-[11px] font-semibold text-muted-foreground">
                   {t("form.targetAppTab")}
                 </label>
                 <Controller
@@ -458,8 +462,8 @@ export function BannerFormDialog({
             )}
 
             {watchActionType === "BLOG_ARTICLE" && (
-              <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-                <label className="text-[11px] font-semibold text-slate-600">
+              <div className="p-3 bg-muted/30 rounded-lg border border-border">
+                <label className="text-[11px] font-semibold text-muted-foreground">
                   {t("form.targetBlogArticle")}
                 </label>
                 <Controller
@@ -484,8 +488,8 @@ export function BannerFormDialog({
             )}
 
             {watchActionType === "EXTERNAL_URL" && (
-              <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-                <label className="text-[11px] font-semibold text-slate-600">
+              <div className="p-3 bg-muted/30 rounded-lg border border-border">
+                <label className="text-[11px] font-semibold text-muted-foreground">
                   {t("form.webLinkUrl")}
                 </label>
                 <Input
@@ -498,9 +502,9 @@ export function BannerFormDialog({
           </div>
 
           {/* Active Switch & Gradient Theme */}
-          <div className="space-y-3 pt-2 border-t border-slate-100">
+          <div className="space-y-3 pt-2 border-t border-border">
             <div>
-              <label className="text-xs font-semibold text-slate-700">
+              <label className="text-xs font-semibold text-foreground">
                 {t("form.themeColor")}
               </label>
               <Controller
@@ -524,7 +528,7 @@ export function BannerFormDialog({
             </div>
 
             <div className="flex items-center justify-between pt-1">
-              <span className="text-xs font-semibold text-slate-700">
+              <span className="text-xs font-semibold text-foreground">
                 {t("form.activeStatus")}
               </span>
               <Controller
@@ -551,7 +555,6 @@ export function BannerFormDialog({
             </Button>
             <Button
               type="submit"
-              className="bg-slate-900 hover:bg-slate-800 text-white"
               disabled={createMutation.isPending || updateMutation.isPending}
             >
               {createMutation.isPending || updateMutation.isPending ? (

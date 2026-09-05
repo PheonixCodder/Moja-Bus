@@ -15,6 +15,7 @@ import {
 import { toast } from "sonner";
 import { cn } from "@moja/ui/lib/utils";
 import { Button } from "@moja/ui/components/ui/button";
+import { Checkbox } from "@moja/ui/components/ui/checkbox";
 import { Input } from "@moja/ui/components/ui/input";
 import { Spinner } from "@moja/ui/components/ui/spinner";
 import {
@@ -301,10 +302,10 @@ export function ManifestDrawer({
     <Drawer
       open={open}
       onOpenChange={(v) => !v && onClose()}
-      direction="right"
+      swipeDirection="right"
       modal
     >
-      <DrawerContent className="!inset-y-0 !right-0 !left-auto !w-full !max-w-lg flex flex-col">
+      <DrawerContent className="flex flex-col data-[swipe-axis=x]:[--drawer-content-width:100%] sm:data-[swipe-axis=x]:[--drawer-content-width:32rem]">
         <DrawerHeader className="border-b border-border px-5 py-4 shrink-0">
           <div className="flex items-start justify-between gap-2">
             <div>
@@ -342,7 +343,7 @@ export function ManifestDrawer({
             <div className="flex items-center justify-between">
               <TripStatusBadge status={trip.status} />
               {(trip.delayMinutes ?? 0) > 0 ? (
-                <span className="text-xs font-semibold text-amber-600">
+                <span className="text-xs font-semibold text-warning">
                   {t("delayLabel", { n: trip.delayMinutes ?? 0 })}
                 </span>
               ) : null}
@@ -352,7 +353,7 @@ export function ManifestDrawer({
               <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 {t("tripSummary")}
               </h4>
-              <div className="border border-border rounded-md p-3 space-y-2 bg-slate-50/50">
+              <div className="border border-border rounded-md p-3 space-y-2 bg-muted/50">
                 <div className="flex items-center gap-2">
                   <Calendar className="size-3.5 text-muted-foreground" />
                   <span className="text-xs">
@@ -384,30 +385,34 @@ export function ManifestDrawer({
 
             {/* Tab switch */}
             <div className="flex gap-1 border-b border-border -mb-2">
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => setView("passengers")}
                 className={cn(
-                  "px-3 py-2 text-xs font-bold border-b-2 -mb-px",
+                  "px-3 py-2 h-auto text-xs font-bold border-b-2 rounded-none -mb-px hover:bg-transparent",
                   view === "passengers"
                     ? "border-primary text-primary"
                     : "border-transparent text-muted-foreground hover:text-foreground",
                 )}
               >
                 {t("tabPassengers")}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => setView("seatmap")}
                 className={cn(
-                  "px-3 py-2 text-xs font-bold border-b-2 -mb-px",
+                  "px-3 py-2 h-auto text-xs font-bold border-b-2 rounded-none -mb-px hover:bg-transparent",
                   view === "seatmap"
                     ? "border-primary text-primary"
                     : "border-transparent text-muted-foreground hover:text-foreground",
                 )}
               >
                 {t("tabSeatMap")}
-              </button>
+              </Button>
             </div>
 
             {view === "passengers" && canUpdate && buses.length > 0 ? (
@@ -610,18 +615,20 @@ export function ManifestDrawer({
                               ["CASH", t("refundCash")],
                             ] as const
                           ).map(([id, label]) => (
-                            <button
+                            <Button
                               key={id}
                               type="button"
+                              variant="ghost"
+                              size="sm"
                               onClick={() => setBulkChannel(id)}
-                              className={`rounded-md border px-1.5 py-1 text-[10px] font-semibold ${
+                              className={`rounded-md border px-1.5 py-1 h-auto text-[10px] font-semibold ${
                                 bulkChannel === id
-                                  ? "border-destructive bg-destructive/10 text-destructive"
-                                  : "border-border text-muted-foreground"
+                                  ? "border-destructive bg-destructive/10 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                  : "border-border text-muted-foreground hover:text-foreground"
                               }`}
                             >
                               {label}
-                            </button>
+                            </Button>
                           ))}
                         </div>
                         <div className="flex gap-2">
@@ -662,11 +669,9 @@ export function ManifestDrawer({
                           key={b.id}
                           className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-2 px-3 py-2.5 border-b border-border last:border-b-0 items-center"
                         >
-                          <input
-                            type="checkbox"
-                            className="size-4 accent-primary"
+                          <Checkbox
                             checked={selectedIds.has(b.id)}
-                            onChange={() => toggleSelect(b.id)}
+                            onCheckedChange={() => toggleSelect(b.id)}
                             aria-label={`${t("checkIn")}: ${b.passengerName}`}
                           />
                           <div>
@@ -686,7 +691,7 @@ export function ManifestDrawer({
                             className={cn(
                               "text-[11px] font-bold",
                               b.checkedInAt
-                                ? "text-green-600"
+                                ? "text-success"
                                 : "text-muted-foreground",
                             )}
                           >
@@ -717,7 +722,7 @@ export function ManifestDrawer({
                             </Button>
                           ) : (
                             <span className="text-xs text-muted-foreground text-right">
-                              \u2014
+                              {"\u2014"}
                             </span>
                           )}
                         </div>
@@ -733,7 +738,7 @@ export function ManifestDrawer({
                     <div className="border border-border rounded-md overflow-hidden">
                       {holdBookings.map((b) => (
                         <div
-                          key={b.id}
+                           key={b.id}
                           className="grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2.5 border-b border-border last:border-b-0 items-center opacity-60"
                         >
                           <div>
@@ -749,7 +754,7 @@ export function ManifestDrawer({
                           <span className="font-mono text-xs font-bold">
                             {b.seat?.label ?? "\u2014"}
                           </span>
-                          <span className="text-[11px] font-bold text-amber-600">
+                          <span className="text-[11px] font-bold text-warning">
                             {t("hold")}
                           </span>
                           <span className="text-xs text-muted-foreground text-right">
@@ -871,7 +876,7 @@ export function ManifestDrawer({
                         size="sm"
                         variant="outline"
                         onClick={() => setShowDelayForm(true)}
-                        className="w-full text-amber-600 border-amber-200"
+                        className="w-full text-warning border-warning/30 hover:bg-warning/10 hover:text-warning"
                       >
                         <AlertTriangle className="size-4 mr-2" />
                         {t("logDelay")}
@@ -882,7 +887,7 @@ export function ManifestDrawer({
                     showCancelForm ? (
                       <div className="space-y-2">
                         {checkedInCount > 0 ? (
-                          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-md p-2">
+                          <p className="text-xs text-warning bg-warning/10 border border-warning/20 rounded-md p-2">
                             {t("tripCancelBlockedCheckedIn", {
                               count: checkedInCount,
                             })}
@@ -903,18 +908,20 @@ export function ManifestDrawer({
                                   ["CASH", t("refundCash")],
                                 ] as const
                               ).map(([id, label]) => (
-                                <button
+                                <Button
                                   key={id}
                                   type="button"
+                                  variant="ghost"
+                                  size="sm"
                                   onClick={() => setTripRefundChannel(id)}
-                                  className={`rounded-md border px-1.5 py-1 text-[10px] font-semibold ${
+                                  className={`rounded-md border px-1.5 py-1 h-auto text-[10px] font-semibold ${
                                     tripRefundChannel === id
-                                      ? "border-destructive bg-destructive/10 text-destructive"
-                                      : "border-border text-muted-foreground"
+                                      ? "border-destructive bg-destructive/10 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                      : "border-border text-muted-foreground hover:text-foreground"
                                   }`}
                                 >
                                   {label}
-                                </button>
+                                </Button>
                               ))}
                             </div>
                             <div className="flex gap-2">

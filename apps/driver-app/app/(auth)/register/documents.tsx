@@ -6,7 +6,6 @@ import {
 	Image,
 	Alert,
 	TouchableOpacity,
-	StyleSheet,
 } from "react-native";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
@@ -25,9 +24,11 @@ import { DriverFeedback } from "@/lib/haptics";
 import { useTRPC } from "@/lib/trpc";
 import { uploadCapturedDocument } from "@/lib/driver-doc-upload";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ScreenShell } from "@/components/ui/ScreenShell";
+import { colors } from "@/constants/theme";
 
 export default function RegisterStep3DocumentsScreen() {
 	const { t } = useTranslation("auth");
@@ -128,8 +129,8 @@ export default function RegisterStep3DocumentsScreen() {
 						showBack
 						onBack={() => router.canGoBack() ? router.back() : router.replace("/(auth)/register/license")}
 					/>
-					<View style={styles.progressTrack}>
-						<View style={[styles.progressBar, { width: "75%" }]} />
+					<View className="h-1 bg-card w-full">
+						<View className="h-full bg-primary w-3/4" />
 					</View>
 				</View>
 			}
@@ -139,225 +140,88 @@ export default function RegisterStep3DocumentsScreen() {
 					variant="primary"
 					size="lg"
 					onPress={handleNext}
-					icon={<HugeiconsIcon icon={ArrowRight01Icon} size={18} color="#ffffff" />}
+					icon={<HugeiconsIcon icon={ArrowRight01Icon} size={18} color={colors.neutral.textPrimary} />}
 					iconPosition="right"
 				/>
 			}
 		>
-			<View style={styles.formCard}>
-				<Text style={styles.sectionTitle}>{t("cniTitle")}</Text>
-				<Text style={styles.sectionSubtitle}>
-					{t("cniSubtitle")}
-				</Text>
-
-				<View style={styles.inputsList}>
-					<Input
-						label={t("cniNumberLabel")}
-						placeholder={t("cniNumberPlaceholder")}
-						value={idInput}
-						onChangeText={setIdInput}
-						leftIcon={<HugeiconsIcon icon={IdentityCardIcon} size={18} color="#71717a" />}
-					/>
-				</View>
-			</View>
-
-			<View style={styles.formCard}>
-				<View style={styles.cardHeaderRow}>
-					<Text style={styles.sectionTitle}>{t("medicalTitle")}</Text>
-					<View style={styles.optionalBadge}>
-						<Text style={styles.optionalText}>{t("medicalOptionalBadge")}</Text>
-					</View>
-				</View>
-				<Text style={styles.sectionSubtitle}>
-					{t("medicalSubtitle")}
-				</Text>
-
-				<View style={styles.uploadWrapper}>
-					{medicalUri || medicalKey ? (
-						<TouchableOpacity
-							onPress={handleCaptureMedical}
-							style={styles.previewBox}
-						>
-							{medicalUri ? (
-								<Image source={{ uri: medicalUri }} style={styles.previewImage} />
-							) : (
-								<View style={[styles.previewImage, { backgroundColor: "#18181b", alignItems: "center", justifyContent: "center" }]}>
-									<HugeiconsIcon icon={CheckmarkCircle02Icon} size={28} color="#10b981" />
-									<Text style={{ fontSize: 11, fontWeight: "700", color: "#10b981", marginTop: 4 }}>
-										{t("medicalUploaded")}
-									</Text>
-								</View>
-							)}
-							<View style={styles.previewSuccessTag}>
-								<HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} color="#10b981" />
-								<Text style={styles.previewSuccessText}>{t("medicalUploaded")}</Text>
-							</View>
-						</TouchableOpacity>
-					) : (
-						<TouchableOpacity
-							onPress={handleCaptureMedical}
-							activeOpacity={0.8}
-							style={styles.captureBox}
-						>
-							<View style={styles.cameraIconWrap}>
-								<HugeiconsIcon icon={HealthIcon} size={26} color="#ee237c" />
-							</View>
-							<Text style={styles.captureTitle}>{t("scanMedical")}</Text>
-							<Text style={styles.captureHint}>
-								{t("medicalHint")}
-							</Text>
-						</TouchableOpacity>
-					)}
-				</View>
-			</View>
-
-			<View style={styles.complianceCard}>
-				<HugeiconsIcon icon={SecurityCheckIcon} size={20} color="#10b981" />
-				<View style={styles.complianceTextWrap}>
-					<Text style={styles.complianceTitle}>{t("privacyTitle")}</Text>
-					<Text style={styles.complianceDesc}>
-						{t("privacyDesc")}
+			<View className="gap-4">
+				<Card className="p-5 gap-3">
+					<Text className="text-base font-extrabold text-foreground tracking-tight">{t("cniTitle")}</Text>
+					<Text className="text-xs text-muted-foreground leading-5">
+						{t("cniSubtitle")}
 					</Text>
+
+					<View className="pt-1">
+						<Input
+							label={t("cniNumberLabel")}
+							placeholder={t("cniNumberPlaceholder")}
+							value={idInput}
+							onChangeText={setIdInput}
+							leftIcon={<HugeiconsIcon icon={IdentityCardIcon} size={18} color={colors.neutral.textMuted} />}
+						/>
+					</View>
+				</Card>
+
+				<Card className="p-5 gap-3">
+					<View className="flex-row items-center justify-between">
+						<Text className="text-base font-extrabold text-foreground tracking-tight">{t("medicalTitle")}</Text>
+						<View className="bg-primary/15 px-2.5 py-1 rounded-full">
+							<Text className="text-[10px] font-bold text-primary uppercase">{t("medicalOptionalBadge")}</Text>
+						</View>
+					</View>
+					<Text className="text-xs text-muted-foreground leading-5">
+						{t("medicalSubtitle")}
+					</Text>
+
+					<View className="pt-1">
+						{medicalUri || medicalKey ? (
+							<Button
+								variant="outline"
+								onPress={handleCaptureMedical}
+								className="relative h-32 w-full p-0 rounded-2xl overflow-hidden border-border"
+							>
+								{medicalUri ? (
+									<Image source={{ uri: medicalUri }} className="w-full h-full" />
+								) : (
+									<View className="w-full h-full bg-card items-center justify-center">
+										<HugeiconsIcon icon={CheckmarkCircle02Icon} size={28} color={colors.semantic.success} />
+										<Text className="text-xs font-bold text-success mt-1">
+											{t("medicalUploaded")}
+										</Text>
+									</View>
+								)}
+								<View className="absolute bottom-2.5 right-2.5 flex-row items-center gap-1.5 bg-card/90 px-3 py-1.5 rounded-full border border-border">
+									<HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} color={colors.semantic.success} />
+									<Text className="text-xs font-bold text-foreground">{t("medicalUploaded")}</Text>
+								</View>
+							</Button>
+						) : (
+							<Button
+								variant="outline"
+								onPress={handleCaptureMedical}
+								className="h-32 w-full border-1.5 border-dashed border-border rounded-2xl items-center justify-center bg-background gap-1.5 flex-col"
+							>
+								<View className="w-11 h-11 rounded-full bg-primary/15 items-center justify-center">
+									<HugeiconsIcon icon={HealthIcon} size={26} color={colors.primary.rose} />
+								</View>
+								<Text className="text-sm font-bold text-foreground">{t("scanMedical")}</Text>
+								<Text className="text-xs text-muted-foreground">{t("medicalHint")}</Text>
+							</Button>
+						)}
+					</View>
+				</Card>
+
+				<View className="flex-row gap-3 bg-success/10 border border-success/20 rounded-2xl p-4">
+					<HugeiconsIcon icon={SecurityCheckIcon} size={20} color={colors.semantic.success} />
+					<View className="flex-1 gap-1">
+						<Text className="text-sm font-bold text-success">{t("privacyTitle")}</Text>
+						<Text className="text-xs text-muted-foreground leading-4">
+							{t("privacyDesc")}
+						</Text>
+					</View>
 				</View>
 			</View>
 		</ScreenShell>
 	);
 }
-
-const styles = StyleSheet.create({
-	progressTrack: {
-		height: 4,
-		backgroundColor: "#18181b",
-		width: "100%",
-	},
-	progressBar: {
-		height: "100%",
-		backgroundColor: "#ee237c",
-		borderTopRightRadius: 4,
-		borderBottomRightRadius: 4,
-	},
-	formCard: {
-		backgroundColor: "#18181b",
-		borderWidth: 1,
-		borderColor: "#27272a",
-		borderRadius: 20,
-		padding: 20,
-		gap: 12,
-	},
-	sectionTitle: {
-		fontSize: 16,
-		fontWeight: "800",
-		color: "#fafafa",
-		letterSpacing: -0.2,
-	},
-	sectionSubtitle: {
-		fontSize: 12,
-		color: "#a1a1aa",
-		lineHeight: 18,
-	},
-	cardHeaderRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-	},
-	optionalBadge: {
-		backgroundColor: "rgba(59, 130, 246, 0.15)",
-		paddingHorizontal: 10,
-		paddingVertical: 4,
-		borderRadius: 999,
-	},
-	optionalText: {
-		fontSize: 10,
-		fontWeight: "700",
-		color: "#60a5fa",
-		textTransform: "uppercase",
-	},
-	inputsList: {
-		paddingTop: 4,
-	},
-	uploadWrapper: {
-		paddingTop: 4,
-	},
-	captureBox: {
-		height: 120,
-		borderWidth: 1.5,
-		borderStyle: "dashed",
-		borderColor: "#3f3f46",
-		borderRadius: 16,
-		alignItems: "center",
-		justifyContent: "center",
-		backgroundColor: "#09090b",
-		gap: 6,
-	},
-	cameraIconWrap: {
-		width: 44,
-		height: 44,
-		borderRadius: 22,
-		backgroundColor: "rgba(238, 35, 124, 0.12)",
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	captureTitle: {
-		fontSize: 13,
-		fontWeight: "700",
-		color: "#fafafa",
-	},
-	captureHint: {
-		fontSize: 11,
-		color: "#71717a",
-	},
-	previewBox: {
-		position: "relative",
-		height: 130,
-		borderRadius: 16,
-		overflow: "hidden",
-		borderWidth: 1,
-		borderColor: "#27272a",
-	},
-	previewImage: {
-		width: "100%",
-		height: "100%",
-	},
-	previewSuccessTag: {
-		position: "absolute",
-		bottom: 10,
-		right: 10,
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 6,
-		backgroundColor: "rgba(24, 24, 27, 0.9)",
-		paddingHorizontal: 12,
-		paddingVertical: 6,
-		borderRadius: 999,
-		borderWidth: 1,
-		borderColor: "#27272a",
-	},
-	previewSuccessText: {
-		fontSize: 11,
-		fontWeight: "700",
-		color: "#fafafa",
-	},
-	complianceCard: {
-		flexDirection: "row",
-		gap: 12,
-		backgroundColor: "rgba(16, 185, 129, 0.08)",
-		borderWidth: 1,
-		borderColor: "rgba(16, 185, 129, 0.2)",
-		borderRadius: 16,
-		padding: 16,
-	},
-	complianceTextWrap: {
-		flex: 1,
-		gap: 4,
-	},
-	complianceTitle: {
-		fontSize: 13,
-		fontWeight: "700",
-		color: "#10b981",
-	},
-	complianceDesc: {
-		fontSize: 11,
-		color: "#a1a1aa",
-		lineHeight: 16,
-	},
-});

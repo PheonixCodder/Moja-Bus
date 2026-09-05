@@ -14,11 +14,12 @@ import { useTranslation } from "react-i18next";
 import {
 	ActivityIndicator,
 	AppState,
+	Pressable,
 	Text,
-	TouchableOpacity,
 	View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Colors, Palette } from "@/constants/theme";
 import { TravelerTrackingMap } from "@/features/tracking/components/traveler-tracking-map";
 import { useTRPC } from "@/lib/trpc";
 
@@ -61,15 +62,17 @@ export default function LiveBusTrackingScreen() {
 
 	// ── Header ──────────────────────────────────────────────────────────
 	const header = (
-		<View className="px-5 py-3 border-b border-zinc-800 bg-zinc-900/80 flex-row items-center justify-between">
-			<TouchableOpacity
+		<View className="px-5 py-3 border-b border-border bg-card/90 flex-row items-center justify-between">
+			<Pressable
 				onPress={() => router.back()}
-				className="size-10 rounded-full bg-zinc-800 items-center justify-center"
+				className="size-10 rounded-full bg-muted items-center justify-center"
+				accessibilityRole="button"
+				accessibilityLabel={t("back", { defaultValue: "Back" })}
 			>
-				<ArrowLeft size={20} color="#fafafa" />
-			</TouchableOpacity>
+				<ArrowLeft size={20} color={Colors.dark.text} />
+			</Pressable>
 			<View className="items-center">
-				<Text className="text-xs font-black text-white uppercase tracking-wider">
+				<Text className="text-xs font-black text-foreground uppercase tracking-wider">
 					{t("trackingTitle")}
 				</Text>
 			</View>
@@ -80,11 +83,11 @@ export default function LiveBusTrackingScreen() {
 	// ── Loading state ───────────────────────────────────────────────────
 	if (isLoading) {
 		return (
-			<SafeAreaView className="flex-1 bg-zinc-950">
+			<SafeAreaView className="flex-1 bg-background">
 				{header}
 				<View className="flex-1 items-center justify-center">
-					<ActivityIndicator size="large" color="#e11d48" />
-					<Text className="text-sm text-zinc-400 mt-3">
+					<ActivityIndicator size="large" color={Palette.rose[500]} />
+					<Text className="text-sm text-muted-foreground mt-3">
 						{t("trackingLoading")}
 					</Text>
 				</View>
@@ -95,17 +98,17 @@ export default function LiveBusTrackingScreen() {
 	// ── Error / not found ───────────────────────────────────────────────
 	if (error || !data) {
 		return (
-			<SafeAreaView className="flex-1 bg-zinc-950">
+			<SafeAreaView className="flex-1 bg-background">
 				{header}
 				<View className="flex-1 items-center justify-center px-6">
-					<View className="bg-zinc-900/40 border border-zinc-800/60 rounded-3xl p-8 items-center gap-3 w-full">
+					<View className="bg-card border border-border rounded-3xl p-8 items-center gap-3 w-full shadow-sm">
 						<View className="p-3 rounded-2xl bg-destructive/10 border border-destructive/20">
-							<Satellite size={40} color="#ef4444" />
+							<Satellite size={40} color={Palette.red[500]} />
 						</View>
-						<Text className="text-lg font-bold text-white text-center">
+						<Text className="text-lg font-bold text-foreground text-center">
 							{t("trackingUnavailable")}
 						</Text>
-						<Text className="text-xs text-zinc-400 text-center leading-relaxed">
+						<Text className="text-xs text-muted-foreground text-center leading-relaxed">
 							{t("trackingUnavailableBody")}
 						</Text>
 					</View>
@@ -117,17 +120,17 @@ export default function LiveBusTrackingScreen() {
 	// ── Pre-departure: trip hasn't left yet ──────────────────────────────
 	if (data.status === "SCHEDULED" || data.status === "BOARDING") {
 		return (
-			<SafeAreaView className="flex-1 bg-zinc-950">
+			<SafeAreaView className="flex-1 bg-background">
 				{header}
 				<View className="flex-1 items-center justify-center px-6">
-					<View className="bg-zinc-900/40 border border-zinc-800/60 rounded-3xl p-8 items-center gap-3 w-full">
+					<View className="bg-card border border-border rounded-3xl p-8 items-center gap-3 w-full shadow-sm">
 						<View className="p-3 rounded-2xl bg-primary/10 border border-primary/20">
-							<Clock size={40} color="#e11d48" />
+							<Clock size={40} color={Palette.rose[500]} />
 						</View>
-						<Text className="text-lg font-bold text-white text-center">
+						<Text className="text-lg font-bold text-foreground text-center">
 							{t("trackingNotDeparted")}
 						</Text>
-						<Text className="text-xs text-zinc-400 text-center leading-relaxed">
+						<Text className="text-xs text-muted-foreground text-center leading-relaxed">
 							{t("trackingNotDepartedBody")}
 						</Text>
 
@@ -137,23 +140,23 @@ export default function LiveBusTrackingScreen() {
 								{data.stops.map((stop) => (
 									<View
 										key={stop.stopOrder}
-										className="flex-row items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-950 border border-zinc-800"
+										className="flex-row items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/60 border border-border"
 									>
 										<View
 											className={`size-2 rounded-full ${
 												stop.stopOrder === data.boardingStopOrder
-													? "bg-emerald-500"
+													? "bg-success"
 													: stop.stopOrder === data.dropoffStopOrder
 														? "bg-primary"
-														: "bg-zinc-600"
+														: "bg-muted-foreground/60"
 											}`}
 										/>
-										<Text className="text-[11px] text-zinc-300 flex-1">
+										<Text className="text-[11px] text-foreground flex-1">
 											{stop.terminalName}
 											{stop.city ? ` · ${stop.city}` : ""}
 										</Text>
 										{stop.stopOrder === data.boardingStopOrder && (
-											<Text className="text-[9px] font-bold text-emerald-400 uppercase">
+											<Text className="text-[9px] font-bold text-success uppercase">
 												Board
 											</Text>
 										)}
@@ -175,19 +178,19 @@ export default function LiveBusTrackingScreen() {
 	// ── Trip ended ──────────────────────────────────────────────────────
 	if (data.status === "ARRIVED" || data.status === "CANCELLED") {
 		return (
-			<SafeAreaView className="flex-1 bg-zinc-950">
+			<SafeAreaView className="flex-1 bg-background">
 				{header}
 				<View className="flex-1 items-center justify-center px-6">
-					<View className="bg-zinc-900/40 border border-zinc-800/60 rounded-3xl p-8 items-center gap-3 w-full">
-						<View className="p-3 rounded-2xl bg-zinc-800 border border-zinc-700">
-							<Navigation size={40} color="#71717a" />
+					<View className="bg-card border border-border rounded-3xl p-8 items-center gap-3 w-full shadow-sm">
+						<View className="p-3 rounded-2xl bg-muted border border-border">
+							<Navigation size={40} color={Palette.zinc[500]} />
 						</View>
-						<Text className="text-lg font-bold text-white text-center">
+						<Text className="text-lg font-bold text-foreground text-center">
 							{data.status === "ARRIVED"
 								? t("trackingArrived")
 								: t("trackingCancelled")}
 						</Text>
-						<Text className="text-xs text-zinc-400 text-center leading-relaxed">
+						<Text className="text-xs text-muted-foreground text-center leading-relaxed">
 							{data.status === "ARRIVED"
 								? t("trackingArrivedBody")
 								: t("trackingCancelledBody")}
@@ -201,17 +204,17 @@ export default function LiveBusTrackingScreen() {
 	// ── Dead position: no fresh GPS but trip is in progress ──────────────
 	if (data.freshness === "dead") {
 		return (
-			<SafeAreaView className="flex-1 bg-zinc-950">
+			<SafeAreaView className="flex-1 bg-background">
 				{header}
 				<View className="flex-1 items-center justify-center px-6">
-					<View className="bg-zinc-900/40 border border-zinc-800/60 rounded-3xl p-8 items-center gap-3 w-full">
-						<View className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20">
-							<SignalLow size={40} color="#f59e0b" />
+					<View className="bg-card border border-border rounded-3xl p-8 items-center gap-3 w-full shadow-sm">
+						<View className="p-3 rounded-2xl bg-warning/10 border border-warning/20">
+							<SignalLow size={40} color={Palette.amber[500]} />
 						</View>
-						<Text className="text-lg font-bold text-white text-center">
+						<Text className="text-lg font-bold text-foreground text-center">
 							{t("trackingSignalLost")}
 						</Text>
-						<Text className="text-xs text-zinc-400 text-center leading-relaxed">
+						<Text className="text-xs text-muted-foreground text-center leading-relaxed">
 							{t("trackingSignalLostBody")}
 						</Text>
 					</View>
@@ -232,7 +235,7 @@ export default function LiveBusTrackingScreen() {
 	const destStop = data.stops[data.stops.length - 1];
 
 	return (
-		<SafeAreaView className="flex-1 bg-zinc-950" edges={["top"]}>
+		<SafeAreaView className="flex-1 bg-background" edges={["top"]}>
 			{header}
 
 			{/* Map */}
@@ -265,8 +268,8 @@ export default function LiveBusTrackingScreen() {
 
 			{/* Stale overlay */}
 			{data.freshness === "stale" && (
-				<View className="absolute top-16 left-4 right-4 bg-amber-500/90 rounded-xl px-4 py-2.5 flex-row items-center gap-2">
-					<SignalLow size={14} color="#000" />
+				<View className="absolute top-16 left-4 right-4 bg-warning/90 rounded-xl px-4 py-2.5 flex-row items-center gap-2">
+					<SignalLow size={14} color={Palette.zinc[950]} />
 					<Text className="text-xs font-bold text-black flex-1">
 						{t("trackingStale")}
 					</Text>
@@ -274,19 +277,19 @@ export default function LiveBusTrackingScreen() {
 			)}
 
 			{/* Bottom info bar */}
-			<View className="bg-zinc-900 border-t border-zinc-800 px-5 py-3 flex-row items-center justify-between">
+			<View className="bg-card border-t border-border px-5 py-3 flex-row items-center justify-between">
 				<View className="flex-row items-center gap-2">
 					<Signal
 						size={12}
 						color={
 							data.freshness === "fresh"
-								? "#22c55e"
+								? Palette.emerald[500]
 								: data.freshness === "stale"
-									? "#f59e0b"
-									: "#ef4444"
+									? Palette.amber[500]
+									: Palette.red[500]
 						}
 					/>
-					<Text className="text-[10px] text-zinc-400">
+					<Text className="text-[10px] text-muted-foreground">
 						{data.lastPingAt
 							? new Date(data.lastPingAt).toLocaleTimeString()
 							: "—"}
@@ -294,17 +297,17 @@ export default function LiveBusTrackingScreen() {
 				</View>
 
 				{data.lastSpeedKmh != null && (
-					<Text className="text-[10px] text-zinc-400">
+					<Text className="text-[10px] text-muted-foreground font-semibold">
 						{Math.round(data.lastSpeedKmh)} km/h
 					</Text>
 				)}
 
 				{data.distanceToDropoffKm != null && (
 					<View className="flex-row items-center gap-1">
-						<MapPin size={10} color="#a1a1aa" />
-						<Text className="text-[10px] text-zinc-400">
+						<MapPin size={10} color={Palette.zinc[400]} />
+						<Text className="text-[10px] text-muted-foreground">
 							{data.distanceToDropoffKm} km
-							<Text className="text-[8px] text-zinc-600"> approx</Text>
+							<Text className="text-[8px] text-muted-foreground/60"> approx</Text>
 						</Text>
 					</View>
 				)}

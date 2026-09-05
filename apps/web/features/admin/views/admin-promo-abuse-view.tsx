@@ -29,10 +29,10 @@ type EventTypeFilter =
   | "VELOCITY_CAP";
 
 const EVENT_CONFIG: Record<EventTypeFilter, { color: string }> = {
-  SELF_REFERRAL: { color: "bg-pink-100 text-[#ee237c]" },
-  SAME_PHONE_REFERRAL: { color: "bg-yellow-100 text-yellow-700" },
-  SAME_DEVICE_REFERRAL: { color: "bg-rose-100 text-rose-700" },
-  VELOCITY_CAP: { color: "bg-red-100 text-red-700" },
+  SELF_REFERRAL: { color: "bg-primary/15 text-primary" },
+  SAME_PHONE_REFERRAL: { color: "bg-warning/15 text-warning" },
+  SAME_DEVICE_REFERRAL: { color: "bg-destructive/15 text-destructive" },
+  VELOCITY_CAP: { color: "bg-destructive/15 text-destructive" },
 };
 
 const EVENT_TYPES: EventTypeFilter[] = [
@@ -91,43 +91,37 @@ export function AdminPromoAbuseView() {
     <div className="space-y-4">
       {/* Filter tabs */}
       <div className="flex flex-wrap items-center gap-2">
-        <button
+        <Button
           type="button"
+          size="sm"
+          variant={!eventType ? "default" : "outline"}
           onClick={() => setEventType(undefined)}
-          className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-colors ${
-            !eventType
-              ? "bg-slate-900 text-white"
-              : "border border-slate-200 bg-white text-slate-600 hover:border-slate-400 hover:text-slate-900"
-          }`}
         >
           {t("allEvents")}
           {total > 0 && (
             <span
-              className={`ml-2 inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+              className={`ml-2 inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-xs font-bold ${
                 !eventType
-                  ? "bg-white/20 text-white"
-                  : "bg-slate-100 text-slate-600"
+                  ? "bg-primary-foreground/20 text-primary-foreground"
+                  : "bg-muted text-muted-foreground"
               }`}
             >
               {total}
             </span>
           )}
-        </button>
+        </Button>
         {EVENT_TYPES.map((type) => (
           <div key={type} className="inline-flex items-center gap-1">
-            <button
+            <Button
               type="button"
+              size="sm"
+              variant={eventType === type ? "default" : "outline"}
               onClick={() =>
                 setEventType(eventType === type ? undefined : type)
               }
-              className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-colors ${
-                eventType === type
-                  ? "bg-slate-900 text-white"
-                  : "border border-slate-200 bg-white text-slate-600 hover:border-slate-400 hover:text-slate-900"
-              }`}
             >
               {t(`events.${type}.label`)}
-            </button>
+            </Button>
             <InfoTooltip content={t(`events.${type}.desc`)} />
           </div>
         ))}
@@ -137,20 +131,20 @@ export function AdminPromoAbuseView() {
       <Card className="overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow className="bg-slate-50/60">
-              <TableHead className="font-semibold text-slate-600">
+            <TableRow className="bg-muted/50">
+              <TableHead className="font-semibold text-muted-foreground">
                 {t("when")}
               </TableHead>
-              <TableHead className="font-semibold text-slate-600">
+              <TableHead className="font-semibold text-muted-foreground">
                 {t("type")}
               </TableHead>
-              <TableHead className="font-semibold text-slate-600">
+              <TableHead className="font-semibold text-muted-foreground">
                 {t("user")}
               </TableHead>
-              <TableHead className="font-semibold text-slate-600">
+              <TableHead className="font-semibold text-muted-foreground">
                 {t("details")}
               </TableHead>
-              <TableHead className="text-right font-semibold text-slate-600">
+              <TableHead className="text-right font-semibold text-muted-foreground">
                 {t("actions")}
               </TableHead>
             </TableRow>
@@ -160,7 +154,7 @@ export function AdminPromoAbuseView() {
               <TableRow>
                 <TableCell
                   colSpan={5}
-                  className="py-12 text-center text-sm text-slate-400"
+                  className="py-12 text-center text-sm text-muted-foreground"
                 >
                   {t("loading")}
                 </TableCell>
@@ -169,14 +163,14 @@ export function AdminPromoAbuseView() {
               <TableRow>
                 <TableCell colSpan={5} className="py-16 text-center">
                   <div className="mx-auto flex max-w-xs flex-col items-center gap-3">
-                    <div className="flex size-12 items-center justify-center rounded-full bg-emerald-50">
-                      <ShieldAlert className="size-6 text-emerald-500" />
+                    <div className="flex size-12 items-center justify-center rounded-full bg-success/15">
+                      <ShieldAlert className="size-6 text-success" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-slate-700">
+                      <p className="text-sm font-semibold text-foreground">
                         {t("emptyTitle")}
                       </p>
-                      <p className="mt-0.5 text-xs text-slate-400">
+                      <p className="mt-0.5 text-xs text-muted-foreground">
                         {t("emptyDesc")}
                       </p>
                     </div>
@@ -194,10 +188,10 @@ export function AdminPromoAbuseView() {
                     key={item.id}
                     className={item.reviewed ? "opacity-60" : ""}
                   >
-                    <TableCell className="whitespace-nowrap text-sm text-slate-500">
+                    <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
                       {format(new Date(item.createdAt), "dd MMM yyyy")}
                       <br />
-                      <span className="text-[11px] text-slate-400">
+                      <span className="text-xs text-muted-foreground">
                         {format(new Date(item.createdAt), "HH:mm")}
                       </span>
                     </TableCell>
@@ -219,38 +213,38 @@ export function AdminPromoAbuseView() {
                         <div className="space-y-0.5">
                           <Link
                             href={travelerHref(item.user.id)}
-                            className="font-medium text-slate-900 underline-offset-2 hover:underline"
+                            className="font-medium text-foreground underline-offset-2 hover:underline"
                           >
                             {item.user.fullName}
                           </Link>
-                          <p className="text-xs text-slate-500">
+                          <p className="text-xs text-muted-foreground">
                             {item.user.email}
                           </p>
                         </div>
                       ) : item.userId ? (
                         <Link
                           href={travelerHref(item.userId)}
-                          className="font-mono text-xs text-slate-600 underline-offset-2 hover:underline"
+                          className="font-mono text-xs text-muted-foreground underline-offset-2 hover:underline"
                         >
                           {item.userId}
                         </Link>
                       ) : (
-                        <span className="text-slate-400">—</span>
+                        <span className="text-muted-foreground">—</span>
                       )}
                     </TableCell>
-                    <TableCell className="max-w-xs text-sm text-slate-600">
+                    <TableCell className="max-w-xs text-sm text-muted-foreground">
                       <p>{item.summary}</p>
                       {item.campaign && (
-                        <p className="mt-1 text-xs text-slate-500">
+                        <p className="mt-1 text-xs text-muted-foreground">
                           {t("campaign")}{" "}
-                          <span className="font-medium text-slate-700">
+                          <span className="font-medium text-foreground">
                             {item.campaign.name}
                           </span>{" "}
                           <span
-                            className={`text-[10px] font-semibold uppercase ${
+                            className={`text-xs font-semibold uppercase ${
                               item.campaign.status === "ACTIVE"
-                                ? "text-emerald-600"
-                                : "text-slate-400"
+                                ? "text-success"
+                                : "text-muted-foreground"
                             }`}
                           >
                             {item.campaign.status}
@@ -269,19 +263,18 @@ export function AdminPromoAbuseView() {
                               disabled={pauseMutation.isPending}
                               onClick={() =>
                                 pauseMutation.mutate({
-                                  id: item.campaignId!,
-                                  status: "PAUSED",
-                                  pauseReason: `Paused from abuse queue (${item.eventType})`,
+                                   id: item.campaignId!,
+                                   status: "PAUSED",
+                                   pauseReason: `Paused from abuse queue (${item.eventType})`,
                                 })
                               }
-                              className="border-slate-200 text-slate-700 hover:bg-slate-50"
                             >
                               <ShieldOff className="size-3.5" />
                               {t("pauseCampaign")}
                             </Button>
                           )}
                         {item.reviewed ? (
-                          <span className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium text-emerald-700">
+                          <span className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium text-success">
                             <CheckCheck className="size-3.5" />
                             {t("reviewed")}
                           </span>
@@ -313,7 +306,7 @@ export function AdminPromoAbuseView() {
       </Card>
 
       {total > 0 && (
-        <p className="text-xs text-slate-400">{t("totalEvents", { total })}</p>
+        <p className="text-xs text-muted-foreground">{t("totalEvents", { total })}</p>
       )}
     </div>
   );

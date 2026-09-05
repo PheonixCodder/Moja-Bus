@@ -82,8 +82,8 @@ export function OperatorBookingsView() {
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">{t("title")}</h1>
-          <p className="text-sm text-text-secondary mt-1">{t("description")}</p>
+          <h1 className="text-2xl font-bold text-foreground">{t("title")}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{t("description")}</p>
         </div>
         <div className="flex gap-2 shrink-0">
           {can("revenue:export") && (
@@ -170,17 +170,19 @@ export function OperatorBookingsView() {
           </Button>
         ))}
         {tripId ? (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-slate-50 px-2.5 py-1 text-xs">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-2.5 py-1 text-xs">
             <span className="text-muted-foreground">{t("trip")}</span>
             <span className="font-mono font-semibold">{tripId}</span>
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon"
               onClick={() => void setParams({ tripId: "", page: 1 })}
-              className="ml-0.5 text-muted-foreground hover:text-foreground"
+              className="ml-0.5 h-4 w-4 text-muted-foreground hover:text-foreground p-0"
               aria-label={t("clearTripFilter")}
             >
               ×
-            </button>
+            </Button>
           </span>
         ) : null}
         {status !== "ALL" || tripId ? (
@@ -199,7 +201,7 @@ export function OperatorBookingsView() {
 
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-text-muted" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             value={q}
             onChange={(e) => void setParams({ q: e.target.value, page: 1 })}

@@ -3,10 +3,9 @@ import {
 	View,
 	Text,
 	ScrollView,
-	TouchableOpacity,
+	Pressable,
 	RefreshControl,
 	Alert,
-	StyleSheet,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -26,6 +25,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { colors } from "@/constants/theme";
+import { cn } from "@/lib/utils";
 
 export function EarningsView() {
 	const { t } = useTranslation("earnings");
@@ -85,28 +85,30 @@ export function EarningsView() {
 	const recentShifts = earnings?.recentShifts ?? [];
 
 	return (
-		<View style={styles.root}>
+		<View className="flex-1 bg-background">
 			{/* Top Header */}
-			<View style={[styles.headerBar, { paddingTop: insets.top + 12 }]}>
-				<View style={styles.headerTitleWrap}>
-					<Text style={styles.headerTitle}>{t("headerTitle")}</Text>
-					<Text style={styles.headerSubtitle}>{t("headerSubtitle")}</Text>
+			<View
+				className="px-5 pb-3.5 border-b border-border bg-background flex-row items-center justify-between"
+				style={{ paddingTop: insets.top + 12 }}
+			>
+				<View className="gap-0.5 flex-1">
+					<Text className="text-xl font-extrabold text-foreground tracking-tight">{t("headerTitle")}</Text>
+					<Text className="text-[11px] text-muted-foreground">{t("headerSubtitle")}</Text>
 				</View>
-				<TouchableOpacity
+				<Pressable
 					onPress={handleRequestPayout}
-					activeOpacity={0.8}
-					style={styles.walletBtn}
+					accessibilityRole="button"
+					accessibilityLabel={t("payout.title")}
+					className="size-10 rounded-2xl bg-card border border-border items-center justify-center active:bg-secondary"
 				>
-					<HugeiconsIcon icon={Wallet01Icon} size={18} color="#10b981" />
-				</TouchableOpacity>
+					<HugeiconsIcon icon={Wallet01Icon} size={18} color={colors.semantic.success} />
+				</Pressable>
 			</View>
 
 			<ScrollView
-				style={styles.scroll}
-				contentContainerStyle={[
-					styles.scrollContent,
-					{ paddingBottom: Math.max(insets.bottom, 24) + 80 },
-				]}
+				className="flex-1"
+				contentContainerClassName="px-4 pt-4 gap-4"
+				contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 24) + 80 }}
 				showsVerticalScrollIndicator={false}
 				refreshControl={
 					<RefreshControl
@@ -117,34 +119,34 @@ export function EarningsView() {
 				}
 			>
 				{/* Hero Earnings Card */}
-				<Card className="p-6 gap-4 relative overflow-hidden bg-gradient-to-b from-[#18181b] to-[#121215]">
-					<View style={styles.heroTopRow}>
-						<Text style={styles.heroLabel}>{t("thisWeek")}</Text>
+				<Card className="p-6 gap-4 relative overflow-hidden bg-card border-border">
+					<View className="flex-row items-center justify-between">
+						<Text className="text-[11px] font-bold uppercase text-muted-foreground tracking-wider">{t("thisWeek")}</Text>
 						<Badge
 							variant="warning"
 							label={t("estimationBadge") || "Estimation"}
 						/>
 					</View>
 
-					<View style={styles.heroAmountRow}>
-						<Text style={styles.heroAmount}>
+					<View className="flex-row items-baseline gap-2">
+						<Text className="text-4xl font-extrabold text-foreground font-mono tracking-tight">
 							{weekEarnings.toLocaleString()}
 						</Text>
-						<Text style={styles.heroCurrency}>XOF</Text>
+						<Text className="text-sm font-bold text-primary">XOF</Text>
 					</View>
 
 					{/* Breakdown Grid */}
-					<View style={styles.breakdownGrid}>
-						<View style={styles.breakdownCol}>
-							<Text style={styles.breakdownLabel}>{t("todayLabel")}</Text>
-							<Text style={styles.breakdownValue}>
+					<View className="flex-row items-center gap-4 pt-4 border-t border-border">
+						<View className="flex-1 gap-0.5">
+							<Text className="text-[10px] uppercase text-muted-foreground font-bold">{t("todayLabel")}</Text>
+							<Text className="text-[15px] font-bold text-foreground font-mono">
 								{todayEarnings.toLocaleString()} XOF
 							</Text>
 						</View>
-						<View style={styles.breakdownDivider} />
-						<View style={styles.breakdownCol}>
-							<Text style={styles.breakdownLabel}>{t("tripsCompletedLabel")}</Text>
-							<Text style={[styles.breakdownValue, styles.breakdownSuccess]}>
+						<View className="w-[1px] h-8 bg-border" />
+						<View className="flex-1 gap-0.5">
+							<Text className="text-[10px] uppercase text-muted-foreground font-bold">{t("tripsCompletedLabel")}</Text>
+							<Text className="text-[15px] font-bold text-success font-mono">
 								{totalTrips} {t("tripsCompleted")}
 							</Text>
 						</View>
@@ -153,24 +155,26 @@ export function EarningsView() {
 
 				{/* Live Shift Control Card */}
 				<Card className="p-4 flex-row items-center justify-between">
-					<View style={styles.shiftLeft}>
+					<View className="flex-row items-center gap-3">
 						<View
-							style={[
-								styles.shiftIconBox,
-								isShiftActive ? styles.shiftIconActive : styles.shiftIconInactive,
-							]}
+							className={cn(
+								"size-11 rounded-2xl items-center justify-center border",
+								isShiftActive
+									? "bg-success/15 border-success/30"
+									: "bg-card border-border",
+							)}
 						>
 							<HugeiconsIcon
 								icon={Clock01Icon}
 								size={20}
-								color={isShiftActive ? "#10b981" : "#71717a"}
+								color={isShiftActive ? colors.semantic.success : colors.neutral.textMuted}
 							/>
 						</View>
 						<View>
-							<Text style={styles.shiftStatusTitle}>
+							<Text className="text-sm font-bold text-foreground">
 								{isShiftActive ? t("shiftOnDuty") : t("shiftOffDuty")}
 							</Text>
-							<Text style={styles.shiftStatusSub}>
+							<Text className="text-[11px] text-muted-foreground">
 								{isShiftActive ? t("shift.activeSub", { minutes: elapsedMinutes }) : t("shift.inactiveSub")}
 							</Text>
 						</View>
@@ -186,63 +190,60 @@ export function EarningsView() {
 							<HugeiconsIcon
 								icon={isShiftActive ? StopIcon : PlayIcon}
 								size={14}
-								color={isShiftActive ? "#f43f5e" : "#ffffff"}
+								color={isShiftActive ? colors.semantic.error : colors.neutral.textPrimary}
 							/>
 						}
-						textClassName={isShiftActive ? "text-[#f43f5e]" : undefined}
+						textClassName={isShiftActive ? "text-destructive" : undefined}
 					/>
 				</Card>
 
 				{/* Carrier Compensation Breakdown — DRV-P2-10 */}
 				{earnings?.byCompany && earnings.byCompany.length > 0 && (
-					<View style={styles.sectionWrap}>
-						<Text style={styles.sectionHeader}>{t("carrierBreakdown")}</Text>
+					<View className="gap-3 pt-1.5">
+						<Text className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{t("carrierBreakdown")}</Text>
 						{earnings.byCompany.map(
-							// Decision 4: inferred tRPC type replaces comp:any
 							(comp: NonNullable<typeof earnings>["byCompany"][number]) => (
 								<Card key={comp.companyId} className="p-4 gap-2">
 									{/* Header row: company icon + name/rate + week amount */}
-									<View style={styles.companyRow}>
-										<View style={styles.companyLeft}>
-											<View style={styles.companyIconBox}>
+									<View className="flex-row items-center justify-between">
+										<View className="flex-row items-center gap-2.5">
+											<View className="size-8 rounded-xl bg-background border border-border items-center justify-center">
 												<HugeiconsIcon icon={Building01Icon} size={16} color={colors.primary.rose} />
 											</View>
-											<View style={styles.companyNameWrap}>
-												<Text style={styles.companyName}>{comp.companyName}</Text>
-												<Text style={styles.companyType}>
+											<View className="flex-1 gap-0.5">
+												<Text className="text-sm font-bold text-foreground">{comp.companyName}</Text>
+												<Text className="text-[11px] text-muted-foreground">
 													{comp.employmentType?.replace(/_/g, " ")} • {comp.rateDescription}
 												</Text>
 											</View>
 										</View>
 
-										<View style={styles.companyRight}>
-											{/* Decision 2: surface isEstimated badge */}
+										<View className="items-end gap-0.5">
 											{comp.isEstimated && (
 												<Badge
 													variant="warning"
 													label={t("estimationBadge") || "Est."}
 												/>
 											)}
-											<Text style={styles.companyAmount}>
+											<Text className="text-[13px] font-bold font-mono text-success">
 												{comp.weekEarningsXof.toLocaleString()} XOF
 											</Text>
-											{/* Decision 3: conditional trips vs minutes by payModel */}
 											{comp.payModel === "PER_TRIP" ? (
-												<Text style={styles.companyMinutes}>
+												<Text className="text-[10px] text-muted-foreground">
 													{t("carrierWeekTrips", { trips: comp.weekTrips })}
 												</Text>
 											) : (
-												<Text style={styles.companyMinutes}>
+												<Text className="text-[10px] text-muted-foreground">
 													{t("carrierWeekMinutes", { minutes: comp.weekMinutes })}
 												</Text>
 											)}
 										</View>
 									</View>
 
-									{/* Decision 1: today's per-carrier earnings row */}
-									<View style={styles.companyTodayRow}>
-										<Text style={styles.companyTodayLabel}>{t("todayLabel")}</Text>
-										<Text style={styles.companyTodayAmount}>
+									{/* Today's per-carrier earnings row */}
+									<View className="flex-row items-center justify-between pt-2 mt-1 border-t border-border">
+										<Text className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("todayLabel")}</Text>
+										<Text className="text-xs font-bold font-mono text-muted-foreground">
 											{comp.todayEarningsXof.toLocaleString()} XOF
 										</Text>
 									</View>
@@ -253,14 +254,14 @@ export function EarningsView() {
 				)}
 
 				{/* Shift Ledger History */}
-				<View style={styles.sectionWrap}>
-					<Text style={styles.sectionHeader}>{t("recentShifts")}</Text>
+				<View className="gap-3 pt-1.5">
+					<Text className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{t("recentShifts")}</Text>
 
 					{recentShifts.length === 0 ? (
 						<Card className="p-6 items-center justify-center text-center gap-1.5">
-							<HugeiconsIcon icon={Clock01Icon} size={32} color="#71717a" />
-							<Text style={styles.emptyLedgerTitle}>{t("emptyLedger")}</Text>
-							<Text style={styles.emptyLedgerSubtitle}>{t("emptyLedgerDesc")}</Text>
+							<HugeiconsIcon icon={Clock01Icon} size={32} color={colors.neutral.textMuted} />
+							<Text className="text-xs font-bold text-foreground">{t("emptyLedger")}</Text>
+							<Text className="text-[11px] text-muted-foreground text-center">{t("emptyLedgerDesc")}</Text>
 						</Card>
 					) : (
 						recentShifts.map((shift: any) => {
@@ -271,18 +272,18 @@ export function EarningsView() {
 
 							return (
 								<Card key={shift.id} className="p-4 gap-2">
-									<View style={styles.shiftRow}>
-										<View style={styles.shiftRowLeft}>
-											<HugeiconsIcon icon={Calendar01Icon} size={16} color="#a1a1aa" />
+									<View className="flex-row items-center justify-between">
+										<View className="flex-row items-center gap-3">
+											<HugeiconsIcon icon={Calendar01Icon} size={16} color={colors.neutral.textSecondary} />
 											<View>
-												<Text style={styles.shiftDateText}>
+												<Text className="text-[13px] font-bold text-foreground">
 													{start.toLocaleDateString([], {
 														weekday: "short",
 														day: "numeric",
 														month: "short",
 													})}
 												</Text>
-												<Text style={styles.shiftHourText}>
+												<Text className="text-[11px] text-muted-foreground">
 													{start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
 													{shift.endedAt
 														? ` → ${new Date(shift.endedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
@@ -309,252 +310,3 @@ export function EarningsView() {
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	root: {
-		flex: 1,
-		backgroundColor: "#09090b",
-	},
-	headerBar: {
-		paddingHorizontal: 20,
-		paddingBottom: 14,
-		borderBottomWidth: 1,
-		borderBottomColor: "#27272a",
-		backgroundColor: "#09090b",
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-	},
-	headerTitleWrap: {
-		gap: 2,
-		flex: 1,
-	},
-	headerTitle: {
-		fontSize: 20,
-		fontWeight: "800",
-		color: "#fafafa",
-		letterSpacing: -0.3,
-	},
-	headerSubtitle: {
-		fontSize: 11,
-		color: "#a1a1aa",
-	},
-	walletBtn: {
-		width: 40,
-		height: 40,
-		borderRadius: 14,
-		backgroundColor: "#18181b",
-		borderWidth: 1,
-		borderColor: "#27272a",
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	scroll: {
-		flex: 1,
-	},
-	scrollContent: {
-		paddingHorizontal: 16,
-		paddingTop: 16,
-		gap: 16,
-	},
-	heroTopRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-	},
-	heroLabel: {
-		fontSize: 11,
-		fontWeight: "700",
-		textTransform: "uppercase",
-		color: "#a1a1aa",
-		letterSpacing: 0.5,
-	},
-	heroAmountRow: {
-		flexDirection: "row",
-		alignItems: "baseline",
-		gap: 8,
-	},
-	heroAmount: {
-		fontSize: 36,
-		fontWeight: "800",
-		color: "#fafafa",
-		fontFamily: "monospace",
-		letterSpacing: -1,
-	},
-	heroCurrency: {
-		fontSize: 14,
-		fontWeight: "700",
-		color: "#ee237c",
-	},
-	breakdownGrid: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 16,
-		paddingTop: 16,
-		borderTopWidth: 1,
-		borderTopColor: "#27272a",
-	},
-	breakdownCol: {
-		flex: 1,
-		gap: 2,
-	},
-	breakdownLabel: {
-		fontSize: 10,
-		textTransform: "uppercase",
-		color: "#71717a",
-		fontWeight: "700",
-	},
-	breakdownValue: {
-		fontSize: 15,
-		fontWeight: "700",
-		color: "#fafafa",
-		fontFamily: "monospace",
-	},
-	breakdownSuccess: {
-		color: "#34d399",
-	},
-	breakdownDivider: {
-		width: 1,
-		height: 32,
-		backgroundColor: "#27272a",
-	},
-	shiftLeft: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 12,
-	},
-	shiftIconBox: {
-		width: 44,
-		height: 44,
-		borderRadius: 14,
-		alignItems: "center",
-		justifyContent: "center",
-		borderWidth: 1,
-	},
-	shiftIconActive: {
-		backgroundColor: "rgba(16, 185, 129, 0.15)",
-		borderColor: "rgba(16, 185, 129, 0.3)",
-	},
-	shiftIconInactive: {
-		backgroundColor: "#09090b",
-		borderColor: "#27272a",
-	},
-	shiftStatusTitle: {
-		fontSize: 14,
-		fontWeight: "700",
-		color: "#fafafa",
-	},
-	shiftStatusSub: {
-		fontSize: 11,
-		color: "#a1a1aa",
-	},
-	sectionWrap: {
-		gap: 12,
-		paddingTop: 6,
-	},
-	sectionHeader: {
-		fontSize: 11,
-		fontWeight: "700",
-		color: "#a1a1aa",
-		textTransform: "uppercase",
-		letterSpacing: 0.5,
-	},
-	companyRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-	},
-	companyLeft: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 10,
-	},
-	companyIconBox: {
-		width: 32,
-		height: 32,
-		borderRadius: 10,
-		backgroundColor: "#09090b",
-		borderWidth: 1,
-		borderColor: "#27272a",
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	companyName: {
-		fontSize: 14,
-		fontWeight: "700",
-		color: "#fafafa",
-	},
-	companyType: {
-		fontSize: 11,
-		color: "#a1a1aa",
-	},
-	companyNameWrap: {
-		flex: 1,
-		gap: 2,
-	},
-	companyRight: {
-		alignItems: "flex-end",
-		gap: 2,
-	},
-	companyAmount: {
-		fontSize: 13,
-		fontWeight: "700",
-		fontFamily: "monospace",
-		color: "#34d399",
-	},
-	companyMinutes: {
-		fontSize: 10,
-		color: "#71717a",
-	},
-	companyTodayRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-		paddingTop: 8,
-		marginTop: 4,
-		borderTopWidth: 1,
-		borderTopColor: "#27272a",
-	},
-	companyTodayLabel: {
-		fontSize: 10,
-		fontWeight: "700",
-		textTransform: "uppercase",
-		letterSpacing: 0.4,
-		color: "#71717a",
-	},
-	companyTodayAmount: {
-		fontSize: 12,
-		fontWeight: "700",
-		fontFamily: "monospace",
-		color: "#a1a1aa",
-	},
-	emptyLedgerTitle: {
-		fontSize: 12,
-		fontWeight: "700",
-		color: "#fafafa",
-	},
-	emptyLedgerSubtitle: {
-		fontSize: 11,
-		color: "#71717a",
-		textAlign: "center",
-	},
-	shiftRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-	},
-	shiftRowLeft: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 12,
-	},
-	shiftDateText: {
-		fontSize: 13,
-		fontWeight: "700",
-		color: "#fafafa",
-	},
-	shiftHourText: {
-		fontSize: 11,
-		color: "#71717a",
-	},
-});

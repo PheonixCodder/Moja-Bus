@@ -35,6 +35,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@moja/ui/components/ui/avatar";
+import { UserAvatar } from "@moja/ui/components/ui/user-avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -418,18 +419,18 @@ export function OperatorSidebar({ user }: OperatorSidebarProps) {
                 )}
                 title={user?.name ?? t("operator")}
               >
-                <Avatar className="size-6 shrink-0">
-                  <AvatarImage
-                    src={
-                      data?.operator?.profilePhotoUrl ||
-                      user?.image ||
-                      undefined
-                    }
-                  />
-                  <AvatarFallback className="bg-sidebar-primary/15 text-[10px] font-semibold text-sidebar-primary">
-                    {userInitials}
-                  </AvatarFallback>
-                </Avatar>
+                <UserAvatar
+                  name={user?.name}
+                  src={
+                    data?.operator?.profilePhotoUrl ||
+                    user?.image ||
+                    undefined
+                  }
+                  seed={user?.id}
+                  size="sm"
+                  className="size-6 shrink-0"
+                  fallbackClassName="text-[10px]"
+                />
                 <span className="truncate text-[13px] font-medium text-sidebar-foreground group-data-[collapsible=icon]:hidden">
                   {user?.name ?? user?.email ?? t("operator")}
                 </span>

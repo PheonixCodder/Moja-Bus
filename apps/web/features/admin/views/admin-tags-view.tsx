@@ -115,32 +115,32 @@ export function AdminTagsView() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-slate-900">{t("title")}</h2>
-          <p className="text-xs text-slate-500 mt-0.5">{t("subtitle")}</p>
+          <h2 className="text-xl font-bold text-foreground">{t("title")}</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">{t("subtitle")}</p>
         </div>
         <Button
           onClick={() => {
             resetForm();
             setIsDialogOpen(true);
           }}
-          className="gap-2 bg-slate-900 text-white hover:bg-slate-800 h-9 text-xs font-semibold"
+          className="gap-2 h-9 text-xs font-semibold"
         >
           <Plus className="size-4" />
           {t("addTag")}
         </Button>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+      <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
         <Table>
-          <TableHeader className="bg-slate-50/70">
+          <TableHeader className="bg-muted/40">
             <TableRow>
-              <TableHead className="w-1/2 text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+              <TableHead className="w-1/2 text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4">
                 {t("tag")}
               </TableHead>
-              <TableHead className="w-1/3 text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+              <TableHead className="w-1/3 text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4">
                 {t("urlSlug")}
               </TableHead>
-              <TableHead className="text-right text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+              <TableHead className="text-right text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4">
                 {t("actions")}
               </TableHead>
             </TableRow>
@@ -150,21 +150,21 @@ export function AdminTagsView() {
               <TableRow>
                 <TableCell
                   colSpan={3}
-                  className="text-center py-10 text-slate-400 text-xs"
+                  className="text-center py-10 text-muted-foreground text-xs"
                 >
                   {t("noTags")}
                 </TableCell>
               </TableRow>
             ) : (
               tags.map((tag) => (
-                <TableRow key={tag.id} className="hover:bg-slate-50/50">
-                  <TableCell className="px-4 py-3 text-sm font-semibold text-slate-900">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold">
-                      <TagIcon className="size-3 text-slate-500" />
+                <TableRow key={tag.id} className="hover:bg-muted/50">
+                  <TableCell className="px-4 py-3 text-sm font-semibold text-foreground">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-muted border border-border text-foreground text-xs font-semibold">
+                      <TagIcon className="size-3 text-muted-foreground" />
                       {tag.name}
                     </span>
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-sm text-slate-500 font-mono">
+                  <TableCell className="px-4 py-3 text-sm text-muted-foreground font-mono">
                     {tag.slug}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-right">
@@ -173,7 +173,7 @@ export function AdminTagsView() {
                         onClick={() => handleEdit(tag)}
                         size="sm"
                         variant="ghost"
-                        className="h-8 w-8 p-0 text-slate-400 hover:text-slate-900"
+                        className="size-8 p-0 text-muted-foreground hover:text-foreground"
                       >
                         <Edit2 className="size-3.5" />
                         <span className="sr-only">{t("edit")}</span>
@@ -182,7 +182,7 @@ export function AdminTagsView() {
                         onClick={() => handleDelete(tag.id)}
                         size="sm"
                         variant="ghost"
-                        className="h-8 w-8 p-0 text-slate-400 hover:text-rose-600"
+                        className="size-8 p-0 text-muted-foreground hover:text-destructive"
                         disabled={deleteTag.isPending}
                       >
                         <Trash2 className="size-3.5" />
@@ -201,14 +201,14 @@ export function AdminTagsView() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <div className="flex items-center gap-2.5 mb-1">
-              <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center flex-shrink-0">
-                <Hash className="size-4 text-white" />
+              <div className="size-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
+                <Hash className="size-4 text-primary-foreground" />
               </div>
-              <DialogTitle className="text-base font-bold text-slate-900">
+              <DialogTitle className="text-base font-bold text-foreground">
                 {editingTag ? t("editTag") : t("addTagTitle")}
               </DialogTitle>
             </div>
-            <DialogDescription className="text-xs text-slate-500 leading-relaxed">
+            <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
               {t("createKeywords")}
             </DialogDescription>
           </DialogHeader>
@@ -217,7 +217,7 @@ export function AdminTagsView() {
             <div className="space-y-1">
               <label
                 htmlFor="tag-name"
-                className="text-[10px] font-bold text-slate-700 uppercase tracking-wider"
+                className="text-xs font-bold text-foreground uppercase tracking-wider"
               >
                 {t("name")}
               </label>
@@ -226,7 +226,7 @@ export function AdminTagsView() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder={t("namePlaceholder")}
-                className="h-9 text-sm bg-white"
+                className="h-9 text-sm bg-background"
                 required
                 autoFocus
               />
@@ -247,11 +247,11 @@ export function AdminTagsView() {
                 disabled={
                   !name.trim() || createTag.isPending || updateTag.isPending
                 }
-                className="h-9 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs"
+                className="h-9 font-semibold text-xs"
               >
                 {createTag.isPending || updateTag.isPending ? (
                   <>
-                    <Spinner className="mr-2 size-3.5 text-white" />
+                    <Spinner className="mr-2 size-3.5" />
                     {t("saving")}
                   </>
                 ) : (

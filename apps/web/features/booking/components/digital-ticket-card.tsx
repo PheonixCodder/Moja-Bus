@@ -28,8 +28,8 @@ export function DigitalTicketCard({
   return (
     <div
       className={cn(
-        "rounded-[24px] border border-border bg-white overflow-hidden relative shadow-sm",
-        "print:shadow-none print:border-slate-300 print:rounded-xl print:bg-white",
+        "rounded-[24px] border border-border bg-card overflow-hidden relative shadow-sm",
+        "print:shadow-none print:border-border print:rounded-xl print:bg-card",
         compact ? "p-4" : "p-6 sm:p-7",
       )}
     >
@@ -38,14 +38,14 @@ export function DigitalTicketCard({
       <div className="absolute left-0 bottom-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl pointer-events-none print:hidden" />
 
       {/* Printable Platform Header — visible ONLY when printing */}
-      <div className="hidden print:flex items-center justify-between border-b border-slate-200 pb-3 mb-4 w-full">
+      <div className="hidden print:flex items-center justify-between border-b border-border pb-3 mb-4 w-full">
         <div className="flex items-center gap-2">
-          <Ticket className="size-5 text-[#ee237c]" />
-          <span className="text-base font-extrabold text-slate-900 tracking-tight font-display">
+          <Ticket className="size-5 text-primary" />
+          <span className="text-base font-extrabold text-foreground tracking-tight font-display">
             Moja Ride
           </span>
         </div>
-        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
           {tTicket("digitalBoardingPass")}
         </span>
       </div>
@@ -58,7 +58,7 @@ export function DigitalTicketCard({
             : "flex-col md:flex-row items-center md:items-start gap-8",
         )}
       >
-        <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] shrink-0 print:p-2.5 print:shadow-none print:border-slate-200">
+        <div className="bg-card p-4 rounded-2xl border border-border shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] shrink-0 print:p-2.5 print:shadow-none print:border-border">
           <QRCode
             value={ticket.qrPayload}
             size={compact ? 180 : 160}
@@ -76,19 +76,19 @@ export function DigitalTicketCard({
             )}
           >
             <div className="flex flex-wrap items-center justify-center print:justify-start gap-2 mb-2">
-              <span className="text-[10px] font-bold text-primary uppercase tracking-widest bg-primary/10 px-2.5 py-1 rounded-full print:bg-slate-100 print:text-slate-900 print:border print:border-slate-300">
+              <span className="text-[10px] font-bold text-primary uppercase tracking-widest bg-primary/10 px-2.5 py-1 rounded-full print:bg-muted print:text-foreground print:border print:border-border">
                 {ticket.companyName}
               </span>
               {ticket.serviceType === "URBAN" && <UrbanBadge />}
             </div>
-            <h3 className="text-xl font-extrabold text-slate-900 tracking-tight font-display">
+            <h3 className="text-xl font-extrabold text-foreground tracking-tight font-display">
               {formatLocationLabel({
                 cityName: ticket.originCityName,
                 municipalityName: ticket.originMunicipalityName,
                 quarterName: ticket.originQuarterName,
                 isUrban: ticket.serviceType === "URBAN",
               })}{" "}
-              <span className="text-slate-300 mx-1">→</span>{" "}
+              <span className="text-muted-foreground/60 mx-1">→</span>{" "}
               {formatLocationLabel({
                 cityName: ticket.destinationCityName,
                 municipalityName: ticket.destinationMunicipalityName,
@@ -96,7 +96,7 @@ export function DigitalTicketCard({
                 isUrban: ticket.serviceType === "URBAN",
               })}
             </h3>
-            <p className="text-sm text-slate-500 mt-1 font-medium">
+            <p className="text-sm text-muted-foreground mt-1 font-medium">
               {ticket.originTerminalName}
               {ticket.originQuarterName ? ` · ${ticket.originQuarterName}` : ""}{" "}
               <span className="mx-1 opacity-50">→</span>{" "}
@@ -107,42 +107,42 @@ export function DigitalTicketCard({
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 text-xs border-y border-dashed border-slate-200 py-4 w-full">
+          <div className="grid grid-cols-2 gap-4 text-xs border-y border-dashed border-border py-4 w-full">
             <div className="space-y-1">
-              <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400 flex items-center gap-1 justify-center md:justify-start print:justify-start">
+              <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground flex items-center gap-1 justify-center md:justify-start print:justify-start">
                 {t("cardDeparture")}
               </p>
-              <p className="font-semibold text-slate-900 text-sm">
+              <p className="font-semibold text-foreground text-sm">
                 {formatDepartureTime(ticket.departureTime)}
               </p>
-              <p className="text-[10px] font-semibold text-slate-400">
+              <p className="text-[10px] font-semibold text-muted-foreground">
                 {formatDateWithWeekday(ticket.departureTime)}
               </p>
             </div>
-            <div className="space-y-1 border-l border-slate-100 pl-4">
-              <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400 flex items-center gap-1 justify-center md:justify-start print:justify-start">
+            <div className="space-y-1 border-l border-border pl-4">
+              <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground flex items-center gap-1 justify-center md:justify-start print:justify-start">
                 {t("cardSeat")}
               </p>
-              <p className="font-semibold text-slate-900 text-sm">
+              <p className="font-semibold text-foreground text-sm">
                 {ticket.seatLabel}
               </p>
             </div>
             <div className="space-y-1 pt-2">
-              <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400 flex items-center gap-1 justify-center md:justify-start print:justify-start">
+              <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground flex items-center gap-1 justify-center md:justify-start print:justify-start">
                 {t("cardPassenger")}
               </p>
-              <p className="font-semibold text-slate-900 truncate max-w-[140px] print:max-w-none print:whitespace-normal mx-auto md:mx-0 print:mx-0">
+              <p className="font-semibold text-foreground truncate max-w-[140px] print:max-w-none print:whitespace-normal mx-auto md:mx-0 print:mx-0">
                 {ticket.passengerName}
               </p>
             </div>
-            <div className="space-y-1 border-l border-slate-100 pl-4 pt-2">
-              <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400 flex items-center gap-1 justify-center md:justify-start print:justify-start">
+            <div className="space-y-1 border-l border-border pl-4 pt-2">
+              <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground flex items-center gap-1 justify-center md:justify-start print:justify-start">
                 {t("cardArrival")}
               </p>
-              <p className="font-semibold text-slate-900">
+              <p className="font-semibold text-foreground">
                 {formatDepartureTime(ticket.arrivalTime)}
               </p>
-              <p className="text-[10px] font-semibold text-slate-400">
+              <p className="text-[10px] font-semibold text-muted-foreground">
                 {formatDateWithWeekday(ticket.arrivalTime)}
               </p>
             </div>

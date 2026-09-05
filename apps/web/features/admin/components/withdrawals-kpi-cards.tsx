@@ -19,74 +19,74 @@ export function WithdrawalsKpiCards() {
   );
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border border-border rounded-xl bg-bg-base/50 p-1">
-      <div className="flex flex-col gap-1 p-5 border border-border/50 rounded-lg bg-bg-base shadow-sm">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border border-border rounded-xl bg-card/50 p-1">
+      <div className="flex flex-col gap-1 p-5 border border-border/50 rounded-lg bg-card shadow-sm">
         <div className="flex items-center gap-2 mb-2">
           <Clock
             className={cn(
               "size-5",
               stats.pendingCount > 0
-                ? "text-amber-500 animate-pulse"
+                ? "text-warning animate-pulse"
                 : "text-muted-foreground",
             )}
           />
-          <h3 className="font-medium text-sm text-text-muted">
+          <h3 className="font-medium text-sm text-muted-foreground">
             {t("pendingQueue")}
           </h3>
         </div>
-        <p className="text-2xl font-bold text-text-primary tracking-tight">
+        <p className="text-2xl font-bold text-foreground tracking-tight">
           {stats.pendingCount}{" "}
-          <span className="text-sm font-normal text-text-muted">
+          <span className="text-sm font-normal text-muted-foreground">
             {t("requests")}
           </span>
         </p>
-        <p className="text-sm font-medium text-amber-600 dark:text-amber-500">
+        <p className="text-sm font-medium text-warning">
           {formatXOF(stats.pendingVolumeXOF)}
         </p>
       </div>
 
-      <div className="flex flex-col gap-1 p-5 border border-border/50 rounded-lg bg-bg-base shadow-sm">
+      <div className="flex flex-col gap-1 p-5 border border-border/50 rounded-lg bg-card shadow-sm">
         <div className="flex items-center gap-2 mb-2">
-          <CheckCircle2 className="size-5 text-emerald-500" />
-          <h3 className="font-medium text-sm text-text-muted">
+          <CheckCircle2 className="size-5 text-success" />
+          <h3 className="font-medium text-sm text-muted-foreground">
             {t("totalSettled")}
           </h3>
         </div>
-        <p className="text-2xl font-bold text-text-primary tracking-tight">
+        <p className="text-2xl font-bold text-foreground tracking-tight">
           {stats.settledCount}{" "}
-          <span className="text-sm font-normal text-text-muted">
+          <span className="text-sm font-normal text-muted-foreground">
             {t("payouts")}
           </span>
         </p>
-        <p className="text-sm font-medium text-emerald-600 dark:text-emerald-500">
+        <p className="text-sm font-medium text-success">
           {formatXOF(stats.settledVolumeXOF)}
         </p>
       </div>
 
-      <div className="flex flex-col gap-1 p-5 border border-border/50 rounded-lg bg-bg-base shadow-sm">
+      <div className="flex flex-col gap-1 p-5 border border-border/50 rounded-lg bg-card shadow-sm">
         <div className="flex items-center gap-2 mb-2">
-          <XCircle className="size-5 text-rose-500" />
-          <h3 className="font-medium text-sm text-text-muted">
+          <XCircle className="size-5 text-destructive" />
+          <h3 className="font-medium text-sm text-muted-foreground">
             {t("failedReversed")}
           </h3>
         </div>
-        <p className="text-2xl font-bold text-text-primary tracking-tight">
+        <p className="text-2xl font-bold text-foreground tracking-tight">
           {stats.failedCount}{" "}
-          <span className="text-sm font-normal text-text-muted">
+          <span className="text-sm font-normal text-muted-foreground">
             {t("reversed")}
           </span>
         </p>
-        <p className="text-sm font-medium text-rose-600 dark:text-rose-500">
+        <p className="text-sm font-medium text-destructive">
           {formatXOF(stats.failedVolumeXOF)}
         </p>
       </div>
 
-      <div className="col-span-1 sm:col-span-3 px-4 py-2 mt-1 flex items-center justify-between text-xs text-text-muted">
+      <div className="col-span-1 sm:col-span-3 px-4 py-2 mt-1 flex items-center justify-between text-xs text-muted-foreground">
         <div className="flex items-center gap-1.5">
           <AlertCircle className="size-3.5" />
           <span>
             {t("showingData")}{" "}
-            <span className="font-semibold text-text-primary">
+            <span className="font-semibold text-foreground">
               {stats.totalCount}
             </span>
           </span>

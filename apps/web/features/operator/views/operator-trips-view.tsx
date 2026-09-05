@@ -46,24 +46,24 @@ export function OperatorTripsView() {
         {
           status: "SCHEDULED",
           label: t("status.SCHEDULED"),
-          dot: "bg-blue-500",
+          dot: "bg-primary",
         },
         {
           status: "BOARDING",
           label: t("status.BOARDING"),
-          dot: "bg-green-500",
+          dot: "bg-success",
         },
-        { status: "DELAYED", label: t("status.DELAYED"), dot: "bg-amber-500" },
+        { status: "DELAYED", label: t("status.DELAYED"), dot: "bg-warning" },
         {
           status: "DEPARTED",
           label: t("status.DEPARTED"),
-          dot: "bg-violet-500",
+          dot: "bg-primary/80",
         },
-        { status: "ARRIVED", label: t("status.ARRIVED"), dot: "bg-teal-500" },
+        { status: "ARRIVED", label: t("status.ARRIVED"), dot: "bg-success/80" },
         {
           status: "CANCELLED",
           label: t("status.CANCELLED"),
-          dot: "bg-red-500",
+          dot: "bg-destructive",
         },
       ],
       [t],
@@ -146,28 +146,30 @@ export function OperatorTripsView() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center gap-2 px-5 py-3 border-b border-border bg-slate-50/50 shrink-0 flex-wrap">
-        <button
+      <div className="flex items-center gap-2 px-5 py-3 border-b border-border bg-muted/30 shrink-0 flex-wrap">
+        <Button
           type="button"
+          variant="ghost"
           onClick={() => void setParams({ status: "ALL", page: 1 })}
           className={cn(
-            "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
+            "flex items-center gap-1.5 rounded-full border px-2.5 py-1 h-auto text-xs font-medium transition-colors",
             status === "ALL"
               ? "border-primary bg-primary/10 text-primary"
-              : "border-border text-muted-foreground hover:bg-slate-100",
+              : "border-border text-muted-foreground hover:bg-muted",
           )}
         >
           {t("all")}
           <span className="font-mono font-bold">{listData.total}</span>
-        </button>
+        </Button>
         {STATUS_CHIPS.map((chip) => {
           const count = statusCounts[chip.status] ?? 0;
           const active = status === chip.status;
           if (count === 0 && !active) return null;
           return (
-            <button
+            <Button
               key={chip.status}
               type="button"
+              variant="ghost"
               onClick={() =>
                 void setParams({
                   status: active ? "ALL" : chip.status,
@@ -175,16 +177,16 @@ export function OperatorTripsView() {
                 })
               }
               className={cn(
-                "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
+                "flex items-center gap-1.5 rounded-full border px-2.5 py-1 h-auto text-xs font-medium transition-colors",
                 active
                   ? "border-primary bg-primary/10 text-primary"
-                  : "border-border text-muted-foreground hover:bg-slate-100",
+                  : "border-border text-muted-foreground hover:bg-muted",
               )}
             >
               <span className={cn("size-2 rounded-full", chip.dot)} />
               {chip.label}
               <span className="font-mono font-bold">{count}</span>
-            </button>
+            </Button>
           );
         })}
         <div className="ml-auto flex items-center gap-2">

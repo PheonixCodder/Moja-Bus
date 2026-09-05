@@ -1,7 +1,8 @@
 import React, { useRef, useEffect, useState } from "react";
-import { View, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Pressable } from "react-native";
 import MapboxGL from "@rnmapbox/maps";
 import { Bus, MapPin, Navigation } from "lucide-react-native";
+import { Palette } from "@/constants/theme";
 import { MAPBOX_PUBLIC_TOKEN } from "@/lib/mapbox";
 
 MapboxGL.setAccessToken(MAPBOX_PUBLIC_TOKEN);
@@ -76,9 +77,9 @@ export function TravelerTrackingMap({
   };
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1 bg-background relative">
       <MapboxGL.MapView
-        style={styles.map}
+        className="flex-1"
         styleURL="mapbox://styles/mapbox/dark-v11"
         // Phase 30 (F-TM-16) — Mapbox ToS require the logo + attribution
         // notice on hosted styles; hiding them is a store-review and account
@@ -100,7 +101,7 @@ export function TravelerTrackingMap({
             <MapboxGL.LineLayer
               id="travelerRouteLineCasing"
               style={{
-                lineColor: "#9f1239",
+                lineColor: Palette.rose[700],
                 lineWidth: 7,
                 lineCap: "round",
                 lineJoin: "round",
@@ -110,7 +111,7 @@ export function TravelerTrackingMap({
             <MapboxGL.LineLayer
               id="travelerRouteLine"
               style={{
-                lineColor: "#e11d48",
+                lineColor: Palette.rose[500],
                 lineWidth: 4,
                 lineCap: "round",
                 lineJoin: "round",
@@ -125,8 +126,8 @@ export function TravelerTrackingMap({
             id="originPin"
             coordinate={[originTerminal.longitude, originTerminal.latitude]}
           >
-            <View style={styles.originMarker}>
-              <MapPin size={14} color="#ffffff" />
+            <View className="size-7 rounded-full bg-success border-2 border-white items-center justify-center shadow-lg">
+              <MapPin size={14} color={Palette.zinc[50]} />
             </View>
           </MapboxGL.PointAnnotation>
         )}
@@ -137,8 +138,8 @@ export function TravelerTrackingMap({
             id="destPin"
             coordinate={[destinationTerminal.longitude, destinationTerminal.latitude]}
           >
-            <View style={styles.destMarker}>
-              <MapPin size={14} color="#ffffff" />
+            <View className="size-7 rounded-full bg-primary border-2 border-white items-center justify-center shadow-lg">
+              <MapPin size={14} color={Palette.zinc[50]} />
             </View>
           </MapboxGL.PointAnnotation>
         )}
@@ -148,119 +149,29 @@ export function TravelerTrackingMap({
           id="liveBusMarker"
           coordinate={smoothedCoord}
         >
-          <View style={styles.busMarkerContainer}>
-            <View style={styles.busPulseRing} />
+          <View className="size-[52px] items-center justify-center">
+            <View className="absolute size-12 rounded-full bg-primary/25 border border-primary/50" />
             <View
-              style={[
-                styles.busIconBody,
-                {
-                  transform: [{ rotate: `${busLocation.heading || 0}deg` }],
-                },
-              ]}
+              className="size-9 rounded-full bg-primary border-2 border-white items-center justify-center shadow-lg"
+              style={{
+                transform: [{ rotate: `${busLocation.heading || 0}deg` }],
+              }}
             >
-              <Bus size={18} color="#ffffff" />
+              <Bus size={18} color={Palette.zinc[50]} />
             </View>
           </View>
         </MapboxGL.PointAnnotation>
       </MapboxGL.MapView>
 
       {/* Recenter Button */}
-      <TouchableOpacity
+      <Pressable
         onPress={handleRecenter}
-        style={styles.recenterButton}
-        activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel="Recenter map"
+        className="absolute bottom-3 right-3 size-11 rounded-full bg-card border border-border items-center justify-center shadow-lg active:opacity-80"
       >
-        <Navigation size={18} color="#ffffff" />
-      </TouchableOpacity>
+        <Navigation size={18} color={Palette.zinc[50]} />
+      </Pressable>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#09090b",
-    position: "relative",
-  },
-  map: {
-    flex: 1,
-  },
-  originMarker: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "#10b981",
-    borderWidth: 2,
-    borderColor: "#ffffff",
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#10b981",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 6,
-    elevation: 6,
-  },
-  destMarker: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "#e11d48",
-    borderWidth: 2,
-    borderColor: "#ffffff",
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#e11d48",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 6,
-    elevation: 6,
-  },
-  busMarkerContainer: {
-    width: 52,
-    height: 52,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  busPulseRing: {
-    position: "absolute",
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "rgba(225, 29, 72, 0.25)",
-    borderWidth: 1,
-    borderColor: "rgba(225, 29, 72, 0.5)",
-  },
-  busIconBody: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#e11d48",
-    borderWidth: 2.5,
-    borderColor: "#ffffff",
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#e11d48",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.6,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  recenterButton: {
-    position: "absolute",
-    bottom: 12,
-    right: 12,
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: "#18181b",
-    borderWidth: 1,
-    borderColor: "#27272a",
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
-    elevation: 6,
-  },
-});

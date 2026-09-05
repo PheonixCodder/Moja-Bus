@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@moja/ui/components/ui/badge";
+import { UserAvatar } from "@moja/ui/components/ui/user-avatar";
 import { Button } from "@moja/ui/components/ui/button";
 import { Card } from "@moja/ui/components/ui/card";
 import { Input } from "@moja/ui/components/ui/input";
@@ -98,10 +99,10 @@ export function AdminInquiriesView() {
   const statusBadge = useMemo(
     () => (status: InquiryStatus) => {
       const styles: Record<InquiryStatus, string> = {
-        NEW: "bg-blue-500/10 text-blue-600",
-        IN_PROGRESS: "bg-amber-500/10 text-amber-600",
-        RESOLVED: "bg-emerald-500/10 text-emerald-600",
-        CLOSED: "bg-slate-500/10 text-slate-500",
+        NEW: "bg-primary/15 text-primary border-primary/30",
+        IN_PROGRESS: "bg-warning/15 text-warning border-warning/30",
+        RESOLVED: "bg-success/15 text-success border-success/30",
+        CLOSED: "bg-muted text-muted-foreground border-border",
       };
       const labels: Record<InquiryStatus, string> = {
         NEW: t("status.new"),
@@ -110,7 +111,7 @@ export function AdminInquiriesView() {
         CLOSED: t("status.closed"),
       };
       return (
-        <Badge variant="secondary" className={styles[status]}>
+        <Badge variant="outline" className={styles[status]}>
           {labels[status]}
         </Badge>
       );
@@ -120,10 +121,10 @@ export function AdminInquiriesView() {
 
   return (
     <div className="space-y-6">
-      <Card className="bg-white border-border shadow-sm p-4">
+      <Card className="bg-card border-border shadow-sm p-4">
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
           <div className="relative w-full sm:w-80">
-            <Search className="absolute left-3 top-2.5 size-4 text-slate-400" />
+            <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
             <Input
               type="text"
               placeholder={t("searchPlaceholder")}
@@ -137,7 +138,7 @@ export function AdminInquiriesView() {
           </div>
 
           <div className="flex items-center gap-3 w-full sm:w-auto">
-            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+            <span className="text-xs font-bold text-foreground uppercase tracking-wider">
               {t("statusLabel")}
             </span>
             <Select
@@ -149,12 +150,12 @@ export function AdminInquiriesView() {
             >
               <SelectTrigger
                 size="sm"
-                className="h-9 w-full sm:w-48 bg-white text-slate-800 text-xs"
+                className="h-9 w-full sm:w-48 bg-card text-foreground text-xs"
                 id="inquiries-status-filter"
               >
                 <SelectValue placeholder={t("status.all")} />
               </SelectTrigger>
-              <SelectContent className="bg-white border border-border shadow-md rounded">
+              <SelectContent className="bg-popover border border-border shadow-md rounded">
                 <SelectGroup>
                   {STATUS_OPTIONS.map((option) => (
                     <SelectItem key={option} value={option}>
@@ -172,11 +173,11 @@ export function AdminInquiriesView() {
         </div>
       </Card>
 
-      <Card className="bg-white border-border shadow-sm overflow-hidden">
+      <Card className="bg-card border-border shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-[30%]">{t("table.subject")}</TableHead>
+              <TableHead className="w-1/3">{t("table.subject")}</TableHead>
               <TableHead>{t("table.from")}</TableHead>
               <TableHead className="hidden md:table-cell">
                 {t("table.contact")}
@@ -192,11 +193,11 @@ export function AdminInquiriesView() {
             {data.items.length === 0 ? (
               <TableRow className="hover:bg-transparent">
                 <TableCell colSpan={6} className="h-48 text-center">
-                  <Inbox className="mx-auto size-10 text-slate-300 mb-3" />
-                  <p className="font-semibold text-slate-700">
+                  <Inbox className="mx-auto size-10 text-muted-foreground/60 mb-3" />
+                  <p className="font-semibold text-foreground">
                     {t("empty.title")}
                   </p>
-                  <p className="text-sm text-slate-400">
+                  <p className="text-sm text-muted-foreground">
                     {t("empty.description")}
                   </p>
                 </TableCell>
@@ -205,17 +206,17 @@ export function AdminInquiriesView() {
               data.items.map((item) => (
                 <TableRow
                   key={item.id}
-                  className="cursor-pointer"
+                  className="cursor-pointer hover:bg-muted/50"
                   onClick={() => setSelected(item as unknown as InquiryRow)}
                 >
                   <TableCell>
                     <div className="flex items-start gap-2.5">
-                      <MessageSquare className="size-4 text-slate-400 mt-0.5 shrink-0" />
+                      <MessageSquare className="size-4 text-muted-foreground mt-0.5 shrink-0" />
                       <div className="min-w-0">
-                        <p className="font-semibold text-slate-800 text-sm truncate">
+                        <p className="font-semibold text-foreground text-sm truncate">
                           {item.subject}
                         </p>
-                        <p className="text-xs text-slate-400 truncate max-w-[240px]">
+                        <p className="text-xs text-muted-foreground truncate max-w-60">
                           {item.message}
                         </p>
                       </div>
@@ -223,24 +224,22 @@ export function AdminInquiriesView() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#ee237c]/10 text-[#ee237c] text-[10px] font-bold shrink-0">
-                        {item.name
-                          .split(" ")
-                          .map((part) => part[0])
-                          .join("")
-                          .toUpperCase()
-                          .slice(0, 2)}
-                      </div>
+                      <UserAvatar
+                        name={item.name}
+                        seed={item.userId || item.id}
+                        size="sm"
+                        className="size-7"
+                      />
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-slate-800 truncate">
+                        <p className="text-sm font-medium text-foreground truncate">
                           {item.name}
                         </p>
                         <Badge
-                          variant="secondary"
+                          variant="outline"
                           className={
                             item.userId
-                              ? "bg-emerald-500/10 text-emerald-600"
-                              : "bg-slate-500/10 text-slate-500"
+                              ? "bg-success/15 text-success border-success/30"
+                              : "bg-muted text-muted-foreground border-border"
                           }
                         >
                           {item.userId ? t("badge.loggedIn") : t("badge.guest")}
@@ -249,27 +248,27 @@ export function AdminInquiriesView() {
                     </div>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    <div className="flex flex-col gap-1 text-sm text-slate-600">
+                    <div className="flex flex-col gap-1 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1.5">
-                        <Mail className="size-3.5 text-slate-400" />
+                        <Mail className="size-3.5 text-muted-foreground" />
                         {item.email}
                       </span>
                       {item.phone && (
                         <span className="flex items-center gap-1.5">
-                          <User className="size-3.5 text-slate-400" />
+                          <User className="size-3.5 text-muted-foreground" />
                           {item.phone}
                         </span>
                       )}
                     </div>
                   </TableCell>
                   <TableCell className="hidden lg:table-cell">
-                    <span className="text-sm text-slate-600 whitespace-nowrap">
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">
                       {format(new Date(item.createdAt), "MMM d, yyyy h:mm a")}
                     </span>
                   </TableCell>
                   <TableCell>{statusBadge(item.status)}</TableCell>
                   <TableCell>
-                    <ExternalLink className="size-4 text-slate-400" />
+                    <ExternalLink className="size-4 text-muted-foreground" />
                   </TableCell>
                 </TableRow>
               ))

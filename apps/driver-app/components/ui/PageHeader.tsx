@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { DriverFeedback } from "@/lib/haptics";
+import { colors } from "@/constants/theme";
 
 export interface PageHeaderProps {
 	title: string;
@@ -48,8 +49,10 @@ export function PageHeader({
 						onPress={handleBack}
 						activeOpacity={0.8}
 						style={styles.backButton}
+						accessibilityRole="button"
+						accessibilityLabel="Go back"
 					>
-						<HugeiconsIcon icon={ArrowLeft01Icon} size={20} color="#fafafa" />
+						<HugeiconsIcon icon={ArrowLeft01Icon} size={20} color={colors.neutral.textPrimary} />
 					</TouchableOpacity>
 				) : null}
 
@@ -74,9 +77,9 @@ export function PageHeader({
 
 const styles = StyleSheet.create({
 	container: {
-		backgroundColor: "#09090b",
+		backgroundColor: colors.neutral.background,
 		borderBottomWidth: 1,
-		borderBottomColor: "#27272a",
+		borderBottomColor: colors.neutral.border,
 		paddingBottom: 14,
 		paddingHorizontal: 20,
 	},
@@ -89,9 +92,9 @@ const styles = StyleSheet.create({
 		width: 40,
 		height: 40,
 		borderRadius: 20,
-		backgroundColor: "#18181b",
+		backgroundColor: colors.neutral.surface,
 		borderWidth: 1,
-		borderColor: "#27272a",
+		borderColor: colors.neutral.border,
 		alignItems: "center",
 		justifyContent: "center",
 	},
@@ -102,12 +105,12 @@ const styles = StyleSheet.create({
 	title: {
 		fontSize: 20,
 		fontWeight: "800",
-		color: "#fafafa",
+		color: colors.neutral.textPrimary,
 		letterSpacing: -0.3,
 	},
 	subtitle: {
 		fontSize: 12,
-		color: "#a1a1aa",
+		color: colors.neutral.textSecondary,
 		fontWeight: "500",
 	},
 	rightWrap: {

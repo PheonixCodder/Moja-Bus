@@ -42,10 +42,10 @@ export const ledgerColumns: ColumnDef<LedgerEntryRow>[] = [
       const date = new Date(row.original.effectiveAt);
       return (
         <div className="space-y-0.5 text-xs">
-          <div className="font-semibold text-slate-800">
+          <div className="font-semibold text-foreground">
             {formatAdminDate(row.original.effectiveAt)}
           </div>
-          <div className="text-[10px] text-slate-400 font-mono">
+          <div className="text-[10px] text-muted-foreground font-mono">
             {formatAdminTime(row.original.effectiveAt)}
           </div>
         </div>
@@ -63,10 +63,10 @@ export const ledgerColumns: ColumnDef<LedgerEntryRow>[] = [
       const t = useTranslations("adminDashboard.ledgerColumns");
       return (
         <div className="space-y-0.5 text-xs">
-          <div className="font-bold text-slate-900 uppercase font-mono tracking-wider text-[10px]">
+          <div className="font-bold text-foreground uppercase font-mono tracking-wider text-[10px]">
             {entry.transaction.type.replace(/_/g, " ")}
           </div>
-          <div className="text-[9px] text-slate-400 font-mono truncate max-w-[80px]">
+          <div className="text-[9px] text-muted-foreground font-mono truncate max-w-20">
             {t("idPrefix")} {entry.transactionId}
           </div>
         </div>
@@ -83,9 +83,9 @@ export const ledgerColumns: ColumnDef<LedgerEntryRow>[] = [
       const entry = row.original;
       return (
         <div className="space-y-0.5 text-xs">
-          <div className="font-semibold text-slate-800">{entry.ownerName}</div>
+          <div className="font-semibold text-foreground">{entry.ownerName}</div>
           {entry.ownerEmail && (
-            <div className="text-[10px] text-slate-400 truncate max-w-[150px]">
+            <div className="text-[10px] text-muted-foreground truncate max-w-36">
               {entry.ownerEmail}
             </div>
           )}
@@ -104,11 +104,11 @@ export const ledgerColumns: ColumnDef<LedgerEntryRow>[] = [
       const t = useTranslations("adminDashboard.ledgerColumns");
       return (
         <div className="space-y-0.5 text-xs">
-          <div className="font-semibold text-slate-800 flex items-center gap-1.5">
-            <Wallet className="size-3 text-slate-400 shrink-0" />
+          <div className="font-semibold text-foreground flex items-center gap-1.5">
+            <Wallet className="size-3 text-muted-foreground shrink-0" />
             {entry.account.accountCategory}
           </div>
-          <div className="text-[10px] text-slate-400 font-medium">
+          <div className="text-[10px] text-muted-foreground font-medium">
             {t("classLabel", { cls: entry.account.accountClass })}
           </div>
         </div>
@@ -127,12 +127,12 @@ export const ledgerColumns: ColumnDef<LedgerEntryRow>[] = [
       return (
         <div className="flex items-center">
           {side === "CREDIT" ? (
-            <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
+            <span className="flex items-center gap-1 text-[11px] font-bold text-success bg-success/10 px-2 py-0.5 rounded border border-success/20">
               <ArrowDownLeft className="size-3.5 shrink-0" />
               {t("credit")}
             </span>
           ) : (
-            <span className="flex items-center gap-1 text-[11px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-100">
+            <span className="flex items-center gap-1 text-[11px] font-bold text-destructive bg-destructive/10 px-2 py-0.5 rounded border border-destructive/20">
               <ArrowUpRight className="size-3.5 shrink-0" />
               {t("debit")}
             </span>
@@ -155,10 +155,10 @@ export const ledgerColumns: ColumnDef<LedgerEntryRow>[] = [
       );
       return (
         <div className="flex items-center gap-1.5">
-          <Coins className="size-3.5 text-slate-400 shrink-0" />
+          <Coins className="size-3.5 text-muted-foreground shrink-0" />
           <span
             className={`font-semibold font-mono text-xs ${
-              entry.side === "CREDIT" ? "text-emerald-600" : "text-rose-600"
+              entry.side === "CREDIT" ? "text-success" : "text-destructive"
             }`}
           >
             {formattedAmount} {t("xof")}
@@ -177,15 +177,15 @@ export const ledgerColumns: ColumnDef<LedgerEntryRow>[] = [
       const entry = row.original;
       const t = useTranslations("adminDashboard.ledgerColumns");
       return (
-        <div className="space-y-0.5 text-xs max-w-[200px] min-w-[120px]">
+        <div className="space-y-0.5 text-xs max-w-48 min-w-28">
           <div
-            className="text-slate-700 font-medium truncate"
+            className="text-foreground font-medium truncate"
             title={entry.description || ""}
           >
             {entry.description || t("na")}
           </div>
           {entry.referenceId && (
-            <div className="text-[10px] text-slate-400 truncate">
+            <div className="text-[10px] text-muted-foreground truncate">
               {t("refPrefix")}{" "}
               <span className="font-mono">{entry.referenceId}</span> (
               {entry.referenceType})

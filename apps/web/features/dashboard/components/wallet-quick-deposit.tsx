@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@moja/ui/components/ui/card";
 import { Button } from "@moja/ui/components/ui/button";
+import { Input } from "@moja/ui/components/ui/input";
 
 interface LedgerEntryItem {
   id: string;
@@ -70,12 +71,12 @@ export function WalletQuickDeposit({
       <CardContent className="space-y-4">
         <form onSubmit={handleDeposit} className="flex gap-2">
           <div className="relative flex-1">
-            <input
+            <Input
               type="number"
               placeholder={t("topUpAmount")}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-xs transition-colors placeholder:text-muted-foreground focus-visible:outline-hidden pr-12 font-mono"
+              className="h-9 w-full text-xs pr-12 font-mono"
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-bold text-muted-foreground font-mono">
               XOF
@@ -114,9 +115,9 @@ export function WalletQuickDeposit({
                   >
                     <div className="flex items-center gap-1.5 min-w-0">
                       {isDeposit ? (
-                        <ArrowDownLeft className="size-3 text-emerald-500 shrink-0" />
+                        <ArrowDownLeft className="size-3 text-success shrink-0" />
                       ) : (
-                        <ArrowUpRight className="size-3 text-amber-500 shrink-0" />
+                        <ArrowUpRight className="size-3 text-warning shrink-0" />
                       )}
                       <span className="text-[10px] text-muted-foreground truncate">
                         {entry.description ||
@@ -125,7 +126,7 @@ export function WalletQuickDeposit({
                     </div>
                     <span
                       className={`font-mono text-[10px] font-bold shrink-0 ${
-                        isDeposit ? "text-emerald-600" : "text-foreground"
+                        isDeposit ? "text-success" : "text-foreground"
                       }`}
                     >
                       {isDeposit ? "+" : "-"}

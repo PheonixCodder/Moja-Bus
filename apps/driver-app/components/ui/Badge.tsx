@@ -20,23 +20,23 @@ export function Badge({
 	...props
 }: BadgeProps) {
 	const variantStyles = {
-		default: "bg-[#27272a] border-transparent",
-		brand: "bg-[#ee237c]/15 border border-[#ee237c]/30",
-		success: "bg-[#10b981]/15 border border-[#10b981]/30",
-		warning: "bg-[#f59e0b]/15 border border-[#f59e0b]/30",
-		error: "bg-[#ef4444]/15 border border-[#ef4444]/30",
-		info: "bg-[#3b82f6]/15 border border-[#3b82f6]/30",
-		outline: "bg-transparent border border-[#3f3f46]",
+		default: "bg-secondary border-transparent",
+		brand: "bg-primary/15 border border-primary/30",
+		success: "bg-success/15 border border-success/30",
+		warning: "bg-warning/15 border border-warning/30",
+		error: "bg-destructive/15 border border-destructive/30",
+		info: "bg-info/15 border border-info/30",
+		outline: "bg-transparent border border-border",
 	}[variant];
 
 	const textVariantStyles = {
-		default: "text-[#fafafa]",
-		brand: "text-[#ee237c]",
-		success: "text-[#34d399]",
-		warning: "text-[#fbbf24]",
-		error: "text-[#f87171]",
-		info: "text-[#60a5fa]",
-		outline: "text-[#a1a1aa]",
+		default: "text-foreground",
+		brand: "text-primary",
+		success: "text-success",
+		warning: "text-warning",
+		error: "text-destructive",
+		info: "text-info",
+		outline: "text-muted-foreground",
 	}[variant];
 
 	const sizeStyles = {

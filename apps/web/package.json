@@ -26,6 +26,7 @@
     "@moja/config": "workspace:*",
     "@moja/db": "workspace:*",
     "@moja/schemas": "workspace:*",
+    "@moja/theme": "workspace:*",
     "@moja/types": "workspace:*",
     "@moja/ui": "workspace:*",
     "@novu/api": "^3.18.0",

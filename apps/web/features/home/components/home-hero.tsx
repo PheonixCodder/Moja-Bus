@@ -33,7 +33,7 @@ export function HomeHero() {
             transition={{ delay: 0.2 }}
             className="flex justify-start mb-6"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 backdrop-blur-md border border-white/40 text-slate-800 shadow-sm text-sm font-medium">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 backdrop-blur-md border border-white/40 text-foreground shadow-sm text-sm font-medium">
               {t("badge")}
             </div>
           </motion.div>
@@ -43,17 +43,17 @@ export function HomeHero() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.8 }}
-            className="text-left text-5xl sm:text-6xl lg:text-7xl font-bold text-slate-900 leading-[1.08] mb-4"
+            className="text-left text-5xl sm:text-6xl lg:text-7xl font-bold text-foreground leading-[1.08] mb-4"
           >
             {t("titleLine1")}
-            <span className="block text-slate-900">{t("titleLine2")}</span>
+            <span className="block text-foreground">{t("titleLine2")}</span>
           </motion.h1>
 
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.45 }}
-            className="text-left text-slate-700 text-lg sm:text-xl mb-12 max-w-2xl font-medium"
+            className="text-left text-muted-foreground text-lg sm:text-xl mb-12 max-w-2xl font-medium"
           >
             {t("subtitle")}
           </motion.p>

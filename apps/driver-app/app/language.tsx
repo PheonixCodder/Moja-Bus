@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { HugeiconsIcon } from "@hugeicons/react-native";
@@ -9,6 +9,8 @@ import {
 } from "@hugeicons/core-free-icons";
 import { DriverFeedback } from "@/lib/haptics";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Button } from "@/components/ui/Button";
+import { colors } from "@/constants/theme";
 import {
 	switchLanguage,
 	getCurrentLanguage,
@@ -48,7 +50,7 @@ export default function LanguageScreen() {
 	};
 
 	return (
-		<View style={styles.root}>
+		<View className="flex-1 bg-background">
 			<PageHeader
 				title={t("title")}
 				subtitle={t("subtitle")}
@@ -56,55 +58,60 @@ export default function LanguageScreen() {
 			/>
 
 			<ScrollView
-				style={styles.scroll}
-				contentContainerStyle={[
-					styles.scrollContent,
-					{ paddingBottom: Math.max(insets.bottom, 24) + 32 },
-				]}
+				className="flex-1"
+				contentContainerStyle={{
+					paddingHorizontal: 20,
+					paddingTop: 16,
+					gap: 20,
+					paddingBottom: Math.max(insets.bottom, 24) + 32,
+				}}
 				showsVerticalScrollIndicator={false}
 			>
-				<View style={styles.infoBanner}>
-					<HugeiconsIcon icon={Globe02Icon} size={22} color="#ee237c" />
-					<View style={styles.infoTextWrap}>
-					<Text style={styles.infoTitle}>{t("infoTitle")}</Text>
-					<Text style={styles.infoDesc}>
-						{t("infoDesc")}
-					</Text>
+				<View className="flex-row gap-3 bg-primary/10 border border-primary/20 rounded-2xl p-4">
+					<HugeiconsIcon icon={Globe02Icon} size={22} color={colors.primary.rose} />
+					<View className="flex-1 gap-1">
+						<Text className="text-sm font-bold text-primary">{t("infoTitle")}</Text>
+						<Text className="text-xs text-muted-foreground leading-4">
+							{t("infoDesc")}
+						</Text>
 					</View>
 				</View>
 
-				<View style={styles.languagesList}>
+				<View className="gap-3">
 					{LANGUAGES.map((lang) => {
 						const isSelected = currentLocale === lang.code;
 						return (
-							<TouchableOpacity
+							<Button
 								key={lang.code}
 								onPress={() => handleSelectLanguage(lang.code)}
-								activeOpacity={0.8}
-								style={[
-									styles.langCard,
-									isSelected && styles.langCardSelected,
-								]}
+								variant={isSelected ? "primary" : "outline"}
+								size="lg"
+								className={`flex-row items-center justify-between p-4 h-auto rounded-3xl border-1.5 ${
+									isSelected
+										? "border-primary bg-primary/10"
+										: "border-border bg-card"
+								}`}
 							>
-								<View style={styles.langLeft}>
+								<View className="flex-row items-center gap-3.5 flex-1">
 									<View
-										style={[
-											styles.flagBadge,
-											isSelected && styles.flagBadgeSelected,
-										]}
+										className={`w-11 h-11 rounded-2xl border items-center justify-center ${
+											isSelected
+												? "bg-primary/20 border-primary/40"
+												: "bg-background border-border"
+										}`}
 									>
-										<Text style={styles.flagText}>
+										<Text className="text-sm font-extrabold font-mono text-foreground">
 											{lang.code.toUpperCase()}
 										</Text>
 									</View>
-									<View style={styles.langTextWrap}>
-										<View style={styles.langTitleRow}>
-											<Text style={styles.langNative}>{lang.nativeLabel}</Text>
-											<View style={styles.langBadge}>
-												<Text style={styles.langBadgeText}>{lang.badge}</Text>
+									<View className="flex-1 gap-1">
+										<View className="flex-row items-center gap-2">
+											<Text className="text-base font-extrabold text-foreground">{lang.nativeLabel}</Text>
+											<View className="bg-border px-2 py-0.5 rounded-md">
+												<Text className="text-[10px] font-bold text-muted-foreground">{lang.badge}</Text>
 											</View>
 										</View>
-										<Text style={styles.langRegion}>{t(lang.regionKey)}</Text>
+										<Text className="text-xs text-muted-foreground">{t(lang.regionKey)}</Text>
 									</View>
 								</View>
 
@@ -112,10 +119,10 @@ export default function LanguageScreen() {
 									<HugeiconsIcon
 										icon={CheckmarkCircle02Icon}
 										size={22}
-										color="#ee237c"
+										color={colors.primary.rose}
 									/>
 								) : null}
-							</TouchableOpacity>
+							</Button>
 						);
 					})}
 				</View>
@@ -123,113 +130,3 @@ export default function LanguageScreen() {
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	root: {
-		flex: 1,
-		backgroundColor: "#09090b",
-	},
-	scroll: {
-		flex: 1,
-	},
-	scrollContent: {
-		paddingHorizontal: 20,
-		paddingTop: 16,
-		gap: 20,
-	},
-	infoBanner: {
-		flexDirection: "row",
-		gap: 12,
-		backgroundColor: "rgba(238, 35, 124, 0.08)",
-		borderWidth: 1,
-		borderColor: "rgba(238, 35, 124, 0.2)",
-		borderRadius: 18,
-		padding: 16,
-	},
-	infoTextWrap: {
-		flex: 1,
-		gap: 4,
-	},
-	infoTitle: {
-		fontSize: 13,
-		fontWeight: "700",
-		color: "#ee237c",
-	},
-	infoDesc: {
-		fontSize: 11,
-		color: "#a1a1aa",
-		lineHeight: 16,
-	},
-	languagesList: {
-		gap: 12,
-	},
-	langCard: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-		padding: 16,
-		borderRadius: 20,
-		borderWidth: 1.5,
-		borderColor: "#27272a",
-		backgroundColor: "#18181b",
-	},
-	langCardSelected: {
-		borderColor: "#ee237c",
-		backgroundColor: "rgba(238, 35, 124, 0.06)",
-	},
-	langLeft: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 14,
-		flex: 1,
-	},
-	flagBadge: {
-		width: 44,
-		height: 44,
-		borderRadius: 14,
-		backgroundColor: "#09090b",
-		borderWidth: 1,
-		borderColor: "#27272a",
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	flagBadgeSelected: {
-		backgroundColor: "rgba(238, 35, 124, 0.15)",
-		borderColor: "rgba(238, 35, 124, 0.3)",
-	},
-	flagText: {
-		fontSize: 14,
-		fontWeight: "800",
-		fontFamily: "monospace",
-		color: "#fafafa",
-	},
-	langTextWrap: {
-		flex: 1,
-		gap: 4,
-	},
-	langTitleRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 8,
-	},
-	langNative: {
-		fontSize: 16,
-		fontWeight: "800",
-		color: "#fafafa",
-	},
-	langBadge: {
-		backgroundColor: "#27272a",
-		paddingHorizontal: 8,
-		paddingVertical: 2,
-		borderRadius: 6,
-	},
-	langBadgeText: {
-		fontSize: 10,
-		fontWeight: "700",
-		color: "#a1a1aa",
-	},
-	langRegion: {
-		fontSize: 11,
-		color: "#71717a",
-	},
-});

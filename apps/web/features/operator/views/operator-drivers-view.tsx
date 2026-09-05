@@ -5,6 +5,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@moja/ui/components/ui/avatar";
+import { UserAvatar } from "@moja/ui/components/ui/user-avatar";
 import { Button } from "@moja/ui/components/ui/button";
 import {
   DropdownMenu,
@@ -161,7 +162,7 @@ export function OperatorDriversView() {
           <div className="text-xs font-medium text-muted-foreground">
             On Duty / Active
           </div>
-          <div className="text-2xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">
+          <div className="text-2xl font-bold mt-1 text-success">
             {onDutyCount}
           </div>
           <div className="text-xs text-muted-foreground mt-0.5">
@@ -173,7 +174,7 @@ export function OperatorDriversView() {
           <div className="text-xs font-medium text-muted-foreground">
             Verified Licenses
           </div>
-          <div className="text-2xl font-bold mt-1 text-blue-600 dark:text-blue-400">
+          <div className="text-2xl font-bold mt-1 text-primary">
             {verifiedCount}
           </div>
           <div className="text-xs text-muted-foreground mt-0.5">
@@ -185,7 +186,7 @@ export function OperatorDriversView() {
           <div className="text-xs font-medium text-muted-foreground">
             Pending Verification
           </div>
-          <div className="text-2xl font-bold mt-1 text-amber-600 dark:text-amber-400">
+          <div className="text-2xl font-bold mt-1 text-warning">
             {pendingCount}
           </div>
           <div className="text-xs text-muted-foreground mt-0.5">
@@ -328,17 +329,13 @@ export function OperatorDriversView() {
                 >
                   {/* Driver Identity */}
                   <div className="flex items-center gap-3.5 min-w-0">
-                    <Avatar className="size-11 border border-border">
-                      <AvatarImage src={driver.user.image ?? undefined} />
-                      <AvatarFallback className="font-bold text-sm bg-primary/10 text-primary">
-                        {driver.user.fullName
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")
-                          .slice(0, 2)
-                          .toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+                    <UserAvatar
+                      name={driver.user.fullName}
+                      src={driver.user.image}
+                      seed={driver.id || driver.user.id}
+                      size="md"
+                      className="size-11 border border-border"
+                    />
 
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
@@ -365,8 +362,8 @@ export function OperatorDriversView() {
                           {driver.licenseCategory})
                         </span>
                         <span>•</span>
-                        <span className="inline-flex items-center gap-1 text-amber-500 font-semibold">
-                          <Star className="size-3 fill-amber-500" />
+                        <span className="inline-flex items-center gap-1 text-warning font-semibold">
+                          <Star className="size-3 fill-warning" />
                           {driver.averageRating.toFixed(1)}
                         </span>
                       </div>
@@ -396,12 +393,12 @@ export function OperatorDriversView() {
 
                     {/* Verification Status */}
                     {driver.verificationStatus === "VERIFIED" ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-success/10 text-success border border-success/20">
                         <ShieldCheck className="size-3.5" />
                         Verified
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-warning/10 text-warning border border-warning/20">
                         <ShieldAlert className="size-3.5" />
                         Pending
                       </span>
@@ -409,19 +406,23 @@ export function OperatorDriversView() {
 
                     {/* Action Menu */}
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="size-8">
-                          <MoreVertical className="size-4" />
-                        </Button>
+                      <DropdownMenuTrigger
+                        render={
+                          <Button variant="ghost" size="icon" className="size-8" />
+                        }
+                      >
+                        <MoreVertical className="size-4" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48">
-                        <DropdownMenuItem asChild>
-                          <Link
-                            href={`/dashboard/operator/drivers/${driver.id}`}
-                          >
-                            <ExternalLink className="size-4 mr-2" />
-                            View Full Passport
-                          </Link>
+                        <DropdownMenuItem
+                          render={
+                            <Link
+                              href={`/dashboard/operator/drivers/${driver.id}`}
+                            />
+                          }
+                        >
+                          <ExternalLink className="size-4 mr-2" />
+                          View Full Passport
                         </DropdownMenuItem>
 
                         {canVerify &&
@@ -435,7 +436,7 @@ export function OperatorDriversView() {
                                 })
                               }
                             >
-                              <ShieldCheck className="size-4 mr-2 text-emerald-500" />
+                              <ShieldCheck className="size-4 mr-2 text-success" />
                               Verify License
                             </DropdownMenuItem>
                           )}

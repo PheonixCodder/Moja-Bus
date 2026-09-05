@@ -86,15 +86,16 @@ export function RoutePickerStep({
           {activeRoutes.map((r) => {
             const isSelected = r.id === selectedId;
             return (
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 key={r.id}
                 onClick={() => onSelect(r.id)}
                 className={cn(
-                  "text-left p-4 rounded-md border transition-all duration-150",
+                  "text-left p-4 h-auto rounded-md border transition-all duration-150 flex-col items-stretch justify-start",
                   isSelected
-                    ? "border-primary bg-primary/5 ring-2 ring-primary/20"
-                    : "border-border bg-card hover:border-primary/30",
+                    ? "border-primary bg-primary/5 ring-2 ring-primary/20 hover:bg-primary/5"
+                    : "border-border bg-card hover:border-primary/30 hover:bg-card",
                 )}
               >
                 <div className="flex items-start justify-between gap-2">
@@ -103,7 +104,7 @@ export function RoutePickerStep({
                     {r.serviceType === "URBAN" ? (
                       <UrbanBadge />
                     ) : (
-                      <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0 text-[10px] font-semibold text-slate-500">
+                      <span className="rounded-full border border-border bg-muted px-2 py-0 text-[10px] font-semibold text-muted-foreground">
                         {t("intercity")}
                       </span>
                     )}
@@ -127,7 +128,7 @@ export function RoutePickerStep({
                     {r.distanceKm} km
                   </p>
                 ) : null}
-              </button>
+              </Button>
             );
           })}
         </div>

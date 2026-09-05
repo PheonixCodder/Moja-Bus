@@ -24,12 +24,12 @@ export function VerificationDetailsDocuments({
 }: VerificationDetailsDocumentsProps) {
   const t = useTranslations("adminDashboard.verificationDetailsDocuments");
   return (
-    <Card className="bg-white border-border shadow-sm">
+    <Card className="bg-card border-border shadow-sm">
       <CardHeader>
-        <CardTitle className="text-base font-bold text-slate-900">
+        <CardTitle className="text-base font-bold text-foreground">
           {t("uploadedLegalRegistryFiles")}
         </CardTitle>
-        <CardDescription className="text-xs text-slate-400">
+        <CardDescription className="text-xs text-muted-foreground">
           {t("documentsDescription")}
         </CardDescription>
       </CardHeader>
@@ -38,7 +38,7 @@ export function VerificationDetailsDocuments({
           {documents && documents.length > 0 ? (
             documents.map((doc) => <DocumentRow key={doc.id} doc={doc} />)
           ) : (
-            <div className="text-center py-6 text-xs text-slate-400 border border-dashed border-slate-200 rounded-lg bg-slate-50/50">
+            <div className="text-center py-6 text-xs text-muted-foreground border border-dashed border-border rounded-lg bg-muted/30">
               {t("noDocumentsUploaded")}
             </div>
           )}
@@ -82,17 +82,17 @@ function DocumentRow({ doc }: { doc: any }) {
   return (
     <div
       key={doc.id}
-      className="flex items-center justify-between border border-slate-100 rounded-lg p-4 bg-white hover:bg-slate-50/50 transition-colors shadow-2xs"
+      className="flex items-center justify-between border border-border rounded-lg p-4 bg-card hover:bg-muted/50 transition-colors shadow-2xs"
     >
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200/40 flex items-center justify-center text-slate-500">
+        <div className="w-10 h-10 rounded-lg bg-muted border border-border flex items-center justify-center text-muted-foreground">
           <FileText className="size-5" />
         </div>
         <div>
-          <div className="text-sm font-semibold text-slate-800 truncate max-w-[280px]">
+          <div className="text-sm font-semibold text-foreground truncate max-w-72">
             {doc.fileName || doc.type.replace(/_/g, " ")}
           </div>
-          <div className="text-[10px] text-slate-400 mt-0.5 font-medium">
+          <div className="text-xs text-muted-foreground mt-0.5 font-medium">
             {t("uploadedOn", { date: formatAdminDate(doc.createdAt) })}
           </div>
         </div>

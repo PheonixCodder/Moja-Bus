@@ -5,6 +5,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@moja/ui/components/ui/avatar";
+import { UserAvatar } from "@moja/ui/components/ui/user-avatar";
 import { Button } from "@moja/ui/components/ui/button";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -123,16 +124,16 @@ export function OperatorFleetMapView() {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
-                <Radio className="size-5 text-emerald-500 animate-pulse" />
+                <Radio className="size-5 text-success animate-pulse" />
                 Live Fleet Telemetry Map
               </h1>
               {isConnected ? (
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-success bg-success/10 border border-success/20 px-2 py-0.5 rounded-full">
                   <Wifi className="size-3" />
                   Live Push Connected
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-500 bg-muted px-2 py-0.5 rounded-full">
+                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                   <WifiOff className="size-3" />
                   10s Sync Active
                 </span>
@@ -164,7 +165,7 @@ export function OperatorFleetMapView() {
       </div>
 
       {/* Main Map & Fleet List Container */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[650px]">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-[500px] h-[70vh]">
         {/* Left Side: Active Drivers List */}
         <div className="rounded-2xl border border-border bg-card overflow-hidden flex flex-col shadow-sm">
           <div className="p-3.5 border-b border-border bg-muted/40 flex items-center justify-between">
@@ -189,26 +190,23 @@ export function OperatorFleetMapView() {
               liveDrivers.map((driver) => {
                 const isSelected = driver.id === selectedDriver?.id;
                 return (
-                  <button
+                  <Button
                     key={driver.id}
+                    variant="ghost"
                     onClick={() => setSelectedDriverId(driver.id)}
-                    className={`w-full p-3.5 text-left transition-colors flex items-start gap-3 ${
+                    className={`w-full p-3.5 h-auto text-left transition-colors flex items-start justify-start gap-3 rounded-none ${
                       isSelected
                         ? "bg-primary/5 border-l-4 border-l-primary"
                         : "hover:bg-muted/40"
                     }`}
                   >
-                    <Avatar className="size-10 shrink-0 border border-border">
-                      <AvatarImage src={driver.user.image ?? undefined} />
-                      <AvatarFallback className="text-xs font-bold bg-primary/10 text-primary">
-                        {driver.user.fullName
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")
-                          .slice(0, 2)
-                          .toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+                    <UserAvatar
+                      name={driver.user.fullName}
+                      src={driver.user.image}
+                      seed={driver.id || driver.user.fullName}
+                      size="md"
+                      className="size-10 shrink-0 border border-border"
+                    />
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1">
@@ -224,14 +222,14 @@ export function OperatorFleetMapView() {
                             "No bus plate"}
                         </span>
                         <span>•</span>
-                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                        <span className="text-success font-semibold">
                           {driver.lastSpeedKmh
                             ? `${Math.round(driver.lastSpeedKmh)} km/h`
                             : "Stationary"}
                         </span>
                       </div>
                     </div>
-                  </button>
+                  </Button>
                 );
               })
             )}
@@ -239,14 +237,14 @@ export function OperatorFleetMapView() {
         </div>
 
         {/* Right Side: Real Map (Phase 23) + Selected-Vehicle HUD */}
-        <div className="lg:col-span-2 rounded-2xl border border-border bg-zinc-950 relative overflow-hidden flex flex-col shadow-sm">
+        <div className="lg:col-span-2 rounded-2xl border border-border bg-card relative overflow-hidden flex flex-col shadow-sm">
           {selectedDriver &&
           selectedDriver.lastLatitude != null &&
           selectedDriver.lastLongitude != null ? (
             <>
               {/* Top bar — real telemetry for the selected vehicle */}
               <div className="absolute top-3 left-3 right-3 z-[500] flex items-center justify-between pointer-events-none">
-                <div className="pointer-events-auto p-2.5 rounded-xl bg-zinc-900/90 border border-zinc-800 backdrop-blur text-white flex items-center gap-3 shadow-lg">
+                <div className="pointer-events-auto p-2.5 rounded-xl bg-card/90 border border-border backdrop-blur text-card-foreground flex items-center gap-3 shadow-lg">
                   <Bus className="size-5 text-primary" />
                   <div>
                     <div className="text-xs text-zinc-400">
@@ -258,22 +256,22 @@ export function OperatorFleetMapView() {
                     </div>
                   </div>
                 </div>
-                <div className="pointer-events-auto p-2.5 rounded-xl bg-zinc-900/90 border border-zinc-800 backdrop-blur text-white flex items-center gap-4 shadow-lg">
+                <div className="pointer-events-auto p-2.5 rounded-xl bg-card/90 border border-border backdrop-blur text-card-foreground flex items-center gap-4 shadow-lg">
                   <div className="text-right">
-                    <div className="text-[10px] uppercase text-zinc-400 font-semibold">
+                    <div className="text-[10px] uppercase text-muted-foreground font-semibold">
                       Speed
                     </div>
-                    <div className="text-base font-extrabold text-emerald-400 font-mono">
+                    <div className="text-base font-extrabold text-success font-mono">
                       {selectedDriver.lastSpeedKmh
                         ? `${Math.round(selectedDriver.lastSpeedKmh)} km/h`
                         : "0 km/h"}
                     </div>
                   </div>
-                  <div className="text-right border-l border-zinc-800 pl-3">
-                    <div className="text-[10px] uppercase text-zinc-400 font-semibold">
+                  <div className="text-right border-l border-border pl-3">
+                    <div className="text-[10px] uppercase text-muted-foreground font-semibold">
                       Heading
                     </div>
-                    <div className="text-base font-extrabold text-cyan-400 font-mono">
+                    <div className="text-base font-extrabold text-primary font-mono">
                       {selectedDriver.lastHeading
                         ? `${Math.round(selectedDriver.lastHeading)}°`
                         : "—"}
@@ -300,11 +298,11 @@ export function OperatorFleetMapView() {
               />
 
               {/* Bottom bar */}
-              <div className="absolute bottom-3 left-3 right-3 z-[500] p-3 rounded-xl bg-zinc-900/90 border border-zinc-800 backdrop-blur flex items-center justify-between text-white shadow-lg">
-                <div className="flex items-center gap-2 text-xs text-zinc-300">
-                  <Clock className="size-4 text-zinc-400" />
+              <div className="absolute bottom-3 left-3 right-3 z-[500] p-3 rounded-xl bg-card/90 border border-border backdrop-blur flex items-center justify-between text-card-foreground shadow-lg">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Clock className="size-4 text-muted-foreground" />
                   Last ping:{" "}
-                  <span className="font-semibold text-white">
+                  <span className="font-semibold text-foreground">
                     {selectedDriver.lastPingAt
                       ? new Date(selectedDriver.lastPingAt).toLocaleTimeString()
                       : "—"}
@@ -324,11 +322,11 @@ export function OperatorFleetMapView() {
             </>
           ) : (
             <div className="p-8 text-center space-y-2 h-full flex flex-col items-center justify-center">
-              <Layers className="size-10 text-zinc-700 mx-auto" />
-              <div className="font-semibold text-zinc-300">
+              <Layers className="size-10 text-muted-foreground/40 mx-auto" />
+              <div className="font-semibold text-foreground">
                 Select an active vehicle
               </div>
-              <p className="text-xs text-zinc-500 max-w-xs">
+              <p className="text-xs text-muted-foreground max-w-xs">
                 Pick a driver from the left roster to see its live position on
                 the map.
               </p>

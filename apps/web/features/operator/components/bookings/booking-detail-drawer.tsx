@@ -240,13 +240,13 @@ export function BookingDetailDrawer({
                     className={cn(
                       "inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
                       booking.status === "CONFIRMED" &&
-                        "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20",
+                        "bg-success/10 text-success border border-success/20",
                       booking.status === "PENDING_PAYMENT" &&
-                        "bg-amber-500/10 text-amber-600 border border-amber-500/20",
+                        "bg-warning/10 text-warning border border-warning/20",
                       booking.status === "CANCELLED" &&
-                        "bg-red-500/10 text-red-600 border border-red-500/20",
+                        "bg-destructive/10 text-destructive border border-destructive/20",
                       booking.status === "COMPLETED" &&
-                        "bg-pink-500/10 text-[#ee237c] border border-pink-500/20",
+                        "bg-primary/10 text-primary border border-primary/20",
                     )}
                   >
                     {booking.status}
@@ -324,7 +324,7 @@ export function BookingDetailDrawer({
                     <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
                       {t("detail.fare")}
                     </p>
-                    <p className="text-base font-bold text-emerald-600 dark:text-emerald-400">
+                    <p className="text-base font-bold text-success">
                       {formatPriceXOF(booking.farePaidXOF)}
                     </p>
                   </div>
@@ -346,7 +346,7 @@ export function BookingDetailDrawer({
                         "text-sm",
                         booking.checkedInAt
                           ? "text-foreground"
-                          : "text-amber-600 dark:text-amber-400",
+                          : "text-warning",
                       )}
                     >
                       {booking.checkedInAt
@@ -376,7 +376,7 @@ export function BookingDetailDrawer({
               <SheetFooter>
                 <Button
                   type="button"
-                  className="w-full bg-[#00875A] hover:bg-[#00704A] text-white font-semibold"
+                  className="w-full bg-success hover:bg-success/90 text-success-foreground font-semibold"
                   onClick={() => setIsRebookModalOpen(true)}
                 >
                   <ArrowRightLeft className="size-4" />
@@ -386,7 +386,7 @@ export function BookingDetailDrawer({
                   <Button
                     type="button"
                     variant="outline"
-                    className="w-full border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 font-medium"
+                    className="w-full border-destructive/30 text-destructive hover:bg-destructive/10 hover:border-destructive/40 font-medium"
                     onClick={() => setIsCancelModalOpen(true)}
                   >
                     {t("detail.cancelButton")}
@@ -399,13 +399,13 @@ export function BookingDetailDrawer({
 
       {/* Rebooking Modal Dialog */}
       <Dialog open={isRebookModalOpen} onOpenChange={setIsRebookModalOpen}>
-        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto border border-border bg-white rounded-xl p-6">
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto border border-border bg-card rounded-xl p-6">
           <DialogHeader className="space-y-1">
-            <DialogTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <ArrowRightLeft className="size-5 text-[#00875A]" />
+            <DialogTitle className="text-lg font-bold text-foreground flex items-center gap-2">
+              <ArrowRightLeft className="size-5 text-success" />
               {t("rebookModal.title")}
             </DialogTitle>
-            <DialogDescription className="text-xs text-slate-500">
+            <DialogDescription className="text-xs text-muted-foreground">
               {t("rebookModal.description")}
             </DialogDescription>
           </DialogHeader>
@@ -413,8 +413,8 @@ export function BookingDetailDrawer({
           {booking ? (
             <form onSubmit={handleConfirmRebook} className="space-y-4 py-2">
               {/* Current Ticket Summary */}
-              <div className="rounded-lg border border-slate-200 bg-slate-50 p-3.5 space-y-1.5 text-xs text-slate-700">
-                <div className="flex justify-between font-semibold text-slate-900">
+              <div className="rounded-lg border border-border bg-muted/40 p-3.5 space-y-1.5 text-xs text-foreground/80">
+                <div className="flex justify-between font-semibold text-foreground">
                   <span>
                     {t("rebookModal.passenger")} {booking.passengerName}
                   </span>
@@ -422,7 +422,7 @@ export function BookingDetailDrawer({
                     {t("rebookModal.seatNumber", { seat: booking.seatLabel })}
                   </span>
                 </div>
-                <div className="text-slate-500">
+                <div className="text-muted-foreground">
                   {t("rebookModal.currentDeparture", {
                     date: formatDateWithWeekday(booking.departureTime),
                     time: formatDepartureTime(booking.departureTime),
@@ -432,16 +432,16 @@ export function BookingDetailDrawer({
 
               {/* Target Upcoming Trip Selector */}
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                <Label className="text-xs font-bold text-foreground/80 uppercase tracking-wider">
                   {t("rebookModal.selectDeparture")}
                 </Label>
                 {upcomingTripsQuery.isLoading ? (
-                  <div className="flex items-center gap-2 text-xs text-slate-500 py-2">
-                    <Spinner className="size-4 text-[#00875A]" />
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
+                    <Spinner className="size-4 text-success" />
                     {t("rebookModal.loadingDepartures")}
                   </div>
                 ) : candidateTrips.length === 0 ? (
-                  <p className="text-xs text-amber-700 bg-amber-50 p-3 rounded-lg border border-amber-200">
+                  <p className="text-xs text-warning bg-warning/10 p-3 rounded-lg border border-warning/20">
                     {t("rebookModal.noDepartures")}
                   </p>
                 ) : (
@@ -452,26 +452,30 @@ export function BookingDetailDrawer({
                       setSelectedSeatId("");
                     }}
                   >
-                    <SelectTrigger className="w-full">
-                      <SelectValue
-                        placeholder={t("rebookModal.chooseDeparture")}
-                      />
+                    <SelectTrigger className="h-10 text-xs">
+                      <SelectValue placeholder={t("rebookModal.placeholder")} />
                     </SelectTrigger>
                     <SelectContent>
                       {candidateTrips.map((trip) => (
-                        <SelectItem key={trip.id} value={trip.id}>
-                          {new Intl.DateTimeFormat("en-GB", {
-                            weekday: "short",
-                            day: "numeric",
-                            month: "short",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          }).format(new Date(trip.departureDate))}{" "}
-                          ·{" "}
-                          {t("rebookModal.openSeats", {
-                            open: trip.availableSeats,
-                            total: trip.busName,
-                          })}
+                        <SelectItem
+                          key={trip.id}
+                          value={trip.id}
+                          disabled={trip.availableSeats === 0}
+                          className="text-xs"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold">
+                              {formatDepartureTime(trip.departureDate)}
+                            </span>
+                            <span className="text-muted-foreground">·</span>
+                            <span>{formatDateWithWeekday(trip.departureDate)}</span>
+                            <span className="text-muted-foreground">·</span>
+                            <span className="font-medium text-success">
+                              {t("rebookModal.seatsRemaining", {
+                                count: trip.availableSeats,
+                              })}
+                            </span>
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -483,28 +487,30 @@ export function BookingDetailDrawer({
               {selectedTrip && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    <Label className="text-xs font-bold text-foreground/80 uppercase tracking-wider">
                       {t("rebookModal.seatAssignment", {
                         count: selectedTrip.availableSeats,
                       })}
                     </Label>
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="sm"
                       onClick={() => setSelectedSeatId("")}
                       className={cn(
-                        "text-xs px-2.5 py-1 rounded-md border transition-all",
+                        "text-xs px-2.5 py-1 h-auto rounded-md border transition-all",
                         !selectedSeatId
-                          ? "bg-[#00875A]/10 text-[#00875A] border-[#00875A]/30 font-bold shadow-xs"
-                          : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 font-medium",
+                          ? "bg-success/10 text-success border-success/30 font-bold shadow-xs hover:bg-success/20 hover:text-success"
+                          : "bg-muted/40 text-muted-foreground border-border hover:bg-muted font-medium",
                       )}
                     >
                       {t("rebookModal.autoAssign")}
-                    </button>
+                    </Button>
                   </div>
 
                   {selectedSeatId ? (
-                    <div className="flex items-center gap-2 p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-medium">
-                      <Sparkles className="size-4 text-emerald-600 shrink-0" />
+                    <div className="flex items-center gap-2 p-2.5 rounded-lg bg-success/10 border border-success/20 text-xs text-success font-medium">
+                      <Sparkles className="size-4 text-success shrink-0" />
                       <span>
                         {t("rebookModal.selectedSeat", {
                           number:
@@ -515,35 +521,38 @@ export function BookingDetailDrawer({
                       </span>
                     </div>
                   ) : (
-                    <p className="text-[11px] text-slate-500 italic">
+                    <p className="text-[11px] text-muted-foreground italic">
                       {t("rebookModal.seatHint")}
                     </p>
                   )}
 
-                  <div className="w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50/50 p-4 max-h-[320px] overflow-y-auto overflow-x-auto">
-                    <div className="w-max min-w-full">
-                      <PassengerSeatMap
-                        rows={selectedTrip.rows}
-                        columns={selectedTrip.columns}
-                        seats={selectedTrip.seats as any}
-                        selectedSeatIds={selectedSeatId ? [selectedSeatId] : []}
-                        maxSelection={1}
-                        onToggleSeat={(seatId) => {
-                          setSelectedSeatId(
-                            seatId === selectedSeatId ? "" : seatId,
-                          );
-                        }}
-                      />
-                    </div>
-                  </div>
+                  <PassengerSeatMap
+                    rows={selectedTrip.rows}
+                    columns={selectedTrip.columns}
+                    seats={selectedTrip.seats.map((s) => ({
+                      seatId: s.seatId,
+                      tripSeatId: s.id,
+                      label: s.label,
+                      row: s.row,
+                      col: s.col,
+                      deck: s.deck,
+                      seatType: s.seatType,
+                      status: s.status as any,
+                    }))}
+                    selectedSeatIds={selectedSeatId ? [selectedSeatId] : []}
+                    onToggleSeat={(seatId) => {
+                      setSelectedSeatId((prev) => (prev === seatId ? "" : seatId));
+                    }}
+                    maxSelection={1}
+                  />
                 </div>
               )}
 
-              {/* Rebook Reason */}
+              {/* Reason for Rebooking */}
               <div className="space-y-1.5">
                 <Label
                   htmlFor="rebook-reason"
-                  className="text-xs font-bold text-slate-700 uppercase tracking-wider"
+                  className="text-xs font-semibold text-foreground/80"
                 >
                   {t("rebookModal.reasonLabel")}
                 </Label>
@@ -568,7 +577,7 @@ export function BookingDetailDrawer({
                 </Button>
                 <Button
                   type="submit"
-                  className="bg-[#00875A] hover:bg-[#00704A] text-white h-9 font-semibold"
+                  className="bg-success hover:bg-success/90 text-success-foreground h-9 font-semibold"
                   disabled={
                     rebookMutation.isPending ||
                     !selectedTargetTripId ||
@@ -577,7 +586,7 @@ export function BookingDetailDrawer({
                 >
                   {rebookMutation.isPending ? (
                     <>
-                      <Spinner className="mr-2 size-3.5 text-white" />
+                      <Spinner className="mr-2 size-3.5 text-success-foreground" />
                       {t("rebookModal.rebooking")}
                     </>
                   ) : (
@@ -592,34 +601,34 @@ export function BookingDetailDrawer({
 
       {/* Cancellation Modal Dialog */}
       <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
-        <DialogContent className="max-w-md border border-border bg-white rounded-lg p-6">
+        <DialogContent className="max-w-md border border-border bg-card rounded-lg p-6">
           <DialogHeader className="space-y-1">
-            <DialogTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <AlertTriangle className="size-5 text-red-600" />
+            <DialogTitle className="text-lg font-bold text-foreground flex items-center gap-2">
+              <AlertTriangle className="size-5 text-destructive" />
               {t("cancelModal.title")}
             </DialogTitle>
-            <DialogDescription className="text-xs text-slate-500">
+            <DialogDescription className="text-xs text-muted-foreground">
               {t("cancelModal.description")}
             </DialogDescription>
           </DialogHeader>
 
           {booking ? (
             <form onSubmit={handleConfirmCancel} className="space-y-4 py-2">
-              <div className="rounded-md border border-slate-100 bg-slate-50 p-3.5 space-y-1">
-                <div className="text-xs text-slate-500">
+              <div className="rounded-md border border-border bg-muted/40 p-3.5 space-y-1">
+                <div className="text-xs text-muted-foreground">
                   {t("cancelModal.refundSummary")}
                 </div>
-                <div className="text-sm font-bold text-slate-900 flex justify-between">
+                <div className="text-sm font-bold text-foreground flex justify-between">
                   <span>{t("cancelModal.refundAmount")}</span>
                   <span>{formatPriceXOF(booking.farePaidXOF)}</span>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1">
+                <p className="text-[10px] text-muted-foreground/70 mt-1">
                   {t("cancelModal.feeNote")}
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                <Label className="text-xs font-bold text-foreground/80 uppercase tracking-wider">
                   {t("cancelModal.refundMethod")}
                 </Label>
                 <div className="grid grid-cols-2 gap-2">
@@ -639,26 +648,27 @@ export function BookingDetailDrawer({
                       },
                     ] as const
                   ).map((opt) => (
-                    <button
+                    <Button
                       key={opt.id}
                       type="button"
+                      variant="ghost"
                       disabled={opt.disabled}
                       onClick={() => setRefundChannel(opt.id)}
                       className={cn(
-                        "p-2.5 rounded-md border text-center text-xs font-semibold transition-all",
+                        "p-2.5 h-auto flex flex-col items-center rounded-md border text-center text-xs font-semibold transition-all",
                         opt.disabled && "opacity-40 cursor-not-allowed",
                         refundChannel === opt.id
-                          ? "border-red-600 bg-red-50 text-red-700"
-                          : "border-slate-200 hover:border-slate-300 text-slate-700",
+                          ? "border-destructive bg-destructive/10 text-destructive hover:bg-destructive/20 hover:text-destructive"
+                          : "border-border hover:border-border/80 text-foreground",
                       )}
                     >
-                      {t(opt.labelKey)}
-                      <span className="block text-[8px] text-slate-400 font-normal mt-0.5">
+                      <span>{t(opt.labelKey)}</span>
+                      <span className="block text-[8px] text-muted-foreground font-normal mt-0.5">
                         {opt.disabled
                           ? t("cancelModal.unavailable")
                           : t(opt.hintKey)}
                       </span>
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -666,7 +676,7 @@ export function BookingDetailDrawer({
               <div className="space-y-1.5">
                 <Label
                   htmlFor="operator-cancel-reason"
-                  className="text-xs font-bold text-slate-700 uppercase tracking-wider"
+                  className="text-xs font-bold text-foreground/80 uppercase tracking-wider"
                 >
                   {t("cancelModal.reasonLabel")}
                 </Label>
@@ -691,12 +701,12 @@ export function BookingDetailDrawer({
                 </Button>
                 <Button
                   type="submit"
-                  className="bg-red-600 hover:bg-red-700 text-white h-9"
+                  className="bg-destructive hover:bg-destructive/90 text-destructive-foreground h-9"
                   disabled={cancelMutation.isPending}
                 >
                   {cancelMutation.isPending ? (
                     <>
-                      <Spinner className="mr-2 size-3.5 text-white" />
+                      <Spinner className="mr-2 size-3.5 text-destructive-foreground" />
                       {t("cancelModal.cancelling")}
                     </>
                   ) : (

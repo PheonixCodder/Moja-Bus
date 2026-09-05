@@ -134,8 +134,8 @@ export function SettlementsPayoutPanel({
     <Card className="border-border bg-card shadow-sm">
       <CardHeader className="pb-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-50">
-            <Coins className="size-4.5 text-amber-600" />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-warning/10">
+            <Coins className="size-4.5 text-warning" />
           </div>
           <div>
             <CardTitle className="text-base font-semibold text-foreground">
@@ -304,9 +304,9 @@ export function SettlementsPayoutPanel({
           </div>
 
           {/* Warning callout */}
-          <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-3">
-            <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-amber-600" />
-            <p className="text-[11px] leading-relaxed text-amber-700">
+          <div className="flex items-start gap-2 rounded-lg border border-warning/20 bg-warning/10 px-4 py-3">
+            <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-warning" />
+            <p className="text-[11px] leading-relaxed text-warning">
               {t("irreversibleWarning")}
             </p>
           </div>

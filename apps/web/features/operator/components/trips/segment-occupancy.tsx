@@ -21,7 +21,7 @@ function SeatFillBar({ booked, total }: { booked: number; total: number }) {
   const activeTotal = Math.max(total, 1);
   const pct = Math.min((booked / activeTotal) * 100, 100);
   const color =
-    pct >= 90 ? "bg-red-500" : pct >= 60 ? "bg-amber-500" : "bg-primary";
+    pct >= 90 ? "bg-destructive" : pct >= 60 ? "bg-warning" : "bg-primary";
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between">
@@ -97,9 +97,9 @@ function SegmentSeatGrid({
                 return (
                   <div
                     key={col}
-                    className="w-7 h-7 rounded bg-slate-200 flex items-center justify-center"
+                    className="w-7 h-7 rounded bg-muted flex items-center justify-center"
                   >
-                    <User className="size-3 text-slate-500" />
+                    <User className="size-3 text-muted-foreground" />
                   </div>
                 );
               }
@@ -121,11 +121,11 @@ function SegmentSeatGrid({
                   className={cn(
                     "w-7 h-7 rounded border text-[9px] font-bold flex items-center justify-center",
                     seatStatus === "booked" &&
-                      "bg-primary text-white border-primary",
+                      "bg-primary text-primary-foreground border-primary",
                     seatStatus === "held" &&
-                      "bg-amber-400 text-amber-950 border-amber-500",
+                      "bg-warning/20 text-warning border-warning/40",
                     seatStatus === "blocked" &&
-                      "bg-slate-200 text-slate-400 border-slate-300",
+                      "bg-muted text-muted-foreground border-border",
                     seatStatus === "available" &&
                       "bg-background border-border text-muted-foreground",
                   )}
@@ -144,7 +144,7 @@ function SegmentSeatGrid({
             </span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-4 h-4 rounded bg-amber-400 border border-amber-500" />
+            <div className="w-4 h-4 rounded bg-warning/20 border border-warning/40" />
             <span className="text-[11px] text-muted-foreground">
               {t("legend.held")}
             </span>
@@ -156,7 +156,7 @@ function SegmentSeatGrid({
             </span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-4 h-4 rounded bg-slate-200 border border-slate-300" />
+            <div className="w-4 h-4 rounded bg-muted border border-border" />
             <span className="text-[11px] text-muted-foreground">
               {t("legend.blocked")}
             </span>
@@ -199,7 +199,7 @@ export function SegmentOccupancySection({
         return (
           <div
             key={segmentKey}
-            className="space-y-2 rounded-md border border-border p-3 bg-slate-50/30"
+            className="space-y-2 rounded-md border border-border p-3 bg-muted/30"
           >
             <div className="flex items-center justify-between gap-2">
               <h5 className="text-xs font-bold text-foreground">

@@ -32,7 +32,7 @@ export function InfoTooltip({
       <TooltipTrigger
         type="button"
         tabIndex={-1}
-        className={`inline-flex items-center justify-center rounded-full text-slate-400 transition-colors hover:text-slate-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-400 ${
+        className={`inline-flex items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
           className ?? ""
         }`}
         aria-label={t("ariaLabel")}
@@ -42,7 +42,7 @@ export function InfoTooltip({
       <TooltipContent
         side={side}
         sideOffset={6}
-        className="max-w-xs rounded-lg border border-slate-800 bg-slate-900/95 px-3 py-2 text-xs font-normal leading-relaxed text-slate-100 shadow-xl backdrop-blur-sm"
+        className="max-w-xs rounded-lg border border-border bg-popover px-3 py-2 text-xs font-normal leading-relaxed text-popover-foreground shadow-xl backdrop-blur-sm"
       >
         {content}
       </TooltipContent>

@@ -98,7 +98,7 @@ export function DispatchFilterBar() {
         >
           <ComboboxInput
             placeholder={t("filterByOperator")}
-            className="w-full h-9 bg-bg-base"
+            className="w-full h-9 bg-muted"
             value={selectedCompany?.name ?? t("allOperators")}
           />
           <ComboboxContent>
@@ -121,7 +121,7 @@ export function DispatchFilterBar() {
           if (val) setParams({ status: val });
         }}
       >
-        <SelectTrigger className="w-full sm:w-44 bg-bg-base h-9">
+        <SelectTrigger className="w-full sm:w-44 bg-muted h-9">
           <SelectValue placeholder={t("status")} />
         </SelectTrigger>
         <SelectContent>
@@ -139,7 +139,7 @@ export function DispatchFilterBar() {
       <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
         <PopoverTrigger
           className={cn(
-            "inline-flex items-center justify-start text-left font-normal bg-bg-base h-9 border border-input rounded-md px-3 text-sm shadow-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full sm:w-[280px]",
+            "inline-flex items-center justify-start text-left font-normal bg-muted h-9 border border-input rounded-md px-3 text-sm shadow-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full sm:w-[280px]",
             !date && "text-muted-foreground",
           )}
         >
@@ -220,7 +220,7 @@ export function DispatchFilterBar() {
         (companyId && companyId !== "ALL")) && (
         <Button
           variant="ghost"
-          className="h-9 px-2 text-text-muted hover:text-text-primary"
+          className="h-9 px-2 text-muted-foreground hover:text-foreground"
           onClick={() => {
             setParams({
               from: null,

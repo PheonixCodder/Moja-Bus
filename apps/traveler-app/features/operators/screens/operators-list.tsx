@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { useTRPC } from '@/lib/trpc';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { ArrowLeft01Icon, Search01Icon, Bus01Icon } from '@hugeicons/core-free-icons';
+import { Palette } from '@/constants/theme';
 import { OperatorCard, type OperatorCardItem } from '../components/operator-card';
 
 type SortKey = 'all' | 'routes' | 'buses';
@@ -65,18 +66,17 @@ export function OperatorsListView() {
   const ListHeader = (
     <>
       {/* Search input */}
-      <View className="flex-row items-center bg-white border border-slate-200 rounded-2xl px-3 gap-2 mb-3" style={{ height: 48 }}>
-        <HugeiconsIcon icon={Search01Icon} size={18} color="#94a3b8" />
+      <View className="flex-row items-center bg-card border border-border rounded-2xl px-3 gap-2 mb-3 min-h-12">
+        <HugeiconsIcon icon={Search01Icon} size={18} color={Palette.zinc[400]} />
         <TextInput
           value={search}
           onChangeText={setSearch}
           placeholder={t('searchPlaceholder')}
-          placeholderTextColor="#94a3b8"
-          className="flex-1 text-sm font-medium text-slate-800"
+          placeholderTextColor={Palette.zinc[400]}
+          className="flex-1 text-sm font-medium text-foreground min-h-12"
           autoCorrect={false}
           autoCapitalize="none"
           returnKeyType="search"
-          style={{ height: 48 }}
         />
       </View>
 
@@ -88,15 +88,16 @@ export function OperatorsListView() {
             <Pressable
               key={opt.key}
               onPress={() => setSort(opt.key)}
-              className={`will-change-pressable px-4 py-2 rounded-full border ${
+              accessibilityRole="button"
+              className={`px-4 py-2 rounded-full border min-h-9 justify-center ${
                 active
-                  ? 'bg-[#ee237c] border-[#ee237c]'
-                  : 'bg-white border-slate-200 active:bg-slate-50'
+                  ? 'bg-primary border-primary'
+                  : 'bg-card border-border active:bg-muted'
               }`}
             >
               <Text
                 className={`text-xs font-bold ${
-                  active ? 'text-white' : 'text-slate-600'
+                  active ? 'text-primary-foreground' : 'text-muted-foreground'
                 }`}
               >
                 {opt.label}
@@ -109,18 +110,20 @@ export function OperatorsListView() {
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#f8fafc' }}>
+    <View className="flex-1 bg-background">
       {/* Header */}
       <View
         style={{ paddingTop: insets.top }}
-        className="bg-slate-900 px-4 pb-4"
+        className="bg-zinc-950 dark:bg-card border-b border-border px-4 pb-4"
       >
         <View className="flex-row items-center gap-3 mt-3">
           <Pressable
             onPress={() => router.back()}
-            className="will-change-pressable w-9 h-9 rounded-full bg-white/10 items-center justify-center active:bg-white/20"
+            accessibilityRole="button"
+            accessibilityLabel={t('back', { defaultValue: 'Back' })}
+            className="w-9 h-9 rounded-full bg-white/10 items-center justify-center active:bg-white/20 min-h-9"
           >
-            <HugeiconsIcon icon={ArrowLeft01Icon} size={18} color="#fff" />
+            <HugeiconsIcon icon={ArrowLeft01Icon} size={18} color={Palette.zinc[50]} />
           </Pressable>
           <Text className="text-white font-black text-lg flex-1">{t('listTitle')}</Text>
         </View>
@@ -129,7 +132,7 @@ export function OperatorsListView() {
       {/* List */}
       {isLoading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color="#ee237c" size="large" />
+          <ActivityIndicator color={Palette.rose[500]} size="large" />
         </View>
       ) : (
         <FlatList
@@ -139,14 +142,14 @@ export function OperatorsListView() {
           ListHeaderComponent={ListHeader}
           ListEmptyComponent={
             <View className="items-center py-20">
-              <View className="w-16 h-16 bg-slate-100 rounded-3xl items-center justify-center mb-4">
-                <HugeiconsIcon icon={Bus01Icon} size={28} color="#cbd5e1" />
+              <View className="w-16 h-16 bg-muted rounded-3xl items-center justify-center mb-4">
+                <HugeiconsIcon icon={Bus01Icon} size={28} color={Palette.zinc[400]} />
               </View>
-              <Text className="text-slate-500 font-semibold text-sm">
+              <Text className="text-foreground font-semibold text-sm">
                 {search.trim() ? t('noResults') : t('emptyTitle')}
               </Text>
               {!search.trim() && (
-                <Text className="text-slate-400 text-xs mt-1">{t('emptyDesc')}</Text>
+                <Text className="text-muted-foreground text-xs mt-1">{t('emptyDesc')}</Text>
               )}
             </View>
           }

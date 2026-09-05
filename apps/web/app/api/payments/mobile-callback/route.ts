@@ -28,22 +28,22 @@ export async function GET(request: Request) {
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       display: flex; align-items: center; justify-content: center;
-      min-height: 100vh; margin: 0; background: #f5f5f7;
-      color: #1d1d1f;
+      min-height: 100vh; margin: 0; background: #f8fafc;
+      color: #0f172a;
     }
     .card {
-      background: white; border-radius: 20px; padding: 40px 32px;
+      background: #ffffff; border-radius: 20px; padding: 40px 32px;
       text-align: center; box-shadow: 0 4px 24px rgba(0,0,0,0.08);
       max-width: 320px;
     }
     .icon {
       width: 56px; height: 56px; border-radius: 50%;
-      background: ${cancelled ? "#ff3b30" : "#007aff"}; color: white; font-size: 28px;
+      background: ${cancelled ? "#ef4444" : "#ee237c"}; color: #ffffff; font-size: 28px;
       line-height: 56px; margin: 0 auto 16px;
     }
     h1 { font-size: 20px; font-weight: 600; margin: 0 0 8px; }
-    p { font-size: 14px; color: #6e6e73; margin: 0; line-height: 1.4; }
-    .ref { margin-top: 12px; font-size: 12px; color: #8e8e93; word-break: break-all; }
+    p { font-size: 14px; color: #64748b; margin: 0; line-height: 1.4; }
+    .ref { margin-top: 12px; font-size: 12px; color: #94a3b8; word-break: break-all; }
   </style>
 </head>
 <body>

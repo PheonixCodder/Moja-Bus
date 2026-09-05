@@ -64,23 +64,23 @@ export function WithdrawalsResolveDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col gap-6 py-4">
-          <div className="flex items-center justify-between p-4 rounded-lg bg-bg-muted border border-border">
+          <div className="flex items-center justify-between p-4 rounded-lg bg-muted/40 border border-border">
             <div className="flex flex-col gap-1">
-              <span className="text-sm font-medium text-text-primary">
+              <span className="text-sm font-medium text-foreground">
                 {row.companyName}
               </span>
-              <span className="text-xs text-text-muted">
+              <span className="text-xs text-muted-foreground">
                 {t("ref")}: {row.id.split("-")[0]}
               </span>
             </div>
-            <div className="text-lg font-mono font-bold text-text-primary">
+            <div className="text-lg font-mono font-bold text-foreground">
               {formatXOF(row.amount)}
             </div>
           </div>
@@ -102,9 +102,9 @@ export function WithdrawalsResolveDialog({
                 />
                 <Label
                   htmlFor="force-complete"
-                  className="flex flex-col items-center justify-between rounded-md border-2 border-border bg-transparent p-4 hover:bg-bg-muted hover:text-text-primary peer-data-[state=checked]:border-emerald-500 peer-data-[state=checked]:bg-emerald-50 dark:peer-data-[state=checked]:bg-emerald-950/20 [&:has([data-state=checked])]:border-emerald-500 cursor-pointer"
+                  className="flex flex-col items-center justify-between rounded-md border-2 border-border bg-transparent p-4 hover:bg-muted/40 hover:text-foreground peer-data-[state=checked]:border-success peer-data-[state=checked]:bg-success/15 [&:has([data-state=checked])]:border-success cursor-pointer"
                 >
-                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                  <span className="font-semibold text-success">
                     {t("forceSettle")}
                   </span>
                 </Label>
@@ -117,15 +117,15 @@ export function WithdrawalsResolveDialog({
                 />
                 <Label
                   htmlFor="force-fail"
-                  className="flex flex-col items-center justify-between rounded-md border-2 border-border bg-transparent p-4 hover:bg-bg-muted hover:text-text-primary peer-data-[state=checked]:border-rose-500 peer-data-[state=checked]:bg-rose-50 dark:peer-data-[state=checked]:bg-rose-950/20 [&:has([data-state=checked])]:border-rose-500 cursor-pointer"
+                  className="flex flex-col items-center justify-between rounded-md border-2 border-border bg-transparent p-4 hover:bg-muted/40 hover:text-foreground peer-data-[state=checked]:border-destructive peer-data-[state=checked]:bg-destructive/15 [&:has([data-state=checked])]:border-destructive cursor-pointer"
                 >
-                  <span className="font-semibold text-rose-600 dark:text-rose-400">
+                  <span className="font-semibold text-destructive">
                     {t("forceFail")}
                   </span>
                 </Label>
               </div>
             </RadioGroup>
-            <p className="text-xs text-text-muted mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               {action === "FORCE_COMPLETE"
                 ? t("forceSettleDesc")
                 : t("forceFailDesc")}
@@ -134,7 +134,7 @@ export function WithdrawalsResolveDialog({
 
           <div className="flex flex-col gap-3">
             <Label htmlFor="reason">
-              {t("resolutionNote")} <span className="text-rose-500">*</span>
+              {t("resolutionNote")} <span className="text-destructive">*</span>
             </Label>
             <Textarea
               id="reason"
@@ -161,8 +161,8 @@ export function WithdrawalsResolveDialog({
             disabled={!reason.trim() || resolveMutation.isPending}
             className={
               action === "FORCE_COMPLETE"
-                ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                : "bg-rose-600 hover:bg-rose-700 text-white"
+                ? "bg-success text-success-foreground hover:bg-success/90"
+                : "bg-destructive text-destructive-foreground hover:bg-destructive/90"
             }
           >
             {resolveMutation.isPending ? t("applying") : t("applyResolution")}

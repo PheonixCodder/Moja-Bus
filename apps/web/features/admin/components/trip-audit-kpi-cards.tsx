@@ -23,21 +23,13 @@ function KpiCard({
       <div
         className={
           highlight === "warning"
-            ? "flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-50"
+            ? "flex size-10 shrink-0 items-center justify-center rounded-full bg-warning/10 text-warning"
             : highlight === "success"
-              ? "flex size-10 shrink-0 items-center justify-center rounded-full bg-emerald-50"
-              : "flex size-10 shrink-0 items-center justify-center rounded-full bg-slate-100"
+              ? "flex size-10 shrink-0 items-center justify-center rounded-full bg-success/10 text-success"
+              : "flex size-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground"
         }
       >
-        <Icon
-          className={
-            highlight === "warning"
-              ? "size-5 text-amber-600"
-              : highlight === "success"
-                ? "size-5 text-emerald-600"
-                : "size-5 text-slate-600"
-          }
-        />
+        <Icon className="size-5" />
       </div>
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">

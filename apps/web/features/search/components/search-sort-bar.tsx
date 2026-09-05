@@ -3,6 +3,7 @@
 import { memo } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@moja/ui/lib/utils";
+import { Button } from "@moja/ui/components/ui/button";
 import { TrendingDown, Zap, Clock, MoonStar } from "lucide-react";
 
 const SORT_KEYS = ["CHEAPEST", "FASTEST", "EARLIEST", "LATEST"] as const;
@@ -37,17 +38,17 @@ export const SearchSortBar = memo(function SearchSortBar({
   };
 
   return (
-    <div className="flex items-center justify-between py-3 border-b border-slate-100">
+    <div className="flex items-center justify-between py-3 border-b border-border">
       <div>
-        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">
+        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5">
           {t("selectTrip")}
         </p>
         {isLoading ? (
-          <div className="h-5 w-24 bg-slate-200 rounded animate-pulse" />
+          <div className="h-5 w-24 bg-muted rounded animate-pulse" />
         ) : (
-          <p className="text-lg font-bold text-slate-800">
+          <p className="text-lg font-bold text-foreground">
             {total.toLocaleString()}{" "}
-            <span className="text-slate-500 font-medium text-base">
+            <span className="text-muted-foreground font-medium text-base">
               {total === 1 ? t("resultSingular") : t("resultPlural")}
             </span>
           </p>
@@ -55,28 +56,30 @@ export const SearchSortBar = memo(function SearchSortBar({
       </div>
 
       <div className="flex items-center gap-1 sm:gap-2">
-        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider mr-1 hidden sm:block">
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mr-1 hidden sm:block">
           {t("sort.label")}
         </span>
         {SORT_KEYS.map((key) => {
           const isActive =
             sort === key || (sort === "BEST" && key === "CHEAPEST");
           return (
-            <button
+            <Button
               key={key}
+              variant="outline"
+              size="sm"
               onClick={() => onSortChange(key)}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-150 border",
+                "flex items-center gap-1.5 px-3 py-1.5 h-auto rounded-full text-xs font-bold transition-all duration-150 border shadow-none",
                 isActive
-                  ? "bg-[#ee237c] text-white border-[#ee237c] shadow-sm shadow-pink-200"
-                  : "bg-white text-slate-600 border-slate-200 hover:border-[#ee237c]/50 hover:text-[#ee237c]",
+                  ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90 hover:text-primary-foreground shadow-sm"
+                  : "bg-card text-muted-foreground border-border hover:border-primary/50 hover:text-primary",
               )}
               aria-pressed={isActive}
             >
               {SORT_ICONS[key]}
               <span className="hidden sm:inline">{SORT_LABELS[key]}</span>
               <span className="sm:hidden">{SORT_LABELS[key]!.slice(0, 4)}</span>
-            </button>
+            </Button>
           );
         })}
       </div>

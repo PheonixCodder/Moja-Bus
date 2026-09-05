@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useDropzone, type DropzoneOptions } from "react-dropzone";
 import { Button } from "@moja/ui/components/ui/button";
+import { Input } from "@moja/ui/components/ui/input";
 import {
   Card,
   CardContent,
@@ -208,7 +209,7 @@ export function DocumentsStep({
                   key={docType.id}
                   className={cn(
                     "p-4 border rounded-md transition-all",
-                    isSuccess && "border-green-200 bg-green-50/10",
+                    isSuccess && "border-success/30 bg-success/5",
                     isUploading && "border-primary/30 bg-primary/5",
                     !hasUploaded && "border-border",
                   )}
@@ -218,7 +219,7 @@ export function DocumentsStep({
                       <h4 className="text-sm font-bold text-foreground flex items-center gap-1.5">
                         {docType.label}
                         {docType.required && (
-                          <span className="text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">
+                          <span className="text-[10px] bg-destructive/10 text-destructive px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">
                             {t("required")}
                           </span>
                         )}
@@ -229,7 +230,7 @@ export function DocumentsStep({
                     </div>
 
                     {isSuccess && (
-                      <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+                      <CheckCircle2 className="w-5 h-5 text-success flex-shrink-0" />
                     )}
                   </div>
 
@@ -294,7 +295,7 @@ export function DocumentsStep({
           variant="outline"
           onClick={onBack}
           disabled={isSaving}
-          className="border-border hover:bg-slate-100 rounded-md px-6 py-2"
+          className="border-border hover:bg-muted rounded-md px-6 py-2"
         >
           {tRoot("back")}
         </Button>
@@ -332,7 +333,7 @@ function DropZoneInput({ onDrop }: { onDrop: (files: File[]) => void }) {
         isDragActive && "border-primary bg-primary/5",
       )}
     >
-      <input {...(getInputProps() as unknown as React.ComponentPropsWithoutRef<"input">)} />
+      <Input {...(getInputProps() as unknown as React.ComponentPropsWithoutRef<"input">)} className="hidden" />
       <UploadCloud className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
       <p className="text-xs font-semibold text-foreground">
         {t("dragAndDrop")}{" "}

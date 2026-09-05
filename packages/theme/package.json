@@ -3,10 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "main": "./tokens.ts",
+  "types": "./tokens.ts",
   "description": "Shared design tokens for Moja Ride web and mobile apps.",
   "exports": {
     "./global.css": "./global.css",
-    "./tokens": "./tokens.ts"
+    "./tokens": {
+      "types": "./tokens.ts",
+      "default": "./tokens.ts"
+    }
   },
   "peerDependencies": {
     "react-native": "*"

@@ -21,22 +21,22 @@ export default async function OperatorOnboardingPage({ params }: Props) {
 
   return (
     <HydrateClient>
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-muted/30">
         {/* Header */}
-        <header className="sticky top-0 z-10 bg-white border-b border-slate-200">
+        <header className="sticky top-0 z-10 bg-card border-b border-border">
           <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-slate-900 font-display">
+              <h1 className="text-xl font-bold text-foreground font-display">
                 {t("headerTitle")}
               </h1>
-              <p className="text-xs text-slate-500">{t("headerSubtitle")}</p>
+              <p className="text-xs text-muted-foreground">{t("headerSubtitle")}</p>
             </div>
           </div>
         </header>
 
         {/* Main content */}
         <main className="max-w-4xl mx-auto px-4 py-8">
-          <div className="bg-white rounded-md border border-border p-8 shadow-sm">
+          <div className="bg-card rounded-md border border-border p-8 shadow-sm">
             <OperatorOnboardingView />
           </div>
         </main>

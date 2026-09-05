@@ -31,20 +31,20 @@ export function SearchMobileFilters({
   return (
     <>
       <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
-        <button
+        <Button
           type="button"
           onClick={() => onOpenChange(true)}
-          className="flex items-center gap-2 bg-slate-900 text-white px-5 py-3 rounded-full shadow-xl font-bold text-sm hover:bg-slate-800 transition-all active:scale-95"
+          className="flex items-center gap-2 bg-foreground text-background px-5 py-3 rounded-full shadow-xl font-bold text-sm hover:bg-foreground/90 transition-all active:scale-95 h-auto"
           aria-label={t("openFiltersAria")}
         >
           <SlidersHorizontal className="h-4 w-4" />
           {t("filtersButton")}
           {activeFilterCount > 0 && (
-            <span className="bg-[#ee237c] text-white text-[10px] font-extrabold h-5 w-5 rounded-full flex items-center justify-center leading-none">
+            <span className="bg-primary text-primary-foreground text-[10px] font-extrabold h-5 w-5 rounded-full flex items-center justify-center leading-none">
               {activeFilterCount}
             </span>
           )}
-        </button>
+        </Button>
       </div>
 
       <Sheet open={open} onOpenChange={onOpenChange}>
@@ -52,10 +52,10 @@ export function SearchMobileFilters({
           side="bottom"
           className="h-[85vh] rounded-t-3xl px-5 pt-2 pb-0 flex flex-col"
         >
-          <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-4 shrink-0" />
+          <div className="w-10 h-1 bg-muted-foreground/20 rounded-full mx-auto mb-4 shrink-0" />
 
           <SheetHeader className="text-left mb-2 shrink-0 border-none p-0">
-            <SheetTitle className="font-montserrat font-bold text-slate-800">
+            <SheetTitle className="font-montserrat font-bold text-foreground">
               {t("filtersTitle")}
             </SheetTitle>
           </SheetHeader>
@@ -64,10 +64,10 @@ export function SearchMobileFilters({
             <FiltersContent {...filtersProps} />
           </div>
 
-          <div className="pt-4 pb-8 shrink-0 border-t border-slate-100 mt-2">
+          <div className="pt-4 pb-8 shrink-0 border-t border-border mt-2">
             <Button
               onClick={() => onOpenChange(false)}
-              className="w-full h-12 rounded-full bg-[#ee237c] hover:bg-[#c71d65] text-white font-bold text-sm shadow-md shadow-pink-200/50 transition-all"
+              className="w-full h-12 rounded-full font-bold text-sm shadow-md transition-all"
             >
               {activeFilterCount > 0
                 ? t("applyFilters", { count: activeFilterCount })

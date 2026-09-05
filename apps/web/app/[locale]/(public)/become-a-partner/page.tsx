@@ -41,25 +41,25 @@ export default async function BecomeAPartnerPage() {
       icon: TrendingUp,
       titleKey: "pillar1Title",
       descKey: "pillar1Desc",
-      color: "bg-pink-50 text-[#ee237c] border-pink-100",
+      color: "bg-primary/10 text-primary border-primary/20",
     },
     {
       icon: Building2,
       titleKey: "pillar2Title",
       descKey: "pillar2Desc",
-      color: "bg-blue-50 text-blue-600 border-blue-100",
+      color: "bg-info/10 text-info border-info/20",
     },
     {
       icon: Banknote,
       titleKey: "pillar3Title",
       descKey: "pillar3Desc",
-      color: "bg-emerald-50 text-emerald-600 border-emerald-100",
+      color: "bg-success/10 text-success border-success/20",
     },
     {
       icon: Users2,
       titleKey: "pillar4Title",
       descKey: "pillar4Desc",
-      color: "bg-purple-50 text-purple-600 border-purple-100",
+      color: "bg-primary/10 text-primary border-primary/20",
     },
   ] as const;
 
@@ -103,38 +103,38 @@ export default async function BecomeAPartnerPage() {
       badge={t("shellBadge")}
     >
       {/* Hero Quick Trust & CTA Bar */}
-      <div className="bg-slate-900 text-white border-b border-slate-800 py-10 px-6 md:px-8">
+      <div className="bg-card text-card-foreground border-b border-border py-10 px-6 md:px-8">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 w-full md:w-auto">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#ee237c]/20 flex items-center justify-center text-[#ee237c] shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
                 <CheckCircle2 className="h-5 w-5" />
               </div>
-              <span className="text-xs font-semibold text-slate-300">
+              <span className="text-xs font-semibold text-muted-foreground">
                 {t("trustStat1")}
               </span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-info/10 flex items-center justify-center text-info shrink-0">
                 <Clock className="h-5 w-5" />
               </div>
-              <span className="text-xs font-semibold text-slate-300">
+              <span className="text-xs font-semibold text-muted-foreground">
                 {t("trustStat2")}
               </span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center text-success shrink-0">
                 <Building2 className="h-5 w-5" />
               </div>
-              <span className="text-xs font-semibold text-slate-300">
+              <span className="text-xs font-semibold text-muted-foreground">
                 {t("trustStat3")}
               </span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center text-warning shrink-0">
                 <Zap className="h-5 w-5" />
               </div>
-              <span className="text-xs font-semibold text-slate-300">
+              <span className="text-xs font-semibold text-muted-foreground">
                 {t("trustStat4")}
               </span>
             </div>
@@ -143,13 +143,13 @@ export default async function BecomeAPartnerPage() {
           <div className="flex items-center gap-4 w-full md:w-auto justify-end">
             <a
               href="#checklist"
-              className="px-5 py-3 rounded-xl border border-slate-700 text-slate-300 font-semibold text-sm hover:bg-slate-800 transition-all text-center"
+              className="px-5 py-3 rounded-xl border border-border text-muted-foreground font-semibold text-sm hover:bg-muted transition-all text-center"
             >
               {t("ctaSecondary")}
             </a>
             <Link
               href="/operator/login"
-              className="flex items-center justify-center gap-2 bg-[#ee237c] hover:bg-[#d01867] text-white font-bold px-6 py-3 rounded-xl text-sm transition-all shadow-lg shadow-[#ee237c]/20 hover:gap-3"
+              className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-6 py-3 rounded-xl text-sm transition-all shadow-lg shadow-primary/20 hover:gap-3"
             >
               <span>{t("ctaPrimary")}</span>
               <ArrowRight className="h-4 w-4" />
@@ -161,11 +161,11 @@ export default async function BecomeAPartnerPage() {
       {/* Core Pillars / Benefits Section */}
       <section className="max-w-7xl mx-auto px-6 md:px-8 py-24">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="inline-block px-3.5 py-1.5 bg-[#ee237c]/10 text-[#ee237c] rounded-full text-xs font-bold uppercase tracking-widest mb-4 border border-[#ee237c]/20">
+          <span className="inline-block px-3.5 py-1.5 bg-primary/10 text-primary rounded-full text-xs font-bold uppercase tracking-widest mb-4 border border-primary/20">
             {t("pillarsBadge")}
           </span>
           <h2
-            className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight"
+            className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight"
             style={{ fontFamily: "Montserrat, sans-serif" }}
           >
             {t("pillarsTitle")}
@@ -176,7 +176,7 @@ export default async function BecomeAPartnerPage() {
           {pillars.map(({ icon: Icon, titleKey, descKey, color }) => (
             <div
               key={titleKey}
-              className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm hover:shadow-md transition-all group"
+              className="bg-card rounded-3xl p-8 border border-border shadow-sm hover:shadow-md transition-all group"
             >
               <div
                 className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 border ${color} group-hover:scale-105 transition-transform`}
@@ -184,12 +184,12 @@ export default async function BecomeAPartnerPage() {
                 <Icon className="h-7 w-7" />
               </div>
               <h3
-                className="font-bold text-slate-900 text-xl mb-3"
+                className="font-bold text-card-foreground text-xl mb-3"
                 style={{ fontFamily: "Montserrat, sans-serif" }}
               >
                 {t(titleKey)}
               </h3>
-              <p className="text-slate-500 text-sm leading-relaxed">
+              <p className="text-muted-foreground text-sm leading-relaxed">
                 {t(descKey)}
               </p>
             </div>
@@ -198,48 +198,48 @@ export default async function BecomeAPartnerPage() {
       </section>
 
       {/* 5-Step Onboarding Roadmap Section */}
-      <section className="bg-slate-50 border-y border-slate-100 py-24 px-6 md:px-8">
+      <section className="bg-muted/40 border-y border-border py-24 px-6 md:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <span className="inline-block px-3.5 py-1.5 bg-[#ee237c]/10 text-[#ee237c] rounded-full text-xs font-bold uppercase tracking-widest mb-4 border border-[#ee237c]/20">
+            <span className="inline-block px-3.5 py-1.5 bg-primary/10 text-primary rounded-full text-xs font-bold uppercase tracking-widest mb-4 border border-primary/20">
               {t("stepsBadge")}
             </span>
             <h2
-              className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-4"
+              className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight mb-4"
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
               {t("stepsTitle")}
             </h2>
-            <p className="text-slate-500 text-base">{t("stepsDesc")}</p>
+            <p className="text-muted-foreground text-base">{t("stepsDesc")}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6 relative">
             {steps.map(({ num, icon: Icon, titleKey, descKey }, idx) => (
               <div
                 key={num}
-                className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between relative"
+                className="bg-card rounded-2xl p-6 border border-border shadow-sm flex flex-col justify-between relative"
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs font-extrabold text-[#ee237c] bg-pink-50 px-2.5 py-1 rounded-lg">
+                    <span className="text-xs font-extrabold text-primary bg-primary/10 px-2.5 py-1 rounded-lg">
                       {t("stepLabel", { num })}
                     </span>
-                    <Icon className="h-5 w-5 text-slate-400" />
+                    <Icon className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <h4
-                    className="font-bold text-slate-900 text-base mb-2"
+                    className="font-bold text-card-foreground text-base mb-2"
                     style={{ fontFamily: "Montserrat, sans-serif" }}
                   >
                     {t(titleKey)}
                   </h4>
-                  <p className="text-slate-500 text-xs leading-relaxed">
+                  <p className="text-muted-foreground text-xs leading-relaxed">
                     {t(descKey)}
                   </p>
                 </div>
 
                 {idx < steps.length - 1 && (
                   <div className="hidden md:block absolute -right-3 top-1/2 -translate-y-1/2 z-10">
-                    <div className="w-6 h-6 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400">
+                    <div className="w-6 h-6 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground">
                       <ArrowRight className="h-3 w-3" />
                     </div>
                   </div>
@@ -254,43 +254,43 @@ export default async function BecomeAPartnerPage() {
       <section id="checklist" className="max-w-7xl mx-auto px-6 md:px-8 py-24">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-5">
-            <span className="inline-block px-3.5 py-1.5 bg-[#ee237c]/10 text-[#ee237c] rounded-full text-xs font-bold uppercase tracking-widest mb-4 border border-[#ee237c]/20">
+            <span className="inline-block px-3.5 py-1.5 bg-primary/10 text-primary rounded-full text-xs font-bold uppercase tracking-widest mb-4 border border-primary/20">
               {t("checklistBadge")}
             </span>
             <h2
-              className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-4"
+              className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight mb-4"
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
               {t("checklistTitle")}
             </h2>
-            <p className="text-slate-500 text-base leading-relaxed mb-8">
+            <p className="text-muted-foreground text-base leading-relaxed mb-8">
               {t("checklistDesc")}
             </p>
 
             <Link
               href="/operator/login"
-              className="inline-flex items-center gap-2 bg-[#ee237c] hover:bg-[#d01867] text-white font-bold px-8 py-4 rounded-2xl shadow-lg shadow-[#ee237c]/20 transition-all hover:gap-3"
+              className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8 py-4 rounded-2xl shadow-lg shadow-primary/20 transition-all hover:gap-3"
             >
               <span>{t("ctaPrimary")}</span>
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
 
-          <div className="lg:col-span-7 bg-slate-900 text-white rounded-3xl p-8 md:p-10 border border-slate-800 shadow-xl">
+          <div className="lg:col-span-7 bg-foreground text-background rounded-3xl p-8 md:p-10 border border-border shadow-xl">
             <div className="space-y-4">
               {checklistKeys.map((key, idx) => (
                 <div
                   key={key}
-                  className="flex items-start gap-4 p-4 rounded-2xl bg-slate-800/60 border border-slate-700/50"
+                  className="flex items-start gap-4 p-4 rounded-2xl bg-background/10 border border-background/20"
                 >
-                  <div className="w-7 h-7 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                  <div className="w-7 h-7 rounded-full bg-success/20 text-success flex items-center justify-center shrink-0 mt-0.5">
                     <Check className="h-4 w-4" />
                   </div>
                   <div>
-                    <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-0.5">
+                    <span className="text-xs text-background/60 font-bold uppercase tracking-wider block mb-0.5">
                       {t("requirementLabel", { num: idx + 1 })}
                     </span>
-                    <p className="text-slate-200 font-medium text-sm md:text-base">
+                    <p className="text-background font-medium text-sm md:text-base">
                       {t(key)}
                     </p>
                   </div>
@@ -302,14 +302,14 @@ export default async function BecomeAPartnerPage() {
       </section>
 
       {/* FAQ Section */}
-      <section className="bg-slate-50 border-t border-slate-100 py-24 px-6 md:px-8">
+      <section className="bg-muted/40 border-t border-border py-24 px-6 md:px-8">
         <div className="max-w-5xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <span className="inline-block px-3.5 py-1.5 bg-[#ee237c]/10 text-[#ee237c] rounded-full text-xs font-bold uppercase tracking-widest mb-4 border border-[#ee237c]/20">
+            <span className="inline-block px-3.5 py-1.5 bg-primary/10 text-primary rounded-full text-xs font-bold uppercase tracking-widest mb-4 border border-primary/20">
               {t("faqBadge")}
             </span>
             <h2
-              className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight"
+              className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight"
               style={{ fontFamily: "Montserrat, sans-serif" }}
             >
               {t("faqTitle")}
@@ -320,18 +320,18 @@ export default async function BecomeAPartnerPage() {
             {faqs.map(({ qKey, aKey }) => (
               <div
                 key={qKey}
-                className="bg-white rounded-3xl p-8 border border-slate-200/80 shadow-sm"
+                className="bg-card rounded-3xl p-8 border border-border shadow-sm"
               >
                 <div className="flex items-start gap-3 mb-3">
-                  <HelpCircle className="h-6 w-6 text-[#ee237c] shrink-0 mt-0.5" />
+                  <HelpCircle className="h-6 w-6 text-primary shrink-0 mt-0.5" />
                   <h3
-                    className="font-bold text-slate-900 text-lg"
+                    className="font-bold text-card-foreground text-lg"
                     style={{ fontFamily: "Montserrat, sans-serif" }}
                   >
                     {t(qKey)}
                   </h3>
                 </div>
-                <p className="text-slate-500 text-sm leading-relaxed pl-9">
+                <p className="text-muted-foreground text-sm leading-relaxed pl-9">
                   {t(aKey)}
                 </p>
               </div>
@@ -342,12 +342,12 @@ export default async function BecomeAPartnerPage() {
 
       {/* High Impact Closing CTA Banner */}
       <section className="max-w-7xl mx-auto px-6 md:px-8 py-24">
-        <div className="relative bg-slate-950 rounded-3xl p-10 md:p-16 text-white overflow-hidden border border-slate-800 shadow-2xl">
-          {/* Ambient Pink Glow */}
-          <div className="absolute top-1/2 right-10 -translate-y-1/2 w-96 h-96 bg-[#ee237c] rounded-full blur-[130px] opacity-20 pointer-events-none" />
+        <div className="relative bg-foreground rounded-3xl p-10 md:p-16 text-background overflow-hidden border border-border shadow-2xl">
+          {/* Ambient Primary Glow */}
+          <div className="absolute top-1/2 right-10 -translate-y-1/2 w-96 h-96 bg-primary rounded-full blur-[130px] opacity-20 pointer-events-none" />
 
           <div className="relative z-10 max-w-3xl">
-            <span className="inline-block px-3.5 py-1.5 bg-[#ee237c]/20 text-[#ee237c] rounded-full text-xs font-bold uppercase tracking-widest mb-4 border border-[#ee237c]/30">
+            <span className="inline-block px-3.5 py-1.5 bg-primary/20 text-primary rounded-full text-xs font-bold uppercase tracking-widest mb-4 border border-primary/30">
               Moja Ride Network
             </span>
             <h2
@@ -356,13 +356,13 @@ export default async function BecomeAPartnerPage() {
             >
               {t("closingTitle")}
             </h2>
-            <p className="text-slate-400 text-base md:text-lg mb-8 leading-relaxed">
+            <p className="text-background/80 text-base md:text-lg mb-8 leading-relaxed">
               {t("closingDesc")}
             </p>
 
             <Link
               href="/operator/login"
-              className="inline-flex items-center gap-3 bg-[#ee237c] hover:bg-[#d01867] text-white font-bold px-8 py-4 rounded-2xl text-base shadow-xl shadow-[#ee237c]/30 transition-all hover:gap-4"
+              className="inline-flex items-center gap-3 bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8 py-4 rounded-2xl text-base shadow-xl shadow-primary/30 transition-all hover:gap-4"
             >
               <span>{t("closingButton")}</span>
               <ArrowRight className="h-5 w-5" />

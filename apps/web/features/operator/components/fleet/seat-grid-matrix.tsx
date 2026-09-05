@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import { Armchair, Eraser, Gauge, Square } from "lucide-react";
+import { Button } from "@moja/ui/components/ui/button";
 import { cn } from "@moja/ui/lib/utils";
 
 type SeatType =
@@ -167,13 +168,14 @@ export function SeatGridMatrix({
             const Icon = cfg.Icon;
 
             return (
-              <button
+              <Button
                 key={`${cell.row}-${cell.col}`}
                 type="button"
+                variant="ghost"
                 onMouseDown={() => handleMouseDown(cell.row, cell.col)}
                 onMouseEnter={() => handleMouseEnter(cell.row, cell.col)}
                 className={cn(
-                  "relative flex h-10 w-10 flex-col items-center justify-center rounded-lg border text-xs transition-all duration-150",
+                  "relative flex h-10 w-10 p-0 flex-col items-center justify-center rounded-lg border text-xs transition-all duration-150",
                   cfg.cellClass,
                   !readOnly && "hover:scale-105 active:scale-95 cursor-pointer",
                 )}
@@ -188,7 +190,7 @@ export function SeatGridMatrix({
                     <Icon className="size-2.5 opacity-60 mt-0.5" />
                   </>
                 )}
-              </button>
+              </Button>
             );
           })}
         </div>

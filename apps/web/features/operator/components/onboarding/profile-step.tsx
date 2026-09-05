@@ -251,9 +251,9 @@ export function ProfileStep({
                 }}
                 placeholder={t("dateOfBirthPlaceholder")}
                 required
-                className={`rounded-md border-border focus-visible:ring-primary focus-visible:border-primary ${dobError ? "border-red-500" : ""}`}
+                className={`rounded-md border-border focus-visible:ring-primary focus-visible:border-primary ${dobError ? "border-destructive text-destructive" : ""}`}
               />
-              {dobError && <p className="text-xs text-red-500">{dobError}</p>}
+              {dobError && <p className="text-xs text-destructive">{dobError}</p>}
             </div>
           </div>
 
@@ -326,7 +326,7 @@ export function ProfileStep({
           variant="outline"
           onClick={onBack}
           disabled={isSaving}
-          className="border-border hover:bg-slate-100 rounded-md px-6 py-2"
+          className="border-border hover:bg-muted rounded-md px-6 py-2"
         >
           {tRoot("back")}
         </Button>

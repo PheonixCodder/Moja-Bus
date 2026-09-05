@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Gauge } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
+import { Button } from "@moja/ui/components/ui/button";
 import { useTranslations } from "next-intl";
 import type { PassengerSeatStatus, SeatAvailabilityItem } from "@moja/types";
 import { buildSeatGrid, getColumnHeaders } from "../lib/seat-grid";
@@ -24,24 +25,24 @@ const STATUS_STYLES: Record<
 > = {
   AVAILABLE: {
     className:
-      "border-emerald-200 bg-emerald-50 text-emerald-800 hover:border-emerald-400 hover:bg-emerald-100",
+      "border-success/30 bg-success/10 text-success hover:border-success/50 hover:bg-success/20",
     clickable: true,
   },
   HELD: {
-    className: "border-amber-200 bg-amber-50 text-amber-700 cursor-not-allowed",
+    className: "border-warning/30 bg-warning/10 text-warning cursor-not-allowed",
     clickable: false,
   },
   SOLD: {
     className:
-      "border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed",
+      "border-border bg-muted text-muted-foreground cursor-not-allowed",
     clickable: false,
   },
   BLOCKED: {
-    className: "border-slate-200 bg-slate-50 text-slate-300 cursor-not-allowed",
+    className: "border-border bg-muted/40 text-muted-foreground/60 cursor-not-allowed",
     clickable: false,
   },
   DRIVER: {
-    className: "border-slate-300 bg-slate-800 text-white cursor-not-allowed",
+    className: "border-border bg-foreground text-background cursor-not-allowed",
     clickable: false,
   },
   EMPTY: {
@@ -99,42 +100,44 @@ export function PassengerSeatMap({
         {decks.length > 1 || deck > 1 ? (
           <div className="flex justify-center gap-2 mb-3">
             {decks.map((d) => (
-              <button
+              <Button
                 key={d}
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => setActiveDeck(d)}
                 className={cn(
-                  "px-3 py-1 rounded-lg text-xs font-semibold border transition-colors",
+                  "px-3 py-1 h-auto rounded-lg text-xs font-semibold border transition-colors",
                   activeDeck === d
-                    ? "border-[#ee237c] bg-[#ee237c]/10 text-[#ee237c]"
-                    : "border-slate-200 text-slate-600 hover:border-slate-300",
+                    ? "border-primary bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary"
+                    : "border-border text-muted-foreground hover:border-border/80",
                 )}
               >
                 {t("deck", { n: d })}
-              </button>
+              </Button>
             ))}
           </div>
         ) : null}
 
         <div className="flex flex-wrap justify-center gap-3 mb-4 text-[11px] text-muted-foreground">
           <LegendDot
-            className="border-emerald-200 bg-emerald-50"
+            className="border-success/30 bg-success/10"
             label={t("available")}
           />
           <LegendDot
-            className="border-pink-300 bg-pink-100"
+            className="border-primary/40 bg-primary/20"
             label={t("selected")}
           />
           <LegendDot
-            className="border-slate-200 bg-slate-100"
+            className="border-border bg-muted"
             label={t("sold")}
           />
           <LegendDot
-            className="border-amber-200 bg-amber-50"
+            className="border-warning/30 bg-warning/10"
             label={t("held")}
           />
           <LegendDot
-            className="border-slate-200 bg-slate-50"
+            className="border-border bg-muted/40"
             label={t("blocked")}
           />
         </div>
@@ -186,9 +189,11 @@ export function PassengerSeatMap({
                 }
 
                 return (
-                  <button
+                  <Button
                     key={seat.seatId}
                     type="button"
+                    variant="ghost"
+                    size="sm"
                     disabled={!style.clickable && !isSelected}
                     onClick={() => handleClick(seat.seatId)}
                     title={
@@ -200,9 +205,9 @@ export function PassengerSeatMap({
                           })
                     }
                     className={cn(
-                      "h-9 w-10 rounded-md border text-[10px] font-semibold flex items-center justify-center transition-all duration-150",
+                      "h-9 w-10 p-0 rounded-md border text-[10px] font-semibold flex items-center justify-center transition-all duration-150",
                       isSelected
-                        ? "border-pink-400 bg-pink-100 text-pink-800 ring-2 ring-pink-300"
+                        ? "border-primary bg-primary/20 text-primary ring-2 ring-primary/40 hover:bg-primary/25 hover:text-primary"
                         : style.className,
                       style.clickable && "cursor-pointer",
                     )}
@@ -212,7 +217,7 @@ export function PassengerSeatMap({
                     ) : showLabel ? (
                       seat.label
                     ) : null}
-                  </button>
+                  </Button>
                 );
               })}
             </div>

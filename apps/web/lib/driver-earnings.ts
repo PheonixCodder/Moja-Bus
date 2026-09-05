@@ -58,7 +58,7 @@ export type AffiliationPayConfig = {
 };
 
 /**
- * Phase 7 (Gap #17a) — Computes earnings for an affiliation based on its configured payModel.
+ * Phase 7 (Gap 17a) — Computes earnings for an affiliation based on its configured payModel.
  */
 export function calculateAffiliationEarnings(
   config: AffiliationPayConfig,

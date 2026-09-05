@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text } from "react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { HugeiconsIcon } from "@hugeicons/react-native";
@@ -65,16 +65,16 @@ export function TripCard({
 	return (
 		<Card key={assignmentId} className="p-5 gap-4">
 			{/* Top Bus & Status Header */}
-			<View style={styles.cardHeader}>
-				<View style={styles.busInfoRow}>
-					<View style={styles.busIconWrap}>
+			<View className="flex-row items-center justify-between border-b border-border pb-3">
+				<View className="flex-row items-center gap-2.5">
+					<View className="p-2 rounded-xl bg-primary/10 border border-primary/20">
 						<HugeiconsIcon icon={Bus01Icon} size={20} color={colors.primary.rose} />
 					</View>
 					<View>
-						<Text style={styles.busPlate}>
+						<Text className="font-mono font-bold text-sm text-foreground">
 							{trip.bus?.registrationPlate ?? t("noBusAssigned")}
 						</Text>
-						<Text style={styles.busSub}>
+						<Text className="text-[11px] text-muted-foreground">
 							{trip.company?.name ?? t("noCarrier")} • {role}
 						</Text>
 					</View>
@@ -87,41 +87,41 @@ export function TripCard({
 			</View>
 
 			{/* Route Timeline */}
-			<View style={styles.timelineBox}>
-				<View style={styles.timelineStop}>
-					<View style={[styles.dot, { backgroundColor: "#10b981" }]} />
-					<Text style={styles.stopName} numberOfLines={1}>
+			<View className="gap-2 bg-background p-3.5 rounded-2xl border border-border">
+				<View className="flex-row items-center gap-2.5">
+					<View className="size-2.5 rounded-full bg-success" />
+					<Text className="text-sm font-bold text-foreground flex-1" numberOfLines={1}>
 						{originStop}
 					</Text>
 				</View>
-				<View style={styles.timelineLine} />
-				<View style={styles.timelineStop}>
-					<View style={[styles.dot, { backgroundColor: "#ee237c" }]} />
-					<Text style={styles.stopName} numberOfLines={1}>
+				<View className="w-0.5 h-3 bg-border ml-1" />
+				<View className="flex-row items-center gap-2.5">
+					<View className="size-2.5 rounded-full bg-primary" />
+					<Text className="text-sm font-bold text-foreground flex-1" numberOfLines={1}>
 						{destStop}
 					</Text>
 				</View>
 			</View>
 
 			{/* Metadata: Departure Time & Passenger Count */}
-			<View style={styles.metaRow}>
-				<View style={styles.metaItem}>
-					<HugeiconsIcon icon={Time02Icon} size={15} color="#a1a1aa" />
-					<Text style={styles.metaText}>
+			<View className="flex-row items-center justify-between bg-card-elevated px-3.5 py-2.5 rounded-xl border border-border">
+				<View className="flex-row items-center gap-1.5">
+					<HugeiconsIcon icon={Time02Icon} size={15} color={colors.neutral.textSecondary} />
+					<Text className="text-xs font-semibold text-foreground/80">
 						{t("departureLabel", { time: depTime })}
 					</Text>
 				</View>
-				<View style={styles.metaItem}>
-					<HugeiconsIcon icon={UserGroupIcon} size={15} color="#a1a1aa" />
-					<Text style={styles.metaText}>
+				<View className="flex-row items-center gap-1.5">
+					<HugeiconsIcon icon={UserGroupIcon} size={15} color={colors.neutral.textSecondary} />
+					<Text className="text-xs font-semibold text-foreground/80">
 						{t("passengersLabel", { count: passengerCount, total: trip.totalSeats })}
 					</Text>
 				</View>
 			</View>
 
 			{/* Actions Row */}
-			<View style={styles.actionsContainer}>
-				<View style={styles.actionsRow}>
+			<View className="w-full gap-2 pt-1">
+				<View className="flex-row items-center gap-2.5">
 					<Button
 						title={t("btnManifest")}
 						variant="outline"
@@ -136,7 +136,7 @@ export function TripCard({
 							variant="secondary"
 							size="md"
 							onPress={handleOpenBoardingScanner}
-							icon={<HugeiconsIcon icon={QrCode01Icon} size={16} color="#fafafa" />}
+							icon={<HugeiconsIcon icon={QrCode01Icon} size={16} color={colors.neutral.textPrimary} />}
 							className="flex-1"
 						/>
 					)}
@@ -148,7 +148,7 @@ export function TripCard({
 							size="md"
 							loading={isTakingOver}
 							onPress={() => onTakeOverTrip?.(trip.id)}
-							icon={<HugeiconsIcon icon={Navigation03Icon} size={16} color="#ffffff" />}
+							icon={<HugeiconsIcon icon={Navigation03Icon} size={16} color={colors.neutral.textPrimary} />}
 							className="flex-1"
 						/>
 					)}
@@ -159,7 +159,7 @@ export function TripCard({
 							variant="primary"
 							size="md"
 							onPress={() => router.push("/(tabs)/live")}
-							icon={<HugeiconsIcon icon={Navigation03Icon} size={16} color="#ffffff" />}
+							icon={<HugeiconsIcon icon={Navigation03Icon} size={16} color={colors.neutral.textPrimary} />}
 							className="flex-1"
 						/>
 					)}
@@ -171,7 +171,7 @@ export function TripCard({
 							size="md"
 							loading={isStarting}
 							onPress={() => onStartTrip(trip.id)}
-							icon={<HugeiconsIcon icon={PlayIcon} size={16} color="#ffffff" />}
+							icon={<HugeiconsIcon icon={PlayIcon} size={16} color={colors.neutral.textPrimary} />}
 							className="flex-1"
 						/>
 					)}
@@ -180,97 +180,3 @@ export function TripCard({
 		</Card>
 	);
 }
-
-const styles = StyleSheet.create({
-	cardHeader: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-		borderBottomWidth: 1,
-		borderBottomColor: "#27272a",
-		paddingBottom: 12,
-	},
-	busInfoRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 10,
-	},
-	busIconWrap: {
-		padding: 8,
-		borderRadius: 12,
-		backgroundColor: "rgba(238, 35, 124, 0.1)",
-		borderWidth: 1,
-		borderColor: "rgba(238, 35, 124, 0.2)",
-	},
-	busPlate: {
-		fontFamily: "monospace",
-		fontWeight: "700",
-		fontSize: 14,
-		color: "#fafafa",
-	},
-	busSub: {
-		fontSize: 11,
-		color: "#a1a1aa",
-	},
-	timelineBox: {
-		gap: 8,
-		backgroundColor: "#09090b",
-		padding: 14,
-		borderRadius: 16,
-		borderWidth: 1,
-		borderColor: "#27272a",
-	},
-	timelineStop: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 10,
-	},
-	dot: {
-		width: 10,
-		height: 10,
-		borderRadius: 5,
-	},
-	stopName: {
-		fontSize: 14,
-		fontWeight: "700",
-		color: "#fafafa",
-		flex: 1,
-	},
-	timelineLine: {
-		width: 2,
-		height: 12,
-		backgroundColor: "#27272a",
-		marginLeft: 4,
-	},
-	metaRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-		backgroundColor: "rgba(9, 9, 11, 0.6)",
-		paddingHorizontal: 14,
-		paddingVertical: 10,
-		borderRadius: 12,
-		borderWidth: 1,
-		borderColor: "#27272a",
-	},
-	metaItem: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 6,
-	},
-	metaText: {
-		fontSize: 12,
-		fontWeight: "600",
-		color: "#d4d4d8",
-	},
-	actionsContainer: {
-		width: "100%",
-		gap: 8,
-		paddingTop: 4,
-	},
-	actionsRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 10,
-	},
-});

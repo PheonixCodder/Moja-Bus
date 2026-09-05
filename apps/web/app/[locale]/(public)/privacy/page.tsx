@@ -33,7 +33,7 @@ export default async function PrivacyPage({ params }: Props) {
           {/* Sticky sidebar TOC */}
           <aside className="hidden lg:block">
             <div className="sticky top-8">
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">
                 {t("tocTitle")}
               </p>
               <nav className="space-y-1">
@@ -41,19 +41,19 @@ export default async function PrivacyPage({ params }: Props) {
                   <a
                     key={s.id}
                     href={`#${s.id}`}
-                    className="block text-sm text-slate-500 hover:text-[#ee237c] py-1.5 px-3 rounded-lg hover:bg-pink-50 transition-all leading-snug"
+                    className="block text-sm text-muted-foreground hover:text-primary py-1.5 px-3 rounded-lg hover:bg-primary/10 transition-all leading-snug"
                   >
                     {s.title}
                   </a>
                 ))}
               </nav>
-              <div className="mt-8 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                <p className="text-xs font-semibold text-slate-600 mb-1">
+              <div className="mt-8 p-4 bg-muted/40 rounded-2xl border border-border">
+                <p className="text-xs font-semibold text-foreground mb-1">
                   {t("dataProtection")}
                 </p>
                 <a
                   href={`mailto:${t("dpEmail")}`}
-                  className="text-xs text-[#ee237c] font-semibold hover:underline"
+                  className="text-xs text-primary font-semibold hover:underline"
                 >
                   {t("dpEmail")}
                 </a>
@@ -62,10 +62,10 @@ export default async function PrivacyPage({ params }: Props) {
           </aside>
 
           {/* Main content */}
-          <div className="space-y-14 text-slate-600 leading-relaxed text-sm min-w-0">
+          <div className="space-y-14 text-foreground/80 leading-relaxed text-sm min-w-0">
             {/* Preamble */}
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6">
-              <p className="font-semibold text-slate-800 mb-2">
+            <div className="bg-muted/40 border border-border rounded-2xl p-6">
+              <p className="font-semibold text-foreground mb-2">
                 {data.preamble.heading}
               </p>
               {data.preamble.paragraphs.map((p, i) => (
@@ -77,8 +77,8 @@ export default async function PrivacyPage({ params }: Props) {
 
             {/* Section 1 heading */}
             <section id="general" className="scroll-mt-8">
-              <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-3">
-                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-pink-50 text-[#ee237c] flex items-center justify-center text-xs font-extrabold">
+              <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-3">
+                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-extrabold">
                   1
                 </span>
                 {toc.find((s) => s.id === "general")?.title ?? ""}
@@ -94,7 +94,7 @@ export default async function PrivacyPage({ params }: Props) {
                     {item.sections.map((sec, si) => (
                       <div key={si}>
                         {sec.heading && (
-                          <h3 className="text-base font-bold text-slate-800 mb-3">
+                          <h3 className="text-base font-bold text-foreground mb-3">
                             {sec.heading}
                           </h3>
                         )}
@@ -109,9 +109,9 @@ export default async function PrivacyPage({ params }: Props) {
                       {item.legalList.map(({ term, def }) => (
                         <li
                           key={term}
-                          className="bg-slate-50 rounded-xl p-4 border border-slate-100"
+                          className="bg-muted/40 rounded-xl p-4 border border-border"
                         >
-                          <p className="font-semibold text-slate-800 mb-1">
+                          <p className="font-semibold text-foreground mb-1">
                             {term}
                           </p>
                           <p dangerouslySetInnerHTML={{ __html: def }} />
@@ -127,7 +127,7 @@ export default async function PrivacyPage({ params }: Props) {
                     {item.sections.map((sec, si) => (
                       <div key={si}>
                         {sec.heading && (
-                          <h3 className="text-base font-bold text-slate-800 mb-3">
+                          <h3 className="text-base font-bold text-foreground mb-3">
                             {sec.heading}
                           </h3>
                         )}
@@ -139,26 +139,26 @@ export default async function PrivacyPage({ params }: Props) {
                       </div>
                     ))}
                     {item.addressBox.name && (
-                      <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 mt-3">
-                        <p className="font-semibold text-slate-800">
+                      <div className="bg-muted/40 rounded-2xl p-5 border border-border mt-3">
+                        <p className="font-semibold text-foreground">
                           {item.addressBox.name}
                         </p>
-                        <p className="text-slate-500 mt-1">
+                        <p className="text-muted-foreground mt-1">
                           {item.addressBox.address}
                         </p>
                         <a
                           href={`mailto:${item.addressBox.email}`}
-                          className="mt-2 inline-block text-[#ee237c] font-semibold hover:underline"
+                          className="mt-2 inline-block text-primary font-semibold hover:underline"
                         >
                           {item.addressBox.email}
                         </a>
                       </div>
                     )}
                     {!item.addressBox.name && (
-                      <div className="mt-3 bg-slate-50 rounded-2xl p-5 border border-slate-100">
+                      <div className="mt-3 bg-muted/40 rounded-2xl p-5 border border-border">
                         <a
                           href={`mailto:${item.addressBox.email}`}
-                          className="text-[#ee237c] font-semibold hover:underline"
+                          className="text-primary font-semibold hover:underline"
                         >
                           {item.addressBox.email}
                         </a>
@@ -176,7 +176,7 @@ export default async function PrivacyPage({ params }: Props) {
                       {item.sections.map((sec, si) => (
                         <div key={si}>
                           {sec.heading && (
-                            <h3 className="text-base font-bold text-slate-800 mb-3">
+                            <h3 className="text-base font-bold text-foreground mb-3">
                               {sec.heading}
                             </h3>
                           )}
@@ -203,7 +203,7 @@ export default async function PrivacyPage({ params }: Props) {
                     {item.sections.map((sec, si) => (
                       <div key={si}>
                         {sec.heading && (
-                          <h3 className="text-base font-bold text-slate-800 mb-4">
+                          <h3 className="text-base font-bold text-foreground mb-4">
                             {sec.heading}
                           </h3>
                         )}
@@ -218,9 +218,9 @@ export default async function PrivacyPage({ params }: Props) {
                       {item.rightsList.map(({ right, desc }) => (
                         <div
                           key={right}
-                          className="bg-slate-50 rounded-xl p-4 border border-slate-100"
+                          className="bg-muted/40 rounded-xl p-4 border border-border"
                         >
-                          <p className="font-semibold text-slate-800 mb-1">
+                          <p className="font-semibold text-foreground mb-1">
                             {right}
                           </p>
                           <p>{desc}</p>
@@ -237,8 +237,8 @@ export default async function PrivacyPage({ params }: Props) {
                   item.sections.length > 0 &&
                   item.id === "special" && (
                     <>
-                      <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-3">
-                        <span className="flex-shrink-0 w-8 h-8 rounded-full bg-pink-50 text-[#ee237c] flex items-center justify-center text-xs font-extrabold">
+                      <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-3">
+                        <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-extrabold">
                           2
                         </span>
                         {toc.find((s) => s.id === "special")?.title ?? ""}
@@ -253,16 +253,16 @@ export default async function PrivacyPage({ params }: Props) {
                                 ) ? (
                                   <h4
                                     key={si}
-                                    className="font-semibold text-slate-700 mt-5 mb-2"
+                                    className="font-semibold text-foreground mt-5 mb-2"
                                   >
                                     {sec.heading}
                                   </h4>
                                 ) : sec.heading.startsWith("2.1") ? (
-                                  <h3 className="text-base font-bold text-slate-800 mb-3">
+                                  <h3 className="text-base font-bold text-foreground mb-3">
                                     {sec.heading}
                                   </h3>
                                 ) : si > 0 && sec.heading ? (
-                                  <h4 className="font-semibold text-slate-700 mt-5 mb-2">
+                                  <h4 className="font-semibold text-foreground mt-5 mb-2">
                                     {sec.heading}
                                   </h4>
                                 ) : null)}
@@ -286,19 +286,19 @@ export default async function PrivacyPage({ params }: Props) {
                             </div>
                           ))}
                           {item.processorBox && (
-                            <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 mt-4">
-                              <p className="font-semibold text-slate-800 mb-2">
+                            <div className="bg-muted/40 rounded-2xl p-5 border border-border mt-4">
+                              <p className="font-semibold text-foreground mb-2">
                                 {item.processorBox.title}
                               </p>
                               <p className="mb-2">{item.processorBox.body}</p>
                               <ul className="space-y-2">
                                 {item.processorBox.processors.map((proc) => (
                                   <li key={proc.name}>
-                                    <strong className="text-slate-700">
+                                    <strong className="text-foreground">
                                       {proc.name}
                                     </strong>
                                     <br />
-                                    <span className="text-slate-500 text-xs">
+                                    <span className="text-muted-foreground text-xs">
                                       {proc.address}
                                     </span>
                                   </li>

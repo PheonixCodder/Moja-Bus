@@ -19,7 +19,7 @@ function SeatFillBar({ booked, total }: { booked: number; total: number }) {
   const t = useTranslations("adminDashboard.tripAuditOccupancy");
   const pct = total > 0 ? Math.min((booked / total) * 100, 100) : 0;
   const color =
-    pct >= 90 ? "bg-red-500" : pct >= 60 ? "bg-amber-500" : "bg-primary";
+    pct >= 90 ? "bg-destructive" : pct >= 60 ? "bg-warning" : "bg-primary";
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between">
@@ -89,9 +89,9 @@ function SegmentSeatGrid({
                 return (
                   <div
                     key={col}
-                    className="w-7 h-7 rounded bg-slate-200 flex items-center justify-center"
+                    className="w-7 h-7 rounded bg-muted flex items-center justify-center"
                   >
-                    <User className="size-3 text-slate-500" />
+                    <User className="size-3 text-muted-foreground" />
                   </div>
                 );
               }
@@ -118,11 +118,11 @@ function SegmentSeatGrid({
                   className={cn(
                     "w-7 h-7 rounded border text-[9px] font-bold flex items-center justify-center transition-colors",
                     seatStatus === "booked" &&
-                      "bg-primary text-white border-primary",
+                      "bg-primary text-primary-foreground border-primary",
                     seatStatus === "held" &&
-                      "bg-amber-400 text-amber-950 border-amber-500",
+                      "bg-warning/20 text-warning border-warning/30",
                     seatStatus === "blocked" &&
-                      "bg-slate-200 text-slate-400 border-slate-300",
+                      "bg-muted text-muted-foreground border-border",
                     seatStatus === "available" &&
                       "bg-background border-border text-muted-foreground hover:border-primary/30",
                   )}
@@ -137,13 +137,13 @@ function SegmentSeatGrid({
         <div className="flex flex-wrap items-center gap-3 mt-3 pt-3 border-t border-border">
           {[
             { color: "bg-primary border-primary", label: t("legendBooked") },
-            { color: "bg-amber-400 border-amber-500", label: t("legendHeld") },
+            { color: "bg-warning/20 border-warning/30", label: t("legendHeld") },
             {
               color: "bg-background border-border",
               label: t("legendAvailable"),
             },
             {
-              color: "bg-slate-200 border-slate-300",
+              color: "bg-muted border-border",
               label: t("legendBlocked"),
             },
           ].map(({ color, label }) => (

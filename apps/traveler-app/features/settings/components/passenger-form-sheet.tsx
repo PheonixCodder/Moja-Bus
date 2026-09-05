@@ -14,6 +14,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import PhoneInput, { type ICountry } from "rn-international-phone-number";
 import { Text } from "@/components/ui/text";
+import { Palette, Colors } from "@/constants/theme";
 
 export type PassengerFormData = {
 	fullName: string;
@@ -106,19 +107,19 @@ export function PassengerFormSheet({
 						behavior={Platform.OS === "ios" ? "padding" : undefined}
 					>
 						<View
-							className="bg-white rounded-t-[28px] pt-5 px-4 max-h-[90%]"
+							className="bg-card rounded-t-[28px] pt-5 px-4 max-h-[90%]"
 							style={{ paddingBottom: insets.bottom + 24 }}
 						>
 							{/* Drag handle */}
-							<View className="w-10 h-1 rounded-full bg-slate-200 self-center mb-4" />
+							<View className="w-10 h-1 rounded-full bg-muted self-center mb-4" />
 
 							{/* Header */}
 							<View className="flex-row items-center justify-between mb-4">
-								<Text className="text-lg font-extrabold text-slate-900">
+								<Text className="text-lg font-extrabold text-foreground">
 									{isEditing ? "Edit Passenger Profile" : "Add Travel Companion"}
 								</Text>
-								<Pressable onPress={onClose} hitSlop={12}>
-									<HugeiconsIcon icon={Cancel01Icon} size={22} color="#94a3b8" />
+								<Pressable onPress={onClose} hitSlop={12} accessibilityRole="button" className="min-h-9 justify-center items-center">
+									<HugeiconsIcon icon={Cancel01Icon} size={22} color={Palette.zinc[400]} />
 								</Pressable>
 							</View>
 
@@ -129,19 +130,19 @@ export function PassengerFormSheet({
 							>
 								{/* Full Name */}
 								<View className="gap-1">
-									<Text className="text-xs font-bold text-slate-400 tracking-widest uppercase">Full Name *</Text>
+									<Text className="text-xs font-bold text-muted-foreground tracking-widest uppercase">Full Name *</Text>
 									<TextInput
 										value={form.fullName}
 										onChangeText={(val) => setForm((f) => ({ ...f, fullName: val }))}
 										placeholder="Enter full name"
-										placeholderTextColor="#94a3b8"
-										className="bg-slate-50 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-900"
+										placeholderTextColor={Colors.light.textMuted}
+										className="bg-background rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-foreground"
 									/>
 								</View>
 
 								{/* Phone */}
 								<View className="gap-1">
-									<Text className="text-xs font-bold text-slate-400 tracking-widest uppercase">Phone Number *</Text>
+									<Text className="text-xs font-bold text-muted-foreground tracking-widest uppercase">Phone Number *</Text>
 									<PhoneInput
 										value={form.phone}
 										onChangePhoneNumber={(val: string) => setForm((f) => ({ ...f, phone: val }))}
@@ -153,7 +154,7 @@ export function PassengerFormSheet({
 
 								{/* ID Type */}
 								<View className="gap-1">
-									<Text className="text-xs font-bold text-slate-400 tracking-widest uppercase">Identity Document Type (Optional)</Text>
+									<Text className="text-xs font-bold text-muted-foreground tracking-widest uppercase">Identity Document Type (Optional)</Text>
 									<View className="flex-row gap-2">
 										{[
 											{ key: "national_id", label: "National ID" },
@@ -165,11 +166,12 @@ export function PassengerFormSheet({
 												<Pressable
 													key={item.key}
 													onPress={() => setForm((f) => ({ ...f, idType: item.key as any }))}
-													className={`will-change-variable will-change-pressable flex-1 py-2 items-center rounded-xl border ${
-														isSelected ? "border-pink-500 bg-pink-50" : "border-slate-200 bg-slate-50"
+													accessibilityRole="button"
+													className={`will-change-variable will-change-pressable flex-1 py-2 items-center rounded-xl border min-h-10 justify-center ${
+														isSelected ? "border-primary bg-primary/10" : "border-border bg-muted/40"
 													}`}
 												>
-													<Text className={`will-change-variable text-sm ${isSelected ? "font-bold text-pink-600" : "font-medium text-slate-700"}`}>
+													<Text className={`will-change-variable text-sm ${isSelected ? "font-bold text-primary" : "font-medium text-foreground"}`}>
 														{item.label}
 													</Text>
 												</Pressable>
@@ -180,61 +182,63 @@ export function PassengerFormSheet({
 
 								{/* ID Number */}
 								<View className="gap-1">
-									<Text className="text-xs font-bold text-slate-400 tracking-widest uppercase">Document / ID Number (Optional)</Text>
+									<Text className="text-xs font-bold text-muted-foreground tracking-widest uppercase">Document / ID Number (Optional)</Text>
 									<TextInput
 										value={form.idNumber}
 										onChangeText={(val) => setForm((f) => ({ ...f, idNumber: val }))}
 										placeholder="e.g. C001293910"
-										placeholderTextColor="#94a3b8"
-										className="bg-slate-50 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-900"
+										placeholderTextColor={Colors.light.textMuted}
+										className="bg-background rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-foreground"
 										autoCapitalize="characters"
 									/>
 								</View>
 
 								{/* Email */}
 								<View className="gap-1">
-									<Text className="text-xs font-bold text-slate-400 tracking-widest uppercase">Email (Optional)</Text>
+									<Text className="text-xs font-bold text-muted-foreground tracking-widest uppercase">Email (Optional)</Text>
 									<TextInput
 										value={form.email}
 										onChangeText={(val) => setForm((f) => ({ ...f, email: val }))}
 										placeholder="Enter email address"
-										placeholderTextColor="#94a3b8"
+										placeholderTextColor={Colors.light.textMuted}
 										keyboardType="email-address"
 										autoCapitalize="none"
-										className="bg-slate-50 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-900"
+										className="bg-background rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-foreground"
 									/>
 								</View>
 
 								{/* Label */}
 								<View className="gap-1">
-									<Text className="text-xs font-bold text-slate-400 tracking-widest uppercase">Relationship Label (Optional)</Text>
+									<Text className="text-xs font-bold text-muted-foreground tracking-widest uppercase">Relationship Label (Optional)</Text>
 									<TextInput
 										value={form.label}
 										onChangeText={(val) => setForm((f) => ({ ...f, label: val }))}
 										placeholder="e.g. Family, Spouse, Co-worker"
-										placeholderTextColor="#94a3b8"
-										className="bg-slate-50 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-900"
+										placeholderTextColor={Colors.light.textMuted}
+										className="bg-background rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-foreground"
 									/>
 								</View>
 							</ScrollView>
 
 							{/* Action buttons */}
-							<View className="flex-row gap-2 pt-4 mt-3 border-t border-slate-100">
+							<View className="flex-row gap-2 pt-4 mt-3 border-t border-border">
 								<Pressable
 									onPress={onClose}
-									className="flex-1 py-2 rounded-xl border border-slate-200 items-center"
+									accessibilityRole="button"
+									className="flex-1 py-2 rounded-xl border border-border items-center min-h-10 justify-center"
 								>
-									<Text className="text-sm font-semibold text-slate-500">Cancel</Text>
+									<Text className="text-sm font-semibold text-muted-foreground">Cancel</Text>
 								</Pressable>
 								<Pressable
 									onPress={handleSubmit}
 									disabled={isPending || !isValid}
-									className={`flex-1 py-2 rounded-xl bg-pink-600 items-center ${isPending || !isValid ? "opacity-60" : ""}`}
+									accessibilityRole="button"
+									className={`flex-1 py-2 rounded-xl bg-primary items-center min-h-10 justify-center ${isPending || !isValid ? "opacity-60" : ""}`}
 								>
 									{isPending ? (
-										<ActivityIndicator size="small" color="#ffffff" />
+										<ActivityIndicator size="small" color={Palette.zinc[50]} />
 									) : (
-										<Text className="text-sm font-bold text-white">
+										<Text className="text-sm font-bold text-primary-foreground">
 											{isEditing ? "Update" : "Save Companion"}
 										</Text>
 									)}

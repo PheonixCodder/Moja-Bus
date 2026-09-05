@@ -6,7 +6,9 @@
     "composite": false,
     "verbatimModuleSyntax": false,
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@moja/theme/tokens": ["../../packages/theme/tokens.ts"],
+      "@moja/theme/*": ["../../packages/theme/*"]
     }
   },
   "include": [

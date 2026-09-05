@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { SubpageHeader } from "@/components/subpage-header";
 import { Text } from "@/components/ui/text";
-import { BottomTabInset } from "@/constants/theme";
+import { BottomTabInset, Palette } from "@/constants/theme";
 import { authClient } from "@/lib/auth-client";
 import { useUserReviews } from "@/hooks/use-reviews";
 import { HugeiconsIcon } from "@hugeicons/react-native";
@@ -21,7 +21,7 @@ function StarRatingDisplay({ rating }: { rating: number }) {
 					key={star}
 					icon={StarIcon}
 					size={14}
-					color={star <= rating ? "#F59E0B" : "#e2e8f0"}
+					color={star <= rating ? Palette.amber[500] : Palette.zinc[200]}
 				/>
 			))}
 		</View>
@@ -48,16 +48,16 @@ export function ReviewsView() {
 
 	if (sessionPending || isLoading) {
 		return (
-			<View className="flex-1 items-center justify-center bg-white">
-				<ActivityIndicator size="large" color="#ee237c" />
+			<View className="flex-1 items-center justify-center bg-background">
+				<ActivityIndicator size="large" color={Palette.rose[500]} />
 			</View>
 		);
 	}
 
 	if (!isAuth) {
 		return (
-			<View className="flex-1 items-center justify-center bg-white px-6">
-				<Text className="text-base text-slate-500 text-center">
+			<View className="flex-1 items-center justify-center bg-background px-6">
+				<Text className="text-base text-muted-foreground text-center">
 					{t("signInToManage")}
 				</Text>
 			</View>
@@ -67,18 +67,18 @@ export function ReviewsView() {
 	const reviewList = reviews ?? [];
 
 	return (
-		<View className="flex-1 bg-slate-50">
+		<View className="flex-1 bg-background">
 			<SubpageHeader title={t("myReviews", { defaultValue: "My Trip Reviews" })} />
 
 			{reviewList.length === 0 ? (
 				<View className="flex-1 items-center justify-center px-4 gap-3">
-					<View className="w-16 h-16 rounded-full bg-pink-50 items-center justify-center">
-						<HugeiconsIcon icon={Comment01Icon} size={28} color="#ee237c" />
+					<View className="w-16 h-16 rounded-full bg-primary/10 items-center justify-center">
+						<HugeiconsIcon icon={Comment01Icon} size={28} color={Palette.rose[500]} />
 					</View>
-					<Text className="text-base font-bold text-slate-900">
+					<Text className="text-base font-bold text-foreground">
 						{t("noReviewsYet", { defaultValue: "No Trip Reviews Yet" })}
 					</Text>
-					<Text className="text-sm text-slate-500 text-center max-w-[280px]">
+					<Text className="text-sm text-muted-foreground text-center max-w-[280px]">
 						{t("noReviewsHint", {
 							defaultValue:
 								"After completing a trip, you can rate your experience and share feedback for operators.",
@@ -98,14 +98,14 @@ export function ReviewsView() {
 					{reviewList.map((review) => (
 						<View
 							key={review.id}
-							className="bg-white rounded-2xl border border-slate-100 p-4 gap-3 shadow-sm shadow-black/5"
+							className="bg-card rounded-2xl border border-border p-4 gap-3 shadow-sm shadow-black/5"
 						>
 							<View className="flex-row items-start justify-between gap-3">
 								<View className="flex-1 gap-1">
-									<Text className="text-sm font-bold text-slate-900" numberOfLines={1}>
+									<Text className="text-sm font-bold text-foreground" numberOfLines={1}>
 										{review.company.name}
 									</Text>
-									<Text className="text-xs text-slate-400">
+									<Text className="text-xs text-muted-foreground">
 										{formatReviewDate(review.createdAt)}
 									</Text>
 								</View>
@@ -113,21 +113,21 @@ export function ReviewsView() {
 							</View>
 
 							{review.content ? (
-								<Text className="text-sm text-slate-700 leading-5">
+								<Text className="text-sm text-foreground leading-5">
 									{review.content}
 								</Text>
 							) : (
-								<Text className="text-sm text-slate-400 italic">
+								<Text className="text-sm text-muted-foreground italic">
 									Rated {review.rating} of 5 stars
 								</Text>
 							)}
 
 							{review.response ? (
-								<View className="rounded-xl bg-slate-50 border border-slate-100 p-3 gap-1">
-									<Text className="text-xs font-bold uppercase tracking-wide text-slate-400">
+								<View className="rounded-xl bg-muted/40 border border-border p-3 gap-1">
+									<Text className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
 										Operator response
 									</Text>
-									<Text className="text-sm text-slate-700 leading-5">
+									<Text className="text-sm text-foreground leading-5">
 										{review.response}
 									</Text>
 								</View>

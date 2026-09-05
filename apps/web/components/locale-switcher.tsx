@@ -28,16 +28,18 @@ export function LocaleSwitcher({ className }: LocaleSwitcherProps) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className={cn("gap-1.5 text-sm font-medium", className)}
-          aria-label={t("switchLanguage")}
-        >
-          <Globe className="size-4 shrink-0" />
-          <span className="hidden sm:inline">{t("current")}</span>
-        </Button>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn("gap-1.5 text-sm font-medium", className)}
+            aria-label={t("switchLanguage")}
+          />
+        }
+      >
+        <Globe className="size-4 shrink-0" />
+        <span className="hidden sm:inline">{t("current")}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-[120px]">
         <DropdownMenuItem

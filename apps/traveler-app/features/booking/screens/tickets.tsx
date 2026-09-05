@@ -2,7 +2,7 @@ import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { FlatList, RefreshControl, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { BottomTabInset } from "@/constants/theme";
+import { BottomTabInset, Palette } from "@/constants/theme";
 import { CancelDialog } from "@/features/booking/components/cancel-dialog";
 import { DigitalTicketCard } from "@/features/booking/components/digital-ticket-card";
 import { TicketEmptyState } from "@/features/booking/components/ticket-empty-state";
@@ -140,8 +140,8 @@ export function TicketsView() {
 						<RefreshControl
 							refreshing={isFetching}
 							onRefresh={refetch}
-							tintColor="#ee237c"
-							colors={["#ee237c"]}
+							tintColor={Palette.rose[500]}
+							colors={[Palette.rose[500]]}
 						/>
 					}
 					renderItem={({ item }: { item: TicketItem }) => (

@@ -105,13 +105,13 @@ export function AdminBlogView() {
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-2">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">{t("title")}</h1>
-          <p className="text-gray-500 mt-1">{t("subtitle")}</p>
+          <h1 className="text-3xl font-bold text-foreground">{t("title")}</h1>
+          <p className="text-muted-foreground mt-1">{t("subtitle")}</p>
         </div>
         {activeTab === "posts" && (
           <Button
             onClick={() => setIsNewPostOpen(true)}
-            className="gap-2 bg-gray-900 text-white hover:bg-gray-800 h-9 font-semibold text-xs shrink-0 self-start sm:self-auto"
+            className="gap-2 h-9 font-semibold text-xs shrink-0 self-start sm:self-auto"
           >
             <Plus className="size-4" />
             {t("newPost")}
@@ -120,56 +120,60 @@ export function AdminBlogView() {
       </div>
 
       {/* Navigation tabs */}
-      <div className="border-b border-slate-200">
-        <div className="flex gap-4">
-          <button
-            type="button"
+      <div className="border-b border-border">
+        <div className="flex gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setActiveTab("posts")}
-            className={`flex items-center gap-1.5 pb-3 text-xs font-semibold border-b-2 -mb-px transition-all ${
+            className={`flex items-center gap-1.5 pb-3 text-xs font-semibold rounded-none border-b-2 -mb-px transition-all h-auto py-2 hover:bg-transparent ${
               activeTab === "posts"
-                ? "border-slate-900 text-slate-900"
-                : "border-transparent text-slate-400 hover:text-slate-600"
+                ? "border-foreground text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
             <BookOpen className="size-4" />
             {t("posts")}
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setActiveTab("categories")}
-            className={`flex items-center gap-1.5 pb-3 text-xs font-semibold border-b-2 -mb-px transition-all ${
+            className={`flex items-center gap-1.5 pb-3 text-xs font-semibold rounded-none border-b-2 -mb-px transition-all h-auto py-2 hover:bg-transparent ${
               activeTab === "categories"
-                ? "border-slate-900 text-slate-900"
-                : "border-transparent text-slate-400 hover:text-slate-600"
+                ? "border-foreground text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
             <FolderKanban className="size-4" />
             {t("categories")}
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setActiveTab("tags")}
-            className={`flex items-center gap-1.5 pb-3 text-xs font-semibold border-b-2 -mb-px transition-all ${
+            className={`flex items-center gap-1.5 pb-3 text-xs font-semibold rounded-none border-b-2 -mb-px transition-all h-auto py-2 hover:bg-transparent ${
               activeTab === "tags"
-                ? "border-slate-900 text-slate-900"
-                : "border-transparent text-slate-400 hover:text-slate-600"
+                ? "border-foreground text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
             <Hash className="size-4" />
             {t("tags")}
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setActiveTab("banners")}
-            className={`flex items-center gap-1.5 pb-3 text-xs font-semibold border-b-2 -mb-px transition-all ${
+            className={`flex items-center gap-1.5 pb-3 text-xs font-semibold rounded-none border-b-2 -mb-px transition-all h-auto py-2 hover:bg-transparent ${
               activeTab === "banners"
-                ? "border-slate-900 text-slate-900"
-                : "border-transparent text-slate-400 hover:text-slate-600"
+                ? "border-foreground text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
             <Globe className="size-4" />
             {t("banners")}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -181,10 +185,10 @@ export function AdminBlogView() {
       {activeTab === "posts" && (
         <div className="space-y-6">
           {/* Filters */}
-          <Card className="bg-white border-border shadow-sm p-4">
+          <Card className="bg-card border-border shadow-sm p-4">
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
               <div className="relative w-full sm:w-80">
-                <Search className="absolute left-3 top-2.5 size-4 text-slate-400" />
+                <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
                 <Input
                   type="text"
                   placeholder={t("searchPlaceholder")}
@@ -195,8 +199,8 @@ export function AdminBlogView() {
               </div>
 
               <div className="flex items-center gap-2 w-full sm:w-auto">
-                <Filter className="size-4 text-slate-400" />
-                <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                <Filter className="size-4 text-muted-foreground" />
+                <span className="text-xs font-bold text-foreground uppercase tracking-wider">
                   {t("statusLabel")}
                 </span>
                 <Select
@@ -206,7 +210,7 @@ export function AdminBlogView() {
                     setCurrentPageParam(1);
                   }}
                 >
-                  <SelectTrigger className="h-10 w-full sm:w-40 bg-white">
+                  <SelectTrigger className="h-10 w-full sm:w-40 bg-card">
                     <SelectValue placeholder={t("allStatuses")} />
                   </SelectTrigger>
                   <SelectContent>
@@ -224,19 +228,19 @@ export function AdminBlogView() {
 
           {/* Table */}
           {!blogData ? (
-            <div className="h-40 flex items-center justify-center bg-white border border-border rounded-md">
-              <Spinner className="size-6 text-slate-400" />
+            <div className="h-40 flex items-center justify-center bg-card border border-border rounded-md">
+              <Spinner className="size-6 text-muted-foreground" />
             </div>
           ) : blogData.items.length === 0 ? (
-            <div className="rounded-md border border-dashed border-slate-200 bg-slate-50/50 p-12 text-center space-y-3">
-              <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mx-auto">
+            <div className="rounded-md border border-dashed border-border bg-muted/30 p-12 text-center space-y-3">
+              <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center text-muted-foreground mx-auto">
                 <SearchX className="size-6" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-sm font-bold text-slate-800">
+                <h3 className="text-sm font-bold text-foreground">
                   {t("noPostsFound")}
                 </h3>
-                <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
+                <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed">
                   {searchQuery || selectedStatus
                     ? t("noPostsMatchFilters")
                     : t("getStartedCreatingPost")}
@@ -255,29 +259,29 @@ export function AdminBlogView() {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="border border-border rounded-md bg-white overflow-hidden shadow-sm">
+              <div className="border border-border rounded-md bg-card overflow-hidden shadow-sm">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-slate-50 hover:bg-slate-50">
-                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                    <TableRow className="bg-muted/40 hover:bg-muted/40">
+                      <TableHead className="text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4">
                         {t("cover")}
                       </TableHead>
-                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                      <TableHead className="text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4">
                         {t("title")}
                       </TableHead>
-                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                      <TableHead className="text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4">
                         {t("status")}
                       </TableHead>
-                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                      <TableHead className="text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4">
                         {t("author")}
                       </TableHead>
-                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                      <TableHead className="text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4">
                         {t("views")}
                       </TableHead>
-                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                      <TableHead className="text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4">
                         {t("lastUpdated")}
                       </TableHead>
-                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4 text-right">
+                      <TableHead className="text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4 text-right">
                         {t("actions")}
                       </TableHead>
                     </TableRow>
@@ -286,7 +290,7 @@ export function AdminBlogView() {
                     {blogData.items.map((post) => (
                       <TableRow
                         key={post.id}
-                        className="hover:bg-slate-50/50 transition-colors"
+                        className="hover:bg-muted/50 transition-colors"
                       >
                         <TableCell className="px-4 py-3">
                           {post.coverImage ? (
@@ -299,17 +303,17 @@ export function AdminBlogView() {
                               className="h-10 w-16 rounded-md object-cover border border-border"
                             />
                           ) : (
-                            <div className="h-10 w-16 rounded-md border border-dashed border-border bg-slate-50 flex items-center justify-center text-[9px] text-slate-400">
+                            <div className="h-10 w-16 rounded-md border border-dashed border-border bg-muted/40 flex items-center justify-center text-xs text-muted-foreground">
                               N/A
                             </div>
                           )}
                         </TableCell>
                         <TableCell className="px-4 py-3">
-                          <div className="font-semibold text-slate-900 line-clamp-1">
+                          <div className="font-semibold text-foreground line-clamp-1">
                             {post.title}
                           </div>
                           {post.category && (
-                            <div className="text-slate-500 text-[10px] uppercase font-bold tracking-wider mt-1">
+                            <div className="text-muted-foreground text-xs uppercase font-bold tracking-wider mt-1">
                               {post.category.name}
                             </div>
                           )}
@@ -317,13 +321,13 @@ export function AdminBlogView() {
                         <TableCell className="px-4 py-3">
                           <StatusBadge status={post.status} />
                         </TableCell>
-                        <TableCell className="px-4 py-3 text-slate-600 text-xs font-medium">
+                        <TableCell className="px-4 py-3 text-muted-foreground text-xs font-medium">
                           {post.displayAuthorName || post.author.fullName}
                         </TableCell>
-                        <TableCell className="px-4 py-3 text-slate-600 text-xs font-medium">
+                        <TableCell className="px-4 py-3 text-muted-foreground text-xs font-medium">
                           {post.viewCount.toLocaleString()}
                         </TableCell>
-                        <TableCell className="px-4 py-3 text-slate-500 text-xs">
+                        <TableCell className="px-4 py-3 text-muted-foreground text-xs">
                           {format(new Date(post.updatedAt), "MMM d, yyyy")}
                         </TableCell>
                         <TableCell className="px-4 py-3 text-right">
@@ -336,7 +340,7 @@ export function AdminBlogView() {
                               }
                               size="sm"
                               variant="ghost"
-                              className="h-8 w-8 p-0 text-slate-500 hover:text-slate-900"
+                              className="size-8 p-0 text-muted-foreground hover:text-foreground"
                             >
                               <Edit2 className="size-4" />
                               <span className="sr-only">{t("edit")}</span>
@@ -352,7 +356,7 @@ export function AdminBlogView() {
               {/* Pagination */}
               {blogData.total > pageSize && (
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-500 font-medium">
+                  <span className="text-muted-foreground font-medium">
                     {t("showing", {
                       start: currentPage * pageSize + 1,
                       end: Math.min(
@@ -396,27 +400,27 @@ function StatusBadge({ status }: { status: string }) {
   const configs: Record<string, { icon: any; class: string; label: string }> = {
     PUBLISHED: {
       icon: Globe,
-      class: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      class: "bg-success/15 text-success border-success/30",
       label: "Published",
     },
     DRAFT: {
       icon: FileText,
-      class: "bg-slate-100 text-slate-700 border-slate-200",
+      class: "bg-muted text-muted-foreground border-border",
       label: "Draft",
     },
     REVIEW: {
       icon: FileText,
-      class: "bg-yellow-50 text-yellow-700 border-yellow-200",
+      class: "bg-warning/15 text-warning border-warning/30",
       label: "In Review",
     },
     SCHEDULED: {
       icon: Clock,
-      class: "bg-indigo-50 text-indigo-700 border-indigo-200",
+      class: "bg-primary/15 text-primary border-primary/30",
       label: "Scheduled",
     },
     ARCHIVED: {
       icon: Archive,
-      class: "bg-red-50 text-red-700 border-red-200",
+      class: "bg-destructive/15 text-destructive border-destructive/30",
       label: "Archived",
     },
   };
@@ -426,7 +430,7 @@ function StatusBadge({ status }: { status: string }) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider border ${config!.class}`}
+      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs uppercase font-bold tracking-wider border ${config!.class}`}
     >
       <Icon className="w-3 h-3" />
       {config!.label}

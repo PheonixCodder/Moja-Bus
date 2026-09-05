@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, Modal, StyleSheet } from "react-native";
+import { View, Text, Modal } from "react-native";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
 	CheckmarkCircle02Icon,
@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { colors } from "@/constants/theme";
 
 export type ValidationStatus = "SUCCESS" | "QUEUED_OFFLINE" | "ALREADY_BOARDED" | "ERROR";
 
@@ -47,91 +48,91 @@ export function TicketResultModal({
 			animationType="slide"
 			onRequestClose={onDismiss}
 		>
-			<View style={styles.backdrop}>
-				<View style={styles.sheetBox}>
+			<View className="flex-1 bg-black/80 justify-end p-4">
+				<View className="bg-card border border-border rounded-3xl p-6 gap-4">
 					{/* Status Header */}
 					{result.status === "SUCCESS" && (
-						<View style={styles.headerRow}>
-							<View style={[styles.iconWrap, styles.iconSuccess]}>
-								<HugeiconsIcon icon={CheckmarkCircle02Icon} size={28} color="#10b981" />
+						<View className="flex-row items-center gap-3.5">
+							<View className="w-12 h-12 rounded-2xl items-center justify-center border bg-success/15 border-success/30">
+								<HugeiconsIcon icon={CheckmarkCircle02Icon} size={28} color={colors.semantic.success} />
 							</View>
-							<View style={styles.headerTexts}>
-								<Text style={styles.titleText}>{t("cleared")}</Text>
-								<Text style={styles.subSuccess}>{t("clearedMsg")}</Text>
+							<View className="gap-0.5 flex-1">
+								<Text className="text-lg font-extrabold text-foreground tracking-tight">{t("cleared")}</Text>
+								<Text className="text-xs font-semibold text-emerald-400">{t("clearedMsg")}</Text>
 							</View>
 						</View>
 					)}
 
 					{result.status === "QUEUED_OFFLINE" && (
-						<View style={styles.headerRow}>
-							<View style={[styles.iconWrap, styles.iconQueued]}>
-								<HugeiconsIcon icon={CloudSavingDone01Icon} size={28} color="#06b6d4" />
+						<View className="flex-row items-center gap-3.5">
+							<View className="w-12 h-12 rounded-2xl items-center justify-center border bg-info/15 border-info/30">
+								<HugeiconsIcon icon={CloudSavingDone01Icon} size={28} color={colors.semantic.info} />
 							</View>
-							<View style={styles.headerTexts}>
-							<Text style={styles.titleText}>{t("offlineTitle")}</Text>
-							<Text style={styles.subQueued}>{t("offlineMsg")}</Text>
+							<View className="gap-0.5 flex-1">
+								<Text className="text-lg font-extrabold text-foreground tracking-tight">{t("offlineTitle")}</Text>
+								<Text className="text-xs font-semibold text-info">{t("offlineMsg")}</Text>
 							</View>
 						</View>
 					)}
 
 					{result.status === "ALREADY_BOARDED" && (
-						<View style={styles.headerRow}>
-							<View style={[styles.iconWrap, styles.iconWarning]}>
-								<HugeiconsIcon icon={Alert02Icon} size={28} color="#f59e0b" />
+						<View className="flex-row items-center gap-3.5">
+							<View className="w-12 h-12 rounded-2xl items-center justify-center border bg-warning/15 border-warning/30">
+								<HugeiconsIcon icon={Alert02Icon} size={28} color={colors.semantic.warning} />
 							</View>
-							<View style={styles.headerTexts}>
-								<Text style={styles.titleText}>{t("doubleBoardingAlert")}</Text>
-								<Text style={styles.subWarning}>{t("doubleBoardingMsg")}</Text>
+							<View className="gap-0.5 flex-1">
+								<Text className="text-lg font-extrabold text-foreground tracking-tight">{t("doubleBoardingAlert")}</Text>
+								<Text className="text-xs font-semibold text-warning">{t("doubleBoardingMsg")}</Text>
 							</View>
 						</View>
 					)}
 
 					{result.status === "ERROR" && (
-						<View style={styles.headerRow}>
-							<View style={[styles.iconWrap, styles.iconError]}>
-								<HugeiconsIcon icon={CancelCircleIcon} size={28} color="#ef4444" />
+						<View className="flex-row items-center gap-3.5">
+							<View className="w-12 h-12 rounded-2xl items-center justify-center border bg-destructive/15 border-destructive/30">
+								<HugeiconsIcon icon={CancelCircleIcon} size={28} color={colors.semantic.error} />
 							</View>
-							<View style={styles.headerTexts}>
-								<Text style={styles.titleText}>{t("invalidTicket")}</Text>
-								<Text style={styles.subError}>{t("invalidTicketMsg")}</Text>
+							<View className="gap-0.5 flex-1">
+								<Text className="text-lg font-extrabold text-foreground tracking-tight">{t("invalidTicket")}</Text>
+								<Text className="text-xs font-semibold text-destructive">{t("invalidTicketMsg")}</Text>
 							</View>
 						</View>
 					)}
 
 					{/* Detail Card */}
-					<Card className="bg-[#09090b] p-4 gap-2.5">
+					<Card className="bg-background p-4 gap-2.5">
 						{result.passengerName && (
-							<View style={styles.detailRow}>
-								<View style={styles.labelRow}>
-									<HugeiconsIcon icon={User02Icon} size={15} color="#71717a" />
-									<Text style={styles.labelText}>{t("labelPassenger")}</Text>
+							<View className="flex-row items-center justify-between">
+								<View className="flex-row items-center gap-2">
+									<HugeiconsIcon icon={User02Icon} size={15} color={colors.neutral.textMuted} />
+									<Text className="text-xs text-muted-foreground">{t("labelPassenger")}</Text>
 								</View>
-								<Text style={styles.valueText}>{result.passengerName}</Text>
+								<Text className="text-sm font-bold text-foreground">{result.passengerName}</Text>
 							</View>
 						)}
 
 						{result.seatNumber && (
-							<View style={styles.detailRow}>
-								<View style={styles.labelRow}>
-									<HugeiconsIcon icon={ArmchairIcon} size={15} color="#71717a" />
-									<Text style={styles.labelText}>{t("labelSeat")}</Text>
+							<View className="flex-row items-center justify-between">
+								<View className="flex-row items-center gap-2">
+									<HugeiconsIcon icon={ArmchairIcon} size={15} color={colors.neutral.textMuted} />
+									<Text className="text-xs text-muted-foreground">{t("labelSeat")}</Text>
 								</View>
 								<Badge variant="brand" label={`${t("seatPrefix")} ${result.seatNumber}`} />
 							</View>
 						)}
 
 						{result.bookingReference && (
-							<View style={styles.detailRow}>
-								<View style={styles.labelRow}>
-									<HugeiconsIcon icon={Ticket01Icon} size={15} color="#71717a" />
-									<Text style={styles.labelText}>{t("labelBookingRef")}</Text>
+							<View className="flex-row items-center justify-between">
+								<View className="flex-row items-center gap-2">
+									<HugeiconsIcon icon={Ticket01Icon} size={15} color={colors.neutral.textMuted} />
+									<Text className="text-xs text-muted-foreground">{t("labelBookingRef")}</Text>
 								</View>
-								<Text style={styles.monoValue}>{result.bookingReference}</Text>
+								<Text className="text-xs font-mono font-bold text-foreground">{result.bookingReference}</Text>
 							</View>
 						)}
 
 						{result.errorMessage && (
-							<Text style={styles.errorDesc}>{result.errorMessage}</Text>
+							<Text className="text-xs text-muted-foreground pt-1 leading-5">{result.errorMessage}</Text>
 						)}
 					</Card>
 
@@ -154,110 +155,3 @@ export function TicketResultModal({
 		</Modal>
 	);
 }
-
-const styles = StyleSheet.create({
-	backdrop: {
-		flex: 1,
-		backgroundColor: "rgba(0,0,0,0.8)",
-		justifyContent: "flex-end",
-		padding: 16,
-	},
-	sheetBox: {
-		backgroundColor: "#18181b",
-		borderWidth: 1,
-		borderColor: "#27272a",
-		borderRadius: 28,
-		padding: 24,
-		gap: 16,
-	},
-	headerRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 14,
-	},
-	iconWrap: {
-		width: 48,
-		height: 48,
-		borderRadius: 16,
-		alignItems: "center",
-		justifyContent: "center",
-		borderWidth: 1,
-	},
-	iconSuccess: {
-		backgroundColor: "rgba(16, 185, 129, 0.15)",
-		borderColor: "rgba(16, 185, 129, 0.3)",
-	},
-	iconQueued: {
-		backgroundColor: "rgba(6, 182, 212, 0.15)",
-		borderColor: "rgba(6, 182, 212, 0.3)",
-	},
-	iconWarning: {
-		backgroundColor: "rgba(245, 158, 11, 0.15)",
-		borderColor: "rgba(245, 158, 11, 0.3)",
-	},
-	iconError: {
-		backgroundColor: "rgba(239, 68, 68, 0.15)",
-		borderColor: "rgba(239, 68, 68, 0.3)",
-	},
-	headerTexts: {
-		gap: 2,
-		flex: 1,
-	},
-	titleText: {
-		fontSize: 18,
-		fontWeight: "800",
-		color: "#fafafa",
-		letterSpacing: -0.3,
-	},
-	subSuccess: {
-		fontSize: 12,
-		fontWeight: "600",
-		color: "#34d399",
-	},
-	subQueued: {
-		fontSize: 12,
-		fontWeight: "600",
-		color: "#22d3ee",
-	},
-	subWarning: {
-		fontSize: 12,
-		fontWeight: "600",
-		color: "#fbbf24",
-	},
-	subError: {
-		fontSize: 12,
-		fontWeight: "600",
-		color: "#f87171",
-	},
-	detailRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-	},
-	labelRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 8,
-	},
-	labelText: {
-		fontSize: 12,
-		color: "#a1a1aa",
-	},
-	valueText: {
-		fontSize: 14,
-		fontWeight: "700",
-		color: "#fafafa",
-	},
-	monoValue: {
-		fontSize: 12,
-		fontFamily: "monospace",
-		fontWeight: "700",
-		color: "#d4d4d8",
-	},
-	errorDesc: {
-		fontSize: 12,
-		color: "#a1a1aa",
-		paddingTop: 4,
-		lineHeight: 18,
-	},
-});

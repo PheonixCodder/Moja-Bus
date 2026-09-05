@@ -40,13 +40,13 @@ export function OperatorPromotionOptInsCard({
   }
 
   return (
-    <Card className="space-y-3 p-5 border-slate-200/80 shadow-xs">
+    <Card className="space-y-3 p-5 border-border shadow-xs bg-card">
       <div>
         <div className="flex items-center gap-1.5">
-          <h2 className="text-sm font-semibold text-slate-900">{t("title")}</h2>
+          <h2 className="text-sm font-semibold text-foreground">{t("title")}</h2>
           <InfoTooltip content={t("tooltip")} />
         </div>
-        <p className="mt-0.5 text-xs text-slate-500">{t("description")}</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">{t("description")}</p>
       </div>
       <ul className="space-y-2">
         {campaigns.map((c) => {
@@ -55,20 +55,20 @@ export function OperatorPromotionOptInsCard({
           return (
             <li
               key={c.id}
-              className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50/60 p-3.5 sm:flex-row sm:items-center sm:justify-between"
+              className="flex flex-col gap-3 rounded-xl border border-border bg-muted/40 p-3.5 sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="flex items-start gap-3">
                 {isOptedIn && (
-                  <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-500" />
+                  <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-success" />
                 )}
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">
+                  <p className="text-sm font-semibold text-foreground">
                     {c.name}
                   </p>
-                  <p className="mt-0.5 text-xs text-slate-500">
+                  <p className="mt-0.5 text-xs text-muted-foreground">
                     {benefitLabel(c)} ·{" "}
                     <span
-                      className={`font-medium ${isOptedIn ? "text-emerald-600" : "text-slate-500"}`}
+                      className={`font-medium ${isOptedIn ? "text-success" : "text-muted-foreground"}`}
                     >
                       {isOptedIn
                         ? t("optedIn")

@@ -53,7 +53,7 @@ export default async function AdminLayout({
     <TooltipProvider>
       <SidebarProvider defaultOpen={defaultOpen} className="h-svh">
         <AdminSidebar user={fullUser} />
-        <SidebarInset className="min-h-0 min-w-0 bg-bg-base relative">
+        <SidebarInset className="min-h-0 min-w-0 bg-muted relative">
           <div className="absolute right-4 top-1.5 z-40">
             <NotificationInbox />
           </div>

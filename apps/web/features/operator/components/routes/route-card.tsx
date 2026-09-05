@@ -51,7 +51,7 @@ export function RouteCard({ route, onEdit, onDelete }: RouteCardProps) {
               {route.status === "ACTIVE" && (
                 <Badge
                   variant="default"
-                  className="text-[10px] uppercase font-bold py-0 h-4 bg-emerald-500 hover:bg-emerald-600 text-white"
+                  className="text-[10px] uppercase font-bold py-0 h-4 bg-success hover:bg-success/90 text-success-foreground"
                 >
                   {t("status.ACTIVE")}
                 </Badge>
@@ -59,7 +59,7 @@ export function RouteCard({ route, onEdit, onDelete }: RouteCardProps) {
               {route.status === "SUSPENDED" && (
                 <Badge
                   variant="outline"
-                  className="text-[10px] uppercase font-bold py-0 h-4 text-amber-600 border-amber-600/30 bg-amber-50"
+                  className="text-[10px] uppercase font-bold py-0 h-4 text-warning border-warning/30 bg-warning/10"
                 >
                   {t("status.SUSPENDED")}
                 </Badge>

@@ -21,18 +21,18 @@ export function VerificationDetailsHeader({
   const rep = company.operators?.[0]?.user;
 
   return (
-    <Card className="bg-white border-border shadow-sm overflow-hidden">
-      <CardHeader className="bg-slate-50 border-b border-border/60 pb-4">
+    <Card className="bg-card border-border shadow-sm overflow-hidden">
+      <CardHeader className="bg-muted/40 border-b border-border/60 pb-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="size-14 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-600 font-bold text-xl shadow-sm select-none shrink-0">
+            <div className="size-14 rounded-xl border border-border bg-card flex items-center justify-center text-foreground font-bold text-xl shadow-sm select-none shrink-0">
               {company.name.slice(0, 2).toUpperCase()}
             </div>
             <div className="min-w-0">
-              <CardTitle className="text-xl font-bold text-slate-900 leading-none">
+              <CardTitle className="text-xl font-bold text-foreground leading-none">
                 {company.name}
               </CardTitle>
-              <p className="text-xs text-slate-400 font-mono mt-1 uppercase tracking-wider">
+              <p className="text-xs text-muted-foreground font-mono mt-1 uppercase tracking-wider">
                 Slug: {company.slug}
               </p>
             </div>
@@ -53,10 +53,10 @@ export function VerificationDetailsHeader({
       <CardContent className="p-6 space-y-6">
         {company.description && (
           <div className="space-y-1.5">
-            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+            <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
               {t("aboutTheCompany")}
             </h4>
-            <p className="text-sm text-slate-600 leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed">
               {company.description}
             </p>
           </div>
@@ -64,34 +64,34 @@ export function VerificationDetailsHeader({
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div>
-            <div className="text-xs text-slate-400 font-medium">
+            <div className="text-xs text-muted-foreground font-medium">
               {t("businessType")}
             </div>
-            <div className="font-semibold text-slate-800 text-sm mt-0.5">
+            <div className="font-semibold text-foreground text-sm mt-0.5">
               {company.businessType.replace(/_/g, " ")}
             </div>
           </div>
           <div>
-            <div className="text-xs text-slate-400 font-medium">
+            <div className="text-xs text-muted-foreground font-medium">
               {t("regNumber")}
             </div>
-            <div className="font-semibold text-slate-800 text-sm mt-0.5">
+            <div className="font-semibold text-foreground text-sm mt-0.5">
               {company.registrationNumber}
             </div>
           </div>
           <div>
-            <div className="text-xs text-slate-400 font-medium">
+            <div className="text-xs text-muted-foreground font-medium">
               {t("taxId")}
             </div>
-            <div className="font-semibold text-slate-800 text-sm mt-0.5">
+            <div className="font-semibold text-foreground text-sm mt-0.5">
               {company.taxId}
             </div>
           </div>
           <div>
-            <div className="text-xs text-slate-400 font-medium">
+            <div className="text-xs text-muted-foreground font-medium">
               {t("established")}
             </div>
-            <div className="font-semibold text-slate-800 text-sm mt-0.5">
+            <div className="font-semibold text-foreground text-sm mt-0.5">
               {company.yearEstablished || t("na")}
             </div>
           </div>
@@ -100,41 +100,41 @@ export function VerificationDetailsHeader({
         <Separator className="bg-border/60" />
 
         <div className="space-y-3">
-          <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-            <User className="size-4 text-slate-400" />
+          <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+            <User className="size-4 text-muted-foreground" />
             {t("ownerRepresentativeDetails")}
           </h4>
           {rep ? (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-slate-600 border border-slate-100 rounded-lg p-4 bg-slate-50/50">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-muted-foreground border border-border rounded-lg p-4 bg-muted/30">
               <div className="space-y-1">
-                <span className="font-medium text-slate-400">
+                <span className="font-medium text-muted-foreground">
                   {t("fullName")}
                 </span>
-                <div className="font-semibold text-slate-800 text-sm">
+                <div className="font-semibold text-foreground text-sm">
                   {rep.fullName}
                 </div>
               </div>
               <div className="space-y-1">
-                <span className="font-medium text-slate-400">
+                <span className="font-medium text-muted-foreground">
                   {t("emailAddress")}
                 </span>
-                <div className="font-semibold text-slate-800 text-sm flex items-center gap-1.5">
-                  <Mail className="size-3 text-slate-400 shrink-0" />
+                <div className="font-semibold text-foreground text-sm flex items-center gap-1.5">
+                  <Mail className="size-3 text-muted-foreground shrink-0" />
                   {rep.email}
                 </div>
               </div>
               <div className="space-y-1">
-                <span className="font-medium text-slate-400">
+                <span className="font-medium text-muted-foreground">
                   {t("phoneContact")}
                 </span>
-                <div className="font-semibold text-slate-800 text-sm flex items-center gap-1.5">
-                  <Phone className="size-3 text-slate-400 shrink-0" />
+                <div className="font-semibold text-foreground text-sm flex items-center gap-1.5">
+                  <Phone className="size-3 text-muted-foreground shrink-0" />
                   {rep.phone || t("na")}
                 </div>
               </div>
             </div>
           ) : (
-            <p className="text-xs text-slate-400 italic">
+            <p className="text-xs text-muted-foreground italic">
               {t("noRepresentativeDetails")}
             </p>
           )}

@@ -37,8 +37,8 @@ function createBrandedIcon(isEndpoint: boolean) {
     html: `<div style="
       width: ${isEndpoint ? "14px" : "10px"};
       height: ${isEndpoint ? "14px" : "10px"};
-      background: ${isEndpoint ? "#ee237c" : "#9333ea"};
-      border: 2.5px solid #fff;
+      background: ${isEndpoint ? "var(--primary)" : "var(--secondary-foreground)"};
+      border: 2.5px solid var(--background);
       border-radius: 50%;
       box-shadow: 0 1px 4px rgba(0,0,0,0.25);
     "></div>`,
@@ -59,8 +59,8 @@ export default function RouteMapPreview({ points }: RouteMapPreviewProps) {
 
   if (validPoints.length === 0) {
     return (
-      <div className="h-full w-full bg-slate-100 flex flex-col items-center justify-center gap-2 p-4">
-        <p className="text-xs text-center text-slate-400 leading-relaxed">
+      <div className="h-full w-full bg-muted flex flex-col items-center justify-center gap-2 p-4">
+        <p className="text-xs text-center text-muted-foreground leading-relaxed">
           {t("unavailable")}
         </p>
       </div>
@@ -106,7 +106,7 @@ export default function RouteMapPreview({ points }: RouteMapPreviewProps) {
           <Polyline
             positions={polyline}
             pathOptions={{
-              color: "#ee237c",
+              color: "var(--primary)",
               weight: 2.5,
               opacity: 0.75,
               dashArray: "6 4",

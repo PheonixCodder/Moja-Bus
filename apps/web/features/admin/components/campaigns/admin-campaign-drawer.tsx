@@ -131,13 +131,13 @@ export function AdminCampaignDrawer({
 
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DrawerContent className="max-h-[88vh] flex flex-col bg-white border-t border-slate-200">
+      <DrawerContent className="max-h-[85vh] flex flex-col bg-card border-t border-border">
         <div className="mx-auto w-full max-w-6xl flex-1 flex flex-col min-h-0">
-          <DrawerHeader className="px-6 pt-5 pb-4 border-b border-slate-100 shrink-0">
+          <DrawerHeader className="px-6 pt-5 pb-4 border-b border-border shrink-0">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2.5">
-                  <DrawerTitle className="text-xl font-bold tracking-tight text-slate-900">
+                  <DrawerTitle className="text-xl font-bold tracking-tight text-foreground">
                     {isDetailLoading
                       ? t("loading")
                       : campaign?.name || t("defaultTitle")}
@@ -151,7 +151,7 @@ export function AdminCampaignDrawer({
                     </Badge>
                   )}
                 </div>
-                <DrawerDescription className="text-xs text-slate-500">
+                <DrawerDescription className="text-xs text-muted-foreground">
                   {campaign
                     ? t("description", {
                         id: campaign.id,
@@ -170,9 +170,9 @@ export function AdminCampaignDrawer({
                       variant="outline"
                       disabled={isNotifyPending}
                       onClick={() => onNotifyPassengers(campaign.id)}
-                      className="gap-1.5 text-xs font-medium text-slate-700"
+                      className="gap-1.5 text-xs font-medium text-foreground"
                     >
-                      <Bell className="size-3.5 text-slate-500" />
+                      <Bell className="size-3.5 text-muted-foreground" />
                       {t("notifyPassengers")}
                     </Button>
                     <Button
@@ -187,7 +187,7 @@ export function AdminCampaignDrawer({
                           "Paused from campaign drawer",
                         )
                       }
-                      className="gap-1.5 text-xs font-medium text-amber-700 border-amber-200 hover:bg-amber-50"
+                      className="gap-1.5 text-xs font-medium text-warning border-warning/20 hover:bg-warning/10"
                     >
                       <Pause className="size-3.5" />
                       {t("pause")}
@@ -202,80 +202,85 @@ export function AdminCampaignDrawer({
                     variant="outline"
                     disabled={isStatusPending}
                     onClick={() => onStatusChange(campaign.id, "ACTIVE")}
-                    className="gap-1.5 text-xs font-medium text-emerald-700 border-emerald-200 hover:bg-emerald-50"
+                    className="gap-1.5 text-xs font-medium text-success border-success/20 hover:bg-success/10"
                   >
                     <Play className="size-3.5" />
                     {t("activate")}
                   </Button>
                 )}
 
-                <DrawerClose asChild>
-                  <Button
+                <DrawerClose
+              render={
+                <Button
                     type="button"
                     size="sm"
                     variant="ghost"
-                    className="size-8 p-0 text-slate-500"
-                  >
+                    className="size-8 p-0 text-muted-foreground" />
+              }
+            >
                     <X className="size-4" />
                     <span className="sr-only">{t("close")}</span>
-                  </Button>
-                </DrawerClose>
+                  </DrawerClose>
               </div>
             </div>
 
             {/* Sub-tab Navigation */}
-            <div className="mt-4 flex items-center gap-2 border-b border-slate-200/80 -mb-4">
-              <button
+            <div className="mt-4 flex items-center gap-2 border-b border-border -mb-4">
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={() => onTabChange("performance")}
-                className={`flex items-center gap-2 px-3 py-2 text-xs font-semibold border-b-2 transition-colors cursor-pointer ${
+                className={`flex items-center gap-2 px-3 py-2 text-xs font-semibold border-b-2 rounded-none transition-colors cursor-pointer h-auto ${
                   activeTab === "performance"
-                    ? "border-slate-900 text-slate-900"
-                    : "border-transparent text-slate-500 hover:text-slate-700"
+                    ? "border-primary text-foreground hover:bg-transparent"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-transparent"
                 }`}
               >
                 <BarChart3 className="size-3.5" />
                 {t("tabs.performance")}
-              </button>
+              </Button>
 
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={() => onTabChange("codes")}
-                className={`flex items-center gap-2 px-3 py-2 text-xs font-semibold border-b-2 transition-colors cursor-pointer ${
+                className={`flex items-center gap-2 px-3 py-2 text-xs font-semibold border-b-2 rounded-none transition-colors cursor-pointer h-auto ${
                   activeTab === "codes"
-                    ? "border-slate-900 text-slate-900"
-                    : "border-transparent text-slate-500 hover:text-slate-700"
+                    ? "border-primary text-foreground hover:bg-transparent"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-transparent"
                 }`}
               >
                 <Code2 className="size-3.5" />
                 {t("tabs.codes", { count: campaign?.coupons?.length ?? 0 })}
-              </button>
+              </Button>
 
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={() => onTabChange("settings")}
-                className={`flex items-center gap-2 px-3 py-2 text-xs font-semibold border-b-2 transition-colors cursor-pointer ${
+                className={`flex items-center gap-2 px-3 py-2 text-xs font-semibold border-b-2 rounded-none transition-colors cursor-pointer h-auto ${
                   activeTab === "settings"
-                    ? "border-slate-900 text-slate-900"
-                    : "border-transparent text-slate-500 hover:text-slate-700"
+                    ? "border-primary text-foreground hover:bg-transparent"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-transparent"
                 }`}
               >
                 <SlidersHorizontal className="size-3.5" />
                 {t("tabs.settings")}
-              </button>
+              </Button>
 
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={() => onTabChange("redemptions")}
-                className={`flex items-center gap-2 px-3 py-2 text-xs font-semibold border-b-2 transition-colors cursor-pointer ${
+                className={`flex items-center gap-2 px-3 py-2 text-xs font-semibold border-b-2 rounded-none transition-colors cursor-pointer h-auto ${
                   activeTab === "redemptions"
-                    ? "border-slate-900 text-slate-900"
-                    : "border-transparent text-slate-500 hover:text-slate-700"
+                    ? "border-primary text-foreground hover:bg-transparent"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-transparent"
                 }`}
               >
                 <FileSpreadsheet className="size-3.5" />
                 {t("tabs.redemptions", { count: redemptions.length })}
-              </button>
+              </Button>
             </div>
           </DrawerHeader>
 

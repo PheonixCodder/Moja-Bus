@@ -32,7 +32,7 @@ interface BlogReadDepthChartProps {
 const chartConfig = {
   count: {
     label: "Readers",
-    color: "hsl(var(--chart-2))",
+    color: "var(--chart-2)",
   },
 } satisfies ChartConfig;
 

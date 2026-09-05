@@ -25,7 +25,7 @@ export function WithdrawalsPagination({
 
   return (
     <div className="flex items-center justify-between px-2">
-      <span className="text-sm text-text-muted">
+      <span className="text-sm text-muted-foreground">
         {t("showing", {
           start: Math.min((page - 1) * pageSize + 1, total),
           end: Math.min(page * pageSize, total),

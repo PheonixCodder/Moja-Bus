@@ -46,13 +46,13 @@ export default async function AdminDashboardPage({
 
   return (
     <HydrateClient>
-      <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border bg-bg-base px-4">
-        <SidebarTrigger className="text-text-muted hover:text-text-primary" />
+      <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border bg-muted px-4">
+        <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
         <Separator orientation="vertical" className="h-4 bg-border" />
-        <nav className="flex items-center gap-1 text-xs text-text-muted">
+        <nav className="flex items-center gap-1 text-xs text-muted-foreground">
           <span>{t("breadcrumb.admin")}</span>
-          <span className="mx-1 text-text-muted/40">/</span>
-          <span className="text-text-primary font-medium">
+          <span className="mx-1 text-muted-foreground/40">/</span>
+          <span className="text-foreground font-medium">
             {t("breadcrumb.overview")}
           </span>
         </nav>

@@ -94,7 +94,7 @@ export function AdminBannersView() {
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="relative w-full sm:w-72">
-          <Search className="absolute left-3 top-2.5 size-4 text-slate-400" />
+          <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
           <Input
             type="text"
             placeholder={t("searchPlaceholder")}
@@ -105,7 +105,7 @@ export function AdminBannersView() {
         </div>
         <Button
           onClick={handleCreateNew}
-          className="bg-rose-600 hover:bg-rose-700 text-white text-xs gap-1.5 w-full sm:w-auto"
+          className="text-xs gap-1.5 w-full sm:w-auto"
         >
           <Plus className="size-4" />
           {t("newBanner")}
@@ -113,10 +113,10 @@ export function AdminBannersView() {
       </div>
 
       {/* Main Table */}
-      <Card className="overflow-hidden border-slate-200">
+      <Card className="overflow-hidden border-border bg-card">
         <Table>
           <TableHeader>
-            <TableRow className="bg-slate-50/50">
+            <TableRow className="bg-muted/40">
               <TableHead className="w-20">{t("table.preview")}</TableHead>
               <TableHead>{t("table.titleAndSubtitle")}</TableHead>
               <TableHead>{t("table.badge")}</TableHead>
@@ -135,7 +135,7 @@ export function AdminBannersView() {
               <TableRow>
                 <TableCell
                   colSpan={7}
-                  className="h-32 text-center text-xs text-slate-400"
+                  className="h-32 text-center text-xs text-muted-foreground"
                 >
                   {t("table.loading")}
                 </TableCell>
@@ -144,7 +144,7 @@ export function AdminBannersView() {
               <TableRow>
                 <TableCell
                   colSpan={7}
-                  className="h-32 text-center text-xs text-slate-400"
+                  className="h-32 text-center text-xs text-muted-foreground"
                 >
                   {t("table.empty")}
                 </TableCell>
@@ -154,7 +154,7 @@ export function AdminBannersView() {
                 <TableRow key={banner.id}>
                   <TableCell>
                     {banner.imageUrl ? (
-                      <div className="relative h-10 w-20 rounded-md overflow-hidden border border-slate-200">
+                      <div className="relative h-10 w-20 rounded-md overflow-hidden border border-border">
                         <Image
                           unoptimized
                           src={banner.imageUrl}
@@ -164,32 +164,32 @@ export function AdminBannersView() {
                         />
                       </div>
                     ) : (
-                      <div className="h-10 w-20 rounded-md bg-slate-100 flex items-center justify-center text-slate-400">
+                      <div className="h-10 w-20 rounded-md bg-muted flex items-center justify-center text-muted-foreground">
                         <ImageIcon className="size-4" />
                       </div>
                     )}
                   </TableCell>
                   <TableCell>
-                    <div className="font-bold text-xs text-slate-900">
+                    <div className="font-bold text-xs text-foreground">
                       {banner.title}
                     </div>
                     {banner.subtitle && (
-                      <div className="text-[11px] text-slate-500 line-clamp-1">
+                      <div className="text-xs text-muted-foreground line-clamp-1">
                         {banner.subtitle}
                       </div>
                     )}
                   </TableCell>
                   <TableCell>
                     {banner.badge ? (
-                      <Badge className="bg-rose-50 text-rose-700 border-rose-200 text-[10px]">
+                      <Badge className="bg-primary/15 text-primary border-primary/30 text-xs">
                         {banner.badge}
                       </Badge>
                     ) : (
-                      <span className="text-slate-400 text-xs">—</span>
+                      <span className="text-muted-foreground text-xs">—</span>
                     )}
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline" className="text-[10px] font-mono">
+                    <Badge variant="outline" className="text-xs font-mono">
                       {banner.actionType}
                     </Badge>
                   </TableCell>
@@ -206,10 +206,12 @@ export function AdminBannersView() {
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="size-7">
-                          <MoreHorizontal className="size-4" />
-                        </Button>
+                      <DropdownMenuTrigger
+                        render={
+                          <Button variant="ghost" size="icon" className="size-7" />
+                        }
+                      >
+                        <MoreHorizontal className="size-4" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
@@ -221,7 +223,7 @@ export function AdminBannersView() {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDelete(banner.id)}
-                          className="gap-2 text-xs text-red-600 focus:text-red-600"
+                          className="gap-2 text-xs text-destructive focus:text-destructive"
                         >
                           <Trash2 className="size-3.5" />
                           {t("deleteBanner")}

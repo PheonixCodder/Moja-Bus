@@ -57,10 +57,10 @@ export function WithdrawalsTable({
   });
 
   return (
-    <div className="rounded-xl border border-border bg-bg-base overflow-hidden shadow-sm">
+    <div className="rounded-xl border border-border bg-muted overflow-hidden shadow-sm">
       <div className="overflow-x-auto">
         <Table>
-          <TableHeader className="bg-bg-muted/50">
+          <TableHeader className="bg-muted/50">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
@@ -70,7 +70,7 @@ export function WithdrawalsTable({
                   return (
                     <TableHead
                       key={header.id}
-                      className="h-10 text-xs font-medium text-text-muted"
+                      className="h-10 text-xs font-medium text-muted-foreground"
                     >
                       {header.isPlaceholder
                         ? null
@@ -90,7 +90,7 @@ export function WithdrawalsTable({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className="border-b-border/40 hover:bg-bg-muted/50 transition-colors"
+                  className="border-b-border/40 hover:bg-muted/50 transition-colors"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="py-3">
@@ -106,7 +106,7 @@ export function WithdrawalsTable({
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-32 text-center text-text-muted"
+                  className="h-32 text-center text-muted-foreground"
                 >
                   {t("empty")}
                 </TableCell>

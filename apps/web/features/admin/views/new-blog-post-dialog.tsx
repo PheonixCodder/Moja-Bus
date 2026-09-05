@@ -56,14 +56,14 @@ export function NewBlogPostDialog({
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <div className="flex items-center gap-2.5 mb-1">
-            <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center flex-shrink-0">
-              <PenLine className="size-4 text-white" />
+            <div className="size-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
+              <PenLine className="size-4 text-primary-foreground" />
             </div>
-            <DialogTitle className="text-base font-bold text-slate-900">
+            <DialogTitle className="text-base font-bold text-foreground">
               {t("createNewPost")}
             </DialogTitle>
           </div>
-          <DialogDescription className="text-xs text-slate-500 leading-relaxed">
+          <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
             {t("giveYourPostATitle")}
           </DialogDescription>
         </DialogHeader>
@@ -72,7 +72,7 @@ export function NewBlogPostDialog({
           <div className="space-y-1.5">
             <label
               htmlFor="new-post-title"
-              className="text-xs font-bold text-slate-700 uppercase tracking-wider"
+              className="text-xs font-bold text-foreground uppercase tracking-wider"
             >
               {t("postTitle")}
             </label>
@@ -101,11 +101,11 @@ export function NewBlogPostDialog({
             <Button
               type="submit"
               disabled={!title.trim() || createDraft.isPending}
-              className="h-9 bg-slate-900 hover:bg-slate-800 text-white"
+              className="h-9"
             >
               {createDraft.isPending ? (
                 <>
-                  <Spinner className="mr-2 size-3.5 text-white" />
+                  <Spinner className="mr-2 size-3.5" />
                   {t("creating")}
                 </>
               ) : (

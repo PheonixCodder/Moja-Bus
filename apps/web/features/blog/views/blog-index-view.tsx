@@ -88,29 +88,29 @@ export function BlogIndexView() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 text-slate-800 antialiased">
+    <div className="min-h-screen bg-background text-foreground antialiased">
       {/* ── Top Hero Zone (Matching Bus Search visual theme) ── */}
-      <div className="bg-rose-50/70 border-b border-rose-100/50 pt-28 md:pt-36 pb-14">
+      <div className="bg-primary/10 border-b border-primary/20 pt-28 md:pt-36 pb-14">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
-          <Badge className="bg-rose-100 text-rose-800 border-rose-200 hover:bg-rose-100 text-xs py-0.5 px-3 rounded-full font-semibold uppercase tracking-wider">
+          <Badge className="bg-primary/20 text-primary border-primary/30 hover:bg-primary/20 text-xs py-0.5 px-3 rounded-full font-semibold uppercase tracking-wider">
             {t("badge")}
           </Badge>
-          <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-foreground tracking-tight">
             {t("heroTitle")}
           </h1>
-          <p className="max-w-2xl mx-auto text-sm md:text-base text-slate-600 leading-relaxed">
+          <p className="max-w-2xl mx-auto text-sm md:text-base text-muted-foreground leading-relaxed">
             {t("heroDesc")}
           </p>
 
           {/* Inline search bar */}
           <div className="max-w-md mx-auto pt-4 relative">
-            <Search className="absolute left-3.5 top-[25px] size-4 text-slate-400" />
+            <Search className="absolute left-3.5 top-[25px] size-4 text-muted-foreground" />
             <Input
               type="text"
               placeholder={t("searchPlaceholder")}
               value={searchVal}
               onChange={(e) => setSearchVal(e.target.value)}
-              className="w-full pl-10 pr-4 h-11 text-sm bg-white border-slate-200 rounded-full shadow-sm focus:border-rose-400 focus:ring-rose-400/20"
+              className="w-full pl-10 pr-4 h-11 text-sm bg-card border-border rounded-full shadow-sm focus:border-primary/50 focus:ring-primary/20"
             />
           </div>
         </div>
@@ -122,88 +122,92 @@ export function BlogIndexView() {
           {/* ─ Left sidebar (Filters cloud) ─ */}
           <div className="space-y-6 lg:col-span-1">
             {/* Category selection */}
-            <Card className="bg-white border-slate-200 shadow-3xs p-4 rounded-xl">
-              <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest flex items-center gap-2 mb-3">
-                <FolderOpen className="size-3.5 text-rose-500" />
+            <Card className="bg-card border-border shadow-3xs p-4 rounded-xl">
+              <h3 className="text-xs font-extrabold text-foreground uppercase tracking-widest flex items-center gap-2 mb-3">
+                <FolderOpen className="size-3.5 text-primary" />
                 {t("categories")}
               </h3>
               <div className="space-y-1">
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   onClick={() => void setParams({ category: "", page: 1 })}
-                  className={`w-full text-left px-2.5 py-1.5 rounded-md text-xs font-semibold flex items-center justify-between transition-all ${
+                  className={`w-full justify-between h-auto px-2.5 py-1.5 rounded-md text-xs font-semibold ${
                     !params.category
-                      ? "bg-rose-50 text-rose-700"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      ? "bg-primary/10 text-primary hover:bg-primary/15"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
                   <span>{t("allCategories")}</span>
-                </button>
+                </Button>
 
                 {categories.map((cat) => {
                   const isSelected = params.category === cat.slug;
                   return (
-                    <button
+                    <Button
                       key={cat.id}
                       type="button"
+                      variant="ghost"
                       onClick={() =>
                         void setParams({ category: cat.slug, page: 1 })
                       }
-                      className={`w-full text-left py-1.5 rounded-md text-xs transition-all flex items-center justify-between ${
+                      className={`w-full justify-between h-auto py-1.5 rounded-md text-xs ${
                         cat.parentId
                           ? "pl-5 font-normal"
                           : "pl-2.5 font-semibold"
                       } ${
                         isSelected
-                          ? "bg-rose-50 text-rose-700"
-                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                          ? "bg-primary/10 text-primary hover:bg-primary/15"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
                       }`}
                     >
                       <span className="flex items-center gap-1">
                         {cat.parentId && (
-                          <ChevronRight className="size-3 text-slate-400" />
+                          <ChevronRight className="size-3 text-muted-foreground" />
                         )}
                         {cat.name}
                       </span>
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
             </Card>
 
             {/* Tag cloud */}
-            <Card className="bg-white border-slate-200 shadow-3xs p-4 rounded-xl">
-              <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest flex items-center gap-2 mb-3">
-                <TagIcon className="size-3.5 text-rose-500" />
+            <Card className="bg-card border-border shadow-3xs p-4 rounded-xl">
+              <h3 className="text-xs font-extrabold text-foreground uppercase tracking-widest flex items-center gap-2 mb-3">
+                <TagIcon className="size-3.5 text-primary" />
                 {t("popularTags")}
               </h3>
               <div className="flex flex-wrap gap-1.5">
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   onClick={() => void setParams({ tag: "", page: 1 })}
-                  className={`px-2.5 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider border transition-all ${
+                  className={`h-auto px-2.5 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider border transition-all ${
                     !params.tag
-                      ? "bg-rose-50 border-rose-200 text-rose-700 font-extrabold"
-                      : "bg-white border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-800"
+                      ? "bg-primary/10 border-primary/20 text-primary font-extrabold hover:bg-primary/15"
+                      : "bg-card border-border text-muted-foreground hover:border-border/80 hover:text-foreground"
                   }`}
                 >
                   {t("allTags")}
-                </button>
+                </Button>
                 {tags.map((tag) => {
                   const isSelected = params.tag === tag.slug;
                   return (
-                    <button
+                    <Button
                       key={tag.id}
                       type="button"
+                      variant="ghost"
                       onClick={() => void setParams({ tag: tag.slug, page: 1 })}
-                      className={`px-2.5 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider border transition-all ${
+                      className={`h-auto px-2.5 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider border transition-all ${
                         isSelected
-                          ? "bg-rose-50 border-rose-200 text-rose-700 font-extrabold"
-                          : "bg-white border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-800"
+                          ? "bg-primary/10 border-primary/20 text-primary font-extrabold hover:bg-primary/15"
+                          : "bg-card border-border text-muted-foreground hover:border-border/80 hover:text-foreground"
                       }`}
                     >
                       #{tag.name}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
@@ -214,13 +218,13 @@ export function BlogIndexView() {
           <div className="lg:col-span-3 space-y-8">
             {/* Filter Reset Alert */}
             {hasActiveFilters && (
-              <div className="flex items-center justify-between bg-white border border-slate-200 px-4 py-2.5 rounded-xl shadow-3xs text-xs">
+              <div className="flex items-center justify-between bg-card border border-border px-4 py-2.5 rounded-xl shadow-3xs text-xs">
                 <div className="flex items-center gap-2">
-                  <span className="text-slate-500">{t("activeFilters")}</span>
+                  <span className="text-muted-foreground">{t("activeFilters")}</span>
                   {params.q && (
                     <Badge
                       variant="outline"
-                      className="border-rose-100 bg-rose-50/50 text-rose-700"
+                      className="border-primary/20 bg-primary/10 text-primary"
                     >
                       {t("filterSearch", { query: params.q })}
                     </Badge>
@@ -228,7 +232,7 @@ export function BlogIndexView() {
                   {params.category && (
                     <Badge
                       variant="outline"
-                      className="border-rose-100 bg-rose-50/50 text-rose-700"
+                      className="border-primary/20 bg-primary/10 text-primary"
                     >
                       {t("filterCategory", { category: params.category })}
                     </Badge>
@@ -236,39 +240,40 @@ export function BlogIndexView() {
                   {params.tag && (
                     <Badge
                       variant="outline"
-                      className="border-rose-100 bg-rose-50/50 text-rose-700"
+                      className="border-primary/20 bg-primary/10 text-primary"
                     >
                       {t("filterTag", { tag: params.tag })}
                     </Badge>
                   )}
                 </div>
-                <button
+                <Button
                   type="button"
+                  variant="link"
                   onClick={handleClearFilters}
-                  className="text-rose-600 hover:text-rose-700 font-semibold underline"
+                  className="h-auto p-0 text-primary hover:text-primary/80 font-semibold underline text-xs"
                 >
                   {t("clearAll")}
-                </button>
+                </Button>
               </div>
             )}
 
             {/* Posts Grid */}
             {posts.length === 0 ? (
-              <div className="text-center py-20 bg-white border border-slate-200 rounded-2xl flex flex-col items-center justify-center p-8 space-y-4">
-                <div className="w-12 h-12 bg-rose-50 rounded-full flex items-center justify-center text-rose-600">
+              <div className="text-center py-20 bg-card border border-border rounded-2xl flex flex-col items-center justify-center p-8 space-y-4">
+                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary">
                   <SearchX className="size-6" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-base font-bold text-slate-800">
+                  <h3 className="text-base font-bold text-foreground">
                     {t("noResults")}
                   </h3>
-                  <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
+                  <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed">
                     {t("noResultsDesc")}
                   </p>
                 </div>
                 <Button
                   onClick={handleClearFilters}
-                  className="h-9 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs"
+                  className="h-9 bg-foreground hover:bg-foreground/90 text-background font-semibold text-xs"
                 >
                   {t("resetFilters")}
                 </Button>
@@ -279,11 +284,11 @@ export function BlogIndexView() {
                   <Link
                     key={post.id}
                     href={`/blog/${post.slug}`}
-                    className="group flex flex-col bg-white rounded-xl shadow-3xs border border-slate-200 overflow-hidden hover:shadow-xs hover:-translate-y-0.5 transition-all duration-300"
+                    className="group flex flex-col bg-card rounded-xl shadow-3xs border border-border overflow-hidden hover:shadow-xs hover:-translate-y-0.5 transition-all duration-300"
                   >
                     {/* Cover image banner */}
                     {post.coverImage ? (
-                      <div className="aspect-[16/10] w-full bg-slate-100 relative overflow-hidden">
+                      <div className="aspect-[16/10] w-full bg-muted relative overflow-hidden">
                         <Image
                           unoptimized
                           src={post.coverImage}
@@ -294,8 +299,8 @@ export function BlogIndexView() {
                         />
                       </div>
                     ) : (
-                      <div className="aspect-[16/10] w-full bg-gradient-to-br from-rose-100/60 to-rose-50/30 flex items-center justify-center">
-                        <BookOpen className="size-8 text-rose-200" />
+                      <div className="aspect-[16/10] w-full bg-primary/10 flex items-center justify-center">
+                        <BookOpen className="size-8 text-primary/40" />
                       </div>
                     )}
 
@@ -303,27 +308,27 @@ export function BlogIndexView() {
                     <div className="p-5 flex flex-col flex-1">
                       <div className="flex items-center gap-1.5 mb-2">
                         {post.category && (
-                          <span className="text-[10px] uppercase font-extrabold tracking-wider text-rose-600">
+                          <span className="text-[10px] uppercase font-extrabold tracking-wider text-primary">
                             {post.category.name}
                           </span>
                         )}
                       </div>
 
-                      <h3 className="text-sm font-bold text-slate-900 mb-2 line-clamp-2 leading-tight group-hover:text-rose-600 transition-colors">
+                      <h3 className="text-sm font-bold text-foreground mb-2 line-clamp-2 leading-tight group-hover:text-primary transition-colors">
                         {post.title}
                       </h3>
 
-                      <p className="text-xs text-slate-500 line-clamp-3 mb-4 leading-relaxed flex-1">
+                      <p className="text-xs text-muted-foreground line-clamp-3 mb-4 leading-relaxed flex-1">
                         {post.excerpt || t("noExcerpt")}
                       </p>
 
-                      <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-[10px] text-slate-400 font-medium">
+                      <div className="flex items-center justify-between pt-3 border-t border-border text-[10px] text-muted-foreground font-medium">
                         <span className="truncate max-w-[120px]">
                           {post.displayAuthorName || post.author.fullName}
                         </span>
                         <div className="flex items-center gap-2 shrink-0">
                           <span className="flex items-center gap-0.5">
-                            <Clock className="size-3 text-slate-300" />
+                            <Clock className="size-3 text-muted-foreground/60" />
                             {t("minuteRead", { count: post.readingTime })}
                           </span>
                         </div>
@@ -336,17 +341,17 @@ export function BlogIndexView() {
 
             {/* Pagination Controls */}
             {posts.length > 0 && (
-              <div className="flex justify-between items-center pt-4 border-t border-slate-200 text-xs">
+              <div className="flex justify-between items-center pt-4 border-t border-border text-xs">
                 <Button
                   size="sm"
                   variant="outline"
                   disabled={params.page === 1}
                   onClick={() => handlePageChange(params.page - 1)}
-                  className="h-8 font-semibold text-xs border-slate-200"
+                  className="h-8 font-semibold text-xs border-border"
                 >
                   {t("previous")}
                 </Button>
-                <span className="text-slate-500 font-semibold">
+                <span className="text-muted-foreground font-semibold">
                   {t("page", { page: params.page })} /{" "}
                   {Math.ceil((postsData.total || 1) / limit)}
                 </span>
@@ -357,7 +362,7 @@ export function BlogIndexView() {
                     params.page >= Math.ceil((postsData.total || 0) / limit)
                   }
                   onClick={() => handlePageChange(params.page + 1)}
-                  className="h-8 font-semibold text-xs border-slate-200"
+                  className="h-8 font-semibold text-xs border-border"
                 >
                   {t("next")}
                 </Button>

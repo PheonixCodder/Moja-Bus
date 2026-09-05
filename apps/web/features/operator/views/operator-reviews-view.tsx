@@ -31,8 +31,8 @@ function StarRating({
           className={cn(
             size,
             i < rating
-              ? "fill-amber-400 text-amber-400"
-              : "fill-slate-200 text-slate-200",
+              ? "fill-warning text-warning"
+              : "fill-muted text-muted",
           )}
         />
       ))}
@@ -118,10 +118,10 @@ export function OperatorReviewsView() {
                 <span className="text-xs text-muted-foreground w-3">
                   {star}
                 </span>
-                <Star className="size-3 fill-amber-400 text-amber-400" />
+                <Star className="size-3 fill-warning text-warning" />
                 <div className="flex-1 h-1.5 bg-border rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-amber-400 rounded-full"
+                    className="h-full bg-warning rounded-full"
                     style={{ width: `${pct}%` }}
                   />
                 </div>
@@ -138,26 +138,28 @@ export function OperatorReviewsView() {
       {reviews.length === 0 ? (
         <div className="rounded-lg border border-border bg-card p-16 text-center shadow-sm">
           <MessageCircle className="size-10 text-muted-foreground/30 mx-auto mb-3" />
-          <h3 className="text-sm font-semibold text-foreground">
+          <p className="text-sm font-semibold text-foreground">
             {t("noReviews")}
-          </h3>
-          <p className="text-sm text-muted-foreground mt-1">
-            {t("emptyDescription")}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {t("noReviewsDesc")}
           </p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {reviews.map((review) => {
-            const route = review.booking?.trip?.schedule?.route;
+            const trip = review.booking?.trip;
+            const route = trip?.schedule?.route;
             const origin =
-              route?.originTerminal?.cityRelation?.name ?? t("origin");
+              route?.originTerminal?.cityRelation?.name ??
+              route?.originTerminal?.name ??
+              "";
             const dest =
-              route?.destTerminal?.cityRelation?.name ?? t("destination");
-            const departure = review.booking?.trip?.departureDate
-              ? format(
-                  new Date(review.booking.trip.departureDate),
-                  "MMM d, yyyy",
-                )
+              route?.destTerminal?.cityRelation?.name ??
+              route?.destTerminal?.name ??
+              "";
+            const departure = trip?.departureDate
+              ? format(new Date(trip.departureDate), "MMM d")
               : null;
             const isEditing = editingId === review.id;
 
@@ -168,7 +170,7 @@ export function OperatorReviewsView() {
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-600">
+                    <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
                       {(review.author?.fullName ?? review.author?.email ?? "P")
                         .charAt(0)
                         .toUpperCase()}
@@ -214,7 +216,7 @@ export function OperatorReviewsView() {
                     </span>
                   )}
                   {review.punctualityRating && (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-medium">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-success/10 text-success border border-success/20 font-medium">
                       Punctuality: {review.punctualityRating}★
                     </span>
                   )}

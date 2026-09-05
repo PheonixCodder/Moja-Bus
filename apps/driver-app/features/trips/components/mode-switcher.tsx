@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { useTranslation } from "react-i18next";
 import { DriverFeedback } from "@/lib/haptics";
+import { cn } from "@/lib/utils";
 
 export type ServiceMode = "ALL" | "INTERCITY" | "URBAN";
 
@@ -19,7 +20,7 @@ export function ModeSwitcher({ mode, onModeChange }: ModeSwitcherProps) {
 	];
 
 	return (
-		<View style={styles.container}>
+		<View className="flex-row bg-card p-1 rounded-xl border border-border">
 			{MODES.map((item) => {
 				const isSelected = mode === item.key;
 				return (
@@ -30,9 +31,17 @@ export function ModeSwitcher({ mode, onModeChange }: ModeSwitcherProps) {
 							onModeChange(item.key);
 						}}
 						activeOpacity={0.8}
-						style={[styles.chip, isSelected && styles.chipSelected]}
+						accessibilityRole="button"
+						accessibilityState={{ selected: isSelected }}
+						accessibilityLabel={item.label}
+						className={cn("px-2.5 py-1 rounded-lg", isSelected && "bg-primary")}
 					>
-						<Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+						<Text
+							className={cn(
+								"text-[10px] font-bold",
+								isSelected ? "text-primary-foreground" : "text-muted-foreground",
+							)}
+						>
 							{item.label}
 						</Text>
 					</TouchableOpacity>
@@ -41,30 +50,3 @@ export function ModeSwitcher({ mode, onModeChange }: ModeSwitcherProps) {
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flexDirection: "row",
-		backgroundColor: "#18181b",
-		padding: 3,
-		borderRadius: 12,
-		borderWidth: 1,
-		borderColor: "#27272a",
-	},
-	chip: {
-		paddingHorizontal: 10,
-		paddingVertical: 5,
-		borderRadius: 8,
-	},
-	chipSelected: {
-		backgroundColor: "#ee237c",
-	},
-	chipText: {
-		fontSize: 10,
-		fontWeight: "700",
-		color: "#a1a1aa",
-	},
-	chipTextSelected: {
-		color: "#ffffff",
-	},
-});

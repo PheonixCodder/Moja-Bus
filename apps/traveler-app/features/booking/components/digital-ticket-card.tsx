@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { Text } from '@/components/ui/text';
+import { Palette } from '@/constants/theme';
 import { formatDateWithWeekday, formatTimeOnly } from '../lib/format-time';
 
 type DigitalTicketCardProps = {
@@ -84,7 +85,7 @@ export function DigitalTicketCard({
         <View className="bg-primary/5 border-border/40 flex-row items-center justify-between border-b p-4">
           <View className="mr-2 min-w-0 flex-1 flex-row items-center gap-2">
             <View className="bg-primary/10 border-primary/20 h-8 w-8 shrink-0 items-center justify-center rounded-full border">
-              <HugeiconsIcon icon={Ticket01Icon} size={16} color="#ee237c" />
+              <HugeiconsIcon icon={Ticket01Icon} size={16} color={Palette.rose[500]} />
             </View>
             <View className="min-w-0 flex-1">
               <Text
@@ -98,9 +99,9 @@ export function DigitalTicketCard({
             </View>
           </View>
 
-          <View className="flex-row items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5">
-            <HugeiconsIcon icon={Shield01Icon} size={10} color="#10b981" />
-            <Text className="text-xs font-extrabold tracking-widest text-emerald-600 uppercase">
+          <View className="flex-row items-center gap-1 rounded-full border border-success/20 bg-success/10 px-2 py-0.5">
+            <HugeiconsIcon icon={Shield01Icon} size={10} color={Palette.emerald[500]} />
+            <Text className="text-xs font-extrabold tracking-widest text-success uppercase">
               {badgeLabel}
             </Text>
           </View>
@@ -129,7 +130,7 @@ export function DigitalTicketCard({
           </View>
 
           <View className="items-center px-3">
-            <HugeiconsIcon icon={ArrowRight01Icon} size={18} color="#ee237c" />
+            <HugeiconsIcon icon={ArrowRight01Icon} size={18} color={Palette.rose[500]} />
           </View>
 
           <View className="flex-1 items-end">
@@ -179,7 +180,7 @@ export function DigitalTicketCard({
 
           {/* QR Code Icon Button */}
           <View className="bg-primary/10 border-primary/20 h-11 w-11 items-center justify-center rounded-full border shadow-xs">
-            <HugeiconsIcon icon={QrCodeIcon} size={22} color="#ee237c" />
+            <HugeiconsIcon icon={QrCodeIcon} size={22} color={Palette.rose[500]} />
           </View>
         </View>
       </Pressable>

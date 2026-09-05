@@ -2,6 +2,7 @@ import { ArrowDown01Icon, ArrowUp01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { View, FlatList, ActivityIndicator, Pressable } from "react-native";
 import { Text } from "@/components/ui/text";
+import { Palette } from "@/constants/theme";
 
 interface LedgerEntry {
   id: string;
@@ -48,9 +49,9 @@ export function TransactionList({ data, total, page, pageSize, isLoadingMore, on
   if (isEmpty) {
     return (
       <View className="items-center py-6">
-        <Text className="text-base text-slate-500">No transactions yet</Text>
-        <Pressable onPress={onRefresh} className="mt-2">
-          <Text className="text-sm font-semibold text-pink-600">Top Up</Text>
+        <Text className="text-base text-muted-foreground">No transactions yet</Text>
+        <Pressable onPress={onRefresh} accessibilityRole="button" className="mt-2 min-h-9 justify-center">
+          <Text className="text-sm font-semibold text-primary">Top Up</Text>
         </Pressable>
       </View>
     );
@@ -70,33 +71,33 @@ export function TransactionList({ data, total, page, pageSize, isLoadingMore, on
       onRefresh={onRefresh}
       ListFooterComponent={
         isLoadingMore ? (
-          <ActivityIndicator size="small" color="#ee237c" className="py-4" />
+          <ActivityIndicator size="small" color={Palette.rose[500]} className="py-4" />
         ) : null
       }
       renderItem={({ item }) => (
-        <View className="flex-row items-center gap-4 px-4 py-4 border-b border-slate-100">
+        <View className="flex-row items-center gap-4 px-4 py-4 border-b border-border">
           <View
             className={`w-10 h-10 rounded-full items-center justify-center ${
-              item.side === "CREDIT" ? "bg-green-500/10" : "bg-red-500/10"
+              item.side === "CREDIT" ? "bg-success/10" : "bg-destructive/10"
             }`}
           >
             <HugeiconsIcon
               icon={item.side === "CREDIT" ? ArrowUp01Icon : ArrowDown01Icon}
               size={16}
-              color={item.side === "CREDIT" ? "#22c55e" : "#ef4444"}
+              color={item.side === "CREDIT" ? Palette.emerald[500] : Palette.red[500]}
             />
           </View>
 
           <View className="flex-1">
-            <Text className="text-base font-medium text-slate-800">
+            <Text className="text-base font-medium text-foreground">
               {item.description ?? "Transaction"}
             </Text>
-            <Text className="text-xs text-slate-400 mt-0.5">{formatDate(item.effectiveAt)}</Text>
+            <Text className="text-xs text-muted-foreground mt-0.5">{formatDate(item.effectiveAt)}</Text>
           </View>
 
           <Text
             className={`text-base font-semibold ${
-              item.side === "CREDIT" ? "text-green-500" : "text-red-500"
+              item.side === "CREDIT" ? "text-success" : "text-destructive"
             }`}
           >
             {item.side === "CREDIT" ? "+" : "-"}

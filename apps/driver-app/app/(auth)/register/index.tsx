@@ -5,8 +5,7 @@ import {
 	Text,
 	Image,
 	Alert,
-	TouchableOpacity,
-	StyleSheet,
+	Pressable,
 } from "react-native";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
@@ -25,9 +24,11 @@ import { authClient } from "@/lib/auth-client";
 import { useTRPC } from "@/lib/trpc";
 import { uploadCapturedDocument } from "@/lib/driver-doc-upload";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ScreenShell } from "@/components/ui/ScreenShell";
+import { colors } from "@/constants/theme";
 
 export default function RegisterStep1Screen() {
 	const { t } = useTranslation("auth");
@@ -149,8 +150,8 @@ export default function RegisterStep1Screen() {
 						onBack={() => router.replace("/(auth)/login")}
 					/>
 					{/* Progress Indicator */}
-					<View style={styles.progressTrack}>
-						<View style={[styles.progressBar, { width: "25%" }]} />
+					<View className="h-1 bg-card w-full">
+						<View className="h-full bg-primary w-1/4" />
 					</View>
 				</View>
 			}
@@ -160,202 +161,86 @@ export default function RegisterStep1Screen() {
 					variant="primary"
 					size="lg"
 					onPress={handleNext}
-					icon={<HugeiconsIcon icon={ArrowRight01Icon} size={18} color="#ffffff" />}
+					icon={<HugeiconsIcon icon={ArrowRight01Icon} size={18} color={colors.neutral.textPrimary} />}
 					iconPosition="right"
 				/>
 			}
 		>
-			<View style={styles.formCard}>
-				<Text style={styles.sectionTitle}>{t("selfieSectionTitle")}</Text>
-				<Text style={styles.sectionSubtitle}>
-					{t("selfieSectionSubtitle")}
-				</Text>
+			<View className="gap-4">
+				<Card className="p-5 gap-3">
+					<Text className="text-base font-extrabold text-foreground tracking-tight">{t("selfieSectionTitle")}</Text>
+					<Text className="text-xs text-muted-foreground leading-5">
+						{t("selfieSectionSubtitle")}
+					</Text>
 
-				<View style={styles.selfieContainer}>
-					{selfieUri || selfieKey ? (
-						<View style={styles.selfieWrapper}>
-							{selfieUri ? (
-								<Image source={{ uri: selfieUri }} style={styles.selfieImage} />
-							) : (
-								<View style={[styles.selfieImage, styles.uploadedPlaceholder]}>
-									<HugeiconsIcon icon={Camera01Icon} size={32} color="#10b981" />
-									<Text style={styles.uploadedPlaceholderText}>{t("selfieUploaded", "Photo enregistrée")}</Text>
-								</View>
-							)}
-							<TouchableOpacity
-								onPress={handleTakeSelfie}
-								activeOpacity={0.8}
-								style={styles.retakeButton}
-							>
-								<HugeiconsIcon icon={Camera01Icon} size={16} color="#fafafa" />
-								<Text style={styles.retakeText}>{t("retake")}</Text>
-							</TouchableOpacity>
-						</View>
-					) : (
-						<TouchableOpacity
-							onPress={handleTakeSelfie}
-							activeOpacity={0.8}
-							style={styles.captureBox}
-						>
-							<View style={styles.cameraIconWrap}>
-								<HugeiconsIcon icon={Camera01Icon} size={28} color="#ee237c" />
+					<View className="items-center py-2">
+						{selfieUri || selfieKey ? (
+							<View className="items-center gap-2.5">
+								{selfieUri ? (
+									<Image source={{ uri: selfieUri }} className="w-28 h-28 rounded-full border-2 border-primary" />
+								) : (
+									<View className="w-28 h-28 rounded-full bg-card items-center justify-center border-2 border-success/40 gap-1.5">
+										<HugeiconsIcon icon={Camera01Icon} size={32} color={colors.semantic.success} />
+										<Text className="text-[10px] font-bold text-success">{t("selfieUploaded", "Photo enregistrée")}</Text>
+									</View>
+								)}
+								<Button
+									title={t("retake")}
+									variant="secondary"
+									size="sm"
+									onPress={handleTakeSelfie}
+									icon={<HugeiconsIcon icon={Camera01Icon} size={16} color={colors.neutral.textPrimary} />}
+								/>
 							</View>
-							<Text style={styles.captureText}>{t("takeSelfie")}</Text>
-							<Text style={styles.captureHint}>
-								{t("selfieHint")}
-							</Text>
-						</TouchableOpacity>
-					)}
-				</View>
-			</View>
+						) : (
+							<Button
+								variant="outline"
+								size="lg"
+								onPress={handleTakeSelfie}
+								className="w-full h-36 border-2 border-dashed border-border rounded-2xl items-center justify-center bg-card/50"
+								title={t("takeSelfie")}
+								icon={
+									<View className="w-12 h-12 rounded-full bg-primary/15 items-center justify-center mb-1">
+										<HugeiconsIcon icon={Camera01Icon} size={28} color={colors.primary.rose} />
+									</View>
+								}
+							/>
+						)}
+					</View>
+				</Card>
 
-			<View style={styles.formCard}>
-				<Text style={styles.sectionTitle}>{t("personalInfoTitle")}</Text>
+				<Card className="p-5 gap-3">
+					<Text className="text-base font-extrabold text-foreground tracking-tight">{t("personalInfoTitle")}</Text>
 
-				<View style={styles.inputsList}>
-					<Input
-						label={t("fullNameOfficiel")}
-						placeholder={t("fullNameExample")}
-						value={nameInput}
-						onChangeText={setNameInput}
-						leftIcon={<HugeiconsIcon icon={User02Icon} size={18} color="#71717a" />}
-					/>
+					<View className="gap-4 pt-1">
+						<Input
+							label={t("fullNameOfficiel")}
+							placeholder={t("fullNameExample")}
+							value={nameInput}
+							onChangeText={setNameInput}
+							leftIcon={<HugeiconsIcon icon={User02Icon} size={18} color={colors.neutral.textMuted} />}
+						/>
 
-					<Input
-						label={t("phoneVerifiedLabel")}
-						placeholder={t("phoneExample")}
-						keyboardType="phone-pad"
-						value={effectivePhone}
-						editable={false}
-						leftIcon={<HugeiconsIcon icon={Call02Icon} size={18} color="#10b981" />}
-					/>
+						<Input
+							label={t("phoneVerifiedLabel")}
+							placeholder={t("phoneExample")}
+							keyboardType="phone-pad"
+							value={effectivePhone}
+							editable={false}
+							leftIcon={<HugeiconsIcon icon={Call02Icon} size={18} color={colors.semantic.success} />}
+						/>
 
-					<Input
-						label={t("experienceLabel")}
-						placeholder={t("experienceExample")}
-						keyboardType="number-pad"
-						value={expInput}
-						onChangeText={setExpInput}
-						leftIcon={<HugeiconsIcon icon={Award01Icon} size={18} color="#71717a" />}
-					/>
-				</View>
+						<Input
+							label={t("experienceLabel")}
+							placeholder={t("experienceExample")}
+							keyboardType="number-pad"
+							value={expInput}
+							onChangeText={setExpInput}
+							leftIcon={<HugeiconsIcon icon={Award01Icon} size={18} color={colors.neutral.textMuted} />}
+						/>
+					</View>
+				</Card>
 			</View>
 		</ScreenShell>
 	);
 }
-
-const styles = StyleSheet.create({
-	progressTrack: {
-		height: 4,
-		backgroundColor: "#18181b",
-		width: "100%",
-	},
-	progressBar: {
-		height: "100%",
-		backgroundColor: "#ee237c",
-		borderTopRightRadius: 4,
-		borderBottomRightRadius: 4,
-	},
-	formCard: {
-		backgroundColor: "#18181b",
-		borderWidth: 1,
-		borderColor: "#27272a",
-		borderRadius: 20,
-		padding: 20,
-		gap: 12,
-	},
-	sectionTitle: {
-		fontSize: 16,
-		fontWeight: "800",
-		color: "#fafafa",
-		letterSpacing: -0.2,
-	},
-	sectionSubtitle: {
-		fontSize: 12,
-		color: "#a1a1aa",
-		lineHeight: 18,
-	},
-	selfieContainer: {
-		alignItems: "center",
-		paddingVertical: 8,
-	},
-	selfieWrapper: {
-		alignItems: "center",
-		gap: 10,
-	},
-	selfieImage: {
-		width: 120,
-		height: 120,
-		borderRadius: 60,
-		borderWidth: 3,
-		borderColor: "#ee237c",
-	},
-	uploadedPlaceholder: {
-		backgroundColor: "#18181b",
-		alignItems: "center",
-		justifyContent: "center",
-		borderWidth: 2,
-		borderColor: "rgba(16, 185, 129, 0.4)",
-		gap: 6,
-	},
-	uploadedPlaceholderText: {
-		fontSize: 10,
-		fontWeight: "700",
-		color: "#10b981",
-	},
-	retakeButton: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 6,
-		paddingVertical: 6,
-		paddingHorizontal: 12,
-		borderRadius: 999,
-		backgroundColor: "#27272a",
-	},
-	retakeText: {
-		fontSize: 11,
-		fontWeight: "700",
-		color: "#fafafa",
-	},
-	captureBox: {
-		width: "100%",
-		height: 140,
-		borderWidth: 2,
-		borderStyle: "dashed",
-		borderColor: "#3f3f46",
-		borderRadius: 18,
-		alignItems: "center",
-		justifyContent: "center",
-		backgroundColor: "rgba(24, 24, 27, 0.5)",
-		gap: 6,
-	},
-	cameraIconWrap: {
-		width: 48,
-		height: 48,
-		borderRadius: 24,
-		backgroundColor: "rgba(238, 35, 124, 0.12)",
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	captureText: {
-		fontSize: 13,
-		fontWeight: "700",
-		color: "#fafafa",
-	},
-	captureHint: {
-		fontSize: 11,
-		color: "#71717a",
-	},
-	phoneWarning: {
-		fontSize: 11,
-		color: "#f59e0b",
-		lineHeight: 16,
-		marginTop: -4,
-		marginBottom: 8,
-		paddingLeft: 4,
-	},
-	inputsList: {
-		gap: 16,
-		paddingTop: 4,
-	},
-});

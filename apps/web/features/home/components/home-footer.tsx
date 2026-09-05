@@ -37,18 +37,18 @@ export async function HomeFooter() {
   const t = await getTranslations("footer");
 
   return (
-    <footer className="bg-white border-t border-slate-100 pt-20 pb-10">
+    <footer className="bg-card border-t border-border pt-20 pb-10">
       <div className="max-w-7xl mx-auto px-6 md:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
           {/* Brand */}
           <div className="col-span-1">
             <Link
               href="/"
-              className="text-2xl font-bold text-[#ee237c] block mb-5"
+              className="text-2xl font-bold text-primary block mb-5"
             >
               Moja Ride
             </Link>
-            <p className="text-slate-500 text-sm leading-relaxed mb-8">
+            <p className="text-muted-foreground text-sm leading-relaxed mb-8">
               {t("brandDescription")}
             </p>
             <div className="flex gap-3">
@@ -61,7 +61,7 @@ export async function HomeFooter() {
                   rel={
                     href.startsWith("http") ? "noopener noreferrer" : undefined
                   }
-                  className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-[#ee237c] hover:bg-[#ee237c] hover:text-white transition-all"
+                  className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-primary hover:bg-primary hover:text-primary-foreground transition-all"
                 >
                   <Icon className="h-4 w-4" />
                 </a>
@@ -71,13 +71,13 @@ export async function HomeFooter() {
 
           {/* Services */}
           <div>
-            <h4 className="font-bold text-slate-900 mb-6">{t("services")}</h4>
+            <h4 className="font-bold text-foreground mb-6">{t("services")}</h4>
             <ul className="space-y-4">
               {serviceLinks.map(({ key, href }) => (
                 <li key={key}>
                   <Link
                     href={href}
-                    className="text-sm text-slate-500 hover:text-[#ee237c] transition-colors"
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
                   >
                     {t(key)}
                   </Link>
@@ -88,13 +88,13 @@ export async function HomeFooter() {
 
           {/* Support */}
           <div>
-            <h4 className="font-bold text-slate-900 mb-6">{t("support")}</h4>
+            <h4 className="font-bold text-foreground mb-6">{t("support")}</h4>
             <ul className="space-y-4">
               {supportLinks.map(({ key, href }) => (
                 <li key={key}>
                   <Link
                     href={href}
-                    className="text-sm text-slate-500 hover:text-[#ee237c] transition-colors"
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
                   >
                     {t(key)}
                   </Link>
@@ -105,13 +105,13 @@ export async function HomeFooter() {
 
           {/* Company */}
           <div>
-            <h4 className="font-bold text-slate-900 mb-6">{t("company")}</h4>
+            <h4 className="font-bold text-foreground mb-6">{t("company")}</h4>
             <ul className="space-y-4">
               {companyLinks.map(({ key, href }) => (
                 <li key={key}>
                   <Link
                     href={href}
-                    className="text-sm text-slate-500 hover:text-[#ee237c] transition-colors"
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
                   >
                     {t(key)}
                   </Link>
@@ -122,8 +122,8 @@ export async function HomeFooter() {
         </div>
 
         {/* Bottom bar */}
-        <div className="pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-6">
-          <p className="text-xs text-slate-400">
+        <div className="pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-6">
+          <p className="text-xs text-muted-foreground/70">
             {t("copyright", { year: new Date().getFullYear() })}
           </p>
           <div className="flex gap-8">
@@ -134,7 +134,7 @@ export async function HomeFooter() {
               <Link
                 key={key}
                 href={href}
-                className="text-xs font-bold text-slate-400 hover:text-[#ee237c] transition-colors"
+                className="text-xs font-bold text-muted-foreground/70 hover:text-primary transition-colors"
               >
                 {t(key)}
               </Link>

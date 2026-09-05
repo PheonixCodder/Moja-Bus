@@ -56,14 +56,14 @@ export default async function PublicTicketPage({
 
   return (
     <HydrateClient>
-      <div className="min-h-screen bg-slate-50">
-        <header className="border-b border-slate-200 bg-white px-4 py-3 print:hidden">
+      <div className="min-h-screen bg-background">
+        <header className="border-b border-border bg-card px-4 py-3 print:hidden">
           <div className="max-w-lg mx-auto flex items-center gap-2">
-            <Ticket className="size-5 text-[#ee237c]" />
-            <Link href="/" className="text-sm font-bold text-slate-900">
+            <Ticket className="size-5 text-primary" />
+            <Link href="/" className="text-sm font-bold text-foreground">
               Moja Ride
             </Link>
-            <span className="text-xs text-slate-500 ml-auto">
+            <span className="text-xs text-muted-foreground ml-auto">
               {t("digitalTicket")}
             </span>
           </div>
@@ -72,7 +72,7 @@ export default async function PublicTicketPage({
         <Suspense
           fallback={
             <div className="flex justify-center py-24">
-              <Spinner className="size-8 text-[#ee237c]" />
+              <Spinner className="size-8 text-primary" />
             </div>
           }
         >

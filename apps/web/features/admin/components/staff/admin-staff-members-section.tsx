@@ -73,8 +73,8 @@ export function AdminStaffMembersSection({
       </h2>
 
       {isError ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-red-200 bg-red-50 py-16 text-center">
-          <p className="text-[14px] font-medium text-red-600">
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-destructive/20 bg-destructive/10 py-16 text-center">
+          <p className="text-[14px] font-medium text-destructive">
             {t("loadError")}
           </p>
           <Button
@@ -109,7 +109,7 @@ export function AdminStaffMembersSection({
               {canInvite ? (
                 <Button
                   size="sm"
-                  className="mt-4 h-8.5 gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold"
+                  className="mt-4 h-8 gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold"
                   onClick={onInvite}
                 >
                   <UserPlus className="size-4" />

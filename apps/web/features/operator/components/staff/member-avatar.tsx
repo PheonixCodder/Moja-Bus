@@ -1,13 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@moja/ui/components/ui/avatar";
-import { cn } from "@moja/ui/lib/utils";
-import { getInitials, getAvatarColor } from "@/features/operator/lib/staff";
+import { UserAvatar } from "@moja/ui/components/ui/user-avatar";
 
 interface MemberAvatarProps {
   name: string | null | undefined;
@@ -16,21 +9,5 @@ interface MemberAvatarProps {
 }
 
 export function MemberAvatar({ name, src, size = "md" }: MemberAvatarProps) {
-  const t = useTranslations("operatorDashboard.staff.memberAvatar");
-  const initials = getInitials(name);
-  const color = getAvatarColor(name);
-  const sizeClass =
-    size === "sm"
-      ? "h-8 w-8 text-[11px]"
-      : size === "lg"
-        ? "h-12 w-12 text-base"
-        : "h-10 w-10 text-[13px]";
-  return (
-    <Avatar
-      className={cn("shrink-0 font-semibold text-white", sizeClass, color)}
-    >
-      <AvatarImage src={src ?? undefined} alt={name ?? t("alt")} />
-      <AvatarFallback>{initials}</AvatarFallback>
-    </Avatar>
-  );
+  return <UserAvatar name={name} src={src} seed={name} size={size} />;
 }

@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 export function UrbanBadge() {
   const t = useTranslations("common");
   return (
-    <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50 border border-emerald-200 text-[10px] font-semibold py-0">
+    <Badge className="bg-success/10 text-success hover:bg-success/15 border border-success/20 text-[10px] font-semibold py-0">
       {t("urban")}
     </Badge>
   );

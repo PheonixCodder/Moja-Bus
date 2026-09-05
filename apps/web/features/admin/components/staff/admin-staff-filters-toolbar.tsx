@@ -45,7 +45,7 @@ export function AdminStaffFiltersToolbar({
         ) : null}
         <Input
           placeholder={t("filters.searchPlaceholder")}
-          className="pl-9 pr-9 h-9 shadow-none text-xs bg-bg-base border-border"
+          className="pl-9 pr-9 h-9 shadow-none text-xs bg-muted border-border"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
         />
@@ -62,7 +62,7 @@ export function AdminStaffFiltersToolbar({
               if (value) onRoleChange(value);
             }}
           >
-            <SelectTrigger className="h-8.5 w-[130px] border-border bg-bg-base text-xs">
+            <SelectTrigger className="h-8.5 w-[130px] border-border bg-muted text-xs">
               <SelectValue placeholder={t("filters.roleAll")} />
             </SelectTrigger>
             <SelectContent>
@@ -88,7 +88,7 @@ export function AdminStaffFiltersToolbar({
               if (value) onStatusChange(value);
             }}
           >
-            <SelectTrigger className="h-8.5 w-[130px] border-border bg-bg-base text-xs">
+            <SelectTrigger className="h-8.5 w-[130px] border-border bg-muted text-xs">
               <SelectValue placeholder={t("filters.statusAll")} />
             </SelectTrigger>
             <SelectContent>

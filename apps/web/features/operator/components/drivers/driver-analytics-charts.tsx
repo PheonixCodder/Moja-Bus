@@ -87,7 +87,7 @@ export function DriverAnalyticsCharts({
 
   const analytics = data as Analytics;
   const gaugeData = [
-    { name: "score", value: analytics.summary.safetyScore, fill: "#059669" },
+    { name: "score", value: analytics.summary.safetyScore, fill: "var(--success)" },
   ];
 
   return (
@@ -102,7 +102,7 @@ export function DriverAnalyticsCharts({
           <div className="h-40">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={analytics.ratingTrend}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis
                   dataKey="month"
                   tick={{ fontSize: 9 }}
@@ -116,7 +116,7 @@ export function DriverAnalyticsCharts({
                 <Line
                   type="monotone"
                   dataKey="averageRating"
-                  stroke="#e11d48"
+                  stroke="var(--primary)"
                   strokeWidth={2}
                   dot={{ r: 2.5 }}
                 />
@@ -143,7 +143,7 @@ export function DriverAnalyticsCharts({
               </RadialBarChart>
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-3xl font-black text-emerald-600">
+              <span className="text-3xl font-black text-success">
                 {analytics.summary.safetyScore}
               </span>
               <span className="text-[10px] font-semibold text-muted-foreground">
@@ -153,7 +153,7 @@ export function DriverAnalyticsCharts({
           </div>
           <div className="space-y-1.5 text-xs">
             <div className="flex items-center gap-1.5">
-              <span className="size-2 rounded-full bg-rose-500" />
+              <span className="size-2 rounded-full bg-destructive" />
               <span className="text-muted-foreground">
                 {t("analytics.overspeed")}
               </span>
@@ -162,7 +162,7 @@ export function DriverAnalyticsCharts({
               </span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="size-2 rounded-full bg-amber-500" />
+              <span className="size-2 rounded-full bg-warning" />
               <span className="text-muted-foreground">
                 {t("analytics.harshBraking")}
               </span>
@@ -181,7 +181,7 @@ export function DriverAnalyticsCharts({
             <BarChart data={analytics.distribution}>
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke="#e2e8f0"
+                stroke="var(--border)"
                 vertical={false}
               />
               <XAxis

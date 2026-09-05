@@ -6,6 +6,8 @@ import { useCompanySettings } from "../../api/use-company-settings";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Label } from "@moja/ui/components/ui/label";
+import { Input } from "@moja/ui/components/ui/input";
+import { Button } from "@moja/ui/components/ui/button";
 import { DatePicker } from "@moja/ui/components/ui/date-picker";
 import { Spinner } from "@moja/ui/components/ui/spinner";
 import { Eye, Trash2, FileUp, AlertTriangle } from "lucide-react";
@@ -233,7 +235,7 @@ export function ComplianceView() {
               className={cn(
                 "border rounded-xl p-5 flex flex-col justify-between bg-card transition-colors",
                 uploaded?.status === "REJECTED"
-                  ? "border-red-200 bg-red-50/30"
+                  ? "border-destructive/30 bg-destructive/5"
                   : "border-border",
               )}
             >
@@ -247,10 +249,10 @@ export function ComplianceView() {
               </div>
 
               {uploaded?.status === "REJECTED" && (
-                <div className="mt-3 p-3 bg-red-100/50 rounded-lg text-sm text-red-800 flex gap-2">
-                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
+                <div className="mt-3 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive flex gap-2">
+                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-destructive" />
                   <div>
-                    <p className="font-semibold text-xs text-red-900 mb-0.5">
+                    <p className="font-semibold text-xs text-destructive mb-0.5">
                       {t("documentRejectedDesc")}
                     </p>
                     <p className="text-xs">
@@ -273,21 +275,21 @@ export function ComplianceView() {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                     <div className="space-y-1 min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-semibold text-foreground truncate max-w-[120px] sm:max-w-[180px] inline-block">
+                        <span className="font-semibold text-foreground truncate max-w-28 sm:max-w-44 inline-block">
                           {uploaded.fileName}
                         </span>
                         {uploaded.status === "APPROVED" && (
-                          <span className="px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[9px] font-bold tracking-wider shrink-0">
+                          <span className="px-1.5 py-0.5 rounded-full bg-success/15 text-success text-[9px] font-bold tracking-wider shrink-0">
                             {t("status.APPROVED")}
                           </span>
                         )}
                         {uploaded.status === "PENDING" && (
-                          <span className="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[9px] font-bold tracking-wider shrink-0">
+                          <span className="px-1.5 py-0.5 rounded-full bg-warning/15 text-warning text-[9px] font-bold tracking-wider shrink-0">
                             {t("status.PENDING")}
                           </span>
                         )}
                         {uploaded.status === "REJECTED" && (
-                          <span className="px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 text-[9px] font-bold tracking-wider shrink-0">
+                          <span className="px-1.5 py-0.5 rounded-full bg-destructive/15 text-destructive text-[9px] font-bold tracking-wider shrink-0">
                             {t("status.REJECTED")}
                           </span>
                         )}
@@ -311,12 +313,12 @@ export function ComplianceView() {
                               className={cn(
                                 "truncate",
                                 new Date(uploaded.expiresAt) < new Date()
-                                  ? "text-red-500 font-bold"
+                                  ? "text-destructive font-bold"
                                   : new Date(uploaded.expiresAt) <
                                       new Date(
                                         Date.now() + 30 * 24 * 60 * 60 * 1000,
                                       )
-                                    ? "text-amber-500 font-bold"
+                                    ? "text-warning font-bold"
                                     : "",
                               )}
                             >
@@ -334,24 +336,28 @@ export function ComplianceView() {
 
                     {canManageCompliance && (
                       <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0 sm:pl-2 border-t sm:border-t-0 border-border/40 w-full sm:w-auto justify-end">
-                        <button
+                        <Button
                           type="button"
+                          variant="ghost"
+                          size="icon"
                           onClick={() =>
                             handleViewDocument(uploaded.id, uploaded.objectKey!)
                           }
-                          className="inline-flex items-center justify-center w-8 h-8 border border-border hover:bg-slate-50 rounded-md text-muted-foreground transition-colors shrink-0 shadow-sm"
+                          className="h-8 w-8 border border-border text-muted-foreground shrink-0 shadow-sm"
                           title={t("viewDocument")}
                         >
                           <Eye className="w-4 h-4" />
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                           type="button"
+                          variant="ghost"
+                          size="icon"
                           onClick={() => handleTrashClick(uploaded)}
-                          className="inline-flex items-center justify-center w-8 h-8 border border-border hover:bg-red-50 hover:text-red-500 transition-colors rounded-md text-muted-foreground shrink-0 shadow-sm"
+                          className="h-8 w-8 border border-border hover:bg-destructive/10 hover:text-destructive text-muted-foreground shrink-0 shadow-sm"
                           title={t("replaceDocument")}
                         >
                           <Trash2 className="w-4 h-4" />
-                        </button>
+                        </Button>
                       </div>
                     )}
                   </div>
@@ -368,7 +374,8 @@ export function ComplianceView() {
                       <span className="text-[10px] text-muted-foreground mt-1">
                         {t("dropHint")}
                       </span>
-                      <input
+                      {/* Hidden file input for file upload interaction */}
+                      <Input
                         type="file"
                         id={`uploader-${slot.key}`}
                         accept="application/pdf, image/png, image/jpeg"
@@ -422,8 +429,8 @@ export function ComplianceView() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-amber-100 mb-4">
-              <AlertTriangle className="size-6 text-amber-600" />
+            <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-warning/10 mb-4">
+              <AlertTriangle className="size-6 text-warning" />
             </div>
             <AlertDialogTitle>{t("dialog.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>

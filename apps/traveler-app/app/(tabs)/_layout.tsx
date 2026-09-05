@@ -23,6 +23,7 @@ import {
   Settings01Icon,
 } from "@hugeicons/core-free-icons";
 import { useTranslation } from "react-i18next";
+import { Palette, Colors } from "@/constants/theme";
 
 const iconMap: Record<string, { icon: typeof Home01Icon; labelKey: string }> = {
   index: { icon: Home01Icon, labelKey: "home" },
@@ -101,14 +102,14 @@ function TabItem({
       <HugeiconsIcon
         icon={config.icon}
         size={24}
-        color={isFocused ? "#ee237c" : "#a3a3a3"}
+        color={isFocused ? Palette.rose[500] : Colors.light.textMuted}
       />
       <Animated.Text
         style={[
           {
             fontSize: 11,
             fontWeight: "700",
-            color: "#ee237c",
+            color: Palette.rose[500],
             letterSpacing: 0.3,
           },
           labelAnimatedStyle,
@@ -129,19 +130,19 @@ function SearchButton({ onPress }: { onPress: () => void }) {
           width: CIRCLE_SIZE,
           height: CIRCLE_SIZE,
           borderRadius: CIRCLE_SIZE / 2,
-          backgroundColor: "#ee237c",
+          backgroundColor: Palette.rose[500],
           alignItems: "center",
           justifyContent: "center",
           marginTop: -(CIRCLE_SIZE / 2 + 6) + PEAK,
           opacity: pressed ? 0.85 : 1,
-          shadowColor: "#ee237c",
+          shadowColor: Palette.rose[500],
           shadowOffset: { width: 0, height: 6 },
           shadowOpacity: 0.4,
           shadowRadius: 12,
           elevation: 10,
         })}
       >
-        <HugeiconsIcon icon={Search01Icon} size={26} color="#ffffff" />
+        <HugeiconsIcon icon={Search01Icon} size={26} color={Colors.light.card} />
       </Pressable>
     </View>
   );
@@ -207,8 +208,8 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
         <Svg width="100%" height="100%" viewBox={`0 0 ${barWidth} ${TOTAL_HEIGHT}`}>
           <Path
             d={getCurvedPath(barWidth)}
-            fill="#ffffff"
-            stroke="#e5e5e5"
+            fill={Colors.light.card}
+            stroke={Colors.light.border}
             strokeWidth={0.5}
           />
         </Svg>
@@ -279,7 +280,7 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
                 width: INDICATOR_WIDTH,
                 height: INDICATOR_HEIGHT,
                 borderRadius: INDICATOR_HEIGHT / 2,
-                backgroundColor: "#ee237c",
+                backgroundColor: Palette.rose[500],
               },
               indicatorAnimatedStyle,
             ]}

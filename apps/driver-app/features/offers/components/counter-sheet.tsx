@@ -2,13 +2,12 @@ import React, { useState } from "react";
 import {
 	View,
 	Text,
-	TextInput,
 	Modal,
 	Pressable,
-	StyleSheet,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 
 interface CounterSheetProps {
 	open: boolean;
@@ -52,55 +51,42 @@ export function CounterSheet({
 			}}
 		>
 			<Pressable
-				style={styles.backdrop}
+				className="flex-1 bg-black/60"
 				onPress={() => {
 					reset();
 					onClose();
 				}}
 			/>
-			<View style={styles.sheetContainer}>
-				<View style={styles.dragHandle} />
-				<Text style={styles.sheetTitle}>
+			<View className="bg-card border-t border-border rounded-t-3xl px-5 pt-3 pb-9 gap-3.5">
+				<View className="self-center h-1 w-11 rounded-full bg-zinc-700 mb-1" />
+				<Text className="text-lg font-extrabold text-foreground tracking-tight">
 					{t("counter.title")}
 				</Text>
-				<Text style={styles.sheetSubtitle}>
+				<Text className="text-xs text-muted-foreground leading-4">
 					{t("counter.subtitle")}
 				</Text>
 
-				<View style={styles.fieldGroup}>
-					<Text style={styles.fieldLabel}>
-						{t("counter.salaryLabel")}
-					</Text>
-					<TextInput
-						style={styles.textInput}
-						placeholderTextColor="#71717a"
-						keyboardType="number-pad"
-						placeholder={t("counter.salaryPlaceholder")}
-						value={salary}
-						onChangeText={setSalary}
-					/>
-				</View>
+				<Input
+					label={t("counter.salaryLabel")}
+					keyboardType="number-pad"
+					placeholder={t("counter.salaryPlaceholder")}
+					value={salary}
+					onChangeText={setSalary}
+				/>
 
-				<View style={styles.fieldGroup}>
-					<Text style={styles.fieldLabel}>
-						{t("counter.startDateLabel")}
-					</Text>
-					<TextInput
-						style={styles.textInput}
-						placeholderTextColor="#71717a"
-						placeholder={t("counter.startDatePlaceholder")}
-						value={startDate}
-						onChangeText={setStartDate}
-					/>
-				</View>
+				<Input
+					label={t("counter.startDateLabel")}
+					placeholder={t("counter.startDatePlaceholder")}
+					value={startDate}
+					onChangeText={setStartDate}
+				/>
 
-				<View style={styles.fieldGroup}>
-					<Text style={styles.fieldLabel}>
+				<View className="w-full gap-1.5">
+					<Text className="text-xs font-bold text-foreground/80 uppercase tracking-wider">
 						{t("counter.noteLabel")}
 					</Text>
-					<TextInput
-						style={[styles.textInput, styles.textArea]}
-						placeholderTextColor="#71717a"
+					<Input
+						className="min-h-[76px] py-3 items-start"
 						multiline
 						numberOfLines={3}
 						maxLength={2000}
@@ -110,7 +96,7 @@ export function CounterSheet({
 					/>
 				</View>
 
-				<View style={styles.buttonRow}>
+				<View className="flex-row gap-3 pt-1.5">
 					<Button
 						title={t("counter.cancel")}
 						variant="outline"
@@ -143,69 +129,3 @@ export function CounterSheet({
 		</Modal>
 	);
 }
-
-const styles = StyleSheet.create({
-	backdrop: {
-		flex: 1,
-		backgroundColor: "rgba(0,0,0,0.6)",
-	},
-	sheetContainer: {
-		backgroundColor: "#18181b",
-		borderTopLeftRadius: 28,
-		borderTopRightRadius: 28,
-		borderWidth: 1,
-		borderColor: "#27272a",
-		paddingHorizontal: 20,
-		paddingTop: 12,
-		paddingBottom: 36,
-		gap: 14,
-	},
-	dragHandle: {
-		alignSelf: "center",
-		height: 4,
-		width: 44,
-		borderRadius: 999,
-		backgroundColor: "#3f3f46",
-		marginBottom: 4,
-	},
-	sheetTitle: {
-		fontSize: 18,
-		fontWeight: "800",
-		color: "#fafafa",
-		letterSpacing: -0.3,
-	},
-	sheetSubtitle: {
-		fontSize: 12,
-		color: "#a1a1aa",
-		lineHeight: 16,
-	},
-	fieldGroup: {
-		gap: 6,
-	},
-	fieldLabel: {
-		fontSize: 11,
-		fontWeight: "700",
-		color: "#d4d4d8",
-		textTransform: "uppercase",
-		letterSpacing: 0.5,
-	},
-	textInput: {
-		borderRadius: 14,
-		borderWidth: 1,
-		borderColor: "#27272a",
-		backgroundColor: "#09090b",
-		paddingHorizontal: 14,
-		paddingVertical: 12,
-		color: "#fafafa",
-		fontSize: 14,
-	},
-	textArea: {
-		minHeight: 76,
-		textAlignVertical: "top",
-	},
-	buttonRow: {
-		flexDirection: "row",
-		gap: 12,
-		paddingTop: 6,
-	},
-});

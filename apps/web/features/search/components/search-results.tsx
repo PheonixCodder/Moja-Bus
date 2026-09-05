@@ -39,37 +39,37 @@ export const SearchResults = memo(function SearchResults({
         {[1, 2, 3].map((idx) => (
           <Card
             key={idx}
-            className="border border-slate-100 shadow-sm rounded-2xl overflow-hidden"
+            className="border border-border shadow-sm rounded-2xl overflow-hidden bg-card"
           >
             <CardContent className="p-6">
               <div className="animate-pulse space-y-4">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 bg-slate-200 rounded-full" />
+                    <div className="h-10 w-10 bg-muted rounded-full" />
                     <div className="space-y-1.5">
-                      <div className="h-4 w-28 bg-slate-200 rounded" />
-                      <div className="h-3 w-16 bg-slate-100 rounded" />
+                      <div className="h-4 w-28 bg-muted rounded" />
+                      <div className="h-3 w-16 bg-muted/60 rounded" />
                     </div>
                   </div>
-                  <div className="h-4 w-16 bg-slate-100 rounded" />
+                  <div className="h-4 w-16 bg-muted/60 rounded" />
                 </div>
                 <div className="grid grid-cols-3 gap-4 py-2">
                   <div className="space-y-1">
-                    <div className="h-6 w-16 bg-slate-200 rounded" />
-                    <div className="h-3 w-24 bg-slate-100 rounded" />
+                    <div className="h-6 w-16 bg-muted rounded" />
+                    <div className="h-3 w-24 bg-muted/60 rounded" />
                   </div>
                   <div className="flex flex-col items-center gap-1 self-center">
-                    <div className="h-2 w-full bg-slate-100 rounded-full" />
-                    <div className="h-2.5 w-14 bg-slate-100 rounded" />
+                    <div className="h-2 w-full bg-muted/60 rounded-full" />
+                    <div className="h-2.5 w-14 bg-muted/60 rounded" />
                   </div>
                   <div className="space-y-1 text-right">
-                    <div className="h-6 w-16 bg-slate-200 rounded ml-auto" />
-                    <div className="h-3 w-24 bg-slate-100 rounded ml-auto" />
+                    <div className="h-6 w-16 bg-muted rounded ml-auto" />
+                    <div className="h-3 w-24 bg-muted/60 rounded ml-auto" />
                   </div>
                 </div>
-                <div className="flex justify-between items-center pt-2 border-t border-slate-50">
-                  <div className="h-4 w-20 bg-slate-100 rounded" />
-                  <div className="h-10 w-32 bg-slate-200 rounded-xl" />
+                <div className="flex justify-between items-center pt-2 border-t border-border">
+                  <div className="h-4 w-20 bg-muted/60 rounded" />
+                  <div className="h-10 w-32 bg-muted rounded-xl" />
                 </div>
               </div>
             </CardContent>
@@ -81,20 +81,20 @@ export const SearchResults = memo(function SearchResults({
 
   if (offers.length === 0) {
     return (
-      <div className="text-center py-20 bg-white border border-slate-100 rounded-2xl shadow-sm px-6">
-        <div className="bg-slate-50 h-20 w-20 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-300">
+      <div className="text-center py-20 bg-card border border-border rounded-2xl shadow-sm px-6">
+        <div className="bg-muted/50 h-20 w-20 rounded-full flex items-center justify-center mx-auto mb-6 text-muted-foreground/60">
           <MapPinOff className="h-10 w-10" />
         </div>
-        <h3 className="text-lg font-bold font-montserrat mb-1 text-slate-800">
+        <h3 className="text-lg font-bold font-montserrat mb-1 text-foreground">
           {t("noResultsTitle")}
         </h3>
-        <p className="text-slate-500 text-sm max-w-sm mx-auto mb-6">
+        <p className="text-muted-foreground text-sm max-w-sm mx-auto mb-6">
           {t("noResultsDesc", { date })}
         </p>
         <Button
           variant="outline"
           onClick={onClearFilters}
-          className="border-slate-200 rounded-xl font-bold text-slate-600 hover:border-[#ee237c] hover:text-[#ee237c] transition-colors"
+          className="border-border rounded-xl font-bold text-muted-foreground hover:border-primary hover:text-primary transition-colors"
         >
           {t("resetFilters")}
         </Button>
@@ -114,11 +114,11 @@ export const SearchResults = memo(function SearchResults({
             variant="outline"
             onClick={onLoadMore}
             disabled={isLoadingMore}
-            className="px-8 h-11 rounded-full border-2 border-slate-200 font-bold text-slate-600 hover:border-[#ee237c] hover:text-[#ee237c] transition-all disabled:opacity-50"
+            className="px-8 h-11 rounded-full border-2 border-border font-bold text-muted-foreground hover:border-primary hover:text-primary transition-all disabled:opacity-50"
           >
             {isLoadingMore ? (
               <span className="flex items-center gap-2">
-                <span className="h-4 w-4 border-2 border-slate-300 border-t-[#ee237c] rounded-full animate-spin" />
+                <span className="h-4 w-4 border-2 border-border border-t-primary rounded-full animate-spin" />
                 {t("loadingLabel")}
               </span>
             ) : (

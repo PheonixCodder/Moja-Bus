@@ -113,13 +113,13 @@ export function OperatorPromotionDrawer({
 
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DrawerContent className="max-h-[88vh] flex flex-col bg-white border-t border-slate-200">
+      <DrawerContent className="max-h-[88vh] flex flex-col bg-card border-t border-border">
         <div className="mx-auto w-full max-w-5xl flex-1 flex flex-col min-h-0">
-          <DrawerHeader className="px-6 pt-5 pb-4 border-b border-slate-100 shrink-0">
+          <DrawerHeader className="px-6 pt-5 pb-4 border-b border-border shrink-0">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2.5">
-                  <DrawerTitle className="text-xl font-bold tracking-tight text-slate-900">
+                  <DrawerTitle className="text-xl font-bold tracking-tight text-foreground">
                     {isDetailLoading
                       ? t("loading")
                       : (campaign?.name ?? t("promotion"))}
@@ -133,7 +133,7 @@ export function OperatorPromotionDrawer({
                     </Badge>
                   )}
                 </div>
-                <DrawerDescription className="text-xs text-slate-500">
+                <DrawerDescription className="text-xs text-muted-foreground">
                   {campaign
                     ? t("descWithCounts", {
                         codes: campaign._count?.coupons ?? 0,
@@ -151,7 +151,7 @@ export function OperatorPromotionDrawer({
                     variant="outline"
                     disabled={isStatusPending}
                     onClick={() => onStatusChange(campaign.id, "PAUSED")}
-                    className="gap-1.5 text-xs font-medium text-amber-700 border-amber-200 hover:bg-amber-50"
+                    className="gap-1.5 text-xs font-medium text-warning border-warning/30 hover:bg-warning/10"
                   >
                     <Pause className="size-3.5" />
                     {t("pause")}
@@ -164,28 +164,29 @@ export function OperatorPromotionDrawer({
                     variant="outline"
                     disabled={isStatusPending}
                     onClick={() => onStatusChange(campaign.id, "ACTIVE")}
-                    className="gap-1.5 text-xs font-medium text-emerald-700 border-emerald-200 hover:bg-emerald-50"
+                    className="gap-1.5 text-xs font-medium text-success border-success/30 hover:bg-success/10"
                   >
                     <Play className="size-3.5" />
                     {t("activate")}
                   </Button>
                 )}
-                <DrawerClose asChild>
-                  <Button
+                <DrawerClose
+              render={
+                <Button
                     type="button"
                     size="sm"
                     variant="ghost"
-                    className="size-8 p-0 text-slate-500"
-                  >
+                    className="size-8 p-0 text-muted-foreground" />
+              }
+            >
                     <X className="size-4" />
                     <span className="sr-only">{tc("close")}</span>
-                  </Button>
-                </DrawerClose>
+                  </DrawerClose>
               </div>
             </div>
 
             {/* Tab Navigation */}
-            <div className="mt-4 flex items-center gap-1 border-b border-slate-200/80 -mb-4">
+            <div className="mt-4 flex items-center gap-1 border-b border-border -mb-4">
               {(
                 [
                   {
@@ -205,19 +206,20 @@ export function OperatorPromotionDrawer({
                   },
                 ] as const
               ).map(({ id, label, icon: Icon }) => (
-                <button
+                <Button
                   key={id}
                   type="button"
+                  variant="ghost"
                   onClick={() => onTabChange(id)}
-                  className={`flex items-center gap-2 px-3 py-2 text-xs font-semibold border-b-2 transition-colors cursor-pointer ${
+                  className={`flex items-center gap-2 px-3 py-2 text-xs font-semibold border-b-2 rounded-none transition-colors h-auto ${
                     activeTab === id
-                      ? "border-slate-900 text-slate-900"
-                      : "border-transparent text-slate-500 hover:text-slate-700"
+                      ? "border-primary text-primary"
+                      : "border-transparent text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   <Icon className="size-3.5" />
                   {label}
-                </button>
+                </Button>
               ))}
             </div>
           </DrawerHeader>

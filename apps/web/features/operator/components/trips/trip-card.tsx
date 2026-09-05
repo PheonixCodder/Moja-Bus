@@ -78,9 +78,10 @@ export function TripCard({
 
   return (
     <div className="border border-border rounded-md bg-card hover:border-primary/20 transition-all duration-200 overflow-hidden">
-      <button
+      <Button
         type="button"
-        className="flex items-start gap-3 p-4 w-full text-left cursor-pointer"
+        variant="ghost"
+        className="flex items-start gap-3 p-4 w-full h-auto text-left cursor-pointer justify-start rounded-none hover:bg-transparent"
         onClick={() => setExpanded((e) => !e)}
         aria-expanded={expanded}
       >
@@ -117,7 +118,7 @@ export function TripCard({
               {trip.serviceType === "URBAN" ? (
                 <UrbanBadge />
               ) : (
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0 text-[10px] font-semibold text-slate-500">
+                <span className="rounded-full border border-border bg-muted px-2 py-0 text-[10px] font-semibold text-muted-foreground">
                   {t("intercity")}
                 </span>
               )}
@@ -135,10 +136,10 @@ export function TripCard({
             </p>
           ) : null}
         </div>
-      </button>
+      </Button>
 
       {expanded ? (
-        <div className="border-t border-border px-4 pb-4 pt-3 space-y-3 bg-slate-50/30">
+        <div className="border-t border-border px-4 pb-4 pt-3 space-y-3 bg-muted/30">
           {canAssign && buses.length > 0 ? (
             <div className="flex items-center gap-2">
               <Bus className="size-4 text-muted-foreground shrink-0" />

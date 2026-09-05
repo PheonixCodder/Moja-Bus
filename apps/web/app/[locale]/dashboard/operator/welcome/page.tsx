@@ -45,18 +45,18 @@ export default async function OperatorWelcomePage({ params }: Props) {
 
   return (
     <HydrateClient>
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4">
         <div className="max-w-lg w-full">
           {/* Card */}
-          <div className="bg-white rounded-xl border border-border shadow-sm overflow-hidden">
+          <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
             {/* Accent bar */}
-            <div className="h-1.5 bg-gradient-to-r from-primary via-primary/80 to-green-500" />
+            <div className="h-1.5 bg-gradient-to-r from-primary via-primary/80 to-success" />
 
             <div className="p-8 space-y-6">
               {/* Icon + heading */}
               <div className="flex flex-col items-center text-center space-y-3">
-                <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center">
-                  <CheckCircle2 className="w-8 h-8 text-green-600" />
+                <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center">
+                  <CheckCircle2 className="w-8 h-8 text-success" />
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold text-foreground">
@@ -70,8 +70,8 @@ export default async function OperatorWelcomePage({ params }: Props) {
 
               {/* Status blocks */}
               <div className="space-y-3">
-                <div className="flex items-start gap-3 p-4 bg-green-50 rounded-lg border border-green-100">
-                  <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-4 bg-success/10 rounded-lg border border-success/20">
+                  <CheckCircle2 className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="text-sm font-bold text-foreground">
                       {t("verificationSubmitted.title")}
@@ -82,8 +82,8 @@ export default async function OperatorWelcomePage({ params }: Props) {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-4 bg-amber-50 rounded-lg border border-amber-100">
-                  <Clock className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-4 bg-warning/10 rounded-lg border border-warning/20">
+                  <Clock className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="text-sm font-bold text-foreground">
                       {t("underReview.title")}
@@ -108,7 +108,7 @@ export default async function OperatorWelcomePage({ params }: Props) {
               </div>
 
               {/* What you can set up now */}
-              <div className="bg-slate-50 rounded-lg p-4 space-y-2">
+              <div className="bg-muted/50 rounded-lg p-4 space-y-2">
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                   {t("whatYouCanSetup")}
                 </p>

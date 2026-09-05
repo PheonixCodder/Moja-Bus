@@ -3,6 +3,7 @@ import { View, Text, Pressable } from "react-native";
 import { useTranslation } from "react-i18next";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { UserIcon } from "@hugeicons/core-free-icons";
+import { Colors, Palette } from "@/constants/theme";
 import {
   buildSeatGrid,
   getColumnHeaders,
@@ -58,17 +59,17 @@ function SeatCell({
 
   if (isDriver) {
     return (
-      <View className="flex-1 h-[46px] m-[3px] rounded-xl bg-slate-800 border-[1.5px] border-slate-600 items-center justify-center">
-        <HugeiconsIcon icon={UserIcon} size={16} color="#ffffff" />
+      <View className="flex-1 h-[46px] m-[3px] rounded-xl bg-foreground border-[1.5px] border-border items-center justify-center">
+        <HugeiconsIcon icon={UserIcon} size={16} color={Colors.light.card} />
       </View>
     );
   }
 
   if (isBlocked) {
     return (
-      <View className="flex-1 h-[46px] m-[3px] items-center justify-center rounded-t-xl rounded-b-2xl bg-slate-50 border-[1.5px] border-slate-200">
+      <View className="flex-1 h-[46px] m-[3px] items-center justify-center rounded-t-xl rounded-b-2xl bg-muted/40 border-[1.5px] border-border">
         {showLabel ? (
-          <Text className="text-sm font-extrabold tracking-wide text-slate-300">
+          <Text className="text-sm font-extrabold tracking-wide text-muted-foreground/40">
             {seat.label}
           </Text>
         ) : null}
@@ -82,14 +83,14 @@ function SeatCell({
       disabled={!isAvailable && !isSelected}
       className={`flex-1 h-[46px] m-[3px] items-center justify-center rounded-t-xl rounded-b-2xl ${
         isSelected
-          ? "bg-[#ee237c] shadow-md shadow-pink-500/30"
+          ? "bg-primary shadow-md shadow-primary/30"
           : isAvailable
-            ? "bg-emerald-50 border-[1.5px] border-emerald-300"
+            ? "bg-success/10 border-[1.5px] border-success/30"
             : isSold
-              ? "bg-slate-100 border-[1.5px] border-slate-200"
+              ? "bg-muted border-[1.5px] border-border"
               : isHeld
-                ? "bg-amber-50 border-[1.5px] border-amber-300"
-                : "bg-slate-50 border-[1.5px] border-slate-200"
+                ? "bg-warning/10 border-[1.5px] border-warning/30"
+                : "bg-muted/40 border-[1.5px] border-border"
       }`}
       style={({ pressed }) => ({ opacity: pressed ? 0.75 : 1 })}
     >
@@ -97,14 +98,14 @@ function SeatCell({
         <Text
           className={`text-sm font-extrabold tracking-wide ${
             isSelected
-              ? "text-white"
+              ? "text-primary-foreground"
               : isAvailable
-                ? "text-emerald-700"
+                ? "text-success"
                 : isSold
-                  ? "text-slate-400"
+                  ? "text-muted-foreground"
                   : isHeld
-                    ? "text-amber-600"
-                    : "text-slate-400"
+                    ? "text-warning"
+                    : "text-muted-foreground"
           }`}
         >
           {seat.label}
@@ -127,13 +128,13 @@ export function PassengerSeatMap({
 
   return (
     <View className="gap-0">
-      <View className="items-center mb-4 pb-3 border-b border-slate-100">
-        <View className="flex-row items-center bg-pink-50 rounded-full px-4 py-1.5 border border-pink-200 gap-1.5">
-          <View className="w-2 h-2 rounded-full bg-[#ee237c]" />
-          <Text className="text-sm font-bold text-pink-600 tracking-widest">
+      <View className="items-center mb-4 pb-3 border-b border-border/60">
+        <View className="flex-row items-center bg-primary/10 rounded-full px-4 py-1.5 border border-primary/20 gap-1.5">
+          <View className="w-2 h-2 rounded-full bg-primary" />
+          <Text className="text-sm font-bold text-primary tracking-widest">
             {t("frontOfBus", "FRONT OF BUS")}
           </Text>
-          <View className="w-2 h-2 rounded-full bg-[#ee237c]" />
+          <View className="w-2 h-2 rounded-full bg-primary" />
         </View>
       </View>
 
@@ -141,7 +142,7 @@ export function PassengerSeatMap({
         <View className="w-6" />
         {colHeaders.map((header) => (
           <View key={header} className="flex-1 items-center">
-            <Text className="text-xs font-bold text-slate-400 tracking-wide">
+            <Text className="text-xs font-bold text-muted-foreground tracking-wide">
               {header}
             </Text>
           </View>
@@ -151,7 +152,7 @@ export function PassengerSeatMap({
       {grid.map((row, rowIndex) => (
         <View key={rowIndex} className="flex-row items-center px-1">
           <View className="w-6 items-center">
-            <Text className="text-xs font-semibold text-slate-300">
+            <Text className="text-xs font-semibold text-muted-foreground/60">
               {rowIndex + 1}
             </Text>
           </View>
@@ -174,35 +175,35 @@ export function PassengerSeatMap({
         </View>
       ))}
 
-      <View className="flex-row flex-wrap gap-2 mt-5 pt-4 border-t border-slate-100 justify-center">
+      <View className="flex-row flex-wrap gap-2 mt-5 pt-4 border-t border-border/60 justify-center">
         {[
           {
             label: t("available", "Available"),
-            bgClass: "bg-emerald-50 border-emerald-300",
+            bgClass: "bg-success/10 border-success/30",
           },
           {
             label: t("selected", "Selected"),
-            bgClass: "bg-[#ee237c] border-[#ee237c]",
+            bgClass: "bg-primary border-primary",
           },
           {
             label: t("held", "Held"),
-            bgClass: "bg-amber-50 border-amber-300",
+            bgClass: "bg-warning/10 border-warning/30",
           },
           {
             label: t("taken", "Taken"),
-            bgClass: "bg-slate-100 border-slate-200",
+            bgClass: "bg-muted border-border",
           },
           {
             label: t("blocked", "Blocked"),
-            bgClass: "bg-slate-50 border-slate-200",
+            bgClass: "bg-muted/40 border-border",
           },
         ].map(({ label, bgClass }) => (
           <View
             key={label}
-            className="flex-row items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-full border border-slate-100"
+            className="flex-row items-center gap-1.5 bg-muted/20 px-2.5 py-1 rounded-full border border-border/50"
           >
             <View className={`w-4 h-4 rounded border-[1.5px] ${bgClass}`} />
-            <Text className="text-sm font-semibold text-slate-500">{label}</Text>
+            <Text className="text-sm font-semibold text-muted-foreground">{label}</Text>
           </View>
         ))}
       </View>

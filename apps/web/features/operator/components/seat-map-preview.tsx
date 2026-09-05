@@ -6,6 +6,7 @@ import { cn } from "@moja/ui/lib/utils";
 import { toast } from "sonner";
 import { useTRPC } from "@/trpc/client";
 import { useMutation } from "@tanstack/react-query";
+import { Button } from "@moja/ui/components/ui/button";
 import type { RouterOutputs } from "@/trpc/client";
 import { useTranslations } from "next-intl";
 
@@ -166,9 +167,11 @@ export function SeatMapPreview({
               }
 
               return (
-                <button
+                <Button
                   key={seat.id}
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   disabled={!interactive || isDisabled || isTogglingThis}
                   onClick={() => handleSeatClick(seat)}
                   aria-label={
@@ -179,9 +182,9 @@ export function SeatMapPreview({
                         : seat.label
                   }
                   className={cn(
-                    "h-9 w-10 rounded-md border text-[10px] font-semibold flex flex-col items-center justify-center gap-0.5 select-none transition-all duration-150",
+                    "h-9 w-10 p-0 rounded-md border text-[10px] font-semibold flex flex-col items-center justify-center gap-0.5 select-none transition-all duration-150",
                     isDisabled &&
-                      "border-border bg-foreground/80 cursor-not-allowed text-background",
+                      "border-border bg-foreground/80 cursor-not-allowed text-background hover:bg-foreground/80",
                     isPassenger &&
                       isActive &&
                       !isDisabled &&
@@ -189,7 +192,7 @@ export function SeatMapPreview({
                     isPassenger &&
                       !isActive &&
                       !isDisabled &&
-                      "border-border bg-muted text-muted-foreground",
+                      "border-border bg-muted text-muted-foreground hover:bg-muted",
                     interactive && isPassenger && "cursor-pointer",
                     isTogglingThis && "opacity-50 scale-95",
                   )}
@@ -204,7 +207,7 @@ export function SeatMapPreview({
                   ) : (
                     <span>{seat.label}</span>
                   )}
-                </button>
+                </Button>
               );
             })}
           </div>

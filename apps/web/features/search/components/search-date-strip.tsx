@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { cn } from "@moja/ui/lib/utils";
 import { useCheapestByDate } from "../hooks/use-cheapest-by-date";
 import { formatPriceXOF } from "../lib/format";
+import { Button } from "@moja/ui/components/ui/button";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = [
@@ -102,25 +103,26 @@ export const SearchDateStrip = memo(function SearchDateStrip({
           const isSelectable = hasTrips || isSelected || !hasRoute;
 
           return (
-            <button
+            <Button
               key={dateStr}
               type="button"
+              variant="outline"
               disabled={!isSelectable}
               onClick={() => isSelectable && onSelectDate(dateStr)}
               className={cn(
-                "relative flex flex-col items-center justify-center flex-1 min-w-[72px] sm:min-w-[88px] rounded-xl px-2 py-3 transition-all duration-150 border",
+                "relative flex flex-col items-center justify-center flex-1 min-w-[72px] sm:min-w-[88px] h-auto rounded-xl px-2 py-3 transition-all duration-150 border shadow-none",
                 isSelected
-                  ? "bg-[#ee237c] border-[#ee237c] text-white shadow-md shadow-pink-200"
+                  ? "bg-primary border-primary text-primary-foreground shadow-md hover:bg-primary/90"
                   : isSelectable
-                    ? "bg-white border-slate-200 text-slate-700 hover:border-[#ee237c]/60 hover:bg-rose-50 cursor-pointer"
-                    : "bg-white border-slate-100 text-slate-300 cursor-not-allowed opacity-60",
+                    ? "bg-card border-border text-foreground hover:border-primary/60 hover:bg-primary/5 cursor-pointer"
+                    : "bg-card border-border/50 text-muted-foreground/40 cursor-not-allowed opacity-60",
               )}
               aria-pressed={isSelected}
               aria-label={`${weekday} ${dayNum} ${month}${priceXOF ? ` – ${formatPriceXOF(priceXOF)}` : ""}`}
             >
               {/* Cheapest badge */}
               {isCheapest && !isSelected && (
-                <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap leading-none">
+                <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-success text-success-foreground text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap leading-none">
                   {t("bestBadge")}
                 </span>
               )}
@@ -130,10 +132,10 @@ export const SearchDateStrip = memo(function SearchDateStrip({
                 className={cn(
                   "text-[11px] font-semibold uppercase tracking-wide mb-0.5",
                   isSelected
-                    ? "text-rose-100"
+                    ? "text-primary-foreground/80"
                     : isSelectable
-                      ? "text-slate-400"
-                      : "text-slate-300",
+                      ? "text-muted-foreground"
+                      : "text-muted-foreground/40",
                 )}
               >
                 {weekday}
@@ -144,10 +146,10 @@ export const SearchDateStrip = memo(function SearchDateStrip({
                 className={cn(
                   "text-xl sm:text-2xl font-bold leading-none mb-1",
                   isSelected
-                    ? "text-white"
+                    ? "text-primary-foreground"
                     : isSelectable
-                      ? "text-slate-800"
-                      : "text-slate-300",
+                      ? "text-foreground"
+                      : "text-muted-foreground/40",
                 )}
               >
                 {dayNum}
@@ -158,10 +160,10 @@ export const SearchDateStrip = memo(function SearchDateStrip({
                 className={cn(
                   "text-[10px] font-medium mb-1.5",
                   isSelected
-                    ? "text-rose-100"
+                    ? "text-primary-foreground/80"
                     : isSelectable
-                      ? "text-slate-400"
-                      : "text-slate-300",
+                      ? "text-muted-foreground"
+                      : "text-muted-foreground/40",
                 )}
               >
                 {month}
@@ -169,16 +171,16 @@ export const SearchDateStrip = memo(function SearchDateStrip({
 
               {/* Price */}
               {isLoading && hasRoute ? (
-                <span className="h-3 w-10 bg-slate-200 rounded-full animate-pulse" />
+                <span className="h-3 w-10 bg-muted rounded-full animate-pulse" />
               ) : hasTrips ? (
                 <span
                   className={cn(
                     "text-[11px] font-bold",
                     isSelected
-                      ? "text-white"
+                      ? "text-primary-foreground"
                       : isCheapest
-                        ? "text-emerald-600"
-                        : "text-[#ee237c]",
+                        ? "text-success"
+                        : "text-primary",
                   )}
                 >
                   {formatPriceXOF(priceXOF)}
@@ -187,13 +189,13 @@ export const SearchDateStrip = memo(function SearchDateStrip({
                 <span
                   className={cn(
                     "text-[11px] font-semibold",
-                    isSelected ? "text-rose-200" : "text-slate-300",
+                    isSelected ? "text-primary-foreground/70" : "text-muted-foreground/40",
                   )}
                 >
                   —
                 </span>
               )}
-            </button>
+            </Button>
           );
         })}
       </div>

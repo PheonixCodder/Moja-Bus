@@ -30,6 +30,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@moja/ui/components/ui/avatar";
+import { UserAvatar } from "@moja/ui/components/ui/user-avatar";
 import { Skeleton } from "@moja/ui/components/ui/skeleton";
 import {
   Dialog,
@@ -60,12 +61,12 @@ import { TrustBadges } from "@/features/operator/components/drivers/trust-badges
 // ─── Shared bits ─────────────────────────────────────────────────────────────
 
 const OFFER_STATUS_BADGES: Record<string, string> = {
-  PENDING: "bg-amber-50 text-amber-700 border-amber-200",
-  COUNTERED: "bg-blue-50 text-blue-700 border-blue-200",
-  ACCEPTED: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  DECLINED: "bg-rose-50 text-rose-700 border-rose-200",
-  EXPIRED: "bg-zinc-100 text-zinc-600 border-zinc-200",
-  WITHDRAWN: "bg-slate-100 text-slate-500 border-slate-200",
+  PENDING: "bg-warning/15 text-warning border-warning/20",
+  COUNTERED: "bg-primary/15 text-primary border-primary/20",
+  ACCEPTED: "bg-success/15 text-success border-success/20",
+  DECLINED: "bg-destructive/15 text-destructive border-destructive/20",
+  EXPIRED: "bg-muted text-muted-foreground border-border",
+  WITHDRAWN: "bg-muted text-muted-foreground border-border",
 };
 
 const EVENT_LABELS: Record<string, string> = {
@@ -95,15 +96,15 @@ function KpiCard({
   sub?: string;
 }) {
   return (
-    <div className="p-4 rounded-xl border bg-white space-y-1">
+    <div className="p-4 rounded-xl border bg-card space-y-1">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
           {label}
         </span>
         <Icon className={cn("size-4", accent)} />
       </div>
-      <p className="text-2xl font-black text-slate-900">{value}</p>
-      {sub && <p className="text-[11px] text-slate-500 font-medium">{sub}</p>}
+      <p className="text-2xl font-black text-foreground">{value}</p>
+      {sub && <p className="text-xs text-muted-foreground font-medium">{sub}</p>}
     </div>
   );
 }
@@ -198,19 +199,18 @@ function OfferAuditRow({ offer }: { offer: any }) {
       >
         <TableCell>
           <div className="flex items-center gap-2 min-w-0">
-            <Avatar className="size-7 border border-slate-100">
-              <AvatarImage src={offer.driverProfile.user.image ?? undefined} />
-              <AvatarFallback className="text-[9px]">
-                {(offer.driverProfile.user.fullName ?? "DR")
-                  .slice(0, 2)
-                  .toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <UserAvatar
+              name={offer.driverProfile.user.fullName}
+              src={offer.driverProfile.user.image}
+              seed={offer.driverProfile.id}
+              size="sm"
+              className="size-7 border border-border"
+            />
             <div className="min-w-0">
               <p className="text-xs font-semibold truncate">
                 {offer.driverProfile.user.fullName ?? "—"}
               </p>
-              <p className="text-[10px] text-slate-400 truncate">
+              <p className="text-xs text-muted-foreground truncate">
                 {offer.company.name}
               </p>
             </div>
@@ -219,7 +219,7 @@ function OfferAuditRow({ offer }: { offer: any }) {
         <TableCell className="text-xs">
           {offer.currentSalaryCFA.toLocaleString("fr-FR")} FCFA
           {offer.currentSalaryCFA !== offer.initialSalaryCFA && (
-            <span className="ml-1 text-[10px] text-slate-400 line-through">
+            <span className="ml-1 text-xs text-muted-foreground line-through">
               {offer.initialSalaryCFA.toLocaleString("fr-FR")}
             </span>
           )}
@@ -227,15 +227,15 @@ function OfferAuditRow({ offer }: { offer: any }) {
         <TableCell>
           <Badge
             variant="outline"
-            className={cn("text-[10px]", OFFER_STATUS_BADGES[offer.status])}
+            className={cn("text-xs", OFFER_STATUS_BADGES[offer.status])}
           >
             {offer.status}
           </Badge>
         </TableCell>
-        <TableCell className="text-xs text-slate-500">
+        <TableCell className="text-xs text-muted-foreground">
           {format(new Date(offer.createdAt), "dd MMM HH:mm")}
         </TableCell>
-        <TableCell className="text-xs text-slate-500">
+        <TableCell className="text-xs text-muted-foreground">
           {offer.respondedAt
             ? format(new Date(offer.respondedAt), "dd MMM HH:mm")
             : "—"}
@@ -250,24 +250,24 @@ function OfferAuditRow({ offer }: { offer: any }) {
       </TableRow>
 
       {expanded && (
-        <TableRow className="bg-slate-50/60 hover:bg-slate-50/60">
+        <TableRow className="bg-muted/50 hover:bg-muted/50">
           <TableCell colSpan={6}>
             <div className="pl-2 py-1 space-y-1.5">
               {offer.events.map((ev: any) => (
                 <div key={ev.id} className="flex items-start gap-2 text-xs">
                   <span className="mt-1 size-1.5 rounded-full bg-primary shrink-0" />
                   <div className="min-w-0 flex-1">
-                    <span className="font-semibold text-slate-700">
+                    <span className="font-semibold text-foreground">
                       {EVENT_LABELS[ev.eventType] ?? ev.eventType}
                     </span>
-                    <span className="text-slate-400 ml-1.5">
+                    <span className="text-muted-foreground ml-1.5">
                       ({ev.actorType.toLowerCase()}) ·{" "}
                       {format(new Date(ev.createdAt), "dd MMM yyyy HH:mm")}
                       {ev.salaryCFA != null &&
                         ` · ${ev.salaryCFA.toLocaleString("fr-FR")} FCFA`}
                     </span>
                     {ev.note && (
-                      <p className="text-slate-500 italic mt-0.5">
+                      <p className="text-muted-foreground italic mt-0.5">
                         “{ev.note}”
                       </p>
                     )}
@@ -404,31 +404,31 @@ export function AdminMarketplaceView() {
               label="Verified Drivers"
               value={health.totalVerified}
               icon={Users}
-              accent="text-blue-500"
+              accent="text-primary"
             />
             <KpiCard
               label="Available"
               value={health.availableForHire}
               icon={Eye}
-              accent="text-emerald-500"
+              accent="text-success"
             />
             <KpiCard
               label="Featured"
               value={`${health.featured}/${health.maxFeatured}`}
               icon={Sparkles}
-              accent="text-amber-500"
+              accent="text-warning"
             />
             <KpiCard
               label="Suspended"
               value={health.suspended}
               icon={Ban}
-              accent="text-rose-500"
+              accent="text-destructive"
             />
             <KpiCard
               label="Employed"
               value={health.employed}
               icon={Briefcase}
-              accent="text-violet-500"
+              accent="text-primary"
             />
             <KpiCard
               label="Avg Time-to-Hire"
@@ -438,14 +438,14 @@ export function AdminMarketplaceView() {
                   : "—"
               }
               icon={Clock}
-              accent="text-cyan-600"
+              accent="text-primary"
               sub={`Counter rate ${health.counterRatePct}%`}
             />
           </div>
 
           {/* Offer funnel */}
-          <div className="rounded-xl border bg-white px-4 py-3 flex flex-wrap items-center gap-x-6 gap-y-2">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          <div className="rounded-xl border bg-card px-4 py-3 flex flex-wrap items-center gap-x-6 gap-y-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Offer Funnel
             </span>
             {Object.entries(health.funnel).map(([status, count]) => (
@@ -456,23 +456,23 @@ export function AdminMarketplaceView() {
                 <span
                   className={cn(
                     "size-2 rounded-full",
-                    status === "ACCEPTED" && "bg-emerald-500",
-                    status === "PENDING" && "bg-amber-500",
-                    status === "COUNTERED" && "bg-blue-500",
-                    status === "DECLINED" && "bg-rose-500",
-                    status === "EXPIRED" && "bg-zinc-400",
-                    status === "WITHDRAWN" && "bg-slate-300",
+                    status === "ACCEPTED" && "bg-success",
+                    status === "PENDING" && "bg-warning",
+                    status === "COUNTERED" && "bg-primary",
+                    status === "DECLINED" && "bg-destructive",
+                    status === "EXPIRED" && "bg-muted-foreground",
+                    status === "WITHDRAWN" && "bg-muted-foreground/60",
                   )}
                 />
                 <span className="font-semibold">{count}</span>
-                <span className="text-slate-400 capitalize">
+                <span className="text-muted-foreground capitalize">
                   {status.toLowerCase()}
                 </span>
               </span>
             ))}
-            <span className="ml-auto text-[11px] text-slate-400">
+            <span className="ml-auto text-xs text-muted-foreground">
               Avg first response:{" "}
-              <strong className="text-slate-600">
+              <strong className="text-foreground">
                 {health.avgFirstResponseHours != null
                   ? `${Math.round(health.avgFirstResponseHours)}h`
                   : "—"}
@@ -494,21 +494,18 @@ export function AdminMarketplaceView() {
           {/* Filters */}
           <div className="flex flex-wrap items-center gap-2">
             {DRIVER_FILTERS.map((f) => (
-              <button
+              <Button
                 key={f.value}
+                size="sm"
+                variant={driverTab === f.value ? "default" : "outline"}
                 onClick={() => {
                   setDriverTab(f.value);
                   setPage(1);
                 }}
-                className={cn(
-                  "rounded-full px-3.5 py-1.5 text-xs font-semibold border transition-colors",
-                  driverTab === f.value
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-white text-slate-600 border-slate-200 hover:border-slate-300",
-                )}
+                className="rounded-full text-xs font-semibold"
               >
                 {f.label}
-              </button>
+              </Button>
             ))}
             <div className="relative ml-auto w-full sm:w-64">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
@@ -525,10 +522,10 @@ export function AdminMarketplaceView() {
           </div>
 
           {/* Table */}
-          <div className="rounded-xl border bg-white overflow-hidden">
+          <div className="rounded-xl border bg-card overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow>
+                <TableRow className="bg-muted/50">
                   <TableHead>Driver</TableHead>
                   <TableHead>Traffic Lights</TableHead>
                   <TableHead>Badges</TableHead>
@@ -564,20 +561,21 @@ export function AdminMarketplaceView() {
                     <TableRow key={d.id}>
                       <TableCell>
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <Avatar className="size-8 border border-slate-100">
-                            <AvatarImage src={d.image ?? undefined} />
-                            <AvatarFallback className="text-[9px]">
-                              {(d.fullName ?? "DR").slice(0, 2).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
+                          <UserAvatar
+                            name={d.fullName}
+                            src={d.image}
+                            seed={d.id}
+                            size="sm"
+                            className="size-8 border border-border"
+                          />
                           <div className="min-w-0">
                             <p className="text-xs font-semibold truncate">
                               {d.fullName ?? "—"}
                             </p>
-                            <p className="text-[10px] text-slate-400">
+                            <p className="text-xs text-muted-foreground">
                               Class {d.licenseCategory} ·{" "}
                               <span className="inline-flex items-center gap-0.5">
-                                <Star className="size-2.5 fill-amber-400 text-amber-400" />
+                                <Star className="size-2.5 fill-warning text-warning" />
                                 {d.averageRating.toFixed(1)}
                               </span>{" "}
                               · Safety {d.safetyScore}
@@ -589,7 +587,7 @@ export function AdminMarketplaceView() {
                         <div className="flex flex-wrap gap-1">
                           {pref?.isFeatured && (
                             <Badge
-                              className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-50 text-[10px]"
+                              className="bg-warning/15 text-warning border-warning/20 hover:bg-warning/15 text-xs"
                               variant="outline"
                             >
                               <Sparkles className="size-2.5 mr-0.5" /> Featured
@@ -597,7 +595,7 @@ export function AdminMarketplaceView() {
                           )}
                           {pref?.isSuspended && (
                             <Badge
-                              className="bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-50 text-[10px]"
+                              className="bg-destructive/15 text-destructive border-destructive/20 hover:bg-destructive/15 text-xs"
                               variant="outline"
                             >
                               <Ban className="size-2.5 mr-0.5" /> Suspended
@@ -605,7 +603,7 @@ export function AdminMarketplaceView() {
                           )}
                           {isLive && !pref?.isFeatured && (
                             <Badge
-                              className="bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-50 text-[10px]"
+                              className="bg-success/15 text-success border-success/20 hover:bg-success/15 text-xs"
                               variant="outline"
                             >
                               Available
@@ -614,7 +612,7 @@ export function AdminMarketplaceView() {
                           {!pref?.isAvailableForHire && !pref?.isSuspended && (
                             <Badge
                               variant="outline"
-                              className="text-[10px] text-slate-400"
+                              className="text-xs text-muted-foreground"
                             >
                               Off market
                             </Badge>
@@ -664,38 +662,38 @@ export function AdminMarketplaceView() {
                                 </Button>
                               )}
 
-                              {!pref?.isSuspended ? (
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-7 text-[11px] gap-1 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
-                                  onClick={() =>
-                                    setSuspendTarget({
-                                      id: d.id,
-                                      name: d.fullName ?? "this driver",
-                                    })
-                                  }
-                                >
-                                  <ShieldAlert className="size-3" />
-                                  Suspend
-                                </Button>
-                              ) : (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-7 text-[11px] gap-1"
-                                  disabled={toggleMutation.isPending}
-                                  onClick={() =>
-                                    toggleMutation.mutate({
-                                      driverProfileId: d.id,
-                                      action: "RESTORE",
-                                    })
-                                  }
-                                >
-                                  <RotateCcw className="size-3" />
-                                  Restore
-                                </Button>
-                              )}
+                                {!pref?.isSuspended ? (
+                                 <Button
+                                   size="sm"
+                                   variant="ghost"
+                                   className="h-7 text-xs gap-1 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                   onClick={() =>
+                                     setSuspendTarget({
+                                       id: d.id,
+                                       name: d.fullName ?? "this driver",
+                                     })
+                                   }
+                                 >
+                                   <ShieldAlert className="size-3" />
+                                   Suspend
+                                 </Button>
+                               ) : (
+                                 <Button
+                                   size="sm"
+                                   variant="outline"
+                                   className="h-7 text-xs gap-1"
+                                   disabled={toggleMutation.isPending}
+                                   onClick={() =>
+                                     toggleMutation.mutate({
+                                       driverProfileId: d.id,
+                                       action: "RESTORE",
+                                     })
+                                   }
+                                 >
+                                   <RotateCcw className="size-3" />
+                                   Restore
+                                 </Button>
+                               )}
                             </>
                           )}
                         </div>
@@ -735,18 +733,15 @@ export function AdminMarketplaceView() {
               "EXPIRED",
               "WITHDRAWN",
             ].map((s) => (
-              <button
+              <Button
                 key={s}
+                size="sm"
+                variant={offerStatus === s ? "default" : "outline"}
                 onClick={() => setOfferStatus(s)}
-                className={cn(
-                  "rounded-full px-3 py-1 text-[11px] font-semibold border transition-colors capitalize",
-                  offerStatus === s
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-white text-slate-600 border-slate-200 hover:border-slate-300",
-                )}
+                className="rounded-full text-xs font-semibold capitalize"
               >
                 {s.toLowerCase()}
-              </button>
+              </Button>
             ))}
             <div className="relative ml-auto w-full sm:w-64">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
@@ -759,10 +754,10 @@ export function AdminMarketplaceView() {
             </div>
           </div>
 
-          <div className="rounded-xl border bg-white overflow-hidden">
+          <div className="rounded-xl border bg-card overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow>
+                <TableRow className="bg-muted/50">
                   <TableHead>Driver / Company</TableHead>
                   <TableHead>Salary</TableHead>
                   <TableHead>Status</TableHead>

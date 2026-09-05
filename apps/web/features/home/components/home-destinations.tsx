@@ -9,7 +9,7 @@ const DESTINATIONS_DATA = [
     name: "Yamoussoukro",
     image: "/home/destination-yamoussoukro.jpg",
     badgeKey: "yamoussoukroBadge",
-    badgeStyle: "bg-[#ee237c] text-white border border-[#ee237c]/10",
+    badgeStyle: "bg-primary text-primary-foreground border border-primary/10",
     href: "/search?to=yamoussoukro",
     gridClass: "md:col-span-2 md:row-span-2 min-h-[320px]",
     titleSize: "text-3xl md:text-4xl",
@@ -65,7 +65,7 @@ export async function HomeDestinations() {
           </div>
           <Link
             href="/search"
-            className="hidden md:flex items-center gap-2 text-[#ee237c] font-bold hover:gap-4 transition-all duration-300 text-sm"
+            className="hidden md:flex items-center gap-2 text-primary font-bold hover:gap-4 transition-all duration-300 text-sm"
           >
             <span>{t("exploreAll")}</span>
             <ArrowRight className="h-4 w-4" />
@@ -114,7 +114,7 @@ export async function HomeDestinations() {
               <div className="absolute inset-0 flex items-center justify-center bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
                 <span className="px-6 py-3.5 bg-white text-slate-900 font-extrabold rounded-2xl shadow-2xl text-xs flex items-center gap-1.5 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
                   {t("searchNow")}{" "}
-                  <ArrowRight className="h-4 w-4 text-[#ee237c]" />
+                  <ArrowRight className="h-4 w-4 text-primary" />
                 </span>
               </div>
             </Link>
@@ -123,7 +123,7 @@ export async function HomeDestinations() {
           {/* CTA card */}
           <Link
             href="/search"
-            className="relative rounded-[2rem] overflow-hidden cursor-pointer block min-h-[220px] md:min-h-auto bg-[#ee237c] p-8 flex flex-col justify-between group hover:bg-[#d01867] shadow-sm hover:shadow-2xl transition-all duration-300"
+            className="relative rounded-[2rem] overflow-hidden cursor-pointer block min-h-[220px] md:min-h-auto bg-primary p-8 flex flex-col justify-between group hover:bg-primary/90 shadow-sm hover:shadow-2xl transition-all duration-300"
           >
             <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center text-white/95">
               <TrendingUp className="h-6 w-6" />

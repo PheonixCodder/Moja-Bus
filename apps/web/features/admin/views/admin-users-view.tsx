@@ -153,21 +153,21 @@ export function AdminUsersView() {
   const getUserRoleBadgeStyle = (role: string) => {
     switch (role) {
       case "ADMIN":
-        return "bg-rose-50 text-rose-700 border-rose-200";
+        return "bg-destructive/15 text-destructive border-destructive/20";
       case "OPERATOR":
-        return "bg-indigo-50 text-indigo-700 border-indigo-200";
+        return "bg-primary/15 text-primary border-primary/20";
       default:
-        return "bg-slate-100 text-slate-700 border-slate-200";
+        return "bg-muted text-muted-foreground border-border";
     }
   };
 
   return (
     <div className="space-y-6">
       {/* Filters */}
-      <Card className="bg-white border-border shadow-sm p-4">
+      <Card className="bg-card border-border shadow-sm p-4">
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
           <div className="relative w-full sm:w-80">
-            <Search className="absolute left-3 top-2.5 size-4 text-slate-400" />
+            <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
             <Input
               type="text"
               placeholder={t("searchPlaceholder")}
@@ -181,8 +181,8 @@ export function AdminUsersView() {
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Shield className="size-4 text-slate-400" />
-            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+            <Shield className="size-4 text-muted-foreground" />
+            <span className="text-xs font-bold text-foreground uppercase tracking-wider">
               {t("role")}
             </span>
             <Select
@@ -192,7 +192,7 @@ export function AdminUsersView() {
                 setCurrentPageParam(1);
               }}
             >
-              <SelectTrigger className="h-10 w-full sm:w-40 bg-white">
+              <SelectTrigger className="h-10 w-full sm:w-40 bg-background">
                 <SelectValue placeholder={t("allRoles")} />
               </SelectTrigger>
               <SelectContent>
@@ -208,38 +208,38 @@ export function AdminUsersView() {
 
       {/* User Table */}
       {usersData && usersData.items.length === 0 ? (
-        <div className="rounded-md border border-dashed border-slate-200 bg-slate-50/50 p-12 text-center space-y-3">
-          <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mx-auto">
+        <div className="rounded-md border border-dashed border-border bg-muted/30 p-12 text-center space-y-3">
+          <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center text-muted-foreground mx-auto">
             <Users className="size-6" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-sm font-bold text-slate-800">
+            <h3 className="text-sm font-bold text-foreground">
               {t("noUsersFound")}
             </h3>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
+            <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed">
               {t("noUsersMatchFilters")}
             </p>
           </div>
         </div>
       ) : usersData ? (
         <div className="space-y-4">
-          <div className="border border-border rounded-md bg-white overflow-hidden shadow-sm">
+          <div className="border border-border rounded-md bg-card overflow-hidden shadow-sm">
             <Table>
               <TableHeader>
-                <TableRow className="bg-slate-50 hover:bg-slate-50">
-                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                <TableRow className="bg-muted/50 hover:bg-muted/50">
+                  <TableHead className="text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4">
                     {t("userDetails")}
                   </TableHead>
-                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                  <TableHead className="text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4">
                     {t("contactInfo")}
                   </TableHead>
-                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                  <TableHead className="text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4">
                     {t("roleColumn")}
                   </TableHead>
-                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                  <TableHead className="text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4">
                     {t("operatorCompany")}
                   </TableHead>
-                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4 text-right">
+                  <TableHead className="text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4 text-right">
                     {t("actions")}
                   </TableHead>
                 </TableRow>
@@ -250,26 +250,26 @@ export function AdminUsersView() {
                   const company = operatorProfile?.company;
 
                   return (
-                    <TableRow key={user.id} className="hover:bg-slate-50/50">
+                    <TableRow key={user.id} className="hover:bg-muted/50">
                       {/* Name */}
-                      <TableCell className="px-4 py-3 font-semibold text-slate-900">
+                      <TableCell className="px-4 py-3 font-semibold text-foreground">
                         <div>
                           <div>{user.fullName}</div>
-                          <div className="text-[10px] text-slate-400 font-normal mt-0.5">
+                          <div className="text-xs text-muted-foreground font-normal mt-0.5">
                             ID: {user.id}
                           </div>
                         </div>
                       </TableCell>
 
                       {/* Contact */}
-                      <TableCell className="px-4 py-3 text-slate-600 text-xs space-y-0.5">
+                      <TableCell className="px-4 py-3 text-muted-foreground text-xs space-y-0.5">
                         <div className="flex items-center gap-1">
-                          <Mail className="size-3 text-slate-400" />
+                          <Mail className="size-3 text-muted-foreground" />
                           <span>{user.email}</span>
                         </div>
                         {user.phoneNumber && (
                           <div className="flex items-center gap-1">
-                            <Phone className="size-3 text-slate-400" />
+                            <Phone className="size-3 text-muted-foreground" />
                             <span>{user.phoneNumber}</span>
                           </div>
                         )}
@@ -283,25 +283,25 @@ export function AdminUsersView() {
                       </TableCell>
 
                       {/* Company link */}
-                      <TableCell className="px-4 py-3 text-slate-600 text-xs">
+                      <TableCell className="px-4 py-3 text-muted-foreground text-xs">
                         {company ? (
-                          <div className="flex items-center gap-1.5 font-semibold text-slate-700">
-                            <Building className="size-3.5 text-slate-400" />
+                          <div className="flex items-center gap-1.5 font-semibold text-foreground">
+                            <Building className="size-3.5 text-muted-foreground" />
                             <span>{company.name}</span>
                             <Badge
                               className={
                                 company.status === "ACTIVE"
-                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                  ? "bg-success/15 text-success border-success/20"
                                   : company.status === "SUSPENDED"
-                                    ? "bg-orange-50 text-orange-700 border-orange-200"
-                                    : "bg-slate-100 text-slate-600 border-slate-200"
+                                    ? "bg-warning/15 text-warning border-warning/20"
+                                    : "bg-muted text-muted-foreground border-border"
                               }
                             >
                               {company.status}
                             </Badge>
                           </div>
                         ) : (
-                          <span className="text-slate-400">N/A</span>
+                          <span className="text-muted-foreground">N/A</span>
                         )}
                       </TableCell>
 
@@ -312,7 +312,7 @@ export function AdminUsersView() {
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-8 gap-1 text-xs font-semibold text-slate-500 hover:text-slate-900"
+                            className="h-8 gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground"
                             onClick={() => {
                               setSelectedUser(user);
                               setTargetRole(user.role as any);
@@ -330,8 +330,8 @@ export function AdminUsersView() {
                               variant="ghost"
                               className={
                                 company.status === "SUSPENDED"
-                                  ? "h-8 gap-1 text-xs font-semibold text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
-                                  : "h-8 gap-1 text-xs font-semibold text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  ? "h-8 gap-1 text-xs font-semibold text-success hover:text-success hover:bg-success/10"
+                                  : "h-8 gap-1 text-xs font-semibold text-destructive hover:text-destructive hover:bg-destructive/10"
                               }
                               onClick={() => {
                                 setCompanyToManage(company);
@@ -368,7 +368,7 @@ export function AdminUsersView() {
           {/* Pagination */}
           {usersData.total > pageSize && (
             <div className="flex justify-between items-center text-xs">
-              <span className="text-slate-500 font-medium">
+              <span className="text-muted-foreground font-medium">
                 {t("showingUsers", {
                   start: currentPage * pageSize + 1,
                   end: Math.min((currentPage + 1) * pageSize, usersData.total),
@@ -403,12 +403,12 @@ export function AdminUsersView() {
       {/* Role Management Dialog */}
       <Dialog open={isRoleModalOpen} onOpenChange={setIsRoleModalOpen}>
         {selectedUser && (
-          <DialogContent className="max-w-md border border-border bg-white rounded-lg p-6">
+          <DialogContent className="max-w-md border border-border bg-card rounded-lg p-6">
             <DialogHeader>
-              <DialogTitle className="text-lg font-bold text-slate-900">
+              <DialogTitle className="text-lg font-bold text-foreground">
                 {t("changeUserRole")}
               </DialogTitle>
-              <DialogDescription className="text-xs text-slate-500">
+              <DialogDescription className="text-xs text-muted-foreground">
                 {t("changeRoleDescription", {
                   userName: selectedUser.fullName,
                 })}
@@ -417,7 +417,7 @@ export function AdminUsersView() {
 
             <form onSubmit={handleUpdateRole} className="space-y-4 py-2">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                <label className="text-xs font-bold text-foreground uppercase tracking-wider">
                   {t("targetSystemRole")}
                 </label>
                 <Select
@@ -446,12 +446,12 @@ export function AdminUsersView() {
                 </Button>
                 <Button
                   type="submit"
-                  className="bg-primary hover:bg-primary-hover text-white h-9"
+                  className="h-9"
                   disabled={updateRoleMutation.isPending}
                 >
                   {updateRoleMutation.isPending ? (
                     <>
-                      <Spinner className="mr-2 size-3.5 text-white" />
+                      <Spinner className="mr-2 size-3.5" />
                       {t("saving")}
                     </>
                   ) : (
@@ -470,21 +470,21 @@ export function AdminUsersView() {
         onOpenChange={setIsSuspendConfirmOpen}
       >
         {companyToManage && (
-          <DialogContent className="max-w-md border border-border bg-white rounded-lg p-6">
+          <DialogContent className="max-w-md border border-border bg-card rounded-lg p-6">
             <DialogHeader className="space-y-1">
-              <DialogTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <DialogTitle className="text-lg font-bold text-foreground flex items-center gap-2">
                 <AlertTriangle
                   className={
                     manageAction === "suspend"
-                      ? "size-5 text-red-600"
-                      : "size-5 text-emerald-600"
+                      ? "size-5 text-destructive"
+                      : "size-5 text-success"
                   }
                 />
                 {manageAction === "suspend"
                   ? t("suspendCompany")
                   : t("activateCompany")}
               </DialogTitle>
-              <DialogDescription className="text-xs text-slate-500">
+              <DialogDescription className="text-xs text-muted-foreground">
                 {manageAction === "suspend" ? (
                   <span>
                     {t("areYouSureSuspend", {
@@ -510,11 +510,8 @@ export function AdminUsersView() {
                 {t("cancel")}
               </Button>
               <Button
-                className={
-                  manageAction === "suspend"
-                    ? "bg-red-600 hover:bg-red-700 text-white h-9"
-                    : "bg-emerald-600 hover:bg-emerald-700 text-white h-9"
-                }
+                variant={manageAction === "suspend" ? "destructive" : "default"}
+                className="h-9"
                 disabled={
                   suspendCompanyMutation.isPending ||
                   activateCompanyMutation.isPending
@@ -524,7 +521,7 @@ export function AdminUsersView() {
                 {suspendCompanyMutation.isPending ||
                 activateCompanyMutation.isPending ? (
                   <>
-                    <Spinner className="mr-2 size-3.5 text-white" />
+                    <Spinner className="mr-2 size-3.5" />
                     {t("updating")}
                   </>
                 ) : manageAction === "suspend" ? (

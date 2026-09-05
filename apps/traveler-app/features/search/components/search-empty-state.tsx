@@ -8,7 +8,7 @@ import {
   ArrowRight01Icon,
   Clock01Icon,
 } from '@hugeicons/core-free-icons';
-import { Colors } from '@moja/theme/tokens';
+import { Colors, Palette } from '@/constants/theme';
 import type { CityValue } from '../types';
 
 interface SearchEmptyStateProps {
@@ -35,61 +35,22 @@ export function SearchEmptyState({
 
   if (isPreSearch) {
     return (
-      <View style={{ flex: 1, paddingTop: 28 }}>
+      <View className="flex-1 pt-7">
         {/* Hero */}
-        <View style={{ alignItems: 'center', marginBottom: 32, paddingHorizontal: 24 }}>
-          <View
-            style={{
-              width: 72,
-              height: 72,
-              borderRadius: 22,
-              backgroundColor: '#fce7f3',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: 16,
-              borderWidth: 1,
-              borderColor: '#fbcfe8',
-            }}
-          >
-            <HugeiconsIcon icon={Bus01Icon} size={34} color="#ee237c" />
+        <View className="items-center mb-8 px-6">
+          <View className="w-18 h-18 rounded-2xl bg-primary/10 border border-primary/20 items-center justify-center mb-4">
+            <HugeiconsIcon icon={Bus01Icon} size={34} color={Palette.rose[500]} />
           </View>
-          <Text
-            style={{
-              fontSize: 22,
-              fontWeight: '900',
-              color: '#0f172a',
-              textAlign: 'center',
-              lineHeight: 28,
-              marginBottom: 6,
-            }}
-          >
+          <Text className="text-2xl font-black text-foreground text-center leading-7 mb-1.5">
             {t('emptyTitle')}
           </Text>
-          <Text
-            style={{
-              fontSize: 14,
-              color: '#94a3b8',
-              textAlign: 'center',
-              lineHeight: 20,
-              maxWidth: 280,
-            }}
-          >
+          <Text className="text-sm text-muted-foreground text-center leading-5 max-w-[280px]">
             {t('emptySubtitle')}
           </Text>
         </View>
 
         {/* Section label */}
-        <Text
-          style={{
-            fontSize: 10,
-            fontWeight: '900',
-            color: '#94a3b8',
-            textTransform: 'uppercase',
-            letterSpacing: 2,
-            marginBottom: 14,
-            paddingHorizontal: 20,
-          }}
-        >
+        <Text className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3.5 px-5">
           {t('popularRoutes')}
         </Text>
 
@@ -98,67 +59,35 @@ export function SearchEmptyState({
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 20, gap: 10, paddingBottom: 4 }}
-          style={{ marginBottom: 20 }}
+          className="mb-5"
         >
           {POPULAR_ROUTES.map((route, idx) => (
             <Pressable
               key={idx}
               onPress={() => onPopularRouteSelect?.(route.origin, route.dest)}
-              className="will-change-pressable"
-              style={{
-                backgroundColor: '#fff',
-                borderRadius: 20,
-                borderWidth: 1.5,
-                borderColor: '#f1f5f9',
-                paddingHorizontal: 16,
-                paddingVertical: 12,
-                minWidth: 160,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.05,
-                shadowRadius: 6,
-                elevation: 1,
-              }}
+              className="bg-card rounded-2xl border border-border px-4 py-3 min-w-[160px] shadow-xs active:bg-muted/60"
             >
               {/* Cities row */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                <Text style={{ fontSize: 13, fontWeight: '800', color: '#0f172a', flex: 1 }} numberOfLines={1}>
+              <View className="flex-row items-center gap-1.5 mb-2">
+                <Text className="text-xs font-extrabold text-card-foreground flex-1" numberOfLines={1}>
                   {route.origin.text}
                 </Text>
-                <View
-                  style={{
-                    width: 20,
-                    height: 20,
-                    borderRadius: 10,
-                    backgroundColor: '#fce7f3',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <HugeiconsIcon icon={ArrowRight01Icon} size={10} color="#ee237c" />
+                <View className="w-5 h-5 rounded-full bg-primary/10 items-center justify-center">
+                  <HugeiconsIcon icon={ArrowRight01Icon} size={10} color={Palette.rose[500]} />
                 </View>
-                <Text style={{ fontSize: 13, fontWeight: '800', color: '#0f172a', flex: 1, textAlign: 'right' }} numberOfLines={1}>
+                <Text className="text-xs font-extrabold text-card-foreground flex-1 text-right" numberOfLines={1}>
                   {route.dest.text}
                 </Text>
               </View>
 
               {/* Meta row */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                  <HugeiconsIcon icon={Clock01Icon} size={10} color="#94a3b8" />
-                  <Text style={{ fontSize: 11, color: '#94a3b8', fontWeight: '600' }}>{route.duration}</Text>
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center gap-1">
+                  <HugeiconsIcon icon={Clock01Icon} size={10} color={Colors.light.textSecondary} />
+                  <Text className="text-[11px] text-muted-foreground font-semibold">{route.duration}</Text>
                 </View>
-                <View
-                  style={{
-                    backgroundColor: '#f0fdf4',
-                    borderRadius: 8,
-                    paddingHorizontal: 7,
-                    paddingVertical: 3,
-                    borderWidth: 1,
-                    borderColor: '#bbf7d0',
-                  }}
-                >
-                  <Text style={{ fontSize: 10, fontWeight: '800', color: '#15803d' }}>
+                <View className="bg-success/10 rounded-lg px-2 py-0.5 border border-success/20">
+                  <Text className="text-[10px] font-extrabold text-success">
                     {t('operators:fromPrice')} {route.fromXOF} XOF
                   </Text>
                 </View>
@@ -168,53 +97,33 @@ export function SearchEmptyState({
         </ScrollView>
 
         {/* Vertical list (secondary) */}
-        <View style={{ paddingHorizontal: 16 }}>
+        <View className="px-4">
           {POPULAR_ROUTES.slice(0, 4).map((route, idx) => (
             <Pressable
               key={idx}
               onPress={() => onPopularRouteSelect?.(route.origin, route.dest)}
-              className="will-change-pressable"
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: '#fff',
-                borderRadius: 14,
-                borderWidth: 1,
-                borderColor: '#f1f5f9',
-                paddingHorizontal: 16,
-                paddingVertical: 13,
-                marginBottom: 8,
-              }}
+              className="flex-row items-center bg-card rounded-xl border border-border px-4 py-3 mb-2 active:bg-muted/60"
             >
               {/* Origin */}
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 14, fontWeight: '800', color: '#0f172a' }}>{route.origin.text}</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 2 }}>
-                  <HugeiconsIcon icon={Clock01Icon} size={10} color="#94a3b8" />
-                  <Text style={{ fontSize: 11, color: '#94a3b8', fontWeight: '600' }}>{route.duration}</Text>
+              <View className="flex-1">
+                <Text className="text-sm font-extrabold text-card-foreground">{route.origin.text}</Text>
+                <View className="flex-row items-center gap-1 mt-0.5">
+                  <HugeiconsIcon icon={Clock01Icon} size={10} color={Colors.light.textSecondary} />
+                  <Text className="text-[11px] text-muted-foreground font-semibold">{route.duration}</Text>
                 </View>
               </View>
 
               {/* Center arrow */}
-              <View style={{ paddingHorizontal: 12 }}>
-                <View
-                  style={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: 12,
-                    backgroundColor: '#fce7f3',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <HugeiconsIcon icon={ArrowRight01Icon} size={12} color="#ee237c" />
+              <View className="px-3">
+                <View className="w-6 h-6 rounded-full bg-primary/10 items-center justify-center">
+                  <HugeiconsIcon icon={ArrowRight01Icon} size={12} color={Palette.rose[500]} />
                 </View>
               </View>
 
               {/* Destination + price */}
-              <View style={{ flex: 1, alignItems: 'flex-end' }}>
-                <Text style={{ fontSize: 14, fontWeight: '800', color: '#0f172a' }}>{route.dest.text}</Text>
-                <Text style={{ fontSize: 11, color: '#15803d', fontWeight: '700', marginTop: 2 }}>
+              <View className="flex-1 items-end">
+                <Text className="text-sm font-extrabold text-card-foreground">{route.dest.text}</Text>
+                <Text className="text-[11px] text-success font-bold mt-0.5">
                   {route.fromXOF} XOF
                 </Text>
               </View>
@@ -227,40 +136,22 @@ export function SearchEmptyState({
 
   // Post-search no-results state
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, marginTop: 40 }}>
-      <View
-        style={{
-          width: 68,
-          height: 68,
-          borderRadius: 20,
-          backgroundColor: '#f1f5f9',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: 16,
-        }}
-      >
+    <View className="flex-1 items-center justify-center p-8 mt-10">
+      <View className="w-16 h-16 rounded-2xl bg-muted items-center justify-center mb-4">
         <HugeiconsIcon icon={LocationOffline01Icon} size={32} color={Colors.light.textSecondary} />
       </View>
-      <Text style={{ fontSize: 20, fontWeight: '900', color: '#0f172a', marginBottom: 6, textAlign: 'center' }}>
+      <Text className="text-xl font-extrabold text-foreground mb-1.5 text-center">
         {t('noResultsTitle')}
       </Text>
-      <Text style={{ fontSize: 14, color: '#94a3b8', textAlign: 'center', marginBottom: 24, maxWidth: 280 }}>
+      <Text className="text-sm text-muted-foreground text-center mb-6 max-w-[280px] leading-5">
         {t('noResultsDesc')}
       </Text>
       {onResetFilters && (
         <Pressable
           onPress={onResetFilters}
-          className="will-change-pressable"
-          style={{
-            borderWidth: 1.5,
-            borderColor: '#e2e8f0',
-            backgroundColor: '#fff',
-            paddingHorizontal: 24,
-            paddingVertical: 12,
-            borderRadius: 20,
-          }}
+          className="border border-border bg-card px-6 py-3 rounded-2xl active:bg-muted"
         >
-          <Text style={{ color: '#475569', fontWeight: '700', fontSize: 14 }}>
+          <Text className="text-foreground font-bold text-sm">
             {t('resetFilters')}
           </Text>
         </Pressable>

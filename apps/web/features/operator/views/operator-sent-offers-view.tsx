@@ -5,6 +5,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@moja/ui/components/ui/avatar";
+import { UserAvatar } from "@moja/ui/components/ui/user-avatar";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
 import { Label } from "@moja/ui/components/ui/label";
@@ -62,27 +63,27 @@ const STATUS_BADGES: Record<OfferStatus, { label: string; className: string }> =
   {
     PENDING: {
       label: "Pending",
-      className: "bg-amber-50 text-amber-700 border-amber-200",
+      className: "bg-warning/10 text-warning border-warning/20",
     },
     COUNTERED: {
       label: "Countered",
-      className: "bg-blue-50 text-blue-700 border-blue-200",
+      className: "bg-primary/10 text-primary border-primary/20",
     },
     ACCEPTED: {
       label: "Accepted",
-      className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      className: "bg-success/10 text-success border-success/20",
     },
     DECLINED: {
       label: "Declined",
-      className: "bg-rose-50 text-rose-700 border-rose-200",
+      className: "bg-destructive/10 text-destructive border-destructive/20",
     },
     EXPIRED: {
       label: "Expired",
-      className: "bg-zinc-100 text-zinc-600 border-zinc-200",
+      className: "bg-muted text-muted-foreground border-border",
     },
     WITHDRAWN: {
       label: "Withdrawn",
-      className: "bg-slate-100 text-slate-500 border-slate-200",
+      className: "bg-muted text-muted-foreground border-border",
     },
   };
 
@@ -133,7 +134,7 @@ function CounterBackForm({
   const [startDate, setStartDate] = useState("");
   const [note, setNote] = useState("");
 
-  const mutation = useMutation({
+  const respondMutation = useMutation({
     ...trpc.drivers.respondToCounterOffer.mutationOptions(),
     onSuccess: () => {
       toast.success("Counter-proposal sent to the driver");
@@ -146,7 +147,7 @@ function CounterBackForm({
   const salaryNum = Number(salary.replace(/[^\d]/g, ""));
 
   return (
-    <div className="mt-3 space-y-3 rounded-xl border border-blue-200 bg-blue-50/50 p-4">
+    <div className="mt-3 space-y-3 rounded-xl border border-primary/20 bg-primary/5 p-4">
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor={`cb-salary-${offerId}`}>Revised salary (FCFA)</Label>
@@ -171,19 +172,23 @@ function CounterBackForm({
           />
         </div>
       </div>
-      <Textarea
-        rows={2}
-        maxLength={2000}
-        placeholder="Message to the driver (optional)"
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-      />
+      <div className="space-y-1.5">
+        <Label htmlFor={`cb-note-${offerId}`}>Note to driver (optional)</Label>
+        <Textarea
+          id={`cb-note-${offerId}`}
+          rows={2}
+          maxLength={2000}
+          placeholder="Message to the driver..."
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+        />
+      </div>
       <div className="flex justify-end gap-2">
         <Button
           variant="outline"
           size="sm"
           onClick={onDone}
-          disabled={mutation.isPending}
+          disabled={respondMutation.isPending}
         >
           Cancel
         </Button>
@@ -192,10 +197,10 @@ function CounterBackForm({
           disabled={
             !Number.isFinite(salaryNum) ||
             salaryNum < 1000 ||
-            mutation.isPending
+            respondMutation.isPending
           }
           onClick={() =>
-            mutation.mutate({
+            respondMutation.mutate({
               offerId,
               action: "COUNTER_BACK",
               newSalaryCFA: salaryNum,
@@ -204,7 +209,7 @@ function CounterBackForm({
             })
           }
         >
-          {mutation.isPending ? (
+          {respondMutation.isPending ? (
             <>
               <Loader2 className="size-3.5 animate-spin" /> Sending…
             </>
@@ -334,16 +339,14 @@ export function OperatorSentOffersView() {
                 : `/dashboard/operator/drivers/offers?status=${tab.value}`
             }
           >
-            <button
-              className={cn(
-                "rounded-full px-3.5 py-1.5 text-xs font-semibold border transition-colors",
-                params.status === tab.value
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-white text-slate-600 border-slate-200 hover:border-slate-300",
-              )}
+            <Button
+              type="button"
+              variant={params.status === tab.value ? "default" : "outline"}
+              size="sm"
+              className="rounded-full px-3.5 py-1.5 h-auto text-xs font-semibold"
             >
               {tab.label}
-            </button>
+            </Button>
           </Link>
         ))}
       </div>
@@ -360,12 +363,12 @@ export function OperatorSentOffersView() {
       {/* Empty */}
       {!offersQuery.isLoading && items.length === 0 && (
         <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-          <div className="rounded-full bg-slate-100 p-5">
-            <Send className="size-8 text-slate-400" />
+          <div className="rounded-full bg-muted p-5">
+            <Send className="size-8 text-muted-foreground" />
           </div>
           <div>
-            <p className="text-base font-bold text-slate-700">No offers here</p>
-            <p className="text-sm text-slate-500 mt-1 max-w-sm">
+            <p className="text-base font-bold text-foreground">No offers here</p>
+            <p className="text-sm text-muted-foreground mt-1 max-w-sm">
               {statusParam === "ACTIVE"
                 ? "You haven't sent any active offers. Browse the marketplace to recruit drivers."
                 : `No ${STATUS_BADGES[statusParam as OfferStatus]?.label.toLowerCase() ?? ""} offers yet.`}
@@ -394,47 +397,41 @@ export function OperatorSentOffersView() {
           return (
             <div
               key={offer.id}
-              className="rounded-2xl border bg-white shadow-sm p-5 space-y-4"
+              className="rounded-2xl border border-border bg-card shadow-sm p-5 space-y-4"
             >
               {/* Top row: driver + status */}
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <Avatar className="size-12 border-2 border-slate-100">
-                    <AvatarImage
-                      src={offer.driverProfile.user.image ?? undefined}
-                    />
-                    <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                      {(offer.driverProfile.user.fullName ?? "DR")
-                        .split(" ")
-                        .map((p: string) => p[0])
-                        .join("")
-                        .toUpperCase()
-                        .slice(0, 2)}
-                    </AvatarFallback>
-                  </Avatar>
+                  <UserAvatar
+                    name={offer.driverProfile.user.fullName}
+                    src={offer.driverProfile.user.image}
+                    seed={offer.driverProfile.id || offer.driverProfile.user.id}
+                    size="lg"
+                    className="size-12 border-2 border-border"
+                  />
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <p className="text-sm font-bold text-slate-900 truncate">
+                      <p className="text-sm font-bold text-foreground truncate">
                         {offer.driverProfile.user.fullName ?? "—"}
                       </p>
                       {offer.hasBeenSeen && isLive && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
                           <Eye className="size-2.5" />
                           Seen
                         </span>
                       )}
                     </div>
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5 text-xs text-slate-500">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5 text-xs text-muted-foreground">
                       <span className="font-semibold">
                         Class {offer.driverProfile.licenseCategory}
                       </span>
                       <span>{offer.driverProfile.yearsOfExperience} yrs</span>
                       <span className="inline-flex items-center gap-1">
-                        <Star className="size-3 fill-amber-400 text-amber-400" />
+                        <Star className="size-3 fill-warning text-warning" />
                         {offer.driverProfile.averageRating.toFixed(1)}
                       </span>
                       <span className="inline-flex items-center gap-1">
-                        <ShieldCheck className="size-3 text-emerald-500" />
+                        <ShieldCheck className="size-3 text-success" />
                         {offer.driverProfile.safetyScore}
                       </span>
                     </div>
@@ -456,8 +453,8 @@ export function OperatorSentOffersView() {
                         "inline-flex items-center gap-1 text-[11px] font-medium",
                         new Date(offer.expiresAt).getTime() - Date.now() <
                           24 * 3600 * 1000
-                          ? "text-rose-600"
-                          : "text-slate-400",
+                          ? "text-destructive"
+                          : "text-muted-foreground",
                       )}
                     >
                       <Clock className="size-3" />
@@ -468,39 +465,39 @@ export function OperatorSentOffersView() {
               </div>
 
               {/* Terms block */}
-              <div className="rounded-xl bg-slate-50 border border-slate-100 px-4 py-3 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-xl bg-muted/40 border border-border px-4 py-3 grid gap-3 sm:grid-cols-3">
                 <div>
-                  <p className="text-[10px] uppercase tracking-wide font-bold text-slate-400">
+                  <p className="text-[10px] uppercase tracking-wide font-bold text-muted-foreground">
                     Employment Model
                   </p>
-                  <p className="text-sm font-semibold text-slate-800 mt-0.5">
+                  <p className="text-sm font-semibold text-foreground mt-0.5">
                     {EMPLOYMENT_LABELS[offer.employmentType] ??
                       offer.employmentType}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase tracking-wide font-bold text-slate-400">
+                  <p className="text-[10px] uppercase tracking-wide font-bold text-muted-foreground">
                     Monthly Salary
                   </p>
-                  <p className="text-sm font-bold text-slate-900 mt-0.5">
+                  <p className="text-sm font-bold text-foreground mt-0.5">
                     {countered &&
                       offer.currentSalaryCFA !== offer.initialSalaryCFA && (
-                        <span className="text-xs text-slate-400 line-through mr-1.5 font-medium">
+                        <span className="text-xs text-muted-foreground line-through mr-1.5 font-medium">
                           {offer.initialSalaryCFA.toLocaleString("fr-FR")}
                         </span>
                       )}
                     {offer.currentSalaryCFA.toLocaleString("fr-FR")}{" "}
-                    <span className="text-[11px] font-medium text-slate-500">
+                    <span className="text-[11px] font-medium text-muted-foreground">
                       FCFA
                     </span>
                   </p>
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase tracking-wide font-bold text-slate-400">
+                  <p className="text-[10px] uppercase tracking-wide font-bold text-muted-foreground">
                     Start Date
                   </p>
-                  <p className="text-sm font-semibold text-slate-800 mt-0.5 inline-flex items-center gap-1">
-                    <CalendarDays className="size-3.5 text-slate-400" />
+                  <p className="text-sm font-semibold text-foreground mt-0.5 inline-flex items-center gap-1">
+                    <CalendarDays className="size-3.5 text-muted-foreground" />
                     {offer.currentStartDate
                       ? format(new Date(offer.currentStartDate), "dd MMM yyyy")
                       : "—"}
@@ -510,7 +507,7 @@ export function OperatorSentOffersView() {
 
               {/* Counter note */}
               {countered && lastDriverEvent?.note && (
-                <p className="text-xs italic text-slate-600 bg-blue-50/60 border border-blue-100 rounded-lg px-3 py-2">
+                <p className="text-xs italic text-foreground bg-primary/10 border border-primary/20 rounded-lg px-3 py-2">
                   “{lastDriverEvent.note}”
                 </p>
               )}
@@ -556,7 +553,8 @@ export function OperatorSentOffersView() {
                       </Button>
                       <Button
                         size="sm"
-                        className="gap-1.5 bg-emerald-600 hover:bg-emerald-700"
+                        variant="default"
+                        className="gap-1.5"
                         onClick={() =>
                           respondMutation.mutate({
                             offerId: offer.id,
@@ -573,7 +571,7 @@ export function OperatorSentOffersView() {
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 gap-1.5"
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-1.5"
                     onClick={() =>
                       withdrawMutation.mutate({ offerId: offer.id })
                     }

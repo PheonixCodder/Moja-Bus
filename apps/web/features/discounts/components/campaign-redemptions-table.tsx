@@ -41,7 +41,7 @@ export function CampaignRedemptionsTable({
   const t = useTranslations("discounts.campaignRedemptions");
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200">
+    <div className="overflow-hidden rounded-lg border border-border">
       <Table>
         <TableHeader>
           <TableRow>
@@ -57,7 +57,7 @@ export function CampaignRedemptionsTable({
             <TableRow>
               <TableCell
                 colSpan={5}
-                className="py-8 text-center text-sm text-slate-500"
+                className="py-8 text-center text-sm text-muted-foreground"
               >
                 {t("loading")}
               </TableCell>
@@ -66,7 +66,7 @@ export function CampaignRedemptionsTable({
             <TableRow>
               <TableCell
                 colSpan={5}
-                className="py-8 text-center text-sm text-slate-500"
+                className="py-8 text-center text-sm text-muted-foreground"
               >
                 {emptyHint}
               </TableCell>
@@ -74,22 +74,22 @@ export function CampaignRedemptionsTable({
           ) : (
             items.map((r) => (
               <TableRow key={r.id}>
-                <TableCell className="whitespace-nowrap text-sm text-slate-500">
+                <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
                   {format(new Date(r.createdAt), "dd MMM yyyy HH:mm")}
                 </TableCell>
                 <TableCell>
                   {r.user ? (
                     <div>
-                      <div className="text-sm font-medium text-slate-900">
+                      <div className="text-sm font-medium text-foreground">
                         {r.user.name}
                       </div>
-                      <div className="text-xs text-slate-500">
+                      <div className="text-xs text-muted-foreground">
                         {r.user.email}
                         {r.user.phone !== "—" ? ` · ${r.user.phone}` : ""}
                       </div>
                     </div>
                   ) : (
-                    <span className="text-sm text-slate-400">
+                    <span className="text-sm text-muted-foreground">
                       {t("guestUnknown")}
                     </span>
                   )}

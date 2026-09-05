@@ -23,10 +23,10 @@ const RouteMapPreview = dynamic(
 function MapSkeleton() {
   const t = useTranslations("adminDashboard.adminRouteDrawer");
   return (
-    <div className="h-full w-full bg-slate-50 animate-pulse flex items-center justify-center">
+    <div className="h-full w-full bg-muted/30 animate-pulse flex items-center justify-center">
       <div className="text-center space-y-2">
-        <Map className="size-8 text-slate-300 mx-auto" />
-        <p className="text-xs text-slate-400">{t("loadingMap")}</p>
+        <Map className="size-8 text-muted-foreground/40 mx-auto" />
+        <p className="text-xs text-muted-foreground">{t("loadingMap")}</p>
       </div>
     </div>
   );
@@ -82,8 +82,12 @@ export function AdminRouteDrawer({
     }));
 
   return (
-    <Drawer open={open} onOpenChange={(v) => !v && onClose()} direction="right">
-      <DrawerContent className="!inset-y-0 !right-0 !left-auto !w-full !max-w-4xl flex flex-col rounded-none border-l border-border bg-card">
+    <Drawer
+      open={open}
+      onOpenChange={(v) => !v && onClose()}
+      swipeDirection="right"
+    >
+      <DrawerContent className="flex flex-col rounded-none border-l border-border bg-card data-[swipe-axis=x]:[--drawer-content-width:100%] sm:data-[swipe-axis=x]:[--drawer-content-width:56rem]">
         <DrawerHeader className="border-b border-border px-6 py-5 shrink-0 bg-background/50 backdrop-blur-md">
           <DrawerTitle className="text-lg font-bold">
             {isLoading ? t("loadingRoute") : route?.name}
@@ -111,7 +115,7 @@ export function AdminRouteDrawer({
 
         <div className="flex flex-1 overflow-hidden">
           {/* Left: Waypoints Timeline */}
-          <div className="w-[320px] overflow-y-auto border-r border-border bg-card px-6 py-6 space-y-6">
+          <div className="w-80 overflow-y-auto border-r border-border bg-card px-6 py-6 space-y-6">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
               {t("routeWaypoints")}
             </h3>
@@ -139,7 +143,7 @@ export function AdminRouteDrawer({
                         )}
                       />
                       {!isDest && (
-                        <div className="w-px flex-1 bg-border min-h-[2.5rem] my-1" />
+                        <div className="w-px flex-1 bg-border min-h-10 my-1" />
                       )}
                     </div>
 
@@ -159,7 +163,7 @@ export function AdminRouteDrawer({
           </div>
 
           {/* Right: Map Preview */}
-          <div className="flex-1 bg-slate-50 relative">
+          <div className="flex-1 bg-muted/20 relative">
             {mapPoints.length > 0 ? (
               <RouteMapPreview points={mapPoints} />
             ) : (

@@ -3,6 +3,7 @@ import { Platform } from "react-native";
 export {
   Colors,
   Fonts,
+  Palette,
   primaryRGB,
   Spacing,
   type ThemeColor,

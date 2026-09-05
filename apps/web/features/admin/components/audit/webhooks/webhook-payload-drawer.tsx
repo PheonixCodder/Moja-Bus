@@ -27,20 +27,20 @@ export function WebhookPayloadDrawer({
   const isFailed = event.error !== null;
 
   let statusBadge = (
-    <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-500">
+    <Badge variant="secondary" className="bg-warning/10 text-warning">
       {t("pending")}
     </Badge>
   );
 
   if (isProcessed) {
     statusBadge = (
-      <Badge variant="secondary" className="bg-green-500/10 text-green-500">
+      <Badge variant="secondary" className="bg-success/10 text-success">
         {t("processed")}
       </Badge>
     );
   } else if (isFailed) {
     statusBadge = (
-      <Badge variant="secondary" className="bg-red-500/10 text-red-500">
+      <Badge variant="secondary" className="bg-destructive/10 text-destructive">
         {t("failed")}
       </Badge>
     );
@@ -110,10 +110,10 @@ export function WebhookPayloadDrawer({
 
           {event.error && (
             <div>
-              <h4 className="text-sm font-semibold mb-2 text-red-500">
+              <h4 className="text-sm font-semibold mb-2 text-destructive">
                 {t("processingError")}
               </h4>
-              <pre className="bg-red-500/10 border border-red-500/20 text-red-600 rounded-md p-4 overflow-x-auto text-xs whitespace-pre-wrap font-mono">
+              <pre className="bg-destructive/10 border border-destructive/20 text-destructive rounded-md p-4 overflow-x-auto text-xs whitespace-pre-wrap font-mono">
                 {event.error}
               </pre>
             </div>
@@ -121,7 +121,7 @@ export function WebhookPayloadDrawer({
 
           <div>
             <h4 className="text-sm font-semibold mb-2">{t("jsonPayload")}</h4>
-            <pre className="bg-zinc-950 dark:bg-zinc-900 border border-border text-zinc-300 rounded-md p-4 overflow-x-auto text-xs font-mono">
+            <pre className="bg-muted border border-border text-foreground rounded-md p-4 overflow-x-auto text-xs font-mono">
               {JSON.stringify(event.payload, null, 2)}
             </pre>
           </div>

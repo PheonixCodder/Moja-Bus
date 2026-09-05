@@ -59,7 +59,7 @@ export function AdminStaffInvitationCard({
         <div
           className={cn(
             "flex items-center gap-1.5 text-[11px] font-medium",
-            expiry.expired ? "text-red-500" : "text-amber-600",
+            expiry.expired ? "text-destructive" : "text-warning",
           )}
         >
           <span>{expiry.label}</span>
@@ -82,7 +82,7 @@ export function AdminStaffInvitationCard({
           <Button
             variant="outline"
             size="sm"
-            className="flex-1 h-8 text-[12px] gap-1 text-red-600 hover:text-red-600 hover:bg-red-50 border-red-200 font-semibold"
+            className="flex-1 h-8 text-[12px] gap-1 text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20 font-semibold"
             onClick={() => onCancel(invitation)}
           >
             <XCircle className="h-3 w-3" />

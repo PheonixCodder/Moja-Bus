@@ -3,6 +3,7 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import { type Href, router } from "expo-router";
 import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Colors } from "@/constants/theme";
 import { Text } from "./ui/text";
 
 type SubpageHeaderProps = {
@@ -35,7 +36,7 @@ export function SubpageHeader({ title, backRoute }: SubpageHeaderProps) {
 					paddingRight: 12,
 				})}
 			>
-				<HugeiconsIcon icon={ArrowLeft02Icon} size={24} color="#a3a3a3" />
+				<HugeiconsIcon icon={ArrowLeft02Icon} size={24} color={Colors.light.textMuted} />
 			</Pressable>
 			<View style={{ flex: 1, alignItems: "center" }}>
 				<Text className="text-xl font-bold text-foreground">{title}</Text>

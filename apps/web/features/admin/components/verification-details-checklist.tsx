@@ -86,12 +86,12 @@ export function VerificationDetailsChecklist({
   ];
 
   return (
-    <Card className="bg-white border-border shadow-sm">
+    <Card className="bg-card border-border shadow-sm">
       <CardHeader>
-        <CardTitle className="text-base font-bold text-slate-900">
+        <CardTitle className="text-base font-bold text-foreground">
           {t("kycVerificationChecklist")}
         </CardTitle>
-        <CardDescription className="text-xs text-slate-400">
+        <CardDescription className="text-xs text-muted-foreground">
           {t("checklistDescription")}
         </CardDescription>
       </CardHeader>
@@ -99,7 +99,7 @@ export function VerificationDetailsChecklist({
         {checklistItems.map((item) => (
           <div
             key={item.key}
-            className="flex items-start gap-3 p-3 border border-slate-100 rounded-lg bg-slate-50/20 hover:bg-slate-50/50 transition-colors"
+            className="flex items-start gap-3 p-3 border border-border rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors"
           >
             <div className="pt-0.5">
               <Checkbox
@@ -113,10 +113,10 @@ export function VerificationDetailsChecklist({
               htmlFor={`check-${item.key}`}
               className="grid gap-0.5 cursor-pointer select-none"
             >
-              <span className="text-xs font-semibold text-slate-800 leading-tight">
+              <span className="text-xs font-semibold text-foreground leading-tight">
                 {item.label}
               </span>
-              <span className="text-[10px] text-slate-400 font-medium leading-relaxed">
+              <span className="text-[10px] text-muted-foreground font-medium leading-relaxed">
                 {item.description}
               </span>
             </label>

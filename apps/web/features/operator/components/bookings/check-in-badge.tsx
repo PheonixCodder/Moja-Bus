@@ -13,7 +13,7 @@ export function CheckInBadge({
 
   if (booking.status !== "CONFIRMED") {
     return (
-      <Badge variant="outline" className="text-text-muted">
+      <Badge variant="outline" className="text-muted-foreground">
         {booking.status}
       </Badge>
     );
@@ -22,7 +22,7 @@ export function CheckInBadge({
     return (
       <Badge
         variant="outline"
-        className="text-emerald-700 border-emerald-200 bg-emerald-50"
+        className="text-success border-success/30 bg-success/10"
       >
         {t("checkedIn")}
       </Badge>
@@ -31,7 +31,7 @@ export function CheckInBadge({
   return (
     <Badge
       variant="outline"
-      className="text-amber-700 border-amber-200 bg-amber-50"
+      className="text-warning border-warning/30 bg-warning/10"
     >
       {t("awaiting")}
     </Badge>

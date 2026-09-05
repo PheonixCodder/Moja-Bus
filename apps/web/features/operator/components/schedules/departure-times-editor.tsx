@@ -129,14 +129,16 @@ export function DepartureTimesEditor({
               className="inline-flex items-center gap-1 rounded-md border border-border bg-muted/50 px-2 py-1 text-xs font-mono font-semibold"
             >
               {hhmm}
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon"
                 aria-label={t("wizard.removeTime", { time: hhmm })}
                 onClick={() => removeTime(hhmm)}
-                className="text-muted-foreground hover:text-destructive"
+                className="h-auto w-auto p-0 text-muted-foreground hover:text-destructive hover:bg-transparent"
               >
                 <X className="size-3" />
-              </button>
+              </Button>
             </span>
           ))}
         </div>

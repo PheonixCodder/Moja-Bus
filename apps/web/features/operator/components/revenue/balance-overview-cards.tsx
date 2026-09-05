@@ -23,30 +23,30 @@ export function BalanceOverviewCards({
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {/* Net Earnings (Period) */}
-      <div className="bg-white rounded-xl border p-6 shadow-sm flex flex-col justify-between">
+      <div className="bg-card rounded-xl border border-border p-6 shadow-sm flex flex-col justify-between">
         <div>
-          <div className="flex items-center text-sm font-medium text-slate-500 mb-2">
+          <div className="flex items-center text-sm font-medium text-muted-foreground mb-2">
             <TrendingUp className="h-4 w-4 mr-2" />
             {t("netEarnings")}
           </div>
-          <div className="text-3xl font-display font-bold text-slate-900">
+          <div className="text-3xl font-display font-bold text-foreground">
             {formatXOF(netEarnings)}
           </div>
-          <p className="text-xs text-slate-500 mt-2">{t("netEarningsDesc")}</p>
+          <p className="text-xs text-muted-foreground mt-2">{t("netEarningsDesc")}</p>
         </div>
       </div>
 
       {/* Escrow/Pending Balance (Live) */}
-      <div className="bg-slate-50 rounded-xl border p-6 shadow-sm flex flex-col justify-between">
+      <div className="bg-muted/40 rounded-xl border border-border p-6 shadow-sm flex flex-col justify-between">
         <div>
-          <div className="flex items-center text-sm font-medium text-slate-500 mb-2">
+          <div className="flex items-center text-sm font-medium text-muted-foreground mb-2">
             <Clock className="h-4 w-4 mr-2" />
             {t("inEscrow")}
           </div>
-          <div className="text-3xl font-display font-bold text-slate-900">
+          <div className="text-3xl font-display font-bold text-foreground">
             {formatXOF(reserved)}
           </div>
-          <p className="text-xs text-slate-500 mt-2">{t("inEscrowDesc")}</p>
+          <p className="text-xs text-muted-foreground mt-2">{t("inEscrowDesc")}</p>
         </div>
       </div>
 

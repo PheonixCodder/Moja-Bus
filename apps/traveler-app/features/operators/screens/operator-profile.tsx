@@ -12,6 +12,7 @@ import {
   Location01Icon,
   Calendar01Icon,
 } from '@hugeicons/core-free-icons';
+import { Palette } from '@/constants/theme';
 import { OperatorOverviewTab } from '../components/operator-overview-tab';
 import { OperatorRoutesTab } from '../components/operator-routes-tab';
 import { OperatorTerminalsTab } from '../components/operator-terminals-tab';
@@ -55,21 +56,23 @@ export function OperatorProfileView({ slug }: OperatorProfileViewProps) {
   // Loading
   if (isLoading) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#f8fafc', paddingTop: insets.top }}>
+      <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
         {/* Mini header */}
-        <View className="bg-slate-900 px-4 pb-4">
+        <View className="bg-card px-4 pb-4 border-b border-border">
           <View className="flex-row items-center gap-3 mt-3">
             <Pressable
               onPress={() => router.back()}
-              className="will-change-pressable w-9 h-9 rounded-full bg-white/10 items-center justify-center"
+              accessibilityRole="button"
+              accessibilityLabel={t('back', { defaultValue: 'Back' })}
+              className="w-9 h-9 rounded-full bg-muted items-center justify-center min-h-9"
             >
-              <HugeiconsIcon icon={ArrowLeft01Icon} size={18} color="#fff" />
+              <HugeiconsIcon icon={ArrowLeft01Icon} size={18} color={Palette.zinc[400]} />
             </Pressable>
           </View>
         </View>
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color="#ee237c" size="large" />
-          <Text className="text-slate-400 text-sm mt-3">{t('loading')}</Text>
+          <ActivityIndicator color={Palette.rose[500]} size="large" />
+          <Text className="text-muted-foreground text-sm mt-3">{t('loading')}</Text>
         </View>
       </View>
     );
@@ -78,32 +81,35 @@ export function OperatorProfileView({ slug }: OperatorProfileViewProps) {
   // Error / not found
   if (error || !operator) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#f8fafc', paddingTop: insets.top }}>
-        <View className="bg-slate-900 px-4 pb-4">
+      <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
+        <View className="bg-card px-4 pb-4 border-b border-border">
           <View className="flex-row items-center gap-3 mt-3">
             <Pressable
               onPress={() => router.back()}
-              className="will-change-pressable w-9 h-9 rounded-full bg-white/10 items-center justify-center"
+              accessibilityRole="button"
+              accessibilityLabel={t('back', { defaultValue: 'Back' })}
+              className="w-9 h-9 rounded-full bg-muted items-center justify-center min-h-9"
             >
-              <HugeiconsIcon icon={ArrowLeft01Icon} size={18} color="#fff" />
+              <HugeiconsIcon icon={ArrowLeft01Icon} size={18} color={Palette.zinc[400]} />
             </Pressable>
           </View>
         </View>
         <View className="flex-1 items-center justify-center px-8">
-          <View className="w-20 h-20 bg-slate-100 rounded-3xl items-center justify-center mb-6">
-            <HugeiconsIcon icon={Bus01Icon} size={36} color="#cbd5e1" />
+          <View className="w-20 h-20 bg-muted rounded-3xl items-center justify-center mb-6">
+            <HugeiconsIcon icon={Bus01Icon} size={36} color={Palette.zinc[400]} />
           </View>
-          <Text className="text-xl font-bold text-slate-700 text-center mb-2">
+          <Text className="text-xl font-bold text-foreground text-center mb-2">
             {t('notFoundTitle')}
           </Text>
-          <Text className="text-sm text-slate-400 text-center mb-8">
+          <Text className="text-sm text-muted-foreground text-center mb-8">
             {t('notFoundDesc')}
           </Text>
           <Pressable
             onPress={() => router.back()}
-            className="will-change-pressable bg-[#ee237c] px-6 py-3 rounded-2xl active:bg-[#d01867]"
+            accessibilityRole="button"
+            className="bg-primary px-6 py-3 rounded-2xl active:opacity-90 min-h-11 items-center justify-center shadow-sm"
           >
-            <Text className="text-white font-bold text-sm">{t('backToOperators')}</Text>
+            <Text className="text-primary-foreground font-bold text-sm">{t('backToOperators')}</Text>
           </Pressable>
         </View>
       </View>
@@ -113,16 +119,18 @@ export function OperatorProfileView({ slug }: OperatorProfileViewProps) {
   const initials = getInitials(operator.name);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#f8fafc' }}>
+    <View className="flex-1 bg-background">
       {/* ── Dark hero header ── */}
-      <View style={{ paddingTop: insets.top }} className="bg-slate-900">
+      <View style={{ paddingTop: insets.top }} className="bg-zinc-950 dark:bg-card border-b border-border">
         <View className="px-4 pt-3 pb-4">
           {/* Back button */}
           <Pressable
             onPress={() => router.back()}
-            className="will-change-pressable w-9 h-9 rounded-full bg-white/10 items-center justify-center mb-4 active:bg-white/20"
+            accessibilityRole="button"
+            accessibilityLabel={t('back', { defaultValue: 'Back' })}
+            className="w-9 h-9 rounded-full bg-white/10 items-center justify-center mb-4 active:bg-white/20 min-h-9"
           >
-            <HugeiconsIcon icon={ArrowLeft01Icon} size={18} color="#fff" />
+            <HugeiconsIcon icon={ArrowLeft01Icon} size={18} color={Palette.zinc[50]} />
           </Pressable>
 
           {/* Logo + Name row */}
@@ -135,7 +143,7 @@ export function OperatorProfileView({ slug }: OperatorProfileViewProps) {
                   resizeMode="cover"
                 />
               ) : (
-                <Text className="text-xl font-black text-slate-400">{initials}</Text>
+                <Text className="text-xl font-black text-zinc-400">{initials}</Text>
               )}
             </View>
             <View className="flex-1">
@@ -143,7 +151,7 @@ export function OperatorProfileView({ slug }: OperatorProfileViewProps) {
                 {operator.name}
               </Text>
               {operator.description ? (
-                <Text className="text-slate-400 text-xs leading-relaxed" numberOfLines={2}>
+                <Text className="text-zinc-400 text-xs leading-relaxed" numberOfLines={2}>
                   {operator.description}
                 </Text>
               ) : null}
@@ -153,24 +161,24 @@ export function OperatorProfileView({ slug }: OperatorProfileViewProps) {
           {/* Stats strip */}
           <View className="flex-row gap-4 mb-4">
             <View className="flex-row items-center gap-1.5">
-              <HugeiconsIcon icon={Bus01Icon} size={13} color="#ee237c" />
+              <HugeiconsIcon icon={Bus01Icon} size={13} color={Palette.rose[500]} />
               <Text className="text-white text-xs font-bold">{operator._count.routes}</Text>
-              <Text className="text-slate-400 text-xs">{t('activeRoutes')}</Text>
+              <Text className="text-zinc-400 text-xs">{t('activeRoutes')}</Text>
             </View>
             <View className="flex-row items-center gap-1.5">
-              <HugeiconsIcon icon={Bus01Icon} size={13} color="#94a3b8" />
+              <HugeiconsIcon icon={Bus01Icon} size={13} color={Palette.zinc[400]} />
               <Text className="text-white text-xs font-bold">{operator._count.fleet}</Text>
-              <Text className="text-slate-400 text-xs">{t('activeBuses')}</Text>
+              <Text className="text-zinc-400 text-xs">{t('activeBuses')}</Text>
             </View>
             <View className="flex-row items-center gap-1.5">
-              <HugeiconsIcon icon={Location01Icon} size={13} color="#94a3b8" />
+              <HugeiconsIcon icon={Location01Icon} size={13} color={Palette.zinc[400]} />
               <Text className="text-white text-xs font-bold">{operator.locations.length}</Text>
-              <Text className="text-slate-400 text-xs">{t('terminals')}</Text>
+              <Text className="text-zinc-400 text-xs">{t('terminals')}</Text>
             </View>
             {operator.yearEstablished ? (
               <View className="flex-row items-center gap-1.5">
-                <HugeiconsIcon icon={Calendar01Icon} size={13} color="#94a3b8" />
-                <Text className="text-slate-400 text-xs">
+                <HugeiconsIcon icon={Calendar01Icon} size={13} color={Palette.zinc[400]} />
+                <Text className="text-zinc-400 text-xs">
                   {t('est', { year: String(operator.yearEstablished) })}
                 </Text>
               </View>
@@ -183,7 +191,7 @@ export function OperatorProfileView({ slug }: OperatorProfileViewProps) {
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 16, gap: 4 }}
-          className="border-t border-slate-700"
+          className="border-t border-white/10"
         >
           {TABS.map((tab) => {
             const active = activeTab === tab.id;
@@ -198,13 +206,14 @@ export function OperatorProfileView({ slug }: OperatorProfileViewProps) {
               <Pressable
                 key={tab.id}
                 onPress={() => setActiveTab(tab.id)}
-                className={`will-change-pressable flex-row items-center gap-1.5 px-4 py-3 border-b-2 ${
-                  active ? 'border-[#ee237c]' : 'border-transparent'
+                accessibilityRole="button"
+                className={`flex-row items-center gap-1.5 px-4 py-3 border-b-2 ${
+                  active ? 'border-primary' : 'border-transparent'
                 }`}
               >
                 <Text
                   className={`text-sm font-bold ${
-                    active ? 'text-white' : 'text-slate-400'
+                    active ? 'text-white' : 'text-zinc-400'
                   }`}
                 >
                   {t(tab.labelKey)}
@@ -212,12 +221,12 @@ export function OperatorProfileView({ slug }: OperatorProfileViewProps) {
                 {count !== undefined && (
                   <View
                     className={`w-5 h-5 rounded-full items-center justify-center ${
-                      active ? 'bg-[#ee237c]' : 'bg-slate-700'
+                      active ? 'bg-primary' : 'bg-white/10'
                     }`}
                   >
                     <Text
                       className={`text-xs font-black ${
-                        active ? 'text-white' : 'text-slate-400'
+                        active ? 'text-white' : 'text-zinc-400'
                       }`}
                     >
                       {count}

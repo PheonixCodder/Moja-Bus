@@ -3,7 +3,7 @@ import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { FlatList, RefreshControl, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { BottomTabInset } from "@/constants/theme";
+import { BottomTabInset, Palette } from "@/constants/theme";
 import { BookingCard } from "@/features/booking/components/booking-card";
 import { BookingEmptyState } from "@/features/booking/components/booking-empty-state";
 import {
@@ -120,8 +120,8 @@ export function BookingsView() {
 						<RefreshControl
 							refreshing={refreshing}
 							onRefresh={handleRefresh}
-							tintColor="#ee237c"
-							colors={["#ee237c"]}
+							tintColor={Palette.rose[500]}
+							colors={[Palette.rose[500]]}
 						/>
 					}
 					renderItem={({ item }) => {

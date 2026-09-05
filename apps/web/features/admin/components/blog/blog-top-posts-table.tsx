@@ -42,7 +42,7 @@ export function BlogTopPostsTable({ posts }: BlogTopPostsTableProps) {
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-[50%] pl-6">{t("post")}</TableHead>
+              <TableHead className="w-1/2 pl-6">{t("post")}</TableHead>
               <TableHead>{t("category")}</TableHead>
               <TableHead>{t("status")}</TableHead>
               <TableHead className="text-right">{t("views")}</TableHead>
@@ -54,18 +54,18 @@ export function BlogTopPostsTable({ posts }: BlogTopPostsTableProps) {
               <TableRow>
                 <TableCell
                   colSpan={5}
-                  className="h-24 text-center text-slate-500"
+                  className="h-24 text-center text-muted-foreground"
                 >
                   {t("noPosts")}
                 </TableCell>
               </TableRow>
             ) : (
               posts.map((post) => (
-                <TableRow key={post.id} className="hover:bg-slate-50/50">
+                <TableRow key={post.id} className="hover:bg-muted/50">
                   <TableCell className="pl-6 font-medium">
-                    <div className="truncate max-w-[400px]">{post.title}</div>
+                    <div className="truncate max-w-sm">{post.title}</div>
                   </TableCell>
-                  <TableCell className="text-slate-500 text-sm">
+                  <TableCell className="text-muted-foreground text-sm">
                     {post.category?.name || "—"}
                   </TableCell>
                   <TableCell>
@@ -78,10 +78,10 @@ export function BlogTopPostsTable({ posts }: BlogTopPostsTableProps) {
                       {post.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right tabular-nums text-slate-600 font-medium">
+                  <TableCell className="text-right tabular-nums text-foreground font-medium">
                     {post.viewCount.toLocaleString()}
                   </TableCell>
-                  <TableCell className="text-right tabular-nums pr-6 text-slate-600">
+                  <TableCell className="text-right tabular-nums pr-6 text-muted-foreground">
                     {post._count.events.toLocaleString()}
                   </TableCell>
                 </TableRow>

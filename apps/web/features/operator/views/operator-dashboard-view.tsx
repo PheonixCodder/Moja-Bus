@@ -105,10 +105,10 @@ export function OperatorDashboardView() {
   const statusDesc = t(`status.${company?.status ?? "DRAFT"}.description`);
 
   return (
-    <div className="space-y-8 max-w-[1400px] mx-auto pb-10">
+    <div className="space-y-8 max-w-7xl mx-auto pb-10">
       {/* Top Banner and Quick Status */}
-      <div className="relative overflow-hidden rounded-2xl bg-slate-900 border border-slate-800 p-6 text-white shadow-lg">
-        <div className="absolute right-0 bottom-0 translate-y-8 translate-x-8 text-white/5 pointer-events-none">
+      <div className="relative overflow-hidden rounded-2xl bg-card border border-border p-6 text-card-foreground shadow-lg">
+        <div className="absolute right-0 bottom-0 translate-y-8 translate-x-8 text-foreground/5 pointer-events-none">
           <Bus className="w-80 h-80" />
         </div>
 
@@ -118,36 +118,36 @@ export function OperatorDashboardView() {
               className={cn(
                 "inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border",
                 statusPresentation.isFullyVerified
-                  ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
+                  ? "text-success bg-success/10 border-success/20"
                   : company?.status === "SUSPENDED"
-                    ? "text-orange-400 bg-orange-500/10 border-orange-500/30"
+                    ? "text-warning bg-warning/10 border-warning/30"
                     : company?.status === "REJECTED"
-                      ? "text-red-400 bg-red-500/10 border-red-500/30"
-                      : "text-amber-400 bg-amber-500/10 border-amber-500/30",
+                      ? "text-destructive bg-destructive/10 border-destructive/30"
+                      : "text-warning bg-warning/10 border-warning/30",
               )}
             >
               <StatusIcon className="w-3.5 h-3.5" /> {statusLabel}
             </span>
-            <h1 className="text-2xl md:text-3xl font-extrabold font-display tracking-tight text-white">
+            <h1 className="text-2xl md:text-3xl font-extrabold font-display tracking-tight text-foreground">
               {company?.name || t("portalFallback")}
             </h1>
-            <p className="text-slate-400 text-xs md:text-sm max-w-2xl leading-relaxed">
+            <p className="text-muted-foreground text-xs md:text-sm max-w-2xl leading-relaxed">
               {statusDesc}
             </p>
             {company?.rejectionReason && (
-              <p className="text-red-400 text-xs font-semibold">
+              <p className="text-destructive text-xs font-semibold">
                 {t("rejectionReason", { reason: company.rejectionReason })}
               </p>
             )}
           </div>
 
-          <div className="shrink-0 flex items-center gap-2 bg-slate-800/40 border border-slate-700/50 rounded-xl px-4 py-3 backdrop-blur-xs">
+          <div className="shrink-0 flex items-center gap-2 bg-muted border border-border rounded-xl px-4 py-3 backdrop-blur-xs">
             <Sparkles className="w-5 h-5 text-primary" />
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                 {t("quickPortal")}
               </p>
-              <p className="text-xs font-semibold text-slate-200">
+              <p className="text-xs font-semibold text-foreground">
                 {t("systemOnline")}
               </p>
             </div>
@@ -158,9 +158,9 @@ export function OperatorDashboardView() {
       {/* KPI Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* KPI 1: Today's Revenue */}
-        <Card className="border-border bg-bg-surface hover:shadow-md transition-shadow">
+        <Card className="border-border bg-surface hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
+            <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               {t("revenueTitle")}
             </CardTitle>
             <div className="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
@@ -168,19 +168,19 @@ export function OperatorDashboardView() {
             </div>
           </CardHeader>
           <CardContent className="space-y-1">
-            <div className="text-2xl font-bold font-mono tracking-tight text-text-primary">
+            <div className="text-2xl font-bold font-mono tracking-tight text-foreground">
               {formatCurrency(stats?.revenueTodayXOF ?? 0)}
             </div>
-            <p className="text-[10px] text-text-secondary">
+            <p className="text-[10px] text-muted-foreground">
               {t("revenueDesc")}
             </p>
           </CardContent>
         </Card>
 
         {/* KPI 2: Today's Bookings */}
-        <Card className="border-border bg-bg-surface hover:shadow-md transition-shadow">
+        <Card className="border-border bg-surface hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
+            <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               {t("bookingsTitle")}
             </CardTitle>
             <div className="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
@@ -188,19 +188,19 @@ export function OperatorDashboardView() {
             </div>
           </CardHeader>
           <CardContent className="space-y-1">
-            <div className="text-2xl font-bold font-mono tracking-tight text-text-primary">
+            <div className="text-2xl font-bold font-mono tracking-tight text-foreground">
               {stats?.totalBookingsToday ?? 0}
             </div>
-            <p className="text-[10px] text-text-secondary">
+            <p className="text-[10px] text-muted-foreground">
               {t("bookingsDesc")}
             </p>
           </CardContent>
         </Card>
 
         {/* KPI 3: Occupancy Rate */}
-        <Card className="border-border bg-bg-surface hover:shadow-md transition-shadow">
+        <Card className="border-border bg-surface hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
+            <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               {t("occupancyTitle")}
             </CardTitle>
             <div className="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
@@ -209,10 +209,10 @@ export function OperatorDashboardView() {
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="flex items-baseline justify-between">
-              <div className="text-2xl font-bold font-mono tracking-tight text-text-primary">
+              <div className="text-2xl font-bold font-mono tracking-tight text-foreground">
                 {stats?.occupancyRateToday ?? 0}%
               </div>
-              <span className="text-[9px] font-semibold text-text-muted">
+              <span className="text-[9px] font-semibold text-muted-foreground">
                 {t("occupancyTarget")}
               </span>
             </div>
@@ -225,9 +225,9 @@ export function OperatorDashboardView() {
 
         {/* KPI 4: Active Fleet */}
         {stats?.totalBuses != null && (
-          <Card className="border-border bg-bg-surface hover:shadow-md transition-shadow">
+          <Card className="border-border bg-surface hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
+              <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                 {t("fleetTitle")}
               </CardTitle>
               <div className="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
@@ -235,13 +235,13 @@ export function OperatorDashboardView() {
               </div>
             </CardHeader>
             <CardContent className="space-y-1">
-              <div className="text-2xl font-bold font-mono tracking-tight text-text-primary">
+              <div className="text-2xl font-bold font-mono tracking-tight text-foreground">
                 {stats.activeBuses}{" "}
-                <span className="text-sm font-normal text-text-muted">
+                <span className="text-sm font-normal text-muted-foreground">
                   / {stats.totalBuses}
                 </span>
               </div>
-              <p className="text-[10px] text-text-secondary">
+              <p className="text-[10px] text-muted-foreground">
                 {t("fleetDesc")}
               </p>
             </CardContent>
@@ -253,18 +253,18 @@ export function OperatorDashboardView() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* Left Side: Today's Departures (2/3 width) */}
         <div className="lg:col-span-2 space-y-6">
-          <Card className="border-border bg-bg-surface">
+          <Card className="border-border bg-surface">
             <CardHeader className="border-b border-border/60 pb-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-base font-bold text-text-primary">
+                  <CardTitle className="text-base font-bold text-foreground">
                     {t("dispatchTitle")}
                   </CardTitle>
                   <CardDescription>{t("dispatchDesc")}</CardDescription>
                 </div>
                 <Badge
                   variant="outline"
-                  className="border-border text-text-secondary font-semibold font-mono"
+                  className="border-border text-muted-foreground font-semibold font-mono"
                 >
                   {t("tripCount", { count: departures.length })}
                 </Badge>
@@ -272,12 +272,12 @@ export function OperatorDashboardView() {
             </CardHeader>
             <CardContent className="pt-6">
               {departures.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-center text-sm text-text-secondary space-y-4">
-                  <div className="w-12 h-12 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center">
+                <div className="flex flex-col items-center justify-center py-16 text-center text-sm text-muted-foreground space-y-4">
+                  <div className="w-12 h-12 bg-muted text-muted-foreground rounded-full flex items-center justify-center">
                     <Calendar className="w-6 h-6" />
                   </div>
                   <div className="space-y-1 max-w-xs">
-                    <p className="font-bold text-text-primary">
+                    <p className="font-bold text-foreground">
                       {t("noTripsTitle")}
                     </p>
                     <p className="text-xs">{t("noTripsDesc")}</p>
@@ -286,7 +286,7 @@ export function OperatorDashboardView() {
                     href="/dashboard/operator/schedules"
                     className={cn(
                       buttonVariants({ variant: "outline", size: "sm" }),
-                      "mt-2 border-border text-text-primary hover:bg-bg-elevated",
+                      "mt-2 border-border text-foreground hover:bg-card-elevated",
                     )}
                   >
                     {t("manageSchedules")}
@@ -318,14 +318,14 @@ export function OperatorDashboardView() {
                     return (
                       <div
                         key={trip.id}
-                        className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-border/80 rounded-xl hover:bg-slate-50/50 transition-colors gap-4"
+                        className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-border/80 rounded-xl hover:bg-muted/50 transition-colors gap-4"
                       >
                         <div className="space-y-2 flex-1">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-text-primary font-mono bg-bg-elevated px-2 py-0.5 rounded border border-border/60">
+                            <span className="text-xs font-bold text-foreground font-mono bg-card-elevated px-2 py-0.5 rounded border border-border/60">
                               {formattedTime}
                             </span>
-                            <span className="text-[10px] font-semibold text-text-muted font-mono">
+                            <span className="text-[10px] font-semibold text-muted-foreground font-mono">
                               {formatDateWithWeekday(trip.departureTime)}
                             </span>
                             <Badge
@@ -333,13 +333,13 @@ export function OperatorDashboardView() {
                               className={cn(
                                 "text-[9px] font-bold uppercase tracking-wider",
                                 isBoarding &&
-                                  "bg-blue-500/10 text-blue-600 border border-blue-500/20",
+                                  "bg-primary/10 text-primary border border-primary/20",
                                 isDeparted &&
-                                  "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20",
+                                  "bg-success/10 text-success border border-success/20",
                                 isDelayed &&
-                                  "bg-amber-500/10 text-amber-600 border border-amber-500/20",
+                                  "bg-warning/10 text-warning border border-warning/20",
                                 isCancelled &&
-                                  "bg-red-500/10 text-red-600 border border-red-500/20",
+                                  "bg-destructive/10 text-destructive border border-destructive/20",
                               )}
                             >
                               {trip.status}
@@ -347,17 +347,17 @@ export function OperatorDashboardView() {
                           </div>
 
                           <div>
-                            <h4 className="text-sm font-bold text-text-primary flex items-center gap-1">
-                              <MapPin className="w-3.5 h-3.5 text-text-muted" />
+                            <h4 className="text-sm font-bold text-foreground flex items-center gap-1">
+                              <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
                               {trip.routeLabel}
                             </h4>
-                            <p className="text-[11px] text-text-muted mt-0.5 font-medium">
+                            <p className="text-[11px] text-muted-foreground mt-0.5 font-medium">
                               {t("busLabel", { label: trip.busLabel })}
                             </p>
                           </div>
 
                           <div className="w-full max-w-xs space-y-1">
-                            <div className="flex justify-between text-[10px] font-semibold text-text-secondary">
+                            <div className="flex justify-between text-[10px] font-semibold text-muted-foreground">
                               <span>
                                 {t("seatsSold", {
                                   booked: trip.bookedSeats,
@@ -368,7 +368,7 @@ export function OperatorDashboardView() {
                             </div>
                             <Progress
                               value={occupancyPercent}
-                              className="h-1 bg-slate-100"
+                              className="h-1 bg-muted"
                             />
                           </div>
                         </div>
@@ -381,11 +381,11 @@ export function OperatorDashboardView() {
                                 variant: "outline",
                                 size: "sm",
                               }),
-                              "border-border text-text-primary hover:bg-bg-elevated h-8 text-xs font-bold gap-1 flex items-center justify-center",
+                              "border-border text-foreground hover:bg-card-elevated h-8 text-xs font-bold gap-1 flex items-center justify-center",
                             )}
                           >
                             {t("goToDispatch")}{" "}
-                            <ArrowRight className="w-3.5 h-3.5 text-text-muted" />
+                            <ArrowRight className="w-3.5 h-3.5 text-muted-foreground" />
                           </Link>
                         </div>
                       </div>
@@ -400,9 +400,9 @@ export function OperatorDashboardView() {
         {/* Right Side: Quick Actions & Recent Activity (1/3 width) */}
         <div className="space-y-6">
           {/* Quick Actions Panel */}
-          <Card className="border-border bg-bg-surface">
+          <Card className="border-border bg-surface">
             <CardHeader className="pb-3 border-b border-border/60">
-              <CardTitle className="text-sm font-bold text-text-primary">
+              <CardTitle className="text-sm font-bold text-foreground">
                 {t("quickActionsTitle")}
               </CardTitle>
             </CardHeader>
@@ -422,7 +422,7 @@ export function OperatorDashboardView() {
                   href="/dashboard/operator/routes"
                   className={cn(
                     buttonVariants({ variant: "outline" }),
-                    "border-border text-text-primary hover:bg-bg-elevated text-xs font-bold flex items-center justify-center gap-1.5 h-9",
+                    "border-border text-foreground hover:bg-card-elevated text-xs font-bold flex items-center justify-center gap-1.5 h-9",
                   )}
                 >
                   <Plus className="w-3.5 h-3.5" />
@@ -432,7 +432,7 @@ export function OperatorDashboardView() {
                   href="/dashboard/operator/fleet"
                   className={cn(
                     buttonVariants({ variant: "outline" }),
-                    "border-border text-text-primary hover:bg-bg-elevated text-xs font-bold flex items-center justify-center gap-1.5 h-9",
+                    "border-border text-foreground hover:bg-card-elevated text-xs font-bold flex items-center justify-center gap-1.5 h-9",
                   )}
                 >
                   <Bus className="w-3.5 h-3.5" />
@@ -443,15 +443,15 @@ export function OperatorDashboardView() {
           </Card>
 
           {/* Live Activity Stream */}
-          <Card className="border-border bg-bg-surface">
+          <Card className="border-border bg-surface">
             <CardHeader className="border-b border-border/60 pb-3">
-              <CardTitle className="text-sm font-bold text-text-primary">
+              <CardTitle className="text-sm font-bold text-foreground">
                 {t("activityTitle")}
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
               {activities.length === 0 ? (
-                <p className="text-xs text-text-muted text-center py-6">
+                <p className="text-xs text-muted-foreground text-center py-6">
                   {t("noActivity")}
                 </p>
               ) : (
@@ -487,20 +487,20 @@ export function OperatorDashboardView() {
                         <div
                           className={cn(
                             "w-2 h-2 rounded-full mt-1.5 shrink-0 animate-pulse",
-                            isCheckIn ? "bg-emerald-500" : "bg-primary",
+                            isCheckIn ? "bg-success" : "bg-primary",
                           )}
                         />
                         <div className="space-y-0.5 flex-1 min-w-0">
-                          <p className="font-semibold text-text-primary truncate">
+                          <p className="font-semibold text-foreground truncate">
                             {act.passengerName}
                           </p>
-                          <p className="text-[11px] text-text-secondary">
+                          <p className="text-[11px] text-muted-foreground">
                             {t("activityAction", {
                               action: act.action,
                               routeLabel: act.routeLabel,
                             })}
                           </p>
-                          <div className="flex items-center justify-between text-[10px] text-text-muted pt-0.5 font-medium">
+                          <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-0.5 font-medium">
                             <span className="font-mono">
                               {act.bookingReference}
                             </span>
@@ -519,7 +519,7 @@ export function OperatorDashboardView() {
 
       {/* Business Operations Readiness — backend-driven */}
       {businessReadiness && businessReadiness.length > 0 && (
-        <div className="border border-border rounded-md bg-white overflow-hidden">
+        <div className="border border-border rounded-md bg-card overflow-hidden">
           <div className="px-5 py-4 border-b border-border flex items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-foreground">
@@ -545,14 +545,14 @@ export function OperatorDashboardView() {
                   "flex items-center justify-between px-5 py-3.5 transition-colors",
                   item.completed
                     ? "cursor-default"
-                    : "hover:bg-slate-50 cursor-pointer",
+                    : "hover:bg-muted/50 cursor-pointer",
                 )}
               >
                 <div className="flex items-center gap-3">
                   {item.completed ? (
-                    <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+                    <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0" />
                   ) : (
-                    <Circle className="w-4 h-4 text-slate-300 flex-shrink-0" />
+                    <Circle className="w-4 h-4 text-muted-foreground/60 flex-shrink-0" />
                   )}
                   <span
                     className={cn(

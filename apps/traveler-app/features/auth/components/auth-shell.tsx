@@ -5,7 +5,6 @@ import {
 	KeyboardAvoidingView,
 	Platform,
 	ScrollView,
-	StyleSheet,
 	Text,
 	View,
 } from "react-native";
@@ -32,134 +31,62 @@ export function AuthShell({
 
 	return (
 		<KeyboardAvoidingView
-			style={styles.root}
+			className="flex-1 bg-background"
 			behavior={Platform.OS === "ios" ? "padding" : "height"}
 			keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 0}
 		>
 			<ScrollView
-				style={styles.scroll}
-				contentContainerStyle={[
-					styles.scrollContent,
-					{
-						paddingTop: insets.top + 56,
-						paddingBottom: Math.max(insets.bottom, 24) + 24,
-					},
-				]}
+				className="flex-1"
+				contentContainerStyle={{
+					flexGrow: 1,
+					justifyContent: "flex-start",
+					paddingHorizontal: 24,
+					paddingTop: insets.top + 56,
+					paddingBottom: Math.max(insets.bottom, 24) + 24,
+				}}
 				showsVerticalScrollIndicator={false}
 				keyboardShouldPersistTaps="handled"
 				keyboardDismissMode="on-drag"
 			>
-				<View style={styles.content}>
+				<View className="w-full max-w-[420px] self-center gap-7">
 					{logoSource ? (
-						<View style={styles.logoWrap}>
+						<View className="items-center mb-1">
 							<Image
 								source={logoSource}
-								style={styles.logo}
+								className="w-[170px] h-[62px]"
 								resizeMode="contain"
 							/>
 						</View>
 					) : (
-						<View style={styles.brandRow}>
-							<View style={styles.brandDot} />
-							<Text style={styles.brandText}>Moja Ride</Text>
+						<View className="flex-row items-center gap-2 mb-1">
+							<View className="w-2.5 h-2.5 rounded-full bg-primary" />
+							<Text className="text-lg font-bold text-foreground">Moja Ride</Text>
 						</View>
 					)}
 
 					{badge ? (
-						<View style={styles.badge}>
-							<Text style={styles.badgeText}>{badge}</Text>
+						<View className="self-start rounded-full border border-border bg-muted/60 px-4 py-2">
+							<Text className="text-xs font-bold uppercase tracking-widest text-primary">
+								{badge}
+							</Text>
 						</View>
 					) : null}
 
-					<View style={styles.header}>
-						<Text style={styles.title}>{title}</Text>
-						<Text style={styles.description}>{description}</Text>
+					<View className="gap-3">
+						<Text className="text-3xl font-extrabold leading-tight text-foreground">
+							{title}
+						</Text>
+						<Text className="text-base leading-6 text-muted-foreground">
+							{description}
+						</Text>
 					</View>
 
 					{children}
 
-					{footer ? <View style={styles.footer}>{footer}</View> : null}
+					{footer ? <View className="pt-1">{footer}</View> : null}
 				</View>
 			</ScrollView>
 		</KeyboardAvoidingView>
 	);
 }
 
-const styles = StyleSheet.create({
-	root: {
-		flex: 1,
-		backgroundColor: "#ffffff",
-	},
-	scroll: {
-		flex: 1,
-	},
-	scrollContent: {
-		flexGrow: 1,
-		justifyContent: "flex-start",
-		paddingHorizontal: 24,
-	},
-	content: {
-		width: "100%",
-		maxWidth: 420,
-		alignSelf: "center",
-		gap: 28,
-	},
-	logoWrap: {
-		alignItems: "center",
-		marginBottom: 4,
-	},
-	logo: {
-		width: 170,
-		height: 62,
-	},
-	brandRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 8,
-		marginBottom: 4,
-	},
-	brandDot: {
-		width: 10,
-		height: 10,
-		borderRadius: 5,
-		backgroundColor: "#ee237c",
-	},
-	brandText: {
-		fontSize: 18,
-		fontWeight: "700",
-		color: "#171717",
-	},
-	badge: {
-		alignSelf: "flex-start",
-		borderRadius: 999,
-		borderWidth: 1,
-		borderColor: "#e5e5e5",
-		backgroundColor: "#f5f5f5",
-		paddingHorizontal: 16,
-		paddingVertical: 8,
-	},
-	badgeText: {
-		fontSize: 12,
-		fontWeight: "700",
-		textTransform: "uppercase",
-		letterSpacing: 2.5,
-		color: "#ee237c",
-	},
-	header: {
-		gap: 12,
-	},
-	title: {
-		fontSize: 36,
-		fontWeight: "700",
-		lineHeight: 42,
-		color: "#171717",
-	},
-	description: {
-		fontSize: 16,
-		lineHeight: 24,
-		color: "#737373",
-	},
-	footer: {
-		paddingTop: 4,
-	},
-});

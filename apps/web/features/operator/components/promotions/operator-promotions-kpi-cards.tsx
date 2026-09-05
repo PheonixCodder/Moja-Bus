@@ -21,49 +21,49 @@ export function OperatorPromotionsKpiCards({
 
   return (
     <div className="grid gap-4 sm:grid-cols-3">
-      <Card className="flex items-center gap-4 p-5 shadow-xs border-slate-200/80 bg-white">
-        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600 ring-1 ring-amber-500/10">
+      <Card className="flex items-center gap-4 p-5 shadow-xs border-border bg-card">
+        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-warning/10 text-warning ring-1 ring-warning/20">
           <Megaphone className="size-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium text-slate-500">
+          <p className="text-xs font-medium text-muted-foreground">
             {t("activePromos")}
           </p>
-          <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-slate-900">
+          <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-foreground">
             {isLoading ? "—" : activePromos}
           </p>
         </div>
       </Card>
 
-      <Card className="flex items-center gap-4 p-5 shadow-xs border-slate-200/80 bg-white">
-        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-500/10">
+      <Card className="flex items-center gap-4 p-5 shadow-xs border-border bg-card">
+        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-success/10 text-success ring-1 ring-success/20">
           <CheckCircle2 className="size-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium text-slate-500">
+          <p className="text-xs font-medium text-muted-foreground">
             {t("confirmedRedemptions")}
           </p>
-          <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-slate-900">
+          <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-foreground">
             {isLoading ? "—" : confirmedRedemptions.toLocaleString()}
           </p>
         </div>
       </Card>
 
-      <Card className="flex items-center gap-4 p-5 shadow-xs border-slate-200/80 bg-white">
-        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600 ring-1 ring-rose-500/10">
+      <Card className="flex items-center gap-4 p-5 shadow-xs border-border bg-card">
+        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
           <Coins className="size-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium text-slate-500">
+          <p className="text-xs font-medium text-muted-foreground">
             {t("operatorFunded")}
           </p>
-          <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-slate-900">
+          <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-foreground">
             {isLoading ? (
               "—"
             ) : (
               <>
                 {operatorFundedXOF.toLocaleString()}{" "}
-                <span className="text-xs font-medium text-slate-400">XOF</span>
+                <span className="text-xs font-medium text-muted-foreground/70">XOF</span>
               </>
             )}
           </p>

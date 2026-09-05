@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, Image, StyleSheet } from "react-native";
+import { View, Text, Image } from "react-native";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
 	Briefcase01Icon,
@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { colors } from "@/constants/theme";
 
 const STATUS_META: Record<
 	string,
@@ -36,8 +37,6 @@ function timeLeft(expiresAt: string | Date | null | undefined, t: (key: string, 
 	const days = Math.floor(hours / 24);
 	return t("countdown.daysHours", { days, hours: hours % 24 });
 }
-
-
 
 function fmtSalary(n: number | null | undefined, locale: string): string {
 	if (n === null || n === undefined || typeof n !== "number" || isNaN(n)) {
@@ -87,23 +86,23 @@ export function OfferCard({
 	return (
 		<Card className="p-5 gap-4">
 			{/* Carrier identity header */}
-			<View style={styles.cardHeader}>
-				<View style={styles.carrierInfoRow}>
+			<View className="flex-row items-center justify-between border-b border-border pb-3">
+				<View className="flex-row items-center gap-3 flex-1">
 					{item.carrierLogo ? (
 						<Image
 							source={{ uri: item.carrierLogo }}
-							style={styles.carrierLogo}
+							className="size-10 rounded-xl border border-border"
 						/>
 					) : (
-						<View style={styles.carrierAvatar}>
-							<HugeiconsIcon icon={Briefcase01Icon} size={18} color="#ee237c" />
+						<View className="size-10 rounded-xl bg-primary/15 border border-primary/25 items-center justify-center">
+							<HugeiconsIcon icon={Briefcase01Icon} size={18} color={colors.primary.rose} />
 						</View>
 					)}
-					<View style={styles.carrierNameWrap}>
-						<Text style={styles.carrierName} numberOfLines={1}>
+					<View className="flex-1 gap-0.5">
+						<Text className="text-sm font-extrabold text-foreground" numberOfLines={1}>
 							{item.carrierName}
 						</Text>
-						<Text style={styles.carrierType}>
+						<Text className="text-[11px] text-muted-foreground">
 							{t(`employment.${item.employmentType}` as any) ?? item.employmentType}
 						</Text>
 					</View>
@@ -112,45 +111,45 @@ export function OfferCard({
 			</View>
 
 			{/* Salary and terms box */}
-			<View style={styles.salaryBox}>
-				<View style={styles.salaryRow}>
+			<View className="bg-background rounded-2xl border border-border p-3.5 gap-2.5">
+				<View className="flex-row items-center justify-between">
 					<View>
-						<Text style={styles.salaryLabel}>{t("card.salary")}</Text>
-						<Text style={styles.salaryAmount}>
+						<Text className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{t("card.salary")}</Text>
+						<Text className="text-xl font-extrabold font-mono text-foreground tracking-tight">
 							{fmtSalary(item.offeredSalaryCFA, locale)}{" "}
-							<Text style={styles.salaryUnit}>{t("card.cfaMonthly")}</Text>
+							<Text className="text-[11px] text-primary font-bold">{t("card.cfaMonthly")}</Text>
 						</Text>
 					</View>
 					{countdown ? (
-						<View style={styles.countdownTag}>
-							<HugeiconsIcon icon={Time02Icon} size={12} color="#fbbf24" />
-							<Text style={styles.countdownText}>{countdown}</Text>
+						<View className="flex-row items-center gap-1 bg-warning/15 rounded-full px-2 py-1 border border-warning/30">
+							<HugeiconsIcon icon={Time02Icon} size={12} color={colors.semantic.warning} />
+							<Text className="text-[11px] font-bold text-warning">{countdown}</Text>
 						</View>
 					) : null}
 				</View>
 
 				{countered ? (
-					<View style={styles.counteredAlert}>
-						<Text style={styles.counteredLabel}>
+					<View className="bg-info/10 rounded-xl border border-info/25 px-2.5 py-1.5 flex-row items-center justify-between">
+						<Text className="text-[11px] font-semibold text-info">
 							{t("card.counterLabel")}
 						</Text>
-						<Text style={styles.counteredAmount}>
+						<Text className="text-xs font-mono font-bold text-info">
 							{fmtSalary(item.counterSalaryCFA, locale)}{" "}
-							<Text style={styles.counteredUnit}>{t("card.cfaMonthly")}</Text>
+							<Text className="text-[10px] text-info">{t("card.cfaMonthly")}</Text>
 						</Text>
 					</View>
 				) : null}
 
 				{/* Contract dates & route preference */}
-				<View style={styles.metaDivider}>
-					<View style={styles.metaItem}>
-						<HugeiconsIcon icon={Calendar01Icon} size={13} color="#71717a" />
-						<Text style={styles.metaText}>
+				<View className="border-t border-border pt-2 gap-1.5">
+					<View className="flex-row items-center gap-1.5">
+						<HugeiconsIcon icon={Calendar01Icon} size={13} color={colors.neutral.textMuted} />
+						<Text className="text-[11px] text-muted-foreground">
 							{t("card.startDate", { date: fmtDate(item.contractStartDate, locale) })}
 						</Text>
 					</View>
 					{item.message ? (
-						<Text style={styles.messageText} numberOfLines={2}>
+						<Text className="text-[11px] italic text-muted-foreground leading-4" numberOfLines={2}>
 							{t("messageQuote", { message: item.message })}
 						</Text>
 					) : null}
@@ -159,13 +158,13 @@ export function OfferCard({
 
 			{/* Action buttons for active pending offers */}
 			{isLive ? (
-				<View style={styles.actionsRow}>
+				<View className="flex-row items-center gap-2 pt-1">
 					<Button
 						title={t("actions.decline")}
 						variant="outline"
 						size="sm"
-						icon={<HugeiconsIcon icon={CancelCircleIcon} size={16} color="#ef4444" />}
-						textClassName="text-[#ef4444]"
+						icon={<HugeiconsIcon icon={CancelCircleIcon} size={16} color={colors.semantic.error} />}
+						textClassName="text-destructive"
 						disabled={submitting}
 						onPress={() => onDecline(item.id)}
 						className="flex-1"
@@ -184,7 +183,7 @@ export function OfferCard({
 						title={t("actions.accept")}
 						variant="primary"
 						size="sm"
-						icon={<HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} color="#ffffff" />}
+						icon={<HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} color={colors.neutral.textPrimary} />}
 						disabled={submitting}
 						onPress={() => onAccept(item.id)}
 						className="flex-1"
@@ -194,151 +193,3 @@ export function OfferCard({
 		</Card>
 	);
 }
-
-const styles = StyleSheet.create({
-	cardHeader: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-		borderBottomWidth: 1,
-		borderBottomColor: "#27272a",
-		paddingBottom: 12,
-	},
-	carrierInfoRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 12,
-		flex: 1,
-	},
-	carrierLogo: {
-		width: 40,
-		height: 40,
-		borderRadius: 12,
-		borderWidth: 1,
-		borderColor: "#27272a",
-	},
-	carrierAvatar: {
-		width: 40,
-		height: 40,
-		borderRadius: 12,
-		backgroundColor: "rgba(238, 35, 124, 0.12)",
-		borderWidth: 1,
-		borderColor: "rgba(238, 35, 124, 0.25)",
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	carrierNameWrap: {
-		flex: 1,
-		gap: 2,
-	},
-	carrierName: {
-		fontSize: 14,
-		fontWeight: "800",
-		color: "#fafafa",
-	},
-	carrierType: {
-		fontSize: 11,
-		color: "#a1a1aa",
-	},
-	salaryBox: {
-		backgroundColor: "#09090b",
-		borderRadius: 16,
-		borderWidth: 1,
-		borderColor: "#27272a",
-		padding: 14,
-		gap: 10,
-	},
-	salaryRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-	},
-	salaryLabel: {
-		fontSize: 10,
-		fontWeight: "700",
-		color: "#71717a",
-		textTransform: "uppercase",
-		letterSpacing: 0.5,
-	},
-	salaryAmount: {
-		fontSize: 20,
-		fontWeight: "800",
-		fontFamily: "monospace",
-		color: "#fafafa",
-		letterSpacing: -0.5,
-	},
-	salaryUnit: {
-		fontSize: 11,
-		color: "#ee237c",
-		fontWeight: "700",
-	},
-	countdownTag: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 4,
-		backgroundColor: "rgba(245, 158, 11, 0.15)",
-		borderRadius: 999,
-		paddingHorizontal: 8,
-		paddingVertical: 4,
-		borderWidth: 1,
-		borderColor: "rgba(245, 158, 11, 0.3)",
-	},
-	countdownText: {
-		fontSize: 11,
-		fontWeight: "700",
-		color: "#fbbf24",
-	},
-	counteredAlert: {
-		backgroundColor: "rgba(59, 130, 246, 0.1)",
-		borderRadius: 10,
-		borderWidth: 1,
-		borderColor: "rgba(59, 130, 246, 0.25)",
-		paddingHorizontal: 10,
-		paddingVertical: 6,
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-	},
-	counteredLabel: {
-		fontSize: 11,
-		fontWeight: "600",
-		color: "#60a5fa",
-	},
-	counteredAmount: {
-		fontSize: 12,
-		fontFamily: "monospace",
-		fontWeight: "700",
-		color: "#93c5fd",
-	},
-	counteredUnit: {
-		fontSize: 10,
-		color: "#60a5fa",
-	},
-	metaDivider: {
-		borderTopWidth: 1,
-		borderTopColor: "#27272a",
-		paddingTop: 8,
-		gap: 6,
-	},
-	metaItem: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 6,
-	},
-	metaText: {
-		fontSize: 11,
-		color: "#a1a1aa",
-	},
-	messageText: {
-		fontSize: 11,
-		fontStyle: "italic",
-		color: "#71717a",
-		lineHeight: 16,
-	},
-	actionsRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 8,
-		paddingTop: 4,
-	},
-});

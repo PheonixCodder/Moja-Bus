@@ -124,10 +124,10 @@ export function AdminVerificationsView() {
       <OperatorOnboardingFunnel />
 
       {/* Filtering Options Grid */}
-      <Card className="bg-white border-border shadow-sm p-4">
+      <Card className="bg-card border-border shadow-sm p-4">
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
           <div className="relative w-full sm:w-80">
-            <Search className="absolute left-3 top-2.5 size-4 text-slate-400" />
+            <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
             <Input
               type="text"
               placeholder={t("searchPlaceholder")}
@@ -141,8 +141,8 @@ export function AdminVerificationsView() {
           </div>
 
           <div className="flex items-center gap-3 w-full sm:w-auto">
-            <Building className="size-4 text-slate-400" />
-            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+            <Building className="size-4 text-muted-foreground" />
+            <span className="text-xs font-bold text-foreground uppercase tracking-wider">
               {t("status")}
             </span>
             <Select
@@ -154,12 +154,12 @@ export function AdminVerificationsView() {
             >
               <SelectTrigger
                 size="sm"
-                className="h-9 w-full sm:w-48 bg-white text-slate-800 text-xs"
+                className="h-9 w-full sm:w-48 bg-card text-foreground text-xs"
                 id="status-filter-select"
               >
                 <SelectValue placeholder={t("allStatuses")} />
               </SelectTrigger>
-              <SelectContent className="bg-white border border-border shadow-md rounded">
+              <SelectContent className="bg-popover border border-border shadow-md rounded">
                 <SelectGroup>
                   <SelectItem value="ALL">{t("allStatuses")}</SelectItem>
                   <SelectItem value="PENDING_VERIFICATION">

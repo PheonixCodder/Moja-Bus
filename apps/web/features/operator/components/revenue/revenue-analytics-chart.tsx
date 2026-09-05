@@ -32,15 +32,15 @@ export function RevenueAnalyticsChart({
   }, [timeSeries]);
 
   return (
-    <div className="bg-white rounded-xl border shadow-sm p-6">
+    <div className="bg-card text-card-foreground rounded-xl border shadow-sm p-6">
       <div className="mb-6">
-        <h3 className="text-sm font-semibold text-slate-900">{t("title")}</h3>
-        <p className="text-sm text-slate-500">{t("description")}</p>
+        <h3 className="text-sm font-semibold text-foreground">{t("title")}</h3>
+        <p className="text-sm text-muted-foreground">{t("description")}</p>
       </div>
 
       <div className="h-[300px] w-full">
         {data.length === 0 ? (
-          <div className="h-full w-full flex items-center justify-center text-sm text-slate-500 bg-slate-50/50 rounded-lg border border-dashed">
+          <div className="h-full w-full flex items-center justify-center text-sm text-muted-foreground bg-muted/50 rounded-lg border border-dashed">
             {t("noData")}
           </div>
         ) : (
@@ -51,26 +51,26 @@ export function RevenueAnalyticsChart({
             >
               <defs>
                 <linearGradient id="colorNet" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  <stop offset="5%" stopColor="var(--success)" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="var(--success)" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid
                 strokeDasharray="3 3"
                 vertical={false}
-                stroke="#e2e8f0"
+                stroke="var(--border)"
               />
               <XAxis
                 dataKey="displayDate"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 12, fill: "#64748b" }}
+                tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
                 dy={10}
               />
               <YAxis
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 12, fill: "#64748b" }}
+                tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
                 tickFormatter={(value: number | bigint) =>
                   new Intl.NumberFormat("en-US", {
                     notation: "compact",
@@ -83,16 +83,16 @@ export function RevenueAnalyticsChart({
                 content={({ active, payload, label }: TooltipContentProps) => {
                   if (active && payload && payload.length) {
                     return (
-                      <div className="bg-white border rounded-lg shadow-lg p-3">
-                        <p className="text-sm font-medium text-slate-900 mb-2">
+                      <div className="bg-popover text-popover-foreground border rounded-lg shadow-lg p-3">
+                        <p className="text-sm font-medium text-foreground mb-2">
                           {label}
                         </p>
                         <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                          <span className="text-sm text-slate-500">
+                          <div className="w-2 h-2 rounded-full bg-success" />
+                          <span className="text-sm text-muted-foreground">
                             {t("tooltipLabel")}
                           </span>
-                          <span className="text-sm font-semibold text-emerald-600">
+                          <span className="text-sm font-semibold text-success">
                             {formatXOF(payload[0]?.value as number)}
                           </span>
                         </div>
@@ -105,11 +105,11 @@ export function RevenueAnalyticsChart({
               <Area
                 type="monotone"
                 dataKey="netXOF"
-                stroke="#10b981"
+                stroke="var(--success)"
                 strokeWidth={2}
                 fillOpacity={1}
                 fill="url(#colorNet)"
-                activeDot={{ r: 4, strokeWidth: 0, fill: "#10b981" }}
+                activeDot={{ r: 4, strokeWidth: 0, fill: "var(--success)" }}
               />
             </AreaChart>
           </ResponsiveContainer>

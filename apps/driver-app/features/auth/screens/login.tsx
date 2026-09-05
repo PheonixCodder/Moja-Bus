@@ -28,6 +28,7 @@ import { AuthButton } from "@/features/auth/components/auth-button";
 import { authClient, ensureAuthCookiesFresh } from "@/lib/auth-client";
 import { DriverFeedback } from "@/lib/haptics";
 import { colors } from "@/constants/theme";
+import { Button } from "@/components/ui/Button";
 import { useDriverRegistrationStore } from "@/stores/driver-registration";
 
 /**
@@ -248,9 +249,9 @@ export default function LoginView() {
 			}
 			logoSource={require("@/assets/images/icon.png")}
 			footer={
-				<View style={styles.footerRow}>
-					<HugeiconsIcon icon={SecurityCheckIcon} size={16} color="#10b981" />
-					<Text style={styles.footerText}>
+				<View className="flex-row items-center justify-center gap-2 pt-3">
+					<HugeiconsIcon icon={SecurityCheckIcon} size={16} color={colors.semantic.success} />
+					<Text className="text-xs text-muted-foreground font-medium">
 						{t("complianceNote")}
 					</Text>
 				</View>
@@ -258,9 +259,9 @@ export default function LoginView() {
 		>
 			<Animated.View style={{ transform: [{ translateX: slideAnim }] }}>
 				{step === "phone" ? (
-					<View style={styles.stepContainer}>
-						<View style={styles.inputGroup}>
-							<Text style={styles.inputLabel}>{t("phoneLabel")}</Text>
+					<View className="gap-5">
+						<View className="gap-2">
+							<Text className="text-xs font-bold text-foreground/80 uppercase tracking-wider">{t("phoneLabel")}</Text>
 							<PhoneInput
 								defaultCountry="CI"
 								value={localPhone}
@@ -270,32 +271,32 @@ export default function LoginView() {
 								modalDisabled
 								phoneInputStyles={{
 									container: {
-										backgroundColor: "#18181b",
+										backgroundColor: colors.neutral.surface,
 										borderWidth: 1,
-										borderColor: "#27272a",
+										borderColor: colors.neutral.border,
 										borderRadius: 16,
 										height: 56,
 									},
 									flagContainer: {
 										backgroundColor: "transparent",
 										borderRightWidth: 1,
-										borderRightColor: "#27272a",
+										borderRightColor: colors.neutral.border,
 									},
 									input: {
-										color: "#fafafa",
+										color: colors.neutral.textPrimary,
 										fontSize: 16,
 										fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
 										backgroundColor: "transparent",
 									},
 									callingCode: {
-										color: "#a1a1aa",
+										color: colors.neutral.textSecondary,
 										fontSize: 15,
 									},
 								}}
-								phoneInputPlaceholderTextColor="#52525b"
+								phoneInputPlaceholderTextColor={colors.neutral.textMuted}
 								placeholder={t("phonePlaceholder")}
 							/>
-							<Text style={styles.inputHint}>
+							<Text className="text-xs text-muted-foreground">
 								{t("phoneHint")}
 							</Text>
 						</View>
@@ -305,25 +306,27 @@ export default function LoginView() {
 							variant="primary"
 							loading={isPending}
 							onPress={handleSendOtp}
-							icon={<HugeiconsIcon icon={ArrowRight01Icon} size={18} color="#ffffff" />}
+							icon={<HugeiconsIcon icon={ArrowRight01Icon} size={18} color={colors.neutral.textPrimary} />}
 							iconPosition="right"
 						/>
 					</View>
 				) : (
-					<View style={styles.stepContainer}>
-						<TouchableOpacity
+					<View className="gap-5">
+						<Button
+							title={t("changePhone")}
+							variant="ghost"
+							size="sm"
 							onPress={() => {
 								DriverFeedback.tap();
 								setStep("phone");
 								animateBack();
 							}}
-							style={styles.backButton}
-						>
-							<HugeiconsIcon icon={ArrowLeft01Icon} size={16} color="#a1a1aa" />
-							<Text style={styles.backButtonText}>{t("changePhone")}</Text>
-						</TouchableOpacity>
+							icon={<HugeiconsIcon icon={ArrowLeft01Icon} size={16} color={colors.neutral.textSecondary} />}
+							className="self-start py-1 px-0 h-auto bg-transparent border-transparent"
+							textClassName="text-xs font-semibold text-muted-foreground"
+						/>
 
-						<View style={styles.otpWrapper}>
+						<View className="py-2">
 							<OtpInput
 								numberOfDigits={6}
 								type="numeric"
@@ -341,15 +344,15 @@ export default function LoginView() {
 										aspectRatio: 1,
 										borderRadius: 14,
 										borderWidth: 1.5,
-										borderColor: "#27272a",
-										backgroundColor: "#18181b",
+										borderColor: colors.neutral.border,
+										backgroundColor: colors.neutral.surface,
 									},
 									focusedPinCodeContainerStyle: {
 										borderColor: colors.primary.rose,
 										backgroundColor: "rgba(238, 35, 124, 0.08)",
 									},
 									pinCodeTextStyle: {
-										color: "#fafafa",
+										color: colors.neutral.textPrimary,
 										fontSize: 20,
 										fontWeight: "800",
 										fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
@@ -366,88 +369,25 @@ export default function LoginView() {
 							variant="primary"
 							loading={isPending}
 							onPress={() => handleVerifyOtp()}
-							icon={<HugeiconsIcon icon={Key01Icon} size={18} color="#ffffff" />}
+							icon={<HugeiconsIcon icon={Key01Icon} size={18} color={colors.neutral.textPrimary} />}
 							iconPosition="left"
 						/>
 
-						<TouchableOpacity
+						<Button
+							variant="ghost"
+							size="sm"
 							onPress={handleSendOtp}
 							disabled={isPending}
-							style={styles.resendButton}
+							className="items-center py-2 h-auto bg-transparent border-transparent"
 						>
-							<Text style={styles.resendText}>
+							<Text className="text-xs text-muted-foreground">
 								{t("didNotReceive")}{" "}
-								<Text style={styles.resendHighlight}>{t("resendCode")}</Text>
+								<Text className="text-primary font-bold">{t("resendCode")}</Text>
 							</Text>
-						</TouchableOpacity>
+						</Button>
 					</View>
 				)}
 			</Animated.View>
 		</AuthShell>
 	);
 }
-
-const styles = StyleSheet.create({
-	loadingContainer: {
-		flex: 1,
-		backgroundColor: "#09090b",
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	stepContainer: {
-		gap: 20,
-	},
-	inputGroup: {
-		gap: 8,
-	},
-	inputLabel: {
-		fontSize: 12,
-		fontWeight: "700",
-		color: "#d4d4d8",
-		textTransform: "uppercase",
-		letterSpacing: 1,
-	},
-	inputHint: {
-		fontSize: 11,
-		color: "#71717a",
-	},
-	backButton: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 6,
-		paddingVertical: 4,
-		alignSelf: "flex-start",
-	},
-	backButtonText: {
-		fontSize: 12,
-		fontWeight: "600",
-		color: "#a1a1aa",
-	},
-	otpWrapper: {
-		paddingVertical: 8,
-	},
-	resendButton: {
-		alignItems: "center",
-		paddingVertical: 8,
-	},
-	resendText: {
-		fontSize: 12,
-		color: "#a1a1aa",
-	},
-	resendHighlight: {
-		color: "#ee237c",
-		fontWeight: "700",
-	},
-	footerRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "center",
-		gap: 8,
-		paddingTop: 12,
-	},
-	footerText: {
-		fontSize: 11,
-		color: "#71717a",
-		fontWeight: "500",
-	},
-});

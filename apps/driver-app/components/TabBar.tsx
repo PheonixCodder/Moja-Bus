@@ -3,7 +3,6 @@ import {
 	View,
 	Text,
 	TouchableOpacity,
-	StyleSheet,
 	Dimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -71,8 +70,22 @@ export function TabBar({ state, navigation, pendingOffers = 0, isConductor = fal
 	}));
 
 	return (
-		<View style={[styles.container, { paddingBottom: insets.bottom || 8 }]}>
-			<Animated.View style={[styles.indicator, indicatorStyle]} />
+		<View
+			className="flex-row bg-background border-t border-border"
+			style={{ height: TAB_HEIGHT + 8, paddingBottom: insets.bottom || 8 }}
+		>
+			<Animated.View
+				className="absolute rounded-full bg-primary"
+				style={[
+					{
+						top: (TAB_HEIGHT - CIRCLE_SIZE) / 2,
+						left: 0,
+						width: CIRCLE_SIZE,
+						height: CIRCLE_SIZE,
+					},
+					indicatorStyle,
+				]}
+			/>
 
 			{state.routes
 				.filter((route: any) => TABS.some((t) => t.name === route.name))
@@ -97,19 +110,33 @@ export function TabBar({ state, navigation, pendingOffers = 0, isConductor = fal
 					<TouchableOpacity
 						key={route.key}
 						onPress={onPress}
-						style={styles.tab}
 						activeOpacity={0.8}
+						accessibilityRole="tab"
+						accessibilityState={{ selected: isFocused }}
+						accessibilityLabel={
+							tab.name === "trips"
+								? "Trajets"
+								: tab.name === "offers"
+									? "Offres"
+									: tab.name === "live"
+										? "En direct"
+										: tab.name === "scanner"
+											? "Scanner"
+											: "Profil"
+						}
+						className="flex-1 items-center justify-center"
+						style={{ height: TAB_HEIGHT }}
 					>
 						<View className="items-center justify-center">
 							<HugeiconsIcon
 								icon={tab.icon}
 								size={22}
-								color={isFocused ? "#ffffff" : colors.neutral.textSecondary}
+								color={isFocused ? colors.neutral.textPrimary : colors.neutral.textSecondary}
 							/>
 
 							{showBadge ? (
-								<View style={styles.badge}>
-									<Text style={styles.badgeText}>
+								<View className="absolute -top-1 -right-2.5 bg-warning rounded-full min-w-4 h-4 items-center justify-center px-1">
+									<Text className="text-[9px] font-extrabold text-warning-foreground">
 										{pendingOffers > 99 ? "99+" : pendingOffers}
 									</Text>
 								</View>
@@ -117,7 +144,7 @@ export function TabBar({ state, navigation, pendingOffers = 0, isConductor = fal
 						</View>
 
 						{!isFocused ? (
-							<Text style={styles.label}>
+							<Text className="text-[10px] font-semibold text-muted-foreground mt-0.5">
 								{tab.name === "trips"
 									? "Trajets"
 									: tab.name === "offers"
@@ -135,57 +162,3 @@ export function TabBar({ state, navigation, pendingOffers = 0, isConductor = fal
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flexDirection: "row",
-		backgroundColor: "#09090b",
-		borderTopWidth: 1,
-		borderTopColor: "#27272a",
-		height: TAB_HEIGHT + 8,
-		shadowColor: "#000",
-		shadowOffset: { width: 0, height: -3 },
-		shadowOpacity: 0.2,
-		shadowRadius: 8,
-		elevation: 10,
-	},
-	indicator: {
-		position: "absolute",
-		top: (TAB_HEIGHT - CIRCLE_SIZE) / 2,
-		left: 0,
-		width: CIRCLE_SIZE,
-		height: CIRCLE_SIZE,
-		borderRadius: CIRCLE_SIZE / 2,
-		backgroundColor: colors.primary.rose,
-	},
-	tab: {
-		flex: 1,
-		alignItems: "center",
-		justifyContent: "center",
-		height: TAB_HEIGHT,
-	},
-	label: {
-		fontFamily: fontFamily.medium,
-		fontSize: 10,
-		color: colors.neutral.textSecondary,
-		marginTop: 3,
-		fontWeight: "600",
-	},
-	badge: {
-		position: "absolute",
-		top: -4,
-		right: -10,
-		backgroundColor: "#f59e0b",
-		borderRadius: 10,
-		minWidth: 16,
-		height: 16,
-		alignItems: "center",
-		justifyContent: "center",
-		paddingHorizontal: 4,
-	},
-	badgeText: {
-		color: "#000000",
-		fontSize: 9,
-		fontWeight: "800",
-	},
-});

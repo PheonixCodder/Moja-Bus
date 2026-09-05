@@ -18,6 +18,7 @@ import {
 import QRCode from "react-native-qrcode-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/text";
+import { Palette } from "@/constants/theme";
 import { formatLocationLabel } from "@/lib/format-location-label";
 import { useGetTicket } from "@/features/booking/hooks/use-bookings";
 import { formatDateWithWeekday, formatPriceXOF, formatTimeOnly } from "../lib/format-time";
@@ -37,8 +38,8 @@ function TicketQrCode({ payload }: { payload: string }) {
 			<QRCode
 				value={payload}
 				size={180}
-				backgroundColor="#ffffff"
-				color="#0f172a"
+				backgroundColor={Palette.zinc[50]}
+				color={Palette.zinc[950]}
 				ecl="M"
 			/>
 		</View>
@@ -85,7 +86,7 @@ export function TicketSheet({
 			onRequestClose={onClose}
 		>
 			<View className="flex-1 justify-end bg-black/60">
-				<Pressable className="absolute inset-0" onPress={onClose} />
+				<Pressable className="absolute inset-0" onPress={onClose} accessibilityRole="button" accessibilityLabel="Close" />
 
 				<View
 					className="bg-background rounded-t-3xl border-t border-border overflow-hidden max-h-[90%]"
@@ -107,9 +108,10 @@ export function TicketSheet({
 
 							<Pressable
 								onPress={handleShare}
+								accessibilityRole="button"
 								className="bg-primary/10 border-primary/20 flex-row items-center gap-1.5 rounded-full border px-3 py-1.5"
 							>
-								<HugeiconsIcon icon={Share01Icon} size={14} color="#ee237c" />
+								<HugeiconsIcon icon={Share01Icon} size={14} color={Palette.rose[500]} />
 								<Text className="text-primary text-xs font-bold">{t("shareTicket")}</Text>
 							</Pressable>
 						</View>
@@ -119,7 +121,7 @@ export function TicketSheet({
 					<ScrollView className="p-4 space-y-4">
 						{isLoading ? (
 							<View className="py-16 items-center justify-center">
-								<ActivityIndicator size="large" color="#ee237c" />
+								<ActivityIndicator size="large" color={Palette.rose[500]} />
 								<Text className="text-muted-foreground mt-3 text-xs font-semibold">
 									{t("loading")}
 								</Text>
@@ -131,17 +133,18 @@ export function TicketSheet({
 								</Text>
 								<Pressable
 									onPress={() => refetch()}
-									className="bg-primary px-6 py-2.5 rounded-xl"
+									accessibilityRole="button"
+									className="bg-primary px-6 py-2.5 rounded-xl min-h-11 items-center justify-center"
 								>
-									<Text className="text-white font-bold text-xs">{t("retry")}</Text>
+									<Text className="text-primary-foreground font-bold text-xs">{t("retry")}</Text>
 								</Pressable>
 							</View>
 						) : (
 							<View className="space-y-4 pb-4">
 								{/* QR Instructions Banner */}
-								<View className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 flex-row items-center gap-2">
-									<HugeiconsIcon icon={QrCodeIcon} size={18} color="#10b981" />
-									<Text className="text-emerald-700 text-xs font-semibold flex-1 leading-snug">
+								<View className="rounded-xl border border-success/20 bg-success/10 p-3 flex-row items-center gap-2">
+									<HugeiconsIcon icon={QrCodeIcon} size={18} color={Palette.emerald[500]} />
+									<Text className="text-success text-xs font-semibold flex-1 leading-snug">
 										{t("qrInstructions")}
 									</Text>
 								</View>
@@ -256,9 +259,10 @@ export function TicketSheet({
 								{onCancel ? (
 									<Pressable
 										onPress={onCancel}
-										className="bg-destructive/10 border border-destructive/20 rounded-xl p-3.5 items-center justify-center flex-row gap-2 mt-2"
+										accessibilityRole="button"
+										className="bg-destructive/10 border border-destructive/20 rounded-xl p-3.5 items-center justify-center flex-row gap-2 mt-2 min-h-11"
 									>
-										<HugeiconsIcon icon={Cancel01Icon} size={16} color="#ef4444" />
+										<HugeiconsIcon icon={Cancel01Icon} size={16} color={Palette.red[500]} />
 										<Text className="text-destructive font-bold text-xs">
 											{t("cancelBooking")}
 										</Text>

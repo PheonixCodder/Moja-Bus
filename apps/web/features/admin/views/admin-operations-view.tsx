@@ -56,26 +56,26 @@ export function AdminOperationsView() {
   const getTripStatusStyle = (status: string) => {
     switch (status) {
       case "BOARDING":
-        return "bg-amber-50 text-amber-700 border-amber-200 animate-pulse";
+        return "bg-warning/15 text-warning border-warning/30 animate-pulse";
       case "DEPARTED":
-        return "bg-blue-50 text-blue-700 border-blue-200";
+        return "bg-primary/15 text-primary border-primary/30";
       case "ARRIVED":
-        return "bg-emerald-50 text-emerald-700 border-emerald-200";
+        return "bg-success/15 text-success border-success/30";
       case "CANCELLED":
-        return "bg-red-50 text-red-700 border-red-200";
+        return "bg-destructive/15 text-destructive border-destructive/30";
       default:
-        return "bg-slate-50 text-slate-700 border-slate-200";
+        return "bg-muted text-muted-foreground border-border";
     }
   };
 
   return (
     <div className="space-y-6">
       {/* Filters */}
-      <Card className="bg-white border-border shadow-sm p-4">
+      <Card className="bg-card border-border shadow-sm p-4">
         <div className="flex flex-col sm:flex-row gap-4 items-center">
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Building className="size-4 text-slate-400" />
-            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+            <Building className="size-4 text-muted-foreground" />
+            <span className="text-xs font-bold text-foreground uppercase tracking-wider">
               {t("operator")}
             </span>
             <Combobox
@@ -94,7 +94,7 @@ export function AdminOperationsView() {
             >
               <ComboboxInput
                 placeholder={t("filterByOperator")}
-                className="w-full sm:w-56 h-9 bg-white"
+                className="w-full sm:w-56 h-9 bg-card"
               />
               <ComboboxContent>
                 <ComboboxEmpty>{t("noTripsMatchFilters")}</ComboboxEmpty>
@@ -114,62 +114,62 @@ export function AdminOperationsView() {
 
       {/* Trips Table */}
       {operations && operations.items.length === 0 ? (
-        <div className="rounded-md border border-dashed border-slate-200 bg-slate-50/50 p-12 text-center space-y-3">
-          <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mx-auto">
+        <div className="rounded-md border border-dashed border-border bg-muted/30 p-12 text-center space-y-3">
+          <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center text-muted-foreground mx-auto">
             <Activity className="size-6" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-sm font-bold text-slate-800">
+            <h3 className="text-sm font-bold text-foreground">
               {t("noTripsFound")}
             </h3>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
+            <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed">
               {t("noTripsMatchFilters")}
             </p>
           </div>
         </div>
       ) : operations ? (
         <div className="space-y-4">
-          <div className="border border-border rounded-md bg-white overflow-hidden shadow-sm">
+          <div className="border border-border rounded-md bg-card overflow-hidden shadow-sm">
             <Table>
               <TableHeader>
-                <TableRow className="bg-slate-50 hover:bg-slate-50">
-                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                <TableRow className="bg-muted/40 hover:bg-muted/40">
+                  <TableHead className="text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4">
                     {t("operator")}
                   </TableHead>
-                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                  <TableHead className="text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4">
                     {t("route")}
                   </TableHead>
-                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                  <TableHead className="text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4">
                     {t("departure")}
                   </TableHead>
-                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                  <TableHead className="text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4">
                     {t("occupancy")}
                   </TableHead>
-                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                  <TableHead className="text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4">
                     {t("status")}
                   </TableHead>
-                  <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                  <TableHead className="text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4">
                     {t("delay")}
                   </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {operations.items.map((trip) => (
-                  <TableRow key={trip.id} className="hover:bg-slate-50/50">
-                    <TableCell className="px-4 py-3 font-semibold text-slate-900">
+                  <TableRow key={trip.id} className="hover:bg-muted/50">
+                    <TableCell className="px-4 py-3 font-semibold text-foreground">
                       {trip.companyName}
                     </TableCell>
-                    <TableCell className="px-4 py-3 text-slate-700 font-medium">
+                    <TableCell className="px-4 py-3 text-muted-foreground font-medium">
                       <div className="flex items-center gap-1.5 font-semibold text-xs">
                         {trip.routeLabel}
                       </div>
                     </TableCell>
-                    <TableCell className="px-4 py-3 text-slate-600 text-xs">
+                    <TableCell className="px-4 py-3 text-muted-foreground text-xs">
                       {formatAdminDateTime(trip.departureDate)}
                     </TableCell>
-                    <TableCell className="px-4 py-3 text-slate-700 font-bold text-xs">
+                    <TableCell className="px-4 py-3 text-foreground font-bold text-xs">
                       <div className="flex items-center gap-1">
-                        <Users className="size-3.5 text-slate-400" />
+                        <Users className="size-3.5 text-muted-foreground" />
                         <span>
                           {trip.occupantCount} {t("booked")}
                         </span>
@@ -180,14 +180,14 @@ export function AdminOperationsView() {
                         {trip.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="px-4 py-3 text-slate-500 text-xs font-mono">
+                    <TableCell className="px-4 py-3 text-muted-foreground text-xs font-mono">
                       {trip.delayMinutes > 0 ? (
-                        <span className="text-rose-600 font-bold flex items-center gap-1">
+                        <span className="text-destructive font-bold flex items-center gap-1">
                           <Clock className="size-3 shrink-0" />+
                           {trip.delayMinutes} {t("mins")}
                         </span>
                       ) : (
-                        <span className="text-slate-400 font-medium">
+                        <span className="text-muted-foreground font-medium">
                           {t("none")}
                         </span>
                       )}
@@ -201,7 +201,7 @@ export function AdminOperationsView() {
           {/* Pagination */}
           {operations.total > pageSize && (
             <div className="flex justify-between items-center text-xs">
-              <span className="text-slate-500 font-medium">
+              <span className="text-muted-foreground font-medium">
                 {t("showing", {
                   start: currentPage * pageSize + 1,
                   end: Math.min((currentPage + 1) * pageSize, operations.total),

@@ -12,9 +12,9 @@ import {
 export function TravelBenefits() {
   const t = useTranslations("passengerDashboard.wallet");
   return (
-    <Card className="border-border bg-bg-surface overflow-hidden shadow-sm">
+    <Card className="border-border bg-surface overflow-hidden shadow-sm">
       <CardHeader className="pb-3">
-        <CardTitle className="text-xs font-bold text-text-muted uppercase tracking-widest flex items-center gap-1.5">
+        <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
           <TrendingUp className="size-4 text-primary" />
           {t("benefitsTitle")}
         </CardTitle>
@@ -26,10 +26,10 @@ export function TravelBenefits() {
               1
             </div>
             <div>
-              <span className="font-semibold text-text-primary block">
+              <span className="font-semibold text-foreground block">
                 {t("instantBooking")}
               </span>
-              <p className="text-[11px] text-text-secondary mt-0.5 leading-relaxed">
+              <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
                 {t("instantBookingDesc")}
               </p>
             </div>
@@ -40,10 +40,10 @@ export function TravelBenefits() {
               2
             </div>
             <div>
-              <span className="font-semibold text-text-primary block">
+              <span className="font-semibold text-foreground block">
                 {t("oneClickRefunds")}
               </span>
-              <p className="text-[11px] text-text-secondary mt-0.5 leading-relaxed">
+              <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
                 {t("oneClickRefundsDesc")}
               </p>
             </div>

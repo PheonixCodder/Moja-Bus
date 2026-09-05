@@ -30,9 +30,9 @@ const STATUS_STYLE = {
 } as const;
 
 const CLASS_BADGES = {
-  VIP: "bg-purple-500/10 text-purple-600 border-purple-500/20 font-bold",
-  STANDARD: "bg-blue-500/10 text-blue-600 border-blue-500/20 font-semibold",
-  ECONOMY: "bg-slate-500/10 text-slate-600 border-slate-500/20 font-medium",
+  VIP: "bg-primary/15 text-primary border-primary/25 font-bold",
+  STANDARD: "bg-primary/10 text-primary border-primary/20 font-semibold",
+  ECONOMY: "bg-muted text-muted-foreground border-border font-medium",
 } as const;
 
 interface BusCardProps {
@@ -121,11 +121,11 @@ export function BusCard({
 
         {/* Notes */}
         {bus.notes && (
-          <div className="rounded-md bg-amber-50/60 border border-amber-200/60 px-2.5 py-1.5">
-            <p className="text-[10px] text-amber-700 font-semibold uppercase tracking-wider">
+          <div className="rounded-md bg-warning/10 border border-warning/20 px-2.5 py-1.5">
+            <p className="text-[10px] text-warning font-semibold uppercase tracking-wider">
               {t("busCard.notes")}
             </p>
-            <p className="text-xs text-amber-800/90 mt-0.5 line-clamp-2">
+            <p className="text-xs text-warning/90 mt-0.5 line-clamp-2">
               {bus.notes}
             </p>
           </div>

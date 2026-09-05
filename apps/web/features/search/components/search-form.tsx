@@ -283,7 +283,7 @@ export const SearchForm = memo(function SearchForm({
   }
 
   return (
-    <Card className="bg-white/95 backdrop-blur-md shadow-2xl border border-slate-100 rounded-2xl overflow-visible transition-all duration-300">
+    <Card className="bg-card/95 backdrop-blur-md shadow-2xl border border-border rounded-2xl overflow-visible transition-all duration-300">
       <CardContent className="p-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
@@ -301,7 +301,7 @@ export const SearchForm = memo(function SearchForm({
                 type="button"
                 variant="outline"
                 onClick={handleSwap}
-                className="h-10 w-10 p-0 rounded-full border-slate-200 hover:bg-slate-50 text-[#ee237c] active:scale-95 transition-all shadow-sm"
+                className="h-10 w-10 p-0 rounded-full border-border hover:bg-muted/50 text-primary active:scale-95 transition-all shadow-sm"
                 title={t("swapTitle")}
               >
                 <ArrowUpDown className="h-5 w-5 lg:rotate-90" />
@@ -318,19 +318,20 @@ export const SearchForm = memo(function SearchForm({
             </div>
 
             <div className="lg:col-span-2">
-              <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">
+              <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">
                 {t("departureLabel")}
               </label>
               <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                 <PopoverTrigger
                   render={
-                    <button
+                    <Button
                       type="button"
-                      className="relative w-full h-12 pl-10 pr-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-left flex items-center hover:bg-white focus:bg-white focus:border-[#ee237c] focus:ring-2 focus:ring-[#ee237c]/20 transition-all outline-none text-slate-700"
+                      variant="ghost"
+                      className="relative w-full h-12 pl-10 pr-3 rounded-xl border border-border bg-muted/40 text-sm font-medium text-left flex items-center justify-start hover:bg-background focus:bg-background focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-foreground shadow-none font-normal"
                     />
                   }
                 >
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
                   {date ? format(parseLocalDate(date)!, "PPP") : t("pickDate")}
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -352,18 +353,18 @@ export const SearchForm = memo(function SearchForm({
             </div>
 
             <div className="lg:col-span-1 relative">
-              <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">
+              <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">
                 {t("travelersLabel")}
               </label>
               <div className="relative">
-                <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 h-5 w-5 pointer-events-none" />
+                <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-5 w-5 pointer-events-none" />
                 <Input
                   type="number"
                   min={1}
                   max={10}
                   value={passengers}
                   onChange={(e) => setPassengers(Number(e.target.value))}
-                  className="pl-10 h-12 bg-slate-50 border-slate-200 focus:ring-[#ee237c] focus:border-[#ee237c] rounded-xl font-medium"
+                  className="pl-10 h-12 bg-muted/40 border-border focus:ring-primary focus:border-primary rounded-xl font-medium"
                 />
               </div>
             </div>
@@ -371,7 +372,7 @@ export const SearchForm = memo(function SearchForm({
             <div className="lg:col-span-2">
               <Button
                 type="submit"
-                className="w-full h-12 rounded-xl bg-[#ee237c] hover:bg-[#d01867] text-white font-semibold transition-all duration-200 transform hover:scale-[1.01] active:scale-[0.99] shadow-lg shadow-pink-500/20 flex items-center justify-center gap-2"
+                className="w-full h-12 rounded-xl text-primary-foreground font-semibold transition-all duration-200 transform hover:scale-[1.01] active:scale-[0.99] shadow-lg flex items-center justify-center gap-2"
               >
                 <Search className="h-5 w-5" /> {t("findBus")}
               </Button>

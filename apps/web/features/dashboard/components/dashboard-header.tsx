@@ -19,14 +19,14 @@ export function DashboardHeader({ user }: DashboardViewProps) {
   return (
     <div className="flex items-start justify-between">
       <div className="space-y-1">
-        <p className="text-sm text-text-muted">
+        <p className="text-sm text-muted-foreground">
           {new Date().toLocaleDateString(locale, {
             weekday: "long",
             month: "long",
             day: "numeric",
           })}
         </p>
-        <h1 className="text-2xl font-semibold tracking-tight text-text-primary lg:text-3xl">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground lg:text-3xl">
           {t("greeting", { name: firstName ?? "Traveler" })}
         </h1>
       </div>

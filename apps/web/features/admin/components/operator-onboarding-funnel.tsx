@@ -24,9 +24,9 @@ export function OperatorOnboardingFunnel() {
 
   if (isLoading) {
     return (
-      <Card className="bg-white border-border shadow-sm">
-        <CardContent className="p-6 flex items-center justify-center min-h-[160px]">
-          <Spinner className="size-6 text-slate-400" />
+      <Card className="bg-card border-border shadow-sm">
+        <CardContent className="p-6 flex items-center justify-center min-h-40">
+          <Spinner className="size-6 text-muted-foreground" />
         </CardContent>
       </Card>
     );
@@ -46,15 +46,15 @@ export function OperatorOnboardingFunnel() {
   const maxCount = Math.max(...stepCounts.map((s) => s.count), 1); // Avoid division by zero
 
   return (
-    <Card className="bg-white border-border shadow-sm">
+    <Card className="bg-card border-border shadow-sm">
       <CardHeader className="pb-4">
         <div className="flex items-center gap-2">
           <Activity className="size-5 text-primary" />
           <div>
-            <CardTitle className="text-base font-bold text-slate-900">
+            <CardTitle className="text-base font-bold text-foreground">
               {t("title")}
             </CardTitle>
-            <CardDescription className="text-xs text-slate-500">
+            <CardDescription className="text-xs text-muted-foreground">
               {t("description")}
             </CardDescription>
           </div>
@@ -70,7 +70,7 @@ export function OperatorOnboardingFunnel() {
                   key={s.name}
                   className="flex flex-col items-center gap-2 group"
                 >
-                  <div className="text-xs font-bold text-slate-700">
+                  <div className="text-xs font-bold text-foreground">
                     {s.count}
                   </div>
                   <div
@@ -83,7 +83,7 @@ export function OperatorOnboardingFunnel() {
                       style={{ height: s.count > 0 ? "4px" : "0" }}
                     />
                   </div>
-                  <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider text-center">
+                  <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider text-center">
                     {t(`steps.${s.name as any}`)}
                   </div>
                 </div>
@@ -91,14 +91,14 @@ export function OperatorOnboardingFunnel() {
             })}
           </div>
 
-          <div className="flex items-center justify-between mt-2 pt-4 border-t border-slate-100">
-            <div className="text-xs font-medium text-slate-500">
+          <div className="flex items-center justify-between mt-2 pt-4 border-t border-border">
+            <div className="text-xs font-medium text-muted-foreground">
               {t("totalStarted")}{" "}
-              <strong className="text-slate-800">{data.totalStarted}</strong>
+              <strong className="text-foreground">{data.totalStarted}</strong>
             </div>
-            <div className="text-xs font-medium text-slate-500">
+            <div className="text-xs font-medium text-muted-foreground">
               {t("fullyCompleted")}{" "}
-              <strong className="text-slate-800">{data.totalCompleted}</strong>
+              <strong className="text-foreground">{data.totalCompleted}</strong>
             </div>
           </div>
         </div>

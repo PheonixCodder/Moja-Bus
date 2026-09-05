@@ -26,21 +26,21 @@ export function BookingRow({
   const t = useTranslations("operatorDashboard.bookings");
 
   return (
-    <Card className="border-border bg-bg-surface">
+    <Card className="border-border bg-surface">
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-xs font-semibold text-text-muted uppercase tracking-wide">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               {booking.bookingReference}
             </p>
-            <h3 className="text-base font-bold text-text-primary truncate">
+            <h3 className="text-base font-bold text-foreground truncate">
               {booking.passengerName}
             </h3>
-            <p className="text-xs text-text-secondary mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               {booking.originCityName} → {booking.destinationCityName} ·{" "}
               {t("card.seat", { seat: booking.seatLabel })}
             </p>
-            <p className="text-xs text-text-muted mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               {formatDateWithWeekday(booking.departureTime)} ·{" "}
               {formatDepartureTime(booking.departureTime)} ·{" "}
               {booking.passengerPhone}

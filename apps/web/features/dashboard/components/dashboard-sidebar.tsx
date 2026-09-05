@@ -22,6 +22,7 @@ import {
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { cn } from "@moja/ui/lib/utils";
 import { Avatar, AvatarFallback } from "@moja/ui/components/ui/avatar";
+import { UserAvatar } from "@moja/ui/components/ui/user-avatar";
 import {
   Card,
   CardDescription,
@@ -212,11 +213,13 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
                     size="lg"
                     className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground w-full flex items-center gap-2 p-2 rounded-md transition-colors"
                   >
-                    <Avatar className="h-8 w-8 rounded-lg grayscale shrink-0">
-                      <AvatarFallback className="rounded-lg bg-primary/10 text-xs font-semibold text-primary">
-                        {userInitials}
-                      </AvatarFallback>
-                    </Avatar>
+                    <UserAvatar
+                      name={user?.name}
+                      src={user?.image}
+                      seed={user?.id}
+                      size="sm"
+                      className="h-8 w-8 rounded-lg shrink-0"
+                    />
                     <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden min-w-0">
                       <span className="truncate font-medium text-sidebar-foreground">
                         {user?.name ?? tNav("guestUser")}
@@ -241,11 +244,13 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
                 <DropdownMenuGroup>
                   <DropdownMenuLabel className="p-0 font-normal">
                     <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                      <Avatar className="h-8 w-8 rounded-lg">
-                        <AvatarFallback className="rounded-lg bg-primary/10 text-xs font-semibold text-primary">
-                          {userInitials}
-                        </AvatarFallback>
-                      </Avatar>
+                      <UserAvatar
+                        name={user?.name}
+                        src={user?.image}
+                        seed={user?.id}
+                        size="sm"
+                        className="h-8 w-8 rounded-lg shrink-0"
+                      />
                       <div className="grid flex-1 text-left text-sm leading-tight min-w-0">
                         <span className="truncate font-medium text-sidebar-foreground">
                           {user?.name ?? tNav("guestUser")}

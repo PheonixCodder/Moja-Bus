@@ -75,7 +75,7 @@ export function OperatorPromotionCreateDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Zap className="size-4 text-[#ee237c]" />
+            <Zap className="size-4 text-primary" />
             {step === 1 ? t("step1Title") : t("step2Title")}
           </DialogTitle>
           <DialogDescription>
@@ -120,23 +120,24 @@ export function OperatorPromotionCreateDialog({
                       },
                     ] as { value: BenefitType; label: string; desc: string }[]
                   ).map((opt) => (
-                    <button
+                    <Button
                       key={opt.value}
                       type="button"
+                      variant="ghost"
                       onClick={() => setBenefitType(opt.value)}
-                      className={`rounded-lg border px-3 py-3 text-left text-sm transition-colors ${
+                      className={`h-auto rounded-lg border px-3 py-3 text-left text-sm transition-colors flex flex-col items-start justify-start whitespace-normal font-normal ${
                         benefitType === opt.value
-                          ? "border-slate-900 bg-slate-900 text-white"
-                          : "border-slate-200 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50"
+                          ? "border-primary bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
+                          : "border-border bg-card text-foreground hover:border-foreground/20 hover:bg-muted/50"
                       }`}
                     >
                       <p className="font-semibold">{opt.label}</p>
                       <p
-                        className={`text-[11px] ${benefitType === opt.value ? "text-slate-300" : "text-slate-400"}`}
+                        className={`text-[11px] ${benefitType === opt.value ? "text-primary-foreground/80" : "text-muted-foreground"}`}
                       >
                         {opt.desc}
                       </p>
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -176,7 +177,7 @@ export function OperatorPromotionCreateDialog({
                       onChange={(e) => setPercentOff(e.target.value)}
                       className="pr-8"
                     />
-                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
                       %
                     </span>
                   </div>
@@ -195,14 +196,14 @@ export function OperatorPromotionCreateDialog({
                       onChange={(e) => setAmountXOF(e.target.value)}
                       className="pr-12"
                     />
-                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
                       XOF
                     </span>
                   </div>
                 </div>
               )}
 
-              <p className="rounded-lg bg-slate-50 px-3 py-2.5 text-xs text-slate-500">
+              <p className="rounded-lg bg-muted/50 px-3 py-2.5 text-xs text-muted-foreground">
                 {t("draftNotice")}
               </p>
 

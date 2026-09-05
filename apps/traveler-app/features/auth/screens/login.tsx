@@ -14,6 +14,7 @@ import { AuthButton } from "@/features/auth/components/auth-button";
 import { AuthField } from "@/features/auth/components/auth-field";
 import { AuthShell } from "@/features/auth/components/auth-shell";
 import { authClient, refreshSession } from "@/lib/auth-client";
+import { Palette, Colors } from "@/constants/theme";
 
 type AuthError = { message?: string; code?: string };
 
@@ -74,7 +75,7 @@ export default function LoginView() {
 	if (sessionPending || session?.user) {
 		return (
 			<View style={styles.loading}>
-				<ActivityIndicator size="large" color="#ee237c" />
+				<ActivityIndicator size="large" color={Palette.rose[500]} />
 			</View>
 		);
 	}
@@ -305,15 +306,15 @@ export default function LoginView() {
 										backgroundColor: "rgba(238, 35, 124, 0.05)",
 									},
 									focusedPinCodeContainerStyle: {
-										borderColor: "#ee237c",
+										borderColor: Palette.rose[500],
 									},
 									pinCodeTextStyle: {
-										color: "#171717",
+										color: Colors.light.textPrimary,
 										fontSize: 20,
 										fontWeight: "700",
 									},
 									focusStickStyle: {
-										backgroundColor: "#ee237c",
+										backgroundColor: Palette.rose[500],
 									},
 								}}
 							/>
@@ -379,6 +380,6 @@ const styles = StyleSheet.create({
 		flex: 1,
 		alignItems: "center",
 		justifyContent: "center",
-		backgroundColor: "#ffffff",
+		backgroundColor: Colors.light.background,
 	},
 });

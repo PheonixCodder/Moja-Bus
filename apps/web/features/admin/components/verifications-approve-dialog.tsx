@@ -62,33 +62,33 @@ export function VerificationsApproveDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md border border-border bg-white rounded-lg p-6">
+      <DialogContent className="max-w-md border border-border bg-card rounded-lg p-6">
         <DialogHeader>
-          <DialogTitle className="text-lg font-bold text-slate-900">
+          <DialogTitle className="text-lg font-bold text-foreground">
             {t("approveCompanyTitle")}
           </DialogTitle>
-          <DialogDescription className="text-xs text-slate-500">
+          <DialogDescription className="text-xs text-muted-foreground">
             {t("dialogDescription")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="py-4 space-y-4">
-          <div className="rounded border border-slate-100 p-3 bg-slate-50 space-y-1.5 text-xs text-slate-600">
+          <div className="rounded border border-border p-3 bg-muted/40 space-y-1.5 text-xs text-muted-foreground">
             <div>
-              <span className="font-semibold text-slate-700">
+              <span className="font-semibold text-foreground">
                 {t("bankNameLabel")}
               </span>{" "}
               {pendingBank?.bankName || t("na")}
             </div>
             <div>
-              <span className="font-semibold text-slate-700">
+              <span className="font-semibold text-foreground">
                 {t("accountNumberLabel")}
               </span>{" "}
               ••••••••••••
               {pendingBank?.accountNumberLast4 || t("na")}
             </div>
             {pendingBank?.verificationPayload?.accountNameMatched === false && (
-              <div className="text-amber-700">
+              <div className="text-warning">
                 <span className="font-semibold">
                   {t("accountNameMismatchLabel")}
                 </span>{" "}
@@ -107,13 +107,13 @@ export function VerificationsApproveDialog({
             {t("cancel")}
           </Button>
           <Button
-            className="bg-primary hover:bg-primary/90 text-white h-9"
+            className="h-9"
             disabled={verifyMutation.isPending}
             onClick={handleConfirm}
           >
             {verifyMutation.isPending ? (
               <>
-                <Spinner className="mr-2 size-3.5 text-white" />
+                <Spinner className="mr-2 size-3.5" />
                 {t("approving")}
               </>
             ) : (

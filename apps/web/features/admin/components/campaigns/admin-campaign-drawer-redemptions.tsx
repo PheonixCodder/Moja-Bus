@@ -31,19 +31,21 @@ export function AdminCampaignDrawerRedemptions({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             {t("title")}
           </p>
           {selectedCouponId && (
-            <div className="flex items-center gap-1.5 rounded-md bg-amber-50 px-2 py-0.5 text-xs text-amber-800 border border-amber-200/60">
+            <div className="flex items-center gap-1.5 rounded-md bg-warning/10 px-2 py-0.5 text-xs text-warning border border-warning/20">
               <span>{t("filteredByCode")}</span>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={onClearCouponFilter}
-                className="font-bold hover:text-amber-900 cursor-pointer ml-1"
+                className="h-auto p-0 font-bold hover:text-warning hover:bg-transparent cursor-pointer ml-1 text-xs"
               >
                 ×
-              </button>
+              </Button>
             </div>
           )}
         </div>

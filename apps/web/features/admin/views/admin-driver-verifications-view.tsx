@@ -111,20 +111,20 @@ export function AdminDriverVerificationsView() {
           onClick={() => setStatusFilter("PENDING")}
           className={`p-5 rounded-2xl border cursor-pointer transition-all ${
             statusFilter === "PENDING"
-              ? "bg-amber-500/10 border-amber-500 shadow-md shadow-amber-500/10"
-              : "bg-white border-slate-200 hover:border-slate-300"
+              ? "bg-warning/10 border-warning shadow-md"
+              : "bg-card border-border hover:border-border/80"
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase text-slate-500 tracking-wider">
+            <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
               Pending Review
             </span>
-            <Clock className="size-5 text-amber-500" />
+            <Clock className="size-5 text-warning" />
           </div>
-          <p className="text-3xl font-black font-display text-slate-900 mt-2">
+          <p className="text-3xl font-black font-display text-foreground mt-2">
             {counts.pending}
           </p>
-          <span className="text-xs text-amber-600 font-semibold mt-1 inline-block">
+          <span className="text-xs text-warning font-semibold mt-1 inline-block">
             Requires immediate inspection
           </span>
         </div>
@@ -134,20 +134,20 @@ export function AdminDriverVerificationsView() {
           onClick={() => setStatusFilter("VERIFIED")}
           className={`p-5 rounded-2xl border cursor-pointer transition-all ${
             statusFilter === "VERIFIED"
-              ? "bg-emerald-500/10 border-emerald-500 shadow-md shadow-emerald-500/10"
-              : "bg-white border-slate-200 hover:border-slate-300"
+              ? "bg-success/10 border-success shadow-md"
+              : "bg-card border-border hover:border-border/80"
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase text-slate-500 tracking-wider">
+            <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
               Verified Active
             </span>
-            <CheckCircle className="size-5 text-emerald-500" />
+            <CheckCircle className="size-5 text-success" />
           </div>
-          <p className="text-3xl font-black font-display text-slate-900 mt-2">
+          <p className="text-3xl font-black font-display text-foreground mt-2">
             {counts.verified}
           </p>
-          <span className="text-xs text-emerald-600 font-semibold mt-1 inline-block">
+          <span className="text-xs text-success font-semibold mt-1 inline-block">
             Platform compliant
           </span>
         </div>
@@ -157,35 +157,35 @@ export function AdminDriverVerificationsView() {
           onClick={() => setStatusFilter("REJECTED")}
           className={`p-5 rounded-2xl border cursor-pointer transition-all ${
             statusFilter === "REJECTED"
-              ? "bg-rose-500/10 border-rose-500 shadow-md shadow-rose-500/10"
-              : "bg-white border-slate-200 hover:border-slate-300"
+              ? "bg-destructive/10 border-destructive shadow-md"
+              : "bg-card border-border hover:border-border/80"
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase text-slate-500 tracking-wider">
+            <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
               Rejected / Incomplete
             </span>
-            <XCircle className="size-5 text-rose-500" />
+            <XCircle className="size-5 text-destructive" />
           </div>
-          <p className="text-3xl font-black font-display text-slate-900 mt-2">
+          <p className="text-3xl font-black font-display text-foreground mt-2">
             {counts.rejected}
           </p>
-          <span className="text-xs text-rose-600 font-semibold mt-1 inline-block">
+          <span className="text-xs text-destructive font-semibold mt-1 inline-block">
             Feedback dispatched
           </span>
         </div>
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-card border border-border shadow-sm">
         {/* Search */}
         <div className="relative flex-1 w-full">
-          <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search by driver name, phone, or license number..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 bg-slate-50 border-slate-200"
+            className="pl-9 bg-background border-input"
           />
         </div>
 
@@ -195,7 +195,7 @@ export function AdminDriverVerificationsView() {
             value={statusFilter}
             onValueChange={(val: any) => setStatusFilter(val)}
           >
-            <SelectTrigger className="w-[140px] bg-slate-50">
+            <SelectTrigger className="w-36 bg-background">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -211,7 +211,7 @@ export function AdminDriverVerificationsView() {
             value={categoryFilter}
             onValueChange={(val: any) => setCategoryFilter(val)}
           >
-            <SelectTrigger className="w-[140px] bg-slate-50">
+            <SelectTrigger className="w-36 bg-background">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
@@ -226,10 +226,10 @@ export function AdminDriverVerificationsView() {
       </div>
 
       {/* Driver Verifications Table */}
-      <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+      <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
         <Table>
           <TableHeader>
-            <TableRow className="bg-slate-50/70">
+            <TableRow className="bg-muted/40">
               <TableHead>Driver</TableHead>
               <TableHead>License Details</TableHead>
               <TableHead>Carrier Affiliation</TableHead>
@@ -244,7 +244,7 @@ export function AdminDriverVerificationsView() {
               <TableRow>
                 <TableCell
                   colSpan={7}
-                  className="text-center py-12 text-slate-400"
+                  className="text-center py-12 text-muted-foreground"
                 >
                   Loading verification queue...
                 </TableCell>
@@ -253,13 +253,13 @@ export function AdminDriverVerificationsView() {
               <TableRow>
                 <TableCell
                   colSpan={7}
-                  className="text-center py-12 text-slate-500"
+                  className="text-center py-12 text-muted-foreground"
                 >
-                  <ShieldCheck className="size-10 text-slate-300 mx-auto mb-2" />
-                  <p className="font-semibold text-sm">
+                  <ShieldCheck className="size-10 text-muted-foreground/60 mx-auto mb-2" />
+                  <p className="font-semibold text-sm text-foreground">
                     No driver applications found.
                   </p>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     {statusFilter === "PENDING"
                       ? "All submitted driver licenses have been reviewed."
                       : "Try changing your search or filter parameters."}
@@ -268,11 +268,11 @@ export function AdminDriverVerificationsView() {
               </TableRow>
             ) : (
               drivers.map((driver) => (
-                <TableRow key={driver.id} className="hover:bg-slate-50/50">
+                <TableRow key={driver.id} className="hover:bg-muted/50">
                   {/* Driver Name & Phone */}
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <div className="size-9 rounded-full bg-slate-100 overflow-hidden flex items-center justify-center font-bold text-xs text-slate-600 border">
+                      <div className="size-9 rounded-full bg-muted overflow-hidden flex items-center justify-center font-bold text-xs text-foreground border border-border">
                         {driver.user?.image ? (
                           <img
                             src={driver.user.image}
@@ -280,14 +280,14 @@ export function AdminDriverVerificationsView() {
                             className="size-full object-cover"
                           />
                         ) : (
-                          <User className="size-4 text-slate-400" />
+                          <User className="size-4 text-muted-foreground" />
                         )}
                       </div>
                       <div>
-                        <p className="font-bold text-sm text-slate-900">
+                        <p className="font-bold text-sm text-foreground">
                           {driver.user?.fullName ?? "Unnamed Driver"}
                         </p>
-                        <p className="text-xs text-slate-500 font-mono">
+                        <p className="text-xs text-muted-foreground font-mono">
                           {driver.user?.phoneNumber ?? "No phone"}
                         </p>
                       </div>
@@ -297,13 +297,13 @@ export function AdminDriverVerificationsView() {
                   {/* License Info */}
                   <TableCell>
                     <div className="space-y-0.5">
-                      <p className="font-mono text-xs font-bold text-slate-900 flex items-center gap-1">
-                        <CreditCard className="size-3.5 text-slate-400" />
+                      <p className="font-mono text-xs font-bold text-foreground flex items-center gap-1">
+                        <CreditCard className="size-3.5 text-muted-foreground" />
                         {driver.licenseNumber}
                       </p>
                       <Badge
                         variant="outline"
-                        className="text-[10px] font-bold px-1.5 py-0"
+                        className="text-xs font-bold px-1.5 py-0"
                       >
                         Class {driver.licenseCategory}
                       </Badge>
@@ -312,9 +312,9 @@ export function AdminDriverVerificationsView() {
 
                   {/* Carrier */}
                   <TableCell>
-                    <p className="text-xs font-semibold text-slate-800">
+                    <p className="text-xs font-semibold text-foreground">
                       {driver.companyAffiliations?.[0]?.company?.name ?? (
-                        <span className="text-slate-400 italic">
+                        <span className="text-muted-foreground italic">
                           Independent Pool
                         </span>
                       )}
@@ -323,7 +323,7 @@ export function AdminDriverVerificationsView() {
 
                   {/* Experience */}
                   <TableCell>
-                    <span className="text-xs font-medium text-slate-600">
+                    <span className="text-xs font-medium text-muted-foreground">
                       {driver.yearsOfExperience} yrs
                     </span>
                   </TableCell>
@@ -334,10 +334,10 @@ export function AdminDriverVerificationsView() {
                       variant="outline"
                       className={
                         driver.verificationStatus === "VERIFIED"
-                          ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                          ? "bg-success/15 text-success border-success/30"
                           : driver.verificationStatus === "REJECTED"
-                            ? "bg-rose-50 text-rose-700 border-rose-200"
-                            : "bg-amber-50 text-amber-700 border-amber-200"
+                            ? "bg-destructive/15 text-destructive border-destructive/30"
+                            : "bg-warning/15 text-warning border-warning/30"
                       }
                     >
                       {driver.verificationStatus}
@@ -345,7 +345,7 @@ export function AdminDriverVerificationsView() {
                   </TableCell>
 
                   {/* Submission Date */}
-                  <TableCell className="text-xs text-slate-500">
+                  <TableCell className="text-xs text-muted-foreground">
                     {new Date(driver.createdAt).toLocaleDateString()}
                   </TableCell>
 
@@ -355,7 +355,7 @@ export function AdminDriverVerificationsView() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleOpenDossier(driver)}
-                      className="gap-1.5 font-semibold text-xs border-slate-300 hover:bg-slate-100"
+                      className="gap-1.5 font-semibold text-xs border-border hover:bg-muted/50"
                     >
                       <Eye className="size-3.5" />
                       Review Dossier
@@ -369,7 +369,7 @@ export function AdminDriverVerificationsView() {
 
         {/* Phase-2 audit — accumulate load-more */}
         {hasMore && (
-          <div className="p-4 border-t border-slate-100 flex flex-col items-center gap-1">
+          <div className="p-4 border-t border-border flex flex-col items-center gap-1">
             <Button
               variant="outline"
               size="sm"
@@ -380,7 +380,7 @@ export function AdminDriverVerificationsView() {
                 ? "Loading…"
                 : `Load more (${total - drivers.length} remaining)`}
             </Button>
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-muted-foreground">
               Showing {drivers.length} of {total}
             </span>
           </div>

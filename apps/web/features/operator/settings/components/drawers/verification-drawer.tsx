@@ -160,7 +160,7 @@ export function VerificationDrawer({
           <div className="relative">
             {companyProfileState === "complete" ? (
               <>
-                <div className="absolute -left-[31px] top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-emerald-500 text-emerald-500">
+                <div className="absolute -left-8 top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-success text-success">
                   <CheckCircle2 className="size-3.5 fill-background" />
                 </div>
                 <div>
@@ -174,7 +174,7 @@ export function VerificationDrawer({
               </>
             ) : (
               <>
-                <div className="absolute -left-[31px] top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-muted-foreground text-muted-foreground">
+                <div className="absolute -left-8 top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-muted-foreground text-muted-foreground">
                   <div className="size-1.5 rounded-full bg-muted-foreground" />
                 </div>
                 <div>
@@ -193,7 +193,7 @@ export function VerificationDrawer({
           <div className="relative">
             {bankVerificationState === "verified" ? (
               <>
-                <div className="absolute -left-[31px] top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-emerald-500 text-emerald-500">
+                <div className="absolute -left-8 top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-success text-success">
                   <CheckCircle2 className="size-3.5 fill-background" />
                 </div>
                 <div>
@@ -207,7 +207,7 @@ export function VerificationDrawer({
               </>
             ) : bankVerificationState === "pending" ? (
               <>
-                <div className="absolute -left-[31px] top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-amber-500 text-amber-500">
+                <div className="absolute -left-8 top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-warning text-warning">
                   <Clock className="size-3.5" />
                 </div>
                 <div>
@@ -221,7 +221,7 @@ export function VerificationDrawer({
               </>
             ) : (
               <>
-                <div className="absolute -left-[31px] top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-muted-foreground/30 text-muted-foreground/50">
+                <div className="absolute -left-8 top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-muted-foreground/30 text-muted-foreground/50">
                   <Clock className="size-3.5" />
                 </div>
                 <div>
@@ -240,7 +240,7 @@ export function VerificationDrawer({
           <div className="relative">
             {documentsVerificationState === "approved" ? (
               <>
-                <div className="absolute -left-[31px] top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-emerald-500 text-emerald-500">
+                <div className="absolute -left-8 top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-success text-success">
                   <CheckCircle2 className="size-3.5 fill-background" />
                 </div>
                 <div>
@@ -254,7 +254,7 @@ export function VerificationDrawer({
               </>
             ) : documentsVerificationState === "pending" ? (
               <>
-                <div className="absolute -left-[31px] top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-amber-500 text-amber-500">
+                <div className="absolute -left-8 top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-warning text-warning">
                   <Clock className="size-3.5" />
                 </div>
                 <div>
@@ -268,7 +268,7 @@ export function VerificationDrawer({
               </>
             ) : (
               <>
-                <div className="absolute -left-[31px] top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-muted-foreground/30 text-muted-foreground/50">
+                <div className="absolute -left-8 top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-muted-foreground/30 text-muted-foreground/50">
                   <Clock className="size-3.5" />
                 </div>
                 <div>
@@ -287,7 +287,7 @@ export function VerificationDrawer({
           <div className="relative">
             {company.status === "VERIFIED" || company.status === "ACTIVE" ? (
               <>
-                <div className="absolute -left-[31px] top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-emerald-500 text-emerald-500">
+                <div className="absolute -left-8 top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-success text-success">
                   <CheckCircle2 className="size-3.5 fill-background" />
                 </div>
                 <div>
@@ -301,7 +301,7 @@ export function VerificationDrawer({
               </>
             ) : company.status === "REJECTED" ? (
               <>
-                <div className="absolute -left-[31px] top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-red-500 text-red-500">
+                <div className="absolute -left-8 top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-destructive text-destructive">
                   <AlertCircle className="size-3.5" />
                 </div>
                 <div>
@@ -315,7 +315,7 @@ export function VerificationDrawer({
               </>
             ) : company.status === "SUSPENDED" ? (
               <>
-                <div className="absolute -left-[31px] top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-orange-500 text-orange-500">
+                <div className="absolute -left-8 top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-warning text-warning">
                   <ShieldAlert className="size-3.5" />
                 </div>
                 <div>
@@ -329,7 +329,7 @@ export function VerificationDrawer({
               </>
             ) : company.status === "PENDING_VERIFICATION" ? (
               <>
-                <div className="absolute -left-[31px] top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-amber-500 text-amber-500">
+                <div className="absolute -left-8 top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-warning text-warning">
                   <Spinner className="size-3.5" />
                 </div>
                 <div>
@@ -343,7 +343,7 @@ export function VerificationDrawer({
               </>
             ) : (
               <>
-                <div className="absolute -left-[31px] top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-muted-foreground/30 text-muted-foreground/50">
+                <div className="absolute -left-8 top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-muted-foreground/30 text-muted-foreground/50">
                   <Clock className="size-3.5" />
                 </div>
                 <div>
@@ -362,7 +362,7 @@ export function VerificationDrawer({
           <div className="relative">
             {company.status === "VERIFIED" || company.status === "ACTIVE" ? (
               <>
-                <div className="absolute -left-[31px] top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-emerald-500 text-emerald-500">
+                <div className="absolute -left-8 top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-success text-success">
                   <ShieldCheck className="size-3.5" />
                 </div>
                 <div>
@@ -376,7 +376,7 @@ export function VerificationDrawer({
               </>
             ) : (
               <>
-                <div className="absolute -left-[31px] top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-muted-foreground/30 text-muted-foreground/50">
+                <div className="absolute -left-8 top-0.5 size-4 rounded-full border bg-background flex items-center justify-center border-muted-foreground/30 text-muted-foreground/50">
                   <Lock className="size-3.5" />
                 </div>
                 <div>
@@ -393,11 +393,11 @@ export function VerificationDrawer({
         </div>
 
         {company.rejectionReason && (
-          <div className="p-4 bg-red-500/10 border border-red-200 rounded-lg">
-            <h5 className="text-sm font-bold text-red-600 flex items-center gap-2 mb-1">
+          <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+            <h5 className="text-sm font-bold text-destructive flex items-center gap-2 mb-1">
               <AlertCircle className="w-4 h-4" /> {t("steps.rejectionReason")}
             </h5>
-            <p className="text-sm text-red-600/90">{company.rejectionReason}</p>
+            <p className="text-sm text-destructive/90">{company.rejectionReason}</p>
           </div>
         )}
       </div>

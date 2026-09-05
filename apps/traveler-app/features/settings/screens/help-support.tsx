@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { SubpageHeader } from "@/components/subpage-header";
 import { Text } from "@/components/ui/text";
-import { BottomTabInset } from "@/constants/theme";
+import { BottomTabInset, Palette } from "@/constants/theme";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
 	Mail01Icon,
@@ -45,7 +45,7 @@ export function HelpSupportView() {
 	};
 
 	return (
-		<View className="flex-1 bg-white">
+		<View className="flex-1 bg-background">
 			<SubpageHeader title={t("helpSupportTitle")} />
 
 			<ScrollView
@@ -61,35 +61,37 @@ export function HelpSupportView() {
 				<View className="flex-row gap-3">
 					<Pressable
 						onPress={handleCallSupport}
-						className="flex-1 bg-white rounded-[18px] border border-slate-100 p-4 items-center gap-2 shadow-sm shadow-black/5 active:opacity-75"
+						accessibilityRole="button"
+						className="flex-1 bg-card rounded-[18px] border border-border p-4 items-center gap-2 shadow-sm shadow-black/5 active:opacity-75 min-h-12"
 					>
-						<View className="w-11 h-11 rounded-full bg-pink-50 items-center justify-center">
-							<HugeiconsIcon icon={CallIcon} size={22} color="#ee237c" />
+						<View className="w-11 h-11 rounded-full bg-primary/10 items-center justify-center">
+							<HugeiconsIcon icon={CallIcon} size={22} color={Palette.rose[500]} />
 						</View>
-						<Text className="text-sm font-bold text-slate-900">{t("callSupport")}</Text>
-						<Text className="text-sm text-slate-500">+225 07 00 00 00</Text>
+						<Text className="text-sm font-bold text-foreground">{t("callSupport")}</Text>
+						<Text className="text-sm text-muted-foreground">+225 07 00 00 00</Text>
 					</Pressable>
 
 					<Pressable
 						onPress={handleEmailSupport}
-						className="flex-1 bg-white rounded-[18px] border border-slate-100 p-4 items-center gap-2 shadow-sm shadow-black/5 active:opacity-75"
+						accessibilityRole="button"
+						className="flex-1 bg-card rounded-[18px] border border-border p-4 items-center gap-2 shadow-sm shadow-black/5 active:opacity-75 min-h-12"
 					>
-						<View className="w-11 h-11 rounded-full bg-blue-50 items-center justify-center">
-							<HugeiconsIcon icon={Mail01Icon} size={22} color="#0081F1" />
+						<View className="w-11 h-11 rounded-full bg-primary/10 items-center justify-center">
+							<HugeiconsIcon icon={Mail01Icon} size={22} color={Palette.blue[500]} />
 						</View>
-						<Text className="text-sm font-bold text-slate-900">{t("emailUs")}</Text>
-						<Text className="text-sm text-slate-500">support@mojaride.com</Text>
+						<Text className="text-sm font-bold text-foreground">{t("emailUs")}</Text>
+						<Text className="text-sm text-muted-foreground">support@mojaride.com</Text>
 					</Pressable>
 				</View>
 
 				{/* FAQ Section */}
-				<View className="bg-white rounded-[20px] border border-slate-100 p-4 gap-3 shadow-sm shadow-black/5">
+				<View className="bg-card rounded-[20px] border border-border p-4 gap-3 shadow-sm shadow-black/5">
 					<View className="flex-row items-center gap-2">
-						<HugeiconsIcon icon={HelpCircleIcon} size={20} color="#ee237c" />
-						<Text className="text-base font-bold text-slate-900">{t("faq")}</Text>
+						<HugeiconsIcon icon={HelpCircleIcon} size={20} color={Palette.rose[500]} />
+						<Text className="text-base font-bold text-foreground">{t("faq")}</Text>
 					</View>
 
-					<View className="h-[0.5px] bg-slate-100" />
+					<View className="h-[0.5px] bg-border" />
 
 					<View className="gap-2">
 						{FAQ_KEYS.map((faq) => {
@@ -97,25 +99,26 @@ export function HelpSupportView() {
 							return (
 								<View
 									key={faq.id}
-									className={`rounded-2xl overflow-hidden ${isExpanded ? "bg-pink-50/40 border border-pink-200/50" : ""}`}
+									className={`rounded-2xl overflow-hidden ${isExpanded ? "bg-primary/10 border border-primary/20" : ""}`}
 								>
 									<Pressable
 										onPress={() => toggleFaq(faq.id)}
-										className="flex-row items-center justify-between py-3 px-3 active:opacity-70"
+										accessibilityRole="button"
+										className="flex-row items-center justify-between py-3 px-3 active:opacity-70 min-h-11"
 									>
-										<Text className={`text-sm flex-1 pr-2 ${isExpanded ? "font-bold text-pink-600" : "font-medium text-slate-800"}`}>
+										<Text className={`text-sm flex-1 pr-2 ${isExpanded ? "font-bold text-primary" : "font-medium text-foreground"}`}>
 											{t(faq.questionKey as any)}
 										</Text>
 										<HugeiconsIcon
 											icon={isExpanded ? ArrowUp01Icon : ArrowDown01Icon}
 											size={18}
-											color={isExpanded ? "#ee237c" : "#94a3b8"}
+											color={isExpanded ? Palette.rose[500] : Palette.zinc[400]}
 										/>
 									</Pressable>
 
 									{isExpanded ? (
 										<View className="px-3 pb-3.5">
-											<Text className="text-sm text-slate-500 leading-[19px]">{t(faq.answerKey as any)}</Text>
+											<Text className="text-sm text-muted-foreground leading-[19px]">{t(faq.answerKey as any)}</Text>
 										</View>
 									) : null}
 								</View>

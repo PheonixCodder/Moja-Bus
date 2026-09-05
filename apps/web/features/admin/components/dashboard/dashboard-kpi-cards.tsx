@@ -30,7 +30,7 @@ function DeltaBadge({ pct }: { pct: number | null }) {
       variant="outline"
       className={
         isPositive
-          ? "border-green-200 bg-green-500/10 text-green-700 dark:border-green-900/40 dark:bg-green-500/15 dark:text-green-300"
+          ? "border-success/20 bg-success/10 text-success"
           : "border-destructive/20 bg-destructive/10 text-destructive"
       }
     >
@@ -135,7 +135,7 @@ export function DashboardKpiCards({
       <Card
         className={
           pendingOperatorsCount > 0
-            ? "border-amber-200 bg-amber-50/40 dark:bg-amber-950/10 dark:border-amber-900/30"
+            ? "border-warning/20 bg-warning/5"
             : ""
         }
       >
@@ -156,7 +156,7 @@ export function DashboardKpiCards({
             {pendingOperatorsCount > 0 && (
               <Badge
                 variant="outline"
-                className="border-amber-300 bg-amber-500/10 text-amber-700"
+                className="border-warning/30 bg-warning/10 text-warning"
               >
                 {t("actionNeeded")}
               </Badge>

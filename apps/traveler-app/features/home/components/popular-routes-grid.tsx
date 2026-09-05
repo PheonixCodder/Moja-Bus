@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { ArrowRight01Icon, Clock01Icon } from "@hugeicons/core-free-icons";
 import { router } from "expo-router";
+import { Colors, Palette } from "@/constants/theme";
 import type { CityValue } from "@/features/search/types";
 import { toLocalISODate } from "@/features/search/lib/format";
 
@@ -72,7 +73,7 @@ export function PopularRoutesGrid() {
   return (
     <View className="gap-3">
       {/* Section Label */}
-      <Text className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+      <Text className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
         {t("popularRoutes")}
       </Text>
 
@@ -87,21 +88,21 @@ export function PopularRoutesGrid() {
             onPress={() => handleRoutePress(route)}
             accessibilityRole="button"
             accessibilityLabel={`${route.origin.text} to ${route.destination.text}`}
-            className="will-change-pressable bg-white border border-slate-200 px-4 py-3 rounded-2xl gap-2 shadow-xs active:bg-slate-50 min-w-[170px]"
+            className="will-change-pressable bg-card border border-border px-4 py-3 rounded-2xl gap-2 shadow-xs active:bg-muted min-w-[170px]"
           >
             {/* Origin -> Destination Row */}
             <View className="flex-row items-center justify-between gap-2">
               <Text
-                className="text-xs font-black text-slate-900 flex-1"
+                className="text-xs font-black text-foreground flex-1"
                 numberOfLines={1}
               >
                 {route.origin.id}
               </Text>
-              <View className="size-5 rounded-full bg-rose-50 border border-rose-100 items-center justify-center">
-                <HugeiconsIcon icon={ArrowRight01Icon} size={10} color="#ee237c" />
+              <View className="size-5 rounded-full bg-primary/10 border border-primary/20 items-center justify-center">
+                <HugeiconsIcon icon={ArrowRight01Icon} size={10} color={Palette.rose[500]} />
               </View>
               <Text
-                className="text-xs font-black text-slate-900 flex-1 text-right"
+                className="text-xs font-black text-foreground flex-1 text-right"
                 numberOfLines={1}
               >
                 {route.destination.text}
@@ -111,14 +112,14 @@ export function PopularRoutesGrid() {
             {/* Duration & Price Footer */}
             <View className="flex-row items-center justify-between mt-0.5">
               <View className="flex-row items-center gap-1">
-                <HugeiconsIcon icon={Clock01Icon} size={11} color="#94a3b8" />
-                <Text className="text-sm font-semibold text-slate-400">
+                <HugeiconsIcon icon={Clock01Icon} size={11} color={Colors.light.textMuted} />
+                <Text className="text-sm font-semibold text-muted-foreground">
                   {route.duration}
                 </Text>
               </View>
 
-              <View className="bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
-                <Text className="text-xs font-extrabold text-emerald-700">
+              <View className="bg-success/10 border border-success/20 px-2 py-0.5 rounded-md">
+                <Text className="text-xs font-extrabold text-success">
                   {route.fromXOF} F
                 </Text>
               </View>

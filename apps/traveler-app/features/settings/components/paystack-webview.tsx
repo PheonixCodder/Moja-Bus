@@ -4,6 +4,7 @@ import { WebView } from "react-native-webview";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { X } from "lucide-react-native";
 import { Text } from "@/components/ui/text";
+import { Palette } from "@/constants/theme";
 
 type PaystackWebViewProps = {
   authorizationUrl: string;
@@ -103,22 +104,24 @@ export function PaystackWebView({
         presentationStyle="pageSheet"
         onRequestClose={onCancel}
       >
-        <View className="flex-1 items-center justify-center p-4 bg-white">
-          <Text className="text-sm text-slate-500 text-center mb-2">
+        <View className="flex-1 items-center justify-center p-4 bg-background">
+          <Text className="text-sm text-muted-foreground text-center mb-2">
             Failed to load payment page.
           </Text>
           <View className="flex-row gap-2">
             <Pressable
               onPress={() => { setLoadError(false); setRetryCount((c) => c + 1); }}
-              className="py-2 px-4 rounded-lg bg-pink-600"
+              accessibilityRole="button"
+              className="py-2 px-4 rounded-lg bg-primary min-h-10 justify-center"
             >
-              <Text className="text-sm font-semibold text-white">Retry</Text>
+              <Text className="text-sm font-semibold text-primary-foreground">Retry</Text>
             </Pressable>
             <Pressable
               onPress={onCancel}
-              className="py-2 px-4 rounded-lg border border-slate-200"
+              accessibilityRole="button"
+              className="py-2 px-4 rounded-lg border border-border min-h-10 justify-center"
             >
-              <Text className="text-sm font-semibold text-slate-500">Cancel</Text>
+              <Text className="text-sm font-semibold text-muted-foreground">Cancel</Text>
             </Pressable>
           </View>
         </View>
@@ -133,21 +136,21 @@ export function PaystackWebView({
       presentationStyle="pageSheet"
       onRequestClose={onCancel}
     >
-      <View className="flex-1 bg-white">
+      <View className="flex-1 bg-background">
         <View
-          className="flex-row items-center justify-between pb-3 px-4 border-b border-slate-100"
+          className="flex-row items-center justify-between pb-3 px-4 border-b border-border"
           style={{ paddingTop: insets.top + 12 }}
         >
-          <Pressable onPress={onCancel} hitSlop={12}>
-            <X size={20} color="#0f172a" />
+          <Pressable onPress={onCancel} hitSlop={12} accessibilityRole="button" className="min-h-9 justify-center items-center">
+            <X size={20} color={Palette.zinc[800]} />
           </Pressable>
-          <Text className="text-base font-semibold text-slate-900">Pay with Paystack</Text>
+          <Text className="text-base font-semibold text-foreground">Pay with Paystack</Text>
           <View className="w-5" />
         </View>
 
         {loading ? (
           <View className="absolute top-[60px] left-0 right-0 items-center z-10">
-            <ActivityIndicator size="small" color="#ee237c" />
+            <ActivityIndicator size="small" color={Palette.rose[500]} />
           </View>
         ) : null}
 

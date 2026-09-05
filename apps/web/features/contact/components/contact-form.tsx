@@ -9,6 +9,8 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import { useTRPC } from "@/trpc/client";
+import { Button } from "@moja/ui/components/ui/button";
+import { Input } from "@moja/ui/components/ui/input";
 
 const subjectKeys = [
   "subjectGeneral",
@@ -60,41 +62,41 @@ export function ContactForm() {
   }, [name, email, phone, subject, message]);
 
   const submitMutation = useMutation(
-    trpc.contact.submitInquiry.mutationOptions({
-      onSuccess: () => setSubmitted(true),
-      onError: (err) => setError(err.message || t("submitError")),
-    }),
+    trpc.contact.submitInquiry.mutationOptions(),
   );
 
-  function onSubmit(values: ContactFormValues) {
-    submitMutation.mutate({
+  async function onSubmit(values: ContactFormValues) {
+    setError(null);
+    await submitMutation.mutateAsync({
       name: values.name,
       email: values.email,
-      phone: values.phone,
-      subject: t(values.subject as (typeof subjectKeys)[number]),
+      phone: values.phone || undefined,
+      subject: values.subject,
       message: values.message,
     });
+    setSubmitted(true);
   }
 
   const inputClasses =
-    "w-full px-4 py-3.5 border border-slate-200 rounded-2xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#ee237c]/30 focus:border-[#ee237c] transition-all text-sm";
+    "w-full px-4 py-3.5 border border-border rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-sm";
 
   if (submitted) {
     return (
-      <div className="bg-green-50 border border-green-200 rounded-3xl p-10 text-center">
-        <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-        <h3 className="text-xl font-bold text-slate-900 mb-2">
+      <div className="bg-success/10 border border-success/30 rounded-3xl p-10 text-center">
+        <CheckCircle className="h-12 w-12 text-success mx-auto mb-4" />
+        <h3 className="text-xl font-bold text-foreground mb-2">
           {t("successTitle")}
         </h3>
-        <p className="text-slate-500">
+        <p className="text-muted-foreground">
           {t.rich("successBody", {
             name: name ?? "",
             email: email ?? "",
             b: (chunks) => <span className="font-semibold">{chunks}</span>,
           })}
         </p>
-        <button
+        <Button
           type="button"
+          variant="ghost"
           onClick={() => {
             setSubmitted(false);
             reset({
@@ -105,10 +107,10 @@ export function ContactForm() {
               message: "",
             });
           }}
-          className="mt-6 text-sm text-[#ee237c] font-bold hover:underline"
+          className="mt-6 text-sm text-primary font-bold hover:underline hover:bg-transparent h-auto p-0"
         >
           {t("successNewMessage")}
-        </button>
+        </Button>
       </div>
     );
   }
@@ -118,20 +120,20 @@ export function ContactForm() {
       <div>
         <label
           htmlFor="name"
-          className="block text-sm font-bold text-slate-700 mb-2"
+          className="block text-sm font-bold text-foreground mb-2"
         >
           {t("labelName")}
         </label>
-        <input
+        <Input
           id="name"
           type="text"
           placeholder={t("placeholderName")}
-          className={inputClasses}
+          className="h-12 rounded-2xl border-border text-sm"
           aria-invalid={errors.name ? "true" : undefined}
           {...register("name")}
         />
         {errors.name && (
-          <p className="mt-2 text-sm font-semibold text-red-600">
+          <p className="mt-2 text-sm font-semibold text-destructive">
             {errors.name.message}
           </p>
         )}
@@ -140,20 +142,20 @@ export function ContactForm() {
       <div>
         <label
           htmlFor="email"
-          className="block text-sm font-bold text-slate-700 mb-2"
+          className="block text-sm font-bold text-foreground mb-2"
         >
           {t("labelEmail")}
         </label>
-        <input
+        <Input
           id="email"
           type="email"
           placeholder={t("placeholderEmail")}
-          className={inputClasses}
+          className="h-12 rounded-2xl border-border text-sm"
           aria-invalid={errors.email ? "true" : undefined}
           {...register("email")}
         />
         {errors.email && (
-          <p className="mt-2 text-sm font-semibold text-red-600">
+          <p className="mt-2 text-sm font-semibold text-destructive">
             {errors.email.message}
           </p>
         )}
@@ -162,20 +164,20 @@ export function ContactForm() {
       <div>
         <label
           htmlFor="phone"
-          className="block text-sm font-bold text-slate-700 mb-2"
+          className="block text-sm font-bold text-foreground mb-2"
         >
           {t("labelPhone")}
         </label>
-        <input
+        <Input
           id="phone"
           type="tel"
           placeholder={t("placeholderPhone")}
-          className={inputClasses}
+          className="h-12 rounded-2xl border-border text-sm"
           aria-invalid={errors.phone ? "true" : undefined}
           {...register("phone")}
         />
         {errors.phone && (
-          <p className="mt-2 text-sm font-semibold text-red-600">
+          <p className="mt-2 text-sm font-semibold text-destructive">
             {errors.phone.message}
           </p>
         )}
@@ -184,13 +186,13 @@ export function ContactForm() {
       <div>
         <label
           htmlFor="subject"
-          className="block text-sm font-bold text-slate-700 mb-2"
+          className="block text-sm font-bold text-foreground mb-2"
         >
           {t("labelSubject")}
         </label>
         <select
           id="subject"
-          className="w-full px-4 py-3.5 border border-slate-200 rounded-2xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#ee237c]/30 focus:border-[#ee237c] transition-all text-sm appearance-none bg-white"
+          className="w-full px-4 py-3.5 border border-border rounded-2xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-sm appearance-none bg-background"
           {...register("subject")}
         >
           {subjectKeys.map((key) => (
@@ -200,7 +202,7 @@ export function ContactForm() {
           ))}
         </select>
         {errors.subject && (
-          <p className="mt-2 text-sm font-semibold text-red-600">
+          <p className="mt-2 text-sm font-semibold text-destructive">
             {errors.subject.message}
           </p>
         )}
@@ -209,7 +211,7 @@ export function ContactForm() {
       <div>
         <label
           htmlFor="message"
-          className="block text-sm font-bold text-slate-700 mb-2"
+          className="block text-sm font-bold text-foreground mb-2"
         >
           {t("labelMessage")}
         </label>
@@ -222,26 +224,26 @@ export function ContactForm() {
           {...register("message")}
         />
         {errors.message && (
-          <p className="mt-2 text-sm font-semibold text-red-600">
+          <p className="mt-2 text-sm font-semibold text-destructive">
             {errors.message.message}
           </p>
         )}
       </div>
 
       {error && (
-        <p className="text-sm font-semibold text-red-600 bg-red-50 border border-red-200 rounded-2xl px-4 py-3">
+        <p className="text-sm font-semibold text-destructive bg-destructive/10 border border-destructive/20 rounded-2xl px-4 py-3">
           {error}
         </p>
       )}
 
-      <button
+      <Button
         type="submit"
         disabled={submitMutation.isPending}
-        className="w-full flex items-center justify-center gap-2 bg-[#ee237c] text-white py-4 rounded-2xl font-bold text-sm hover:bg-[#d01867] transition-all active:scale-95 shadow-lg shadow-pink-500/20 disabled:opacity-60 disabled:pointer-events-none"
+        className="w-full h-12 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-bold text-sm transition-all active:scale-95 shadow-lg shadow-primary/20 disabled:opacity-60 disabled:pointer-events-none"
       >
         <Send className="h-4 w-4" />
         {submitMutation.isPending ? t("submitting") : t("submitButton")}
-      </button>
+      </Button>
     </form>
   );
 }

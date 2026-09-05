@@ -19,15 +19,15 @@ interface LedgerTableProps {
 export function LedgerTable({ table }: LedgerTableProps) {
   const t = useTranslations("adminDashboard.ledgerTable");
   return (
-    <div className="rounded-md border border-border bg-white overflow-hidden shadow-sm">
+    <div className="rounded-md border border-border bg-card overflow-hidden shadow-sm">
       <Table>
-        <TableHeader className="bg-slate-50 border-b border-border">
+        <TableHeader className="bg-muted/40 border-b border-border">
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id} className="hover:bg-transparent">
               {headerGroup.headers.map((header) => (
                 <TableHead
                   key={header.id}
-                  className="h-10 text-xs font-bold text-slate-500 uppercase tracking-wider px-4"
+                  className="h-10 text-xs font-bold text-muted-foreground uppercase tracking-wider px-4"
                 >
                   {header.isPlaceholder
                     ? null
@@ -46,7 +46,7 @@ export function LedgerTable({ table }: LedgerTableProps) {
               <TableRow
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
-                className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors"
+                className="border-b border-border hover:bg-muted/50 transition-colors"
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id} className="py-3 px-4 align-middle">
@@ -59,7 +59,7 @@ export function LedgerTable({ table }: LedgerTableProps) {
             <TableRow>
               <TableCell
                 colSpan={ledgerColumnsLength(table)}
-                className="h-32 text-center text-xs text-slate-400"
+                className="h-32 text-center text-xs text-muted-foreground"
               >
                 {t("noEntries")}
               </TableCell>

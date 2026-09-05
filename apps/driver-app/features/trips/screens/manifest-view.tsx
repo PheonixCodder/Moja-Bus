@@ -7,7 +7,6 @@ import {
 	ActivityIndicator,
 	Linking,
 	Alert,
-	StyleSheet,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -99,40 +98,37 @@ export function ManifestView({ tripId }: ManifestViewProps) {
 	const handleCallPassenger = (phone?: string | null) => {
 		if (!phone) return;
 		DriverFeedback.tap();
-		Linking.openURL(`tel:${phone}`).catch(() => {
-			Alert.alert(t("error"), t("phoneAppErrorMsg"));
-		});
+		Linking.openURL(`tel:${phone}`);
 	};
 
 	const manifest = manifestData?.manifest ?? [];
-	const totalBooked = manifestData?.totalBooked ?? 0;
-	const boardedCount = manifestData?.boardedCount ?? 0;
-	const percentBoarded = totalBooked > 0 ? Math.round((boardedCount / totalBooked) * 100) : 0;
+	const totalCount = manifestData?.totalBooked ?? manifest.length;
+	const boardedCount = manifestData?.boardedCount ?? manifest.filter((p) => !!p.boardedAt).length;
+	const percentBoarded = totalCount > 0 ? Math.round((boardedCount / totalCount) * 100) : 0;
 
 	return (
-		<View style={styles.root}>
+		<View className="flex-1 bg-background">
 			<PageHeader
 				title={t("title")}
-				subtitle={t("subtitle")}
+				subtitle={t("subtitle", { count: totalCount })}
 				showBack
 			/>
 
-			{/* Manifest Progress & Search Bar */}
-			<View style={styles.topControlBox}>
-				{/* Progress Counter & Bar */}
-				<View style={styles.progressWrap}>
-					<View style={styles.progressHeader}>
-						<Text style={styles.progressLabel}>
-							{t("progressTitle")}
-						</Text>
-						<Text style={styles.progressStats}>
-							{boardedCount} / {totalBooked} {t("boarded")} ({percentBoarded}%)
+			{/* Control Bar: Realtime Boarding Progress + Search Field */}
+			<View className="p-4 bg-background border-b border-border gap-3">
+				{/* Progress Section */}
+				<View className="gap-1.5">
+					<View className="flex-row items-center justify-between">
+						<Text className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{t("boardingProgress")}</Text>
+						<Text className="text-xs font-bold text-primary font-mono">
+							{boardedCount} / {totalCount} ({percentBoarded}%)
 						</Text>
 					</View>
 
-					<View style={styles.progressTrack}>
+					<View className="h-1.5 bg-card rounded-full overflow-hidden border border-border">
 						<View
-							style={[styles.progressBar, { width: `${percentBoarded}%` }]}
+							className="h-full bg-primary rounded-full"
+							style={{ width: `${percentBoarded}%` }}
 						/>
 					</View>
 				</View>
@@ -149,16 +145,16 @@ export function ManifestView({ tripId }: ManifestViewProps) {
 							params: { tripId },
 						});
 					}}
-					icon={<HugeiconsIcon icon={QrCode01Icon} size={18} color="#ffffff" />}
+					icon={<HugeiconsIcon icon={QrCode01Icon} size={18} color={colors.neutral.textPrimary} />}
 				/>
 
 				{/* Search Field */}
-				<View style={styles.searchBar}>
-					<HugeiconsIcon icon={Search01Icon} size={18} color="#71717a" />
+				<View className="flex-row items-center bg-card border border-border rounded-2xl px-3.5 h-12">
+					<HugeiconsIcon icon={Search01Icon} size={18} color={colors.neutral.textMuted} />
 					<TextInput
-						style={styles.searchInput}
+						className="flex-1 ml-2.5 text-foreground text-[13px] font-medium"
 						placeholder={t("searchPlaceholder")}
-						placeholderTextColor="#71717a"
+						placeholderTextColor={colors.neutral.textMuted}
 						value={search}
 						onChangeText={setSearch}
 					/>
@@ -168,25 +164,23 @@ export function ManifestView({ tripId }: ManifestViewProps) {
 
 			{/* Passenger List */}
 			<ScrollView
-				style={styles.scroll}
-				contentContainerStyle={[
-					styles.scrollContent,
-					{ paddingBottom: Math.max(insets.bottom, 24) + 40 },
-				]}
+				className="flex-1"
+				contentContainerClassName="p-4 gap-3"
+				contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 24) + 40 }}
 				showsVerticalScrollIndicator={false}
 			>
 				{isLoading ? (
-					<View style={styles.loadingBox}>
+					<View className="items-center justify-center py-20 gap-3">
 						<ActivityIndicator size="large" color={colors.primary.rose} />
-						<Text style={styles.loadingText}>{t("loading")}</Text>
+						<Text className="text-xs text-muted-foreground">{t("loading")}</Text>
 					</View>
 				) : error ? (
 					<Card className="py-16 items-center justify-center px-6 text-center gap-3 my-4">
-						<HugeiconsIcon icon={Alert02Icon} size={40} color="#ef4444" />
-						<Text className="text-base font-bold text-[#fafafa] text-center">
+						<HugeiconsIcon icon={Alert02Icon} size={40} color={colors.semantic.error} />
+						<Text className="text-base font-bold text-foreground text-center">
 							{t("errorLoadingTitle")}
 						</Text>
-						<Text className="text-xs text-[#a1a1aa] text-center leading-relaxed">
+						<Text className="text-xs text-muted-foreground text-center leading-relaxed">
 							{error.message || t("errorLoadingMsg")}
 						</Text>
 						<Button
@@ -194,15 +188,15 @@ export function ManifestView({ tripId }: ManifestViewProps) {
 							variant="secondary"
 							size="sm"
 							onPress={() => refetch()}
-							icon={<HugeiconsIcon icon={RefreshIcon} size={16} color="#fafafa" />}
+							icon={<HugeiconsIcon icon={RefreshIcon} size={16} color={colors.neutral.textPrimary} />}
 							className="mt-2"
 						/>
 					</Card>
 				) : manifest.length === 0 ? (
 					<Card className="py-20 items-center justify-center px-6 text-center gap-3">
-						<HugeiconsIcon icon={User02Icon} size={44} color="#71717a" />
-						<Text className="text-base font-bold text-[#fafafa]">{t("emptyTitle")}</Text>
-						<Text className="text-xs text-[#a1a1aa] max-w-xs text-center leading-relaxed">
+						<HugeiconsIcon icon={User02Icon} size={44} color={colors.neutral.textMuted} />
+						<Text className="text-base font-bold text-foreground">{t("emptyTitle")}</Text>
+						<Text className="text-xs text-muted-foreground max-w-xs text-center leading-relaxed">
 							{search ? t("emptySearch") : t("emptyNone")}
 						</Text>
 					</Card>
@@ -221,85 +215,3 @@ export function ManifestView({ tripId }: ManifestViewProps) {
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	root: {
-		flex: 1,
-		backgroundColor: "#09090b",
-	},
-	topControlBox: {
-		padding: 16,
-		backgroundColor: "#09090b",
-		borderBottomWidth: 1,
-		borderBottomColor: "#27272a",
-		gap: 12,
-	},
-	progressWrap: {
-		gap: 6,
-	},
-	progressHeader: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-	},
-	progressLabel: {
-		fontSize: 11,
-		fontWeight: "700",
-		color: "#a1a1aa",
-		textTransform: "uppercase",
-		letterSpacing: 0.5,
-	},
-	progressStats: {
-		fontSize: 12,
-		fontWeight: "700",
-		color: "#ee237c",
-		fontFamily: "monospace",
-	},
-	progressTrack: {
-		height: 6,
-		backgroundColor: "#18181b",
-		borderRadius: 999,
-		overflow: "hidden",
-		borderWidth: 1,
-		borderColor: "#27272a",
-	},
-	progressBar: {
-		height: "100%",
-		backgroundColor: "#ee237c",
-		borderRadius: 999,
-	},
-	searchBar: {
-		flexDirection: "row",
-		alignItems: "center",
-		backgroundColor: "#18181b",
-		borderWidth: 1,
-		borderColor: "#27272a",
-		borderRadius: 16,
-		paddingHorizontal: 14,
-		height: 48,
-	},
-	searchInput: {
-		flex: 1,
-		marginLeft: 10,
-		color: "#fafafa",
-		fontSize: 13,
-		fontWeight: "500",
-	},
-	scroll: {
-		flex: 1,
-	},
-	scrollContent: {
-		padding: 16,
-		gap: 12,
-	},
-	loadingBox: {
-		alignItems: "center",
-		justifyContent: "center",
-		paddingVertical: 80,
-		gap: 12,
-	},
-	loadingText: {
-		fontSize: 12,
-		color: "#a1a1aa",
-	},
-});

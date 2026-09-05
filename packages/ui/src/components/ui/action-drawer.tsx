@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useMediaQuery } from "../../hooks/use-media-query";
 import {
   Drawer,
   DrawerContent,
@@ -28,9 +27,8 @@ export interface ActionDrawerProps {
 }
 
 /**
- * ActionDrawer is a responsive wrapper around Vaul.
- * On desktop (> 768px), it slides from the right as a side panel.
- * On mobile, it slides from the bottom as a standard bottom sheet.
+ * ActionDrawer — responsive Base UI drawer (bottom / swipe down).
+ * Close uses Base UI `render` (not Radix `asChild`).
  */
 export function ActionDrawer({
   isOpen,
@@ -42,43 +40,52 @@ export function ActionDrawer({
   className,
   hideCloseButton = false,
 }: ActionDrawerProps) {
-
   return (
-    <Drawer 
-      open={isOpen} 
-      onOpenChange={(open) => !open && onClose()} 
-      direction="bottom"
+    <Drawer
+      open={isOpen}
+      onOpenChange={(open) => !open && onClose()}
+      swipeDirection="down"
     >
-      <DrawerContent className={cn(
-        "flex flex-col h-[90vh] md:h-[85vh] w-full mt-0 bg-background rounded-t-2xl outline-none",
-        className
-      )}>
-        <DrawerHeader className="px-6 py-4 border-b">
-          <div className="flex items-start justify-between w-full text-left">
+      <DrawerContent
+        className={cn(
+          "mt-0 flex h-[90vh] w-full flex-col rounded-t-2xl bg-background outline-none md:h-[85vh] data-[swipe-axis=y]:[--drawer-content-max-height:90vh] md:data-[swipe-axis=y]:[--drawer-content-max-height:85vh]",
+          className,
+        )}
+      >
+        <DrawerHeader className="border-b px-6 py-4">
+          <div className="flex w-full items-start justify-between text-left">
             <div className="space-y-1">
               <DrawerTitle className="text-xl font-semibold">{title}</DrawerTitle>
-              {description && <DrawerDescription>{description}</DrawerDescription>}
+              {description ? (
+                <DrawerDescription>{description}</DrawerDescription>
+              ) : null}
             </div>
-            {!hideCloseButton && (
-              <DrawerClose asChild>
-                <Button variant="ghost" size="icon" className="shrink-0 -mr-2">
-                  <X className="w-4 h-4" />
-                  <span className="sr-only">Close</span>
-                </Button>
+            {!hideCloseButton ? (
+              <DrawerClose
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="-mr-2 shrink-0"
+                  />
+                }
+              >
+                <X className="h-4 w-4" />
+                <span className="sr-only">Close</span>
               </DrawerClose>
-            )}
+            ) : null}
           </div>
         </DrawerHeader>
-        
-        <ScrollArea className="flex-1 px-6 py-6 overflow-y-auto">
+
+        <ScrollArea className="flex-1 overflow-y-auto px-6 py-6">
           {children}
         </ScrollArea>
 
-        {footer && (
-          <DrawerFooter className="px-6 py-4 border-t bg-muted/30">
+        {footer ? (
+          <DrawerFooter className="border-t bg-muted/30 px-6 py-4">
             {footer}
           </DrawerFooter>
-        )}
+        ) : null}
       </DrawerContent>
     </Drawer>
   );

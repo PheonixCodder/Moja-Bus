@@ -212,43 +212,47 @@ export function TicketScanner({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-white border border-border rounded-xl">
+      <DialogContent className="sm:max-w-md bg-card border border-border rounded-xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-text-primary">
+          <DialogTitle className="flex items-center gap-2 text-foreground">
             <ScanLine className="size-5" />
             {title}
           </DialogTitle>
-          <DialogDescription className="text-xs text-text-muted">
+          <DialogDescription className="text-xs text-muted-foreground">
             {description}
           </DialogDescription>
         </DialogHeader>
 
         {/* Tab switcher */}
-        <div className="flex gap-2 p-1 rounded-lg bg-slate-100 border border-slate-200/80 w-fit mb-1">
-          <button
+        <div className="flex gap-2 p-1 rounded-lg bg-muted border border-border w-fit mb-1">
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={() => setMode("scan")}
             className={cn(
-              "px-3 py-1.5 rounded-md text-xs font-bold transition-all duration-200",
+              "px-3 py-1.5 h-auto rounded-md text-xs font-bold transition-all duration-200",
               mode === "scan"
-                ? "bg-white text-primary border border-slate-200/40 shadow-xs"
-                : "text-slate-600 hover:text-slate-900",
+                ? "bg-card text-primary border border-border shadow-xs hover:bg-card hover:text-primary"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
             {t("cameraScan")}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={() => setMode("manual")}
             className={cn(
-              "px-3 py-1.5 rounded-md text-xs font-bold transition-all duration-200",
+              "px-3 py-1.5 h-auto rounded-md text-xs font-bold transition-all duration-200",
               mode === "manual"
-                ? "bg-white text-primary border border-slate-200/40 shadow-xs"
-                : "text-slate-600 hover:text-slate-900",
+                ? "bg-card text-primary border border-border shadow-xs hover:bg-card hover:text-primary"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
             {t("enterManually")}
-          </button>
+          </Button>
         </div>
 
         <div className="space-y-4">
@@ -257,7 +261,7 @@ export function TicketScanner({
               <div className="space-y-1.5">
                 <Label
                   htmlFor="manual-token"
-                  className="text-[10px] font-bold text-slate-500 uppercase tracking-wider"
+                  className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider"
                 >
                   {t("ticketTokenLabel")}
                 </Label>
@@ -268,9 +272,9 @@ export function TicketScanner({
                     value={manualInput}
                     onChange={(e) => setManualInput(e.target.value)}
                     disabled={processing}
-                    className="pr-10 h-10 border-slate-200 text-sm shadow-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary"
+                    className="pr-10 h-10 border-border text-sm shadow-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary"
                   />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                     <Search className="w-4 h-4" />
                   </div>
                 </div>
@@ -279,7 +283,7 @@ export function TicketScanner({
               <Button
                 type="submit"
                 disabled={processing || !manualInput.trim()}
-                className="w-full bg-primary hover:bg-primary/95 text-white h-10 text-xs font-bold rounded-lg shadow-xs"
+                className="w-full bg-primary hover:bg-primary/95 text-primary-foreground h-10 text-xs font-bold rounded-lg shadow-xs"
               >
                 {processing ? t("checkingIn") : t("confirmBoarding")}
               </Button>
@@ -287,7 +291,7 @@ export function TicketScanner({
           ) : (
             <div
               className={cn(
-                "relative overflow-hidden rounded-lg border border-border bg-black/5",
+                "relative overflow-hidden rounded-lg border border-border bg-muted/40",
                 "min-h-[280px] flex items-center justify-center",
               )}
             >
@@ -311,7 +315,7 @@ export function TicketScanner({
           ) : null}
 
           {error ? (
-            <p className="text-xs text-destructive font-medium bg-red-50 border border-red-100 p-2.5 rounded-lg">
+            <p className="text-xs text-destructive font-medium bg-destructive/10 border border-destructive/20 p-2.5 rounded-lg">
               {error}
             </p>
           ) : null}
@@ -321,8 +325,8 @@ export function TicketScanner({
               className={cn(
                 "rounded-lg border p-3 text-sm",
                 lastResult.alreadyCheckedIn
-                  ? "border-amber-200 bg-amber-50 text-amber-900"
-                  : "border-emerald-200 bg-emerald-50 text-emerald-900",
+                  ? "border-warning/20 bg-warning/10 text-warning"
+                  : "border-success/20 bg-success/10 text-success",
               )}
             >
               <p className="font-bold text-xs">
@@ -347,7 +351,7 @@ export function TicketScanner({
           <Button
             type="button"
             variant="outline"
-            className="w-full h-10 text-xs border-slate-200"
+            className="w-full h-10 text-xs border-border"
             onClick={() => onOpenChange(false)}
           >
             {t("close")}

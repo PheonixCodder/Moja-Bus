@@ -1,6 +1,7 @@
 "use client";
 
-import { Avatar, AvatarFallback } from "@moja/ui/components/ui/avatar";
+import { UserAvatar } from "@moja/ui/components/ui/user-avatar";
+import { Button } from "@moja/ui/components/ui/button";
 import {
   Combobox,
   ComboboxContent,
@@ -43,12 +44,12 @@ const ROLE_CONFIG: Record<
   RELIEF: {
     icon: Users,
     labelKey: "driverRow.relief",
-    accent: "text-blue-500",
+    accent: "text-primary/80",
   },
   CONDUCTOR: {
     icon: ClipboardCheck,
     labelKey: "driverRow.conductor",
-    accent: "text-violet-500",
+    accent: "text-primary/70",
   },
 };
 
@@ -204,17 +205,20 @@ export function DriverAssignmentRows({
             </span>
 
             {holder ? (
-              <span className="inline-flex min-w-0 items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-800">
-                <Avatar className="size-4">
-                  <AvatarFallback className="text-[7px]">
-                    {holder.name.slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+              <span className="inline-flex min-w-0 items-center gap-1.5 rounded-full border border-success/20 bg-success/10 px-2 py-0.5 text-[11px] font-semibold text-success">
+                <UserAvatar
+                  name={holder.name}
+                  seed={holder.id}
+                  size="sm"
+                  className="size-4"
+                />
                 <span className="max-w-[140px] truncate">{holder.name}</span>
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon"
                   aria-label={t("unassignAria")}
-                  className="ml-0.5 rounded-full p-0.5 hover:bg-emerald-200/60"
+                  className="ml-0.5 h-auto w-auto rounded-full p-0.5 text-success hover:bg-success/20 hover:text-success"
                   onClick={() => {
                     if (role === "CONDUCTOR") {
                       unassignConductorMutation.mutate({ tripId });
@@ -228,7 +232,7 @@ export function DriverAssignmentRows({
                   }}
                 >
                   <X className="size-3" />
-                </button>
+                </Button>
               </span>
             ) : isConductorRow ? (
               <div className="min-w-0 flex-1">
@@ -324,23 +328,23 @@ export function DriverAssignmentRows({
                               <span className="truncate">{d.fullName}</span>
                               <span className="flex shrink-0 items-center gap-1.5 text-[10px] text-muted-foreground">
                                 {d.liveStatus === "AVAILABLE" && (
-                                  <span className="rounded bg-emerald-100 px-1 font-semibold text-emerald-700">
+                                  <span className="rounded bg-success/10 px-1 font-semibold text-success">
                                     {t("liveAvailable")}
                                   </span>
                                 )}
                                 {modeMismatch && (
-                                  <span className="rounded bg-amber-50 px-1 font-semibold text-amber-700">
+                                  <span className="rounded bg-warning/10 px-1 font-semibold text-warning">
                                     {t("modeMismatch")}
                                   </span>
                                 )}
                                 {!d.licenseOk && (
-                                  <ShieldAlert className="size-3 text-rose-500" />
+                                  <ShieldAlert className="size-3 text-destructive" />
                                 )}
                                 {d.conflict && (
-                                  <AlertTriangle className="size-3 text-amber-500" />
+                                  <AlertTriangle className="size-3 text-warning" />
                                 )}
                                 {modeMismatch && (
-                                  <CircleOff className="size-3 text-amber-500" />
+                                  <CircleOff className="size-3 text-warning" />
                                 )}
                                 {reason && (
                                   <span className="max-w-[150px] truncate">

@@ -77,18 +77,18 @@ export function DriverDocPreview({
   const isPdf = displayUrl ? isPdfValue(displayUrl) : false;
 
   return (
-    <div className="border rounded-xl p-3 bg-slate-50 space-y-2">
-      <span className="text-xs font-semibold text-slate-600">{label}</span>
+    <div className="border border-border rounded-xl p-3 bg-muted/30 space-y-2">
+      <span className="text-xs font-semibold text-muted-foreground">{label}</span>
 
-      <div className="h-44 rounded-lg bg-slate-900 overflow-hidden flex items-center justify-center relative">
+      <div className="h-44 rounded-lg bg-foreground/90 overflow-hidden flex items-center justify-center relative">
         {!storedValue ? (
-          <span className="text-xs text-zinc-500 px-4 text-center">
+          <span className="text-xs text-background/60 px-4 text-center">
             No document provided
           </span>
         ) : isStoredKey && !displayUrl ? (
           mint.isError ? (
             <div className="flex flex-col items-center gap-2 px-4 text-center">
-              <span className="text-xs text-rose-400">
+              <span className="text-xs text-destructive">
                 Could not load document
               </span>
               <Button
@@ -108,7 +108,7 @@ export function DriverDocPreview({
               </Button>
             </div>
           ) : (
-            <div className="size-full animate-pulse bg-slate-800" />
+            <div className="size-full animate-pulse bg-background/20" />
           )
         ) : !displayUrl ? null : isPdf ? (
           <object
@@ -117,8 +117,8 @@ export function DriverDocPreview({
             className="size-full"
           >
             <div className="flex flex-col items-center gap-2 px-4 text-center">
-              <FileText className="size-8 text-zinc-400" />
-              <span className="text-xs text-zinc-400">
+              <FileText className="size-8 text-background/60" />
+              <span className="text-xs text-background/60">
                 Inline PDF preview unavailable
               </span>
             </div>
@@ -135,22 +135,23 @@ export function DriverDocPreview({
 
       {!storedValue || storedValue.startsWith("file://") ? (
         storedValue?.startsWith("file://") ? (
-          <p className="text-[11px] text-amber-600 leading-snug">
+          <p className="text-[11px] text-warning leading-snug">
             Legacy device URI — ask the driver to re-upload
           </p>
         ) : null
       ) : (
-        <button
+        <Button
           type="button"
+          variant="ghost"
           disabled={!displayUrl}
           onClick={() => {
             if (displayUrl) window.open(displayUrl, "_blank", "noreferrer");
           }}
-          className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline disabled:opacity-40 disabled:cursor-not-allowed"
+          className="h-auto p-0 inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline hover:bg-transparent disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <ExternalLink className="size-3" />
           Open full document
-        </button>
+        </Button>
       )}
     </div>
   );

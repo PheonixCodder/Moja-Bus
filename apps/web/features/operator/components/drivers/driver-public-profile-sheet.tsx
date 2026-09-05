@@ -5,6 +5,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@moja/ui/components/ui/avatar";
+import { UserAvatar } from "@moja/ui/components/ui/user-avatar";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { Button } from "@moja/ui/components/ui/button";
 import { Separator } from "@moja/ui/components/ui/separator";
@@ -42,21 +43,21 @@ import { TrustBadges } from "./trust-badges";
 const EMPLOYMENT_LABELS: Record<string, { label: string; color: string }> = {
   EXCLUSIVE_INTERCITY: {
     label: "Exclusive Intercity",
-    color: "bg-blue-50 text-blue-700 border-blue-200",
+    color: "bg-primary/10 text-primary border-primary/20",
   },
   CONTRACTOR_URBAN: {
     label: "Urban Contractor",
-    color: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    color: "bg-success/10 text-success border-success/20",
   },
   HYBRID: {
     label: "Hybrid",
-    color: "bg-violet-50 text-violet-700 border-violet-200",
+    color: "bg-primary/10 text-primary border-primary/20",
   },
 };
 
 const DEFAULT_EMPLOYMENT_META = {
   label: "Intercity",
-  color: "bg-blue-50 text-blue-700 border-blue-200",
+  color: "bg-primary/10 text-primary border-primary/20",
 };
 
 function getEmploymentMeta(type?: string) {
@@ -74,15 +75,15 @@ function StarRow({ rating, reviews }: { rating: number; reviews: number }) {
           className={cn(
             "size-4",
             s <= Math.round(rating)
-              ? "fill-amber-400 text-amber-400"
-              : "text-slate-200 fill-slate-200",
+              ? "fill-warning text-warning"
+              : "text-muted fill-muted",
           )}
         />
       ))}
-      <span className="text-sm font-bold text-slate-800 ml-1">
+      <span className="text-sm font-bold text-foreground ml-1">
         {rating.toFixed(1)}
       </span>
-      <span className="text-xs text-slate-500">({reviews} reviews)</span>
+      <span className="text-xs text-muted-foreground">({reviews} reviews)</span>
     </div>
   );
 }
@@ -97,14 +98,14 @@ function StatPill({
   sub?: string;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-slate-100 bg-slate-50 p-3 text-center">
-      <span className="text-lg font-bold text-slate-800 font-mono">
+    <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-muted/40 p-3 text-center">
+      <span className="text-lg font-bold text-foreground font-mono">
         {value}
       </span>
-      <span className="text-[11px] font-semibold text-slate-600 mt-0.5">
+      <span className="text-[11px] font-semibold text-muted-foreground mt-0.5">
         {label}
       </span>
-      {sub && <span className="text-[10px] text-slate-400 mt-0.5">{sub}</span>}
+      {sub && <span className="text-[10px] text-muted-foreground/70 mt-0.5">{sub}</span>}
     </div>
   );
 }
@@ -167,35 +168,36 @@ export function DriverPublicProfileSheet({
           </div>
         ) : !driver ? (
           <div className="flex flex-col items-center justify-center h-full text-center p-8 space-y-3">
-            <ShieldCheck className="size-10 text-slate-300" />
-            <p className="text-sm font-semibold text-slate-600">
+            <ShieldCheck className="size-10 text-muted-foreground/50" />
+            <p className="text-sm font-semibold text-muted-foreground">
               Driver profile not found.
             </p>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-muted-foreground/70">
               This driver may no longer be available in the marketplace.
             </p>
           </div>
         ) : (
           <>
             {/* Sticky Header */}
-            <div className="sticky top-0 z-10 bg-white border-b border-slate-100 px-6 pt-6 pb-4">
+            <div className="sticky top-0 z-10 bg-background border-b border-border px-6 pt-6 pb-4">
               <div className="flex items-start gap-4">
-                <Avatar className="size-16 border-2 border-slate-100 shadow shrink-0">
-                  <AvatarImage src={driver.user.image ?? undefined} />
-                  <AvatarFallback className="bg-primary/10 text-primary font-black text-xl">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
+                <UserAvatar
+                  name={driver.user.fullName}
+                  src={driver.user.image}
+                  seed={driver.id || driver.user.fullName}
+                  size="xl"
+                  className="size-16 border-2 border-border shadow shrink-0"
+                />
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <h2 className="text-base font-bold text-slate-900 leading-tight">
+                      <h2 className="text-base font-bold text-foreground leading-tight">
                         {driver.user.fullName ?? "—"}
                       </h2>
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        <BadgeCheck className="size-3.5 text-emerald-500" />
-                        <span className="text-xs text-slate-500">
+                        <BadgeCheck className="size-3.5 text-success" />
+                        <span className="text-xs text-muted-foreground">
                           Class {driver.licenseCategory} ·{" "}
                           {driver.yearsOfExperience}yr exp
                         </span>
@@ -233,7 +235,7 @@ export function DriverPublicProfileSheet({
             <div className="px-6 py-5 space-y-6">
               {/* Career Stats */}
               <section>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground/70 mb-3">
                   Career Statistics
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
@@ -269,11 +271,11 @@ export function DriverPublicProfileSheet({
                 <>
                   <Separator />
                   <section>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground/70 mb-3">
                       Contact
                     </h3>
-                    <div className="flex items-center gap-2.5 text-sm text-slate-700">
-                      <Phone className="size-4 text-slate-400 shrink-0" />
+                    <div className="flex items-center gap-2.5 text-sm text-foreground">
+                      <Phone className="size-4 text-muted-foreground shrink-0" />
                       <span className="font-mono">
                         {driver.user.phoneNumber}
                       </span>
@@ -287,25 +289,25 @@ export function DriverPublicProfileSheet({
                 <>
                   <Separator />
                   <section>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground/70 mb-3">
                       Area & Route Experience
                     </h3>
                     {pref.cityBase && (
                       <div className="flex items-center gap-2 mb-2.5">
-                        <MapPin className="size-4 text-slate-400 shrink-0" />
-                        <span className="text-sm font-semibold text-slate-700">
+                        <MapPin className="size-4 text-muted-foreground shrink-0" />
+                        <span className="text-sm font-semibold text-foreground">
                           Base: {pref.cityBase}
                         </span>
                       </div>
                     )}
                     {pref.routeExperience.length > 0 && (
                       <div className="flex items-start gap-2">
-                        <Route className="size-4 text-slate-400 shrink-0 mt-0.5" />
+                        <Route className="size-4 text-muted-foreground shrink-0 mt-0.5" />
                         <div className="flex flex-wrap gap-1.5">
                           {pref.routeExperience.map((r) => (
                             <span
                               key={r}
-                              className="text-xs font-medium bg-slate-100 border border-slate-200 text-slate-600 rounded-lg px-2 py-1"
+                              className="text-xs font-medium bg-muted border border-border text-muted-foreground rounded-lg px-2 py-1"
                             >
                               {r}
                             </span>
@@ -322,21 +324,21 @@ export function DriverPublicProfileSheet({
                 <>
                   <Separator />
                   <section>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground/70 mb-3">
                       Affiliation History
                     </h3>
                     <div className="space-y-2.5">
                       {driver.companyAffiliations.map((aff, i) => (
                         <div
                           key={i}
-                          className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3"
+                          className="flex items-start gap-3 rounded-xl border border-border bg-muted/40 p-3"
                         >
-                          <Building2 className="size-4 text-slate-400 shrink-0 mt-0.5" />
+                          <Building2 className="size-4 text-muted-foreground shrink-0 mt-0.5" />
                           <div className="min-w-0 flex-1">
-                            <p className="text-sm font-semibold text-slate-800 truncate">
+                            <p className="text-sm font-semibold text-foreground truncate">
                               {aff.company.name}
                             </p>
-                            <p className="text-xs text-slate-500 mt-0.5">
+                            <p className="text-xs text-muted-foreground mt-0.5">
                               {getEmploymentMeta(aff.employmentType).label}
                               {" · "}
                               {format(new Date(aff.hiredAt), "MMM yyyy")}
@@ -357,7 +359,7 @@ export function DriverPublicProfileSheet({
                 already on the caller's roster. Phase 25 (F-OP-10): also closed
                 for redacted off-market/suspended profiles (servicePreference
                 is null in that branch). */}
-            <div className="sticky bottom-0 border-t border-slate-100 bg-white px-6 py-4">
+            <div className="sticky bottom-0 border-t border-border bg-background px-6 py-4">
               {data?.driver.isOnMyRoster ? (
                 <Button
                   className="w-full gap-2 font-semibold"
@@ -386,7 +388,7 @@ export function DriverPublicProfileSheet({
                     <Briefcase className="size-4" />
                     Send Employment Offer
                   </Button>
-                  <p className="text-center text-[11px] text-slate-400 mt-2">
+                  <p className="text-center text-[11px] text-muted-foreground mt-2">
                     The driver has 7 days to accept, decline, or counter.
                   </p>
                 </>

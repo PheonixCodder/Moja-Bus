@@ -365,8 +365,8 @@ export function TerminalEditorSheet({
       <span
         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
           submitted
-            ? "bg-sky-500/10 text-sky-600 dark:text-sky-400"
-            : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+            ? "bg-primary/10 text-primary"
+            : "bg-warning/10 text-warning"
         }`}
       >
         {submitted
@@ -377,18 +377,23 @@ export function TerminalEditorSheet({
   })();
 
   return (
-    <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DrawerContent
-        className="max-h-[90vh]"
-        onPointerDownOutside={(e: { preventDefault: () => void }) => {
+    <Drawer
+      open={isOpen}
+      onOpenChange={(open, details) => {
+        if (!open) {
           if (
+            details.reason === "outside-press" &&
             isDirty &&
             !window.confirm("You have unsaved changes. Discard changes?")
           ) {
-            e.preventDefault();
+            details.cancel();
+            return;
           }
-        }}
-      >
+          onClose();
+        }
+      }}
+    >
+      <DrawerContent className="max-h-[90vh]">
         <div className="mx-auto w-full max-w-3xl overflow-y-auto p-6 space-y-6">
           <DrawerHeader className="px-0">
             <DrawerTitle className="text-xl font-bold flex items-center gap-2">
@@ -403,35 +408,39 @@ export function TerminalEditorSheet({
 
           {!editingLocation && (
             <div className="grid grid-cols-2 gap-2 rounded-lg border border-border bg-muted/30 p-1">
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => {
                   setMode("standard");
                   setCaptureResult(null);
                 }}
-                className={`rounded-md px-3 py-1.5 text-sm font-semibold transition-colors ${
+                className={`rounded-md px-3 py-1.5 text-sm font-semibold transition-colors h-auto ${
                   mode === "standard"
-                    ? "bg-background text-foreground shadow-sm"
+                    ? "bg-background text-foreground shadow-sm hover:bg-background"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {t("capture.standardMode")}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => {
                   setMode("capture");
                   setCaptureResult(null);
                 }}
-                className={`rounded-md px-3 py-1.5 text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 ${
+                className={`rounded-md px-3 py-1.5 text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 h-auto ${
                   mode === "capture"
-                    ? "bg-background text-foreground shadow-sm"
+                    ? "bg-background text-foreground shadow-sm hover:bg-background"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 <Smartphone className="size-4" />
                 {t("capture.captureMode")}
-              </button>
+              </Button>
             </div>
           )}
 
@@ -581,9 +590,9 @@ export function TerminalEditorSheet({
 
               {captureResult && (
                 <div className="space-y-4">
-                  <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4 space-y-3">
+                  <div className="rounded-lg border border-success/20 bg-success/5 p-4 space-y-3">
                     <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                      <CheckCircle className="size-4 text-emerald-600" />
+                      <CheckCircle className="size-4 text-success" />
                       {t("capture.linkGenerated")}
                     </div>
                     <div className="space-y-1">
@@ -595,14 +604,14 @@ export function TerminalEditorSheet({
                           {captureResult.url}
                         </div>
                         <Button
-                          type="button"
+                           type="button"
                           variant="outline"
                           size="sm"
                           onClick={handleCopyLink}
                           className="shrink-0"
                         >
                           {copied ? (
-                            <Check className="mr-1.5 size-3.5 text-emerald-600" />
+                            <Check className="mr-1.5 size-3.5 text-success" />
                           ) : (
                             <Copy className="mr-1.5 size-3.5" />
                           )}
@@ -624,7 +633,7 @@ export function TerminalEditorSheet({
                       <Button
                         type="button"
                         size="sm"
-                        className="shrink-0 bg-[#25D366] hover:bg-[#1da851] text-white"
+                        className="shrink-0 bg-success hover:bg-success/90 text-success-foreground"
                         onClick={() =>
                           window.open(
                             `https://wa.me/?text=${encodeURIComponent(captureResult.url)}`,
@@ -643,16 +652,17 @@ export function TerminalEditorSheet({
               <DrawerFooter className="px-0 pt-4 flex-row justify-end gap-3">
                 {!captureResult ? (
                   <>
-                    <DrawerClose asChild>
-                      <Button
+                    <DrawerClose
+              render={
+                <Button
                         type="button"
                         variant="outline"
                         onClick={onClose}
-                        disabled={submitting}
-                      >
+                        disabled={submitting} />
+              }
+            >
                         {tc("cancel")}
-                      </Button>
-                    </DrawerClose>
+                      </DrawerClose>
                     <Button
                       type="button"
                       onClick={handleGenerateCapture}
@@ -665,12 +675,14 @@ export function TerminalEditorSheet({
                     </Button>
                   </>
                 ) : (
-                  <DrawerClose asChild>
-                    <Button type="button" onClick={onClose}>
+                  <DrawerClose
+              render={
+                <Button type="button" onClick={onClose} />
+              }
+            >
                       <CheckCircle className="mr-2 size-4" />
                       {tc("save")} {t("editor.andClose")}
-                    </Button>
-                  </DrawerClose>
+                    </DrawerClose>
                 )}
               </DrawerFooter>
             </div>
@@ -1050,16 +1062,17 @@ export function TerminalEditorSheet({
               </div>
 
               <DrawerFooter className="px-0 pt-4 flex-row justify-end gap-3">
-                <DrawerClose asChild>
-                  <Button
+                <DrawerClose
+              render={
+                <Button
                     type="button"
                     variant="outline"
                     onClick={onClose}
-                    disabled={submitting}
-                  >
+                    disabled={submitting} />
+              }
+            >
                     {tc("cancel")}
-                  </Button>
-                </DrawerClose>
+                  </DrawerClose>
                 <Button type="submit" disabled={submitting}>
                   {submitting && <Spinner className="mr-2 size-4" />}
                   {editingLocation ? `${tc("save")} Changes` : t("addLocation")}

@@ -97,29 +97,29 @@ export function AdminCampaignsTable({
   }
 
   return (
-    <Card className="overflow-hidden border-slate-200/80 shadow-xs bg-white">
+    <Card className="overflow-hidden border-border shadow-xs bg-card">
       <Table>
         <TableHeader>
-          <TableRow className="bg-slate-50/70 hover:bg-slate-50/70">
-            <TableHead className="font-semibold text-slate-700">
+          <TableRow className="bg-muted/50 hover:bg-muted/50">
+            <TableHead className="font-semibold text-foreground">
               {t("campaign")}
             </TableHead>
-            <TableHead className="font-semibold text-slate-700">
+            <TableHead className="font-semibold text-foreground">
               {t("benefit")}
             </TableHead>
-            <TableHead className="font-semibold text-slate-700">
+            <TableHead className="font-semibold text-foreground">
               {t("status")}
             </TableHead>
-            <TableHead className="font-semibold text-slate-700">
+            <TableHead className="font-semibold text-foreground">
               {t("budgetUsed")}
             </TableHead>
-            <TableHead className="font-semibold text-slate-700">
+            <TableHead className="font-semibold text-foreground">
               {t("redemptions")}
             </TableHead>
-            <TableHead className="font-semibold text-slate-700">
+            <TableHead className="font-semibold text-foreground">
               {t("created")}
             </TableHead>
-            <TableHead className="text-right font-semibold text-slate-700">
+            <TableHead className="text-right font-semibold text-foreground">
               {t("actions")}
             </TableHead>
           </TableRow>
@@ -129,7 +129,7 @@ export function AdminCampaignsTable({
             <TableRow>
               <TableCell
                 colSpan={7}
-                className="py-12 text-center text-sm text-slate-500"
+                className="py-12 text-center text-sm text-muted-foreground"
               >
                 {t("loading")}
               </TableCell>
@@ -138,7 +138,7 @@ export function AdminCampaignsTable({
             <TableRow>
               <TableCell
                 colSpan={7}
-                className="py-12 text-center text-sm text-slate-500"
+                className="py-12 text-center text-sm text-muted-foreground"
               >
                 {t("empty")}
               </TableCell>
@@ -157,33 +157,33 @@ export function AdminCampaignsTable({
                   key={item.id}
                   className={`transition-colors ${
                     isSelected
-                      ? "bg-amber-50/40 hover:bg-amber-50/60"
-                      : "hover:bg-slate-50/60"
+                      ? "bg-primary/10 hover:bg-primary/15"
+                      : "hover:bg-muted/50"
                   }`}
                 >
                   <TableCell>
-                    <div className="font-medium text-slate-900">
+                    <div className="font-medium text-foreground">
                       {item.name}
                     </div>
-                    <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-0.5">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
                       {item.isAutoApply && (
-                        <span className="inline-flex items-center rounded-sm bg-pink-50 px-1.5 py-0.5 text-[10px] font-medium text-[#ee237c] ring-1 ring-inset ring-pink-700/10">
+                        <span className="inline-flex items-center rounded-sm bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary ring-1 ring-inset ring-primary/20">
                           {t("autoApplyTag")}
                         </span>
                       )}
                       {item.firstBookingOnly && (
-                        <span className="inline-flex items-center rounded-sm bg-pink-50 px-1.5 py-0.5 text-[10px] font-medium text-[#ee237c] ring-1 ring-pink-700/10">
+                        <span className="inline-flex items-center rounded-sm bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary ring-1 ring-inset ring-primary/20">
                           {t("firstBookingTag")}
                         </span>
                       )}
-                      <span className="font-mono text-[11px] text-slate-400">
+                      <span className="font-mono text-[11px] text-muted-foreground">
                         {item.id.slice(-6)}
                       </span>
                     </div>
                   </TableCell>
 
                   <TableCell>
-                    <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-800">
+                    <span className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs font-semibold text-foreground">
                       {benefitLabel(item)}
                     </span>
                   </TableCell>
@@ -199,45 +199,45 @@ export function AdminCampaignsTable({
 
                   <TableCell className="text-sm">
                     {hasBudget ? (
-                      <div className="space-y-1 min-w-[120px]">
-                        <div className="flex justify-between text-xs text-slate-600">
-                          <span className="font-medium">
+                      <div className="space-y-1 min-w-32">
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span className="font-medium text-foreground">
                             {spent.toLocaleString()} XOF
                           </span>
-                          <span className="text-slate-400">{pct}%</span>
+                          <span className="text-muted-foreground">{pct}%</span>
                         </div>
-                        <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                        <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
                           <div
                             className={`h-full transition-all ${
                               pct >= 90
-                                ? "bg-rose-500"
+                                ? "bg-destructive"
                                 : pct >= 70
-                                  ? "bg-amber-500"
-                                  : "bg-emerald-500"
+                                  ? "bg-warning"
+                                  : "bg-success"
                             }`}
                             style={{ width: `${pct}%` }}
                           />
                         </div>
                       </div>
                     ) : (
-                      <span className="text-xs text-slate-400">
+                      <span className="text-xs text-muted-foreground">
                         {t("unlimited")}
                       </span>
                     )}
                   </TableCell>
 
-                  <TableCell className="text-sm text-slate-600">
-                    <span className="font-semibold text-slate-900 tabular-nums">
+                  <TableCell className="text-sm text-muted-foreground">
+                    <span className="font-semibold text-foreground tabular-nums">
                       {item._count.redemptions}
                     </span>
-                    <span className="text-slate-400"> {t("uses")} · </span>
-                    <span className="tabular-nums font-semibold text-slate-900">
+                    <span className="text-muted-foreground"> {t("uses")} · </span>
+                    <span className="tabular-nums font-semibold text-foreground">
                       {item._count.coupons}
                     </span>
-                    <span className="text-slate-400"> {t("codes")}</span>
+                    <span className="text-muted-foreground"> {t("codes")}</span>
                   </TableCell>
 
-                  <TableCell className="whitespace-nowrap text-sm text-slate-500">
+                  <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
                     {format(new Date(item.createdAt), "dd MMM yyyy")}
                   </TableCell>
 
@@ -263,7 +263,7 @@ export function AdminCampaignsTable({
                             disabled={notifyPending}
                             onClick={() => onNotifyPassengers(item.id)}
                             title={t("notifyPassengers")}
-                            className="size-8 p-0 text-slate-500 hover:text-slate-900"
+                            className="size-8 p-0 text-muted-foreground hover:text-foreground"
                           >
                             <Bell className="size-3.5" />
                           </Button>
@@ -280,7 +280,7 @@ export function AdminCampaignsTable({
                               )
                             }
                             title={t("pauseCampaign")}
-                            className="size-8 p-0 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                            className="size-8 p-0 text-warning hover:text-warning hover:bg-warning/10"
                           >
                             <Pause className="size-3.5" />
                           </Button>
@@ -293,7 +293,7 @@ export function AdminCampaignsTable({
                           disabled={statusPending}
                           onClick={() => onStatusChange(item.id, "ACTIVE")}
                           title={t("activateCampaign")}
-                          className="size-8 p-0 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                          className="size-8 p-0 text-success hover:text-success hover:bg-success/10"
                         >
                           <Play className="size-3.5" />
                         </Button>

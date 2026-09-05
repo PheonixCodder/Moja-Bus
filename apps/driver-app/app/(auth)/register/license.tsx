@@ -5,8 +5,7 @@ import {
 	Text,
 	Image,
 	Alert,
-	TouchableOpacity,
-	StyleSheet,
+	Pressable,
 } from "react-native";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
@@ -25,9 +24,11 @@ import { DriverFeedback } from "@/lib/haptics";
 import { useTRPC } from "@/lib/trpc";
 import { uploadCapturedDocument } from "@/lib/driver-doc-upload";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ScreenShell } from "@/components/ui/ScreenShell";
+import { colors } from "@/constants/theme";
 
 const LICENSE_CATEGORY_KEYS: Array<{
 	category: LicenseCategoryType;
@@ -187,8 +188,8 @@ export default function RegisterStep2LicenseScreen() {
 						showBack
 						onBack={() => router.canGoBack() ? router.back() : router.replace("/(auth)/register")}
 					/>
-					<View style={styles.progressTrack}>
-						<View style={[styles.progressBar, { width: "50%" }]} />
+					<View className="h-1 bg-card w-full">
+						<View className="h-full bg-primary w-1/2" />
 					</View>
 				</View>
 			}
@@ -198,308 +199,155 @@ export default function RegisterStep2LicenseScreen() {
 					variant="primary"
 					size="lg"
 					onPress={handleNext}
-					icon={<HugeiconsIcon icon={ArrowRight01Icon} size={18} color="#ffffff" />}
+					icon={<HugeiconsIcon icon={ArrowRight01Icon} size={18} color={colors.neutral.textPrimary} />}
 					iconPosition="right"
 				/>
 			}
 		>
-			<View style={styles.formCard}>
-				<Text style={styles.sectionTitle}>{t("licenseCategoryTitle")}</Text>
-				<Text style={styles.sectionSubtitle}>
-					{t("licenseCategorySubtitle")}
-				</Text>
+			<View className="gap-4">
+				<Card className="p-5 gap-3">
+					<Text className="text-base font-extrabold text-foreground tracking-tight">{t("licenseCategoryTitle")}</Text>
+					<Text className="text-xs text-muted-foreground leading-5">
+						{t("licenseCategorySubtitle")}
+					</Text>
 
-				<View style={styles.categoriesList}>
-					{LICENSE_CATEGORY_KEYS.map((item) => {
-						const isSelected = categorySelect === item.category;
-						return (
-							<TouchableOpacity
-								key={item.category}
-								onPress={() => {
-									DriverFeedback.tap();
-									setCategorySelect(item.category);
-								}}
-								activeOpacity={0.8}
-								style={[
-									styles.categoryCard,
-									isSelected && styles.categoryCardSelected,
-								]}
-							>
-								<View style={styles.categoryHeader}>
-									<View style={styles.categoryLeft}>
-										<View
-											style={[
-												styles.categoryBadge,
-												isSelected && styles.categoryBadgeSelected,
-											]}
-										>
-											<Text
-												style={[
-													styles.categoryBadgeText,
-													isSelected && styles.categoryBadgeTextSelected,
-												]}
+					<View className="gap-2.5 pt-1">
+						{LICENSE_CATEGORY_KEYS.map((item) => {
+							const isSelected = categorySelect === item.category;
+							return (
+								<Pressable
+									key={item.category}
+									onPress={() => {
+										DriverFeedback.tap();
+										setCategorySelect(item.category);
+									}}
+									className={`p-3.5 rounded-2xl border-1.5 gap-1.5 ${
+										isSelected
+											? "border-primary bg-primary/10"
+											: "border-border bg-background"
+									}`}
+								>
+									<View className="flex-row items-center justify-between">
+										<View className="flex-row items-center gap-2.5">
+											<View
+												className={`w-8 h-8 rounded-xl items-center justify-center ${
+													isSelected ? "bg-primary" : "bg-border"
+												}`}
 											>
-												{item.category}
-											</Text>
+												<Text
+													className={`text-sm font-extrabold ${
+														isSelected ? "text-primary-foreground" : "text-muted-foreground"
+													}`}
+												>
+													{item.category}
+												</Text>
+											</View>
+											<Text className="text-sm font-bold text-foreground">{t(item.titleKey)}</Text>
 										</View>
-										<Text style={styles.categoryTitle}>{t(item.titleKey)}</Text>
+										{isSelected ? (
+											<HugeiconsIcon icon={CheckmarkCircle02Icon} size={20} color={colors.primary.rose} />
+										) : null}
 									</View>
-									{isSelected ? (
-										<HugeiconsIcon icon={CheckmarkCircle02Icon} size={20} color="#ee237c" />
-									) : null}
-								</View>
-								<Text style={styles.categoryDesc}>{t(item.descKey)}</Text>
-							</TouchableOpacity>
-						);
-					})}
-				</View>
-			</View>
-
-			<View style={styles.formCard}>
-				<Text style={styles.sectionTitle}>{t("licenseNumberLabel")}</Text>
-
-				<View style={styles.inputsList}>
-					<Input
-						label={t("licenseNumberLabel")}
-						placeholder={t("licenseNumberPlaceholder")}
-						value={numberInput}
-						onChangeText={setNumberInput}
-						leftIcon={<HugeiconsIcon icon={CreditCardIcon} size={18} color="#71717a" />}
-					/>
-
-					<Input
-						label={t("licenseExpiryLabel")}
-						placeholder={t("licenseExpiryPlaceholder")}
-						value={expiryInput}
-						onChangeText={setExpiryInput}
-						leftIcon={<HugeiconsIcon icon={Calendar01Icon} size={18} color="#71717a" />}
-					/>
-				</View>
-			</View>
-
-			<View style={styles.formCard}>
-				<Text style={styles.sectionTitle}>{t("licensePhotosTitle")}</Text>
-				<Text style={styles.sectionSubtitle}>
-					{t("licensePhotosSubtitle")}
-				</Text>
-
-				<View style={styles.photosRow}>
-					{/* Recto */}
-					<View style={styles.photoCol}>
-						<Text style={styles.photoLabel}>{t("photoFront")}</Text>
-						{frontUri || frontKey ? (
-							<TouchableOpacity
-								onPress={() => handleCaptureDocument("front")}
-								style={styles.photoPreviewWrap}
-							>
-								{frontUri ? (
-									<Image source={{ uri: frontUri }} style={styles.photoPreview} />
-								) : (
-									<View style={[styles.photoPreview, styles.uploadedBox]}>
-										<HugeiconsIcon icon={CheckmarkCircle02Icon} size={24} color="#10b981" />
-										<Text style={styles.uploadedText}>{t("photoFrontUploaded", "Recto enregistré")}</Text>
-									</View>
-								)}
-								<View style={styles.photoSuccessBadge}>
-									<HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} color="#10b981" />
-								</View>
-							</TouchableOpacity>
-						) : (
-							<TouchableOpacity
-								onPress={() => handleCaptureDocument("front")}
-								style={styles.photoCaptureBox}
-							>
-								<HugeiconsIcon icon={Camera01Icon} size={22} color="#ee237c" />
-								<Text style={styles.photoCaptureText}>{t("takeFront")}</Text>
-							</TouchableOpacity>
-						)}
+									<Text className="text-xs text-muted-foreground pl-10 leading-4">{t(item.descKey)}</Text>
+								</Pressable>
+							);
+						})}
 					</View>
+				</Card>
 
-					{/* Verso */}
-					<View style={styles.photoCol}>
-						<Text style={styles.photoLabel}>{t("photoBack")}</Text>
-						{backUri || backKey ? (
-							<TouchableOpacity
-								onPress={() => handleCaptureDocument("back")}
-								style={styles.photoPreviewWrap}
-							>
-								{backUri ? (
-									<Image source={{ uri: backUri }} style={styles.photoPreview} />
-								) : (
-									<View style={[styles.photoPreview, styles.uploadedBox]}>
-										<HugeiconsIcon icon={CheckmarkCircle02Icon} size={24} color="#10b981" />
-										<Text style={styles.uploadedText}>{t("photoBackUploaded", "Verso enregistré")}</Text>
-									</View>
-								)}
-								<View style={styles.photoSuccessBadge}>
-									<HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} color="#10b981" />
-								</View>
-							</TouchableOpacity>
-						) : (
-							<TouchableOpacity
-								onPress={() => handleCaptureDocument("back")}
-								style={styles.photoCaptureBox}
-							>
-								<HugeiconsIcon icon={Camera01Icon} size={22} color="#ee237c" />
-								<Text style={styles.photoCaptureText}>{t("takeBack")}</Text>
-							</TouchableOpacity>
-						)}
+				<Card className="p-5 gap-3">
+					<Text className="text-base font-extrabold text-foreground tracking-tight">{t("licenseNumberLabel")}</Text>
+
+					<View className="gap-4 pt-1">
+						<Input
+							label={t("licenseNumberLabel")}
+							placeholder={t("licenseNumberPlaceholder")}
+							value={numberInput}
+							onChangeText={setNumberInput}
+							leftIcon={<HugeiconsIcon icon={CreditCardIcon} size={18} color={colors.neutral.textMuted} />}
+						/>
+
+						<Input
+							label={t("licenseExpiryLabel")}
+							placeholder={t("licenseExpiryPlaceholder")}
+							value={expiryInput}
+							onChangeText={setExpiryInput}
+							leftIcon={<HugeiconsIcon icon={Calendar01Icon} size={18} color={colors.neutral.textMuted} />}
+						/>
 					</View>
-				</View>
+				</Card>
+
+				<Card className="p-5 gap-3">
+					<Text className="text-base font-extrabold text-foreground tracking-tight">{t("licensePhotosTitle")}</Text>
+					<Text className="text-xs text-muted-foreground leading-5">
+						{t("licensePhotosSubtitle")}
+					</Text>
+
+					<View className="flex-row gap-3 pt-1.5">
+						{/* Recto */}
+						<View className="flex-1 gap-1.5">
+							<Text className="text-xs font-semibold text-muted-foreground">{t("photoFront")}</Text>
+							{frontUri || frontKey ? (
+								<Pressable
+									onPress={() => handleCaptureDocument("front")}
+									className="relative h-24 rounded-2xl overflow-hidden border border-border"
+								>
+									{frontUri ? (
+										<Image source={{ uri: frontUri }} className="w-full h-full" />
+									) : (
+										<View className="w-full h-full bg-card items-center justify-center gap-1">
+											<HugeiconsIcon icon={CheckmarkCircle02Icon} size={24} color={colors.semantic.success} />
+											<Text className="text-[10px] font-bold text-success">{t("photoFrontUploaded", "Recto enregistré")}</Text>
+										</View>
+									)}
+									<View className="absolute top-1.5 right-1.5 bg-card rounded-full p-1">
+										<HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} color={colors.semantic.success} />
+									</View>
+								</Pressable>
+							) : (
+								<Pressable
+									onPress={() => handleCaptureDocument("front")}
+									className="h-24 border-1.5 border-dashed border-border rounded-2xl items-center justify-center bg-background gap-1.5"
+								>
+									<HugeiconsIcon icon={Camera01Icon} size={22} color={colors.primary.rose} />
+									<Text className="text-xs font-bold text-foreground">{t("takeFront")}</Text>
+								</Pressable>
+							)}
+						</View>
+
+						{/* Verso */}
+						<View className="flex-1 gap-1.5">
+							<Text className="text-xs font-semibold text-muted-foreground">{t("photoBack")}</Text>
+							{backUri || backKey ? (
+								<Pressable
+									onPress={() => handleCaptureDocument("back")}
+									className="relative h-24 rounded-2xl overflow-hidden border border-border"
+								>
+									{backUri ? (
+										<Image source={{ uri: backUri }} className="w-full h-full" />
+									) : (
+										<View className="w-full h-full bg-card items-center justify-center gap-1">
+											<HugeiconsIcon icon={CheckmarkCircle02Icon} size={24} color={colors.semantic.success} />
+											<Text className="text-[10px] font-bold text-success">{t("photoBackUploaded", "Verso enregistré")}</Text>
+										</View>
+									)}
+									<View className="absolute top-1.5 right-1.5 bg-card rounded-full p-1">
+										<HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} color={colors.semantic.success} />
+									</View>
+								</Pressable>
+							) : (
+								<Pressable
+									onPress={() => handleCaptureDocument("back")}
+									className="h-24 border-1.5 border-dashed border-border rounded-2xl items-center justify-center bg-background gap-1.5"
+								>
+									<HugeiconsIcon icon={Camera01Icon} size={22} color={colors.primary.rose} />
+									<Text className="text-xs font-bold text-foreground">{t("takeBack")}</Text>
+								</Pressable>
+							)}
+						</View>
+					</View>
+				</Card>
 			</View>
 		</ScreenShell>
 	);
 }
-
-const styles = StyleSheet.create({
-	progressTrack: {
-		height: 4,
-		backgroundColor: "#18181b",
-		width: "100%",
-	},
-	progressBar: {
-		height: "100%",
-		backgroundColor: "#ee237c",
-		borderTopRightRadius: 4,
-		borderBottomRightRadius: 4,
-	},
-	formCard: {
-		backgroundColor: "#18181b",
-		borderWidth: 1,
-		borderColor: "#27272a",
-		borderRadius: 20,
-		padding: 20,
-		gap: 12,
-	},
-	sectionTitle: {
-		fontSize: 16,
-		fontWeight: "800",
-		color: "#fafafa",
-		letterSpacing: -0.2,
-	},
-	sectionSubtitle: {
-		fontSize: 12,
-		color: "#a1a1aa",
-		lineHeight: 18,
-	},
-	categoriesList: {
-		gap: 10,
-		paddingTop: 4,
-	},
-	categoryCard: {
-		padding: 14,
-		borderRadius: 16,
-		borderWidth: 1.5,
-		borderColor: "#27272a",
-		backgroundColor: "#09090b",
-		gap: 6,
-	},
-	categoryCardSelected: {
-		borderColor: "#ee237c",
-		backgroundColor: "rgba(238, 35, 124, 0.06)",
-	},
-	categoryHeader: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-	},
-	categoryLeft: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 10,
-	},
-	categoryBadge: {
-		width: 32,
-		height: 32,
-		borderRadius: 10,
-		backgroundColor: "#27272a",
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	categoryBadgeSelected: {
-		backgroundColor: "#ee237c",
-	},
-	categoryBadgeText: {
-		fontSize: 14,
-		fontWeight: "800",
-		color: "#a1a1aa",
-	},
-	categoryBadgeTextSelected: {
-		color: "#ffffff",
-	},
-	categoryTitle: {
-		fontSize: 14,
-		fontWeight: "700",
-		color: "#fafafa",
-	},
-	categoryDesc: {
-		fontSize: 11,
-		color: "#71717a",
-		paddingLeft: 42,
-	},
-	inputsList: {
-		gap: 16,
-		paddingTop: 4,
-	},
-	photosRow: {
-		flexDirection: "row",
-		gap: 12,
-		paddingTop: 6,
-	},
-	photoCol: {
-		flex: 1,
-		gap: 6,
-	},
-	photoLabel: {
-		fontSize: 12,
-		fontWeight: "600",
-		color: "#d4d4d8",
-	},
-	photoCaptureBox: {
-		height: 100,
-		borderWidth: 1.5,
-		borderStyle: "dashed",
-		borderColor: "#3f3f46",
-		borderRadius: 14,
-		alignItems: "center",
-		justifyContent: "center",
-		backgroundColor: "#09090b",
-		gap: 6,
-	},
-	photoCaptureText: {
-		fontSize: 11,
-		fontWeight: "700",
-		color: "#fafafa",
-	},
-	photoPreviewWrap: {
-		position: "relative",
-		height: 100,
-		borderRadius: 14,
-		overflow: "hidden",
-		borderWidth: 1,
-		borderColor: "#27272a",
-	},
-	photoPreview: {
-		width: "100%",
-		height: "100%",
-	},
-	uploadedBox: {
-		backgroundColor: "#18181b",
-		alignItems: "center",
-		justifyContent: "center",
-		gap: 4,
-	},
-	uploadedText: {
-		fontSize: 10,
-		fontWeight: "700",
-		color: "#10b981",
-	},
-	photoSuccessBadge: {
-		position: "absolute",
-		top: 6,
-		right: 6,
-		backgroundColor: "#18181b",
-		borderRadius: 999,
-		padding: 3,
-	},
-});

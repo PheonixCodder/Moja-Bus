@@ -8,6 +8,7 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { Text } from "@/components/ui/text";
+import { Palette } from "@/constants/theme";
 
 type BookingKpiStripProps = {
 	upcomingCount: number;
@@ -29,29 +30,29 @@ export function BookingKpiStrip({
 			icon: Calendar01Icon,
 			labelKey: "upcomingLabel",
 			value: upcomingCount,
-			color: "#ee237c",
+			color: Palette.rose[500],
 			bg: "bg-primary/10",
 		},
 		{
 			icon: Clock01Icon,
 			labelKey: "pendingLabel",
 			value: pendingCount,
-			color: "#d97706",
-			bg: "bg-amber-500/10",
+			color: Palette.amber[500],
+			bg: "bg-warning/10",
 		},
 		{
 			icon: Ticket01Icon,
 			labelKey: "ticketsLabel",
 			value: ticketsCount,
-			color: "#10b981",
-			bg: "bg-emerald-500/10",
+			color: Palette.emerald[500],
+			bg: "bg-success/10",
 		},
 		{
 			icon: UserGroupIcon,
 			labelKey: "savedLabel",
 			value: contactsCount,
-			color: "#6366f1",
-			bg: "bg-indigo-500/10",
+			color: Palette.blue[500],
+			bg: "bg-info/10",
 		},
 	];
 

@@ -3415,7 +3415,7 @@ export const driversRouter = createTRPCRouter({
     const startOfDay = utcMidnight(now);
     const startOfWeek = mondayStartUtc(now);
 
-    // Active affiliations with configured pay rates (Phase 7 Gap #17a)
+    // Active affiliations with configured pay rates (Phase 7 Gap 17a)
     const affiliations = await ctx.prisma.driverCompanyAffiliation.findMany({
       where: { driverProfileId: ctx.driver.id, isActive: true },
       include: {

@@ -5,6 +5,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@moja/ui/components/ui/avatar";
+import { UserAvatar } from "@moja/ui/components/ui/user-avatar";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { Checkbox } from "@moja/ui/components/ui/checkbox";
 import {
@@ -50,23 +51,22 @@ export const statusMeta: Record<
     label: "Active",
     icon: CheckCircle2,
     className:
-      "bg-emerald-100/50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 hover:bg-emerald-100/80",
+      "bg-success/10 text-success border-success/20 hover:bg-success/15",
   },
   Pending: {
     label: "Pending",
     icon: AlertCircle,
     className:
-      "bg-amber-100/50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 hover:bg-amber-100/80",
+      "bg-warning/10 text-warning border-warning/20 hover:bg-warning/15",
   },
 };
 
 export function getAvatarTone(name: string) {
   const tones = [
-    "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-    "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400",
-    "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400",
-    "bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900/30 dark:text-fuchsia-400",
-    "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400",
+    "bg-primary/10 text-primary",
+    "bg-secondary text-secondary-foreground",
+    "bg-accent text-accent-foreground",
+    "bg-muted text-foreground",
   ];
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
@@ -133,15 +133,13 @@ export function getOperatorColumns(t: any): ColumnDef<OperatorRow>[] {
 
         return (
           <div className="flex items-center gap-3">
-            <Avatar className={cn("h-9 w-9 shrink-0 font-medium", toneClass)}>
-              <AvatarImage
-                src={operator.avatar || undefined}
-                alt={operator.fullName}
-              />
-              <AvatarFallback className={cn("text-xs", toneClass)}>
-                {initials}
-              </AvatarFallback>
-            </Avatar>
+            <UserAvatar
+              name={operator.fullName}
+              src={operator.avatar}
+              seed={operator.id}
+              size="md"
+              className="h-9 w-9 shrink-0 font-medium"
+            />
             <div className="flex flex-col">
               <span className="font-medium text-sm text-foreground">
                 {operator.fullName}
@@ -254,7 +252,7 @@ export function getOperatorColumns(t: any): ColumnDef<OperatorRow>[] {
                 <span className="sr-only">{t("openMenu")}</span>
                 <MoreHorizontal className="h-4 w-4" />
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[180px]">
+              <DropdownMenuContent align="end" className="w-44">
                 <p className="px-2 py-1 text-xs font-normal text-muted-foreground">
                   {t("actions")}
                 </p>
@@ -278,7 +276,7 @@ export function getOperatorColumns(t: any): ColumnDef<OperatorRow>[] {
                       role: "TRAVELER",
                     })
                   }
-                  className="text-amber-600 focus:text-amber-600"
+                  className="text-warning focus:text-warning"
                 >
                   <ShieldOff className="mr-2 h-4 w-4" />
                   {t("demoteToTraveler")}

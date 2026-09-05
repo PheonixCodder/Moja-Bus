@@ -5,6 +5,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@moja/ui/components/ui/avatar";
+import { UserAvatar } from "@moja/ui/components/ui/user-avatar";
 import { Button } from "@moja/ui/components/ui/button";
 import {
   Tabs,
@@ -101,17 +102,13 @@ export function DriverDetailView({ driverId }: DriverDetailViewProps) {
       {/* Driver Header Card */}
       <div className="p-6 rounded-2xl border border-border bg-card shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <Avatar className="size-20 border-2 border-primary/20 shadow-sm">
-            <AvatarImage src={driver.user.image ?? undefined} />
-            <AvatarFallback className="text-2xl font-black bg-primary/10 text-primary">
-              {driver.user.fullName
-                .split(" ")
-                .map((n) => n[0])
-                .join("")
-                .slice(0, 2)
-                .toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+          <UserAvatar
+            name={driver.user.fullName}
+            src={driver.user.image}
+            seed={driver.id || driver.user.id}
+            size="xl"
+            className="size-20 border-2 border-primary/20 shadow-sm"
+          />
 
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-2">
@@ -124,12 +121,12 @@ export function DriverDetailView({ driverId }: DriverDetailViewProps) {
                 licenseExpiryDate={driver.licenseExpiryDate}
               />
               {driver.verificationStatus === "VERIFIED" ? (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-success/10 text-success border border-success/20">
                   <ShieldCheck className="size-3.5" />
                   Verified License
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-warning/10 text-warning border border-warning/20">
                   <ShieldAlert className="size-3.5" />
                   Pending Compliance
                 </span>
@@ -432,7 +429,7 @@ export function DriverDetailView({ driverId }: DriverDetailViewProps) {
                             {roleLabel ? ` · ${roleLabel}` : ""}
                           </div>
                         </div>
-                        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+                        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-success/10 text-success whitespace-nowrap">
                           ARRIVED
                         </span>
                       </div>
@@ -462,8 +459,8 @@ export function DriverDetailView({ driverId }: DriverDetailViewProps) {
                       <div className="font-semibold text-sm text-foreground">
                         {rev.author.fullName}
                       </div>
-                      <div className="flex items-center gap-1 text-amber-500 font-bold text-sm">
-                        <Star className="size-3.5 fill-amber-500" />
+                      <div className="flex items-center gap-1 text-warning font-bold text-sm">
+                        <Star className="size-3.5 fill-warning" />
                         {rev.rating}/5
                       </div>
                     </div>

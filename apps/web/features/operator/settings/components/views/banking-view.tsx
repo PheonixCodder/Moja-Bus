@@ -234,14 +234,14 @@ export function BankingView() {
                 {account.isVerified ? (
                   <Badge
                     variant="outline"
-                    className="bg-green-500/10 text-green-600 border-green-200"
+                    className="bg-success/10 text-success border-success/20"
                   >
                     <ShieldCheck className="w-3 h-3 mr-1" /> {t("verified")}
                   </Badge>
                 ) : (
                   <Badge
                     variant="outline"
-                    className="bg-amber-500/10 text-amber-600 border-amber-200"
+                    className="bg-warning/10 text-warning border-warning/20"
                   >
                     <Clock className="w-3 h-3 mr-1" /> {t("pending")}
                   </Badge>
@@ -266,7 +266,7 @@ export function BankingView() {
 
             {(account as any).verificationPayload?.accountNameMatched ===
               false && (
-              <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-2">
+              <div className="flex items-center gap-2 text-xs text-warning bg-warning/10 border border-warning/20 rounded-md p-2">
                 <AlertTriangle className="size-3.5 shrink-0" />
                 <span>{t("nameMismatchWarning")}</span>
               </div>
@@ -433,8 +433,8 @@ export function BankingView() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-red-100 mb-4">
-              <AlertTriangle className="size-6 text-red-600" />
+            <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-destructive/10 mb-4">
+              <AlertTriangle className="size-6 text-destructive" />
             </div>
             <AlertDialogTitle>{t("dialog.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
@@ -457,8 +457,8 @@ export function BankingView() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-amber-100 mb-4">
-              <AlertTriangle className="size-6 text-amber-600" />
+            <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-warning/10 mb-4">
+              <AlertTriangle className="size-6 text-warning" />
             </div>
             <AlertDialogTitle>{t("dialog.editWarningTitle")}</AlertDialogTitle>
             <AlertDialogDescription>

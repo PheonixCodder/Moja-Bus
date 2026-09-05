@@ -7,6 +7,7 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { Text } from "@/components/ui/text";
+import { Palette, Colors } from "@/constants/theme";
 import { formatDateWithWeekday, formatPriceXOF, formatTimeOnly } from "../lib/format-time";
 
 type TripSummaryCardProps = {
@@ -73,7 +74,7 @@ export function TripSummaryCard({
 				</View>
 
 				<View className="items-center px-2">
-					<HugeiconsIcon icon={ArrowRight01Icon} size={18} color="#ee237c" />
+					<HugeiconsIcon icon={ArrowRight01Icon} size={18} color={Palette.rose[500]} />
 					{duration ? (
 						<Text className="text-muted-foreground text-xs mt-1 font-medium">
 							{duration}
@@ -98,7 +99,7 @@ export function TripSummaryCard({
 				<View className="flex-row items-center justify-between border-t border-border/40 pt-3">
 					{seatLabel ? (
 						<View className="flex-row items-center gap-1.5">
-							<HugeiconsIcon icon={AirplaneSeatIcon} size={14} color="#64748b" />
+							<HugeiconsIcon icon={AirplaneSeatIcon} size={14} color={Colors.light.textMuted} />
 							<Text className="text-foreground text-xs font-semibold">
 								{t("seatSingle", { label: seatLabel })}
 							</Text>
@@ -107,7 +108,7 @@ export function TripSummaryCard({
 
 					{farePaidXOF ? (
 						<View className="flex-row items-center gap-1.5">
-							<HugeiconsIcon icon={MoneyIcon} size={14} color="#ee237c" />
+							<HugeiconsIcon icon={MoneyIcon} size={14} color={Palette.rose[500]} />
 							<Text className="text-primary font-black text-xs">
 								{formatPriceXOF(farePaidXOF)}
 							</Text>

@@ -24,10 +24,10 @@ export function AmenitiesList({ amenities }: AmenitiesListProps) {
 			{amenities.map((amenity) => (
 				<View
 					key={amenity}
-					className="px-2 py-1 rounded-lg bg-slate-100 border border-slate-200 flex-row items-center gap-1"
+					className="px-2 py-1 rounded-lg bg-muted border border-border flex-row items-center gap-1"
 				>
 					<Text className="text-xs">{AMENITY_ICONS[amenity]}</Text>
-					<Text className="text-sm font-semibold text-slate-500">
+					<Text className="text-sm font-semibold text-muted-foreground">
 						{amenity}
 					</Text>
 				</View>

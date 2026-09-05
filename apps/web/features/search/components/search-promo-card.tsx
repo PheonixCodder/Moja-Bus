@@ -34,7 +34,7 @@ export const SearchPromoCard = memo(function SearchPromoCard() {
   const t = useTranslations("search");
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#ee237c] via-rose-500 to-pink-400 p-6 shadow-lg shadow-pink-200/40 mb-4">
+    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-primary-foreground p-6 shadow-lg shadow-primary/20 mb-4">
       <div className="absolute -top-8 -right-8 h-40 w-40 rounded-full bg-white/10" />
       <div className="absolute -bottom-12 -right-4 h-56 w-56 rounded-full bg-white/10" />
       <div className="absolute top-4 right-24 h-12 w-12 rounded-full bg-white/10" />
@@ -50,17 +50,17 @@ export const SearchPromoCard = memo(function SearchPromoCard() {
                 />
               ))}
             </div>
-            <span className="text-white/80 text-xs font-semibold">
+            <span className="text-primary-foreground/80 text-xs font-semibold">
               {t("ratingText")}
             </span>
           </div>
 
-          <h3 className="text-white font-extrabold text-xl leading-tight mb-1 font-montserrat">
+          <h3 className="text-primary-foreground font-extrabold text-xl leading-tight mb-1 font-montserrat">
             {t("promoTitle1")}
             <br />
             {t("promoTitle2")}
           </h3>
-          <p className="text-white/75 text-sm leading-relaxed mb-5 max-w-xs">
+          <p className="text-primary-foreground/75 text-sm leading-relaxed mb-5 max-w-xs">
             {t("promoDesc")}
           </p>
 
@@ -69,15 +69,15 @@ export const SearchPromoCard = memo(function SearchPromoCard() {
               href="https://apps.apple.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2.5 bg-white text-slate-900 rounded-xl px-4 py-2.5 hover:bg-slate-50 transition-colors shadow-sm group"
+              className="flex items-center gap-2.5 bg-card text-foreground rounded-xl px-4 py-2.5 hover:bg-muted/50 transition-colors shadow-sm group"
               aria-label={t("appStoreAria")}
             >
               <AppleLogo />
               <div className="leading-none">
-                <p className="text-[9px] font-semibold text-slate-500 uppercase tracking-wider">
+                <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider">
                   {t("downloadOn")}
                 </p>
-                <p className="text-sm font-bold text-slate-900 -mt-0.5">
+                <p className="text-sm font-bold text-foreground -mt-0.5">
                   {t("appStore")}
                 </p>
               </div>
@@ -87,15 +87,15 @@ export const SearchPromoCard = memo(function SearchPromoCard() {
               href="https://play.google.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2.5 bg-white text-slate-900 rounded-xl px-4 py-2.5 hover:bg-slate-50 transition-colors shadow-sm group"
+              className="flex items-center gap-2.5 bg-card text-foreground rounded-xl px-4 py-2.5 hover:bg-muted/50 transition-colors shadow-sm group"
               aria-label={t("googlePlayAria")}
             >
               <GooglePlayLogo />
               <div className="leading-none">
-                <p className="text-[9px] font-semibold text-slate-500 uppercase tracking-wider">
+                <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider">
                   {t("getItOn")}
                 </p>
-                <p className="text-sm font-bold text-slate-900 -mt-0.5">
+                <p className="text-sm font-bold text-foreground -mt-0.5">
                   {t("googlePlay")}
                 </p>
               </div>
@@ -115,8 +115,8 @@ export const SearchPromoCard = memo(function SearchPromoCard() {
               </div>
               <div className="w-6 h-1 bg-white/50 rounded-full" />
             </div>
-            <div className="absolute -top-1 -right-1 h-4 w-4 bg-white rounded-full flex items-center justify-center shadow">
-              <Smartphone className="h-2.5 w-2.5 text-[#ee237c]" />
+            <div className="absolute -top-1 -right-1 h-4 w-4 bg-card rounded-full flex items-center justify-center shadow">
+              <Smartphone className="h-2.5 w-2.5 text-primary" />
             </div>
           </div>
         </div>

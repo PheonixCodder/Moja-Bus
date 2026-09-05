@@ -7,6 +7,7 @@ import {
 	type TouchableOpacityProps,
 } from "react-native";
 import { DriverFeedback } from "@/lib/haptics";
+import { colors } from "@/constants/theme";
 import { cn } from "@/lib/utils";
 
 export interface ButtonProps extends TouchableOpacityProps {
@@ -41,29 +42,29 @@ export function Button({
 	};
 
 	const variantStyles = {
-		primary: "bg-[#ee237c] active:bg-[#be123c] border-transparent",
-		secondary: "bg-[#27272a] active:bg-[#3f3f46] border-transparent",
-		outline: "bg-transparent active:bg-[#18181b] border-[#27272a]",
-		ghost: "bg-transparent active:bg-[#18181b] border-transparent",
-		destructive: "bg-[#ef4444] active:bg-[#dc2626] border-transparent",
-		success: "bg-[#10b981] active:bg-[#059669] border-transparent",
-		warning: "bg-[#f59e0b] active:bg-[#d97706] border-transparent",
+		primary: "bg-primary active:bg-primary-dark border-transparent",
+		secondary: "bg-secondary active:bg-accent border-transparent",
+		outline: "bg-transparent active:bg-card border-border",
+		ghost: "bg-transparent active:bg-card border-transparent",
+		destructive: "bg-destructive active:opacity-90 border-transparent",
+		success: "bg-success active:opacity-90 border-transparent",
+		warning: "bg-warning active:opacity-90 border-transparent",
 	}[variant];
 
 	const sizeStyles = {
-		sm: "h-10 px-3.5 rounded-xl",
-		md: "h-13 px-5 rounded-2xl",
-		lg: "h-15 px-6 rounded-2xl",
+		sm: "min-h-[44px] h-11 px-3.5 rounded-xl",
+		md: "min-h-[48px] h-12 px-5 rounded-2xl",
+		lg: "min-h-[56px] h-14 px-6 rounded-2xl",
 	}[size];
 
 	const textVariantStyles = {
-		primary: "text-white font-bold",
-		secondary: "text-[#fafafa] font-semibold",
-		outline: "text-[#fafafa] font-semibold",
-		ghost: "text-[#a1a1aa] font-medium",
-		destructive: "text-white font-bold",
-		success: "text-white font-bold",
-		warning: "text-black font-bold",
+		primary: "text-primary-foreground font-bold",
+		secondary: "text-secondary-foreground font-semibold",
+		outline: "text-foreground font-semibold",
+		ghost: "text-muted-foreground font-medium",
+		destructive: "text-destructive-foreground font-bold",
+		success: "text-success-foreground font-bold",
+		warning: "text-warning-foreground font-bold",
 	}[variant];
 
 	const textSizeStyles = {
@@ -76,6 +77,8 @@ export function Button({
 		<TouchableOpacity
 			onPress={handlePress}
 			disabled={disabled || loading}
+			accessibilityRole="button"
+			accessibilityState={{ disabled: Boolean(disabled || loading), busy: Boolean(loading) }}
 			activeOpacity={0.8}
 			className={cn(
 				"flex-row items-center justify-center border",
@@ -88,7 +91,13 @@ export function Button({
 		>
 			{loading ? (
 				<ActivityIndicator
-					color={variant === "outline" || variant === "ghost" ? "#fafafa" : variant === "warning" ? "#000000" : "#ffffff"}
+					color={
+						variant === "outline" || variant === "ghost"
+							? colors.neutral.textPrimary
+							: variant === "warning"
+								? colors.neutral.background
+								: colors.neutral.textPrimary
+					}
 					size="small"
 				/>
 			) : (

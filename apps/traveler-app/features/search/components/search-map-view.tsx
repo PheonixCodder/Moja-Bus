@@ -1,6 +1,7 @@
 import { useRef, useMemo, useEffect } from 'react';
 import { View } from 'react-native';
 import { WebView } from 'react-native-webview';
+import { Colors, Palette } from '@/constants/theme';
 
 interface SearchMapViewProps {
   originName?: string | null;
@@ -56,7 +57,7 @@ export function SearchMapView({ originName, destinationName }: SearchMapViewProp
       height: 100%;
       margin: 0;
       padding: 0;
-      background-color: #f8fafc;
+      background-color: ${Colors.light.background};
     }
     .leaflet-control-container .leaflet-routing-container-hide { display: none; }
     .leaflet-control-zoom { display: none !important; }
@@ -76,20 +77,20 @@ export function SearchMapView({ originName, destinationName }: SearchMapViewProp
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 12px rgba(238, 35, 124, 0.35);
+      box-shadow: 0 4px 12px rgba(${Palette.rose[500]}, 0.35);
     }
     .marker-origin {
-      background: #ee237c;
-      border: 2px solid #ffffff;
+      background: ${Palette.rose[500]};
+      border: 2px solid ${Colors.light.card};
     }
     .marker-dest {
-      background: #0f172a;
-      border: 2px solid #ffffff;
+      background: ${Palette.zinc[900]};
+      border: 2px solid ${Colors.light.card};
     }
     .marker-inner {
       width: 10px;
       height: 10px;
-      background: #ffffff;
+      background: ${Colors.light.card};
       border-radius: 50%;
       transform: rotate(45deg);
     }
@@ -143,7 +144,7 @@ export function SearchMapView({ originName, destinationName }: SearchMapViewProp
       if (orig && dest) {
         var latlngs = [orig, dest];
         routePolyline = L.polyline(latlngs, {
-          color: '#ee237c',
+          color: '${Palette.rose[500]}',
           weight: 4,
           opacity: 0.85,
           dashArray: '8, 8',
@@ -184,7 +185,7 @@ export function SearchMapView({ originName, destinationName }: SearchMapViewProp
         ref={webViewRef}
         originWhitelist={['*']}
         source={{ html: mapHtml }}
-        className="flex-1 bg-slate-50"
+        className="flex-1 bg-background"
         scrollEnabled={false}
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}

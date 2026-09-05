@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { Clock01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons';
+import { Palette } from '@/constants/theme';
 import { toLocalISODate } from '@/features/search/lib/format';
 
 interface RouteItem {
@@ -60,7 +61,7 @@ export function OperatorRoutesTab({ routes, operatorId, operatorName }: Operator
   if (routes.length === 0) {
     return (
       <View className="flex-1 items-center justify-center py-20">
-        <Text className="text-slate-400 text-sm text-center">{t('noRoutes')}</Text>
+        <Text className="text-muted-foreground text-sm text-center">{t('noRoutes')}</Text>
       </View>
     );
   }
@@ -70,7 +71,7 @@ export function OperatorRoutesTab({ routes, operatorId, operatorName }: Operator
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 40 }}
     >
-      <Text className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">
+      <Text className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-1">
         {t('activeRoutesCount_other', { count: routes.length })}
       </Text>
       {routes.map((route) => {
@@ -84,24 +85,24 @@ export function OperatorRoutesTab({ routes, operatorId, operatorName }: Operator
           <Pressable
             key={route.id}
             onPress={() => handleRoutePress(route)}
-            className="will-change-pressable bg-white border border-slate-200 rounded-2xl p-4 gap-3 active:bg-slate-50"
-            style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 }}
+            accessibilityRole="button"
+            className="bg-card border border-border rounded-2xl p-4 gap-3 active:bg-muted shadow-sm"
           >
             {/* Route header */}
             <View className="flex-row items-center gap-2">
-              <Text className="text-base font-bold text-slate-900 flex-1">
+              <Text className="text-base font-bold text-foreground flex-1">
                 {originCity}
               </Text>
-              <View className="px-2 py-0.5 bg-[#ee237c] rounded-full">
-                <Text className="text-white text-xs font-black">→</Text>
+              <View className="px-2 py-0.5 bg-primary rounded-full">
+                <Text className="text-primary-foreground text-xs font-black">→</Text>
               </View>
-              <Text className="text-base font-bold text-slate-900 flex-1 text-right">
+              <Text className="text-base font-bold text-foreground flex-1 text-right">
                 {destCity}
               </Text>
             </View>
 
             {route.name ? (
-              <Text className="text-xs text-slate-400">{route.name}</Text>
+              <Text className="text-xs text-muted-foreground">{route.name}</Text>
             ) : null}
 
             {/* Departure times */}
@@ -110,21 +111,21 @@ export function OperatorRoutesTab({ routes, operatorId, operatorName }: Operator
                 {route.schedules.slice(0, 6).map((s) => (
                   <View
                     key={s.id}
-                    className="flex-row items-center gap-1 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-full"
+                    className="flex-row items-center gap-1 px-2.5 py-1 bg-muted border border-border rounded-full"
                   >
-                    <HugeiconsIcon icon={Clock01Icon} size={11} color="#94a3b8" />
-                    <Text className="text-sm font-semibold text-slate-600">{s.departureTime}</Text>
+                    <HugeiconsIcon icon={Clock01Icon} size={11} color={Palette.zinc[400]} />
+                    <Text className="text-sm font-semibold text-foreground/80">{s.departureTime}</Text>
                   </View>
                 ))}
               </View>
             )}
 
             {/* Price + Book */}
-            <View className="flex-row items-center justify-between pt-1 border-t border-slate-100">
+            <View className="flex-row items-center justify-between pt-1 border-t border-border/40">
               {minFare ? (
-                <Text className="text-sm text-slate-500">
+                <Text className="text-sm text-muted-foreground">
                   {t('fromPrice')}{' '}
-                  <Text className="text-[#ee237c] font-black">
+                  <Text className="text-primary font-black">
                     {minFare.priceXOF.toLocaleString()} {t('fcfa')}
                   </Text>
                 </Text>
@@ -132,8 +133,8 @@ export function OperatorRoutesTab({ routes, operatorId, operatorName }: Operator
                 <View />
               )}
               <View className="flex-row items-center gap-1">
-                <Text className="text-xs font-bold text-[#ee237c]">{t('book')}</Text>
-                <HugeiconsIcon icon={ArrowRight01Icon} size={13} color="#ee237c" />
+                <Text className="text-xs font-bold text-primary">{t('book')}</Text>
+                <HugeiconsIcon icon={ArrowRight01Icon} size={13} color={Palette.rose[500]} />
               </View>
             </View>
           </Pressable>

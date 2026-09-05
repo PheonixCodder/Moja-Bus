@@ -66,7 +66,7 @@ export function TravelInsightsChart({
   const chartConfig = {
     trips: {
       label: t("chartTripsLabel"),
-      color: "#ee237c",
+      color: "var(--primary)",
     },
     spentXOF: {
       label: t("chartSpentLabel"),
@@ -106,8 +106,8 @@ export function TravelInsightsChart({
             >
               <defs>
                 <linearGradient id="colorTrips" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#ee237c" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#ee237c" stopOpacity={0} />
+                  <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid
@@ -149,7 +149,7 @@ export function TravelInsightsChart({
               <Area
                 type="monotone"
                 dataKey="trips"
-                stroke="#ee237c"
+                stroke="var(--primary)"
                 strokeWidth={2}
                 fillOpacity={1}
                 fill="url(#colorTrips)"

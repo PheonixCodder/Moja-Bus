@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@moja/ui/components/ui/badge";
+import { CarrierAvatar } from "@moja/ui/components/ui/carrier-avatar";
 import { Button } from "@moja/ui/components/ui/button";
 import {
   Card,
@@ -48,7 +49,7 @@ function StatusBadge({ status }: { status: string }) {
   switch (status) {
     case "SETTLED":
       return (
-        <Badge className="gap-1 border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
+        <Badge className="gap-1 border-success/20 bg-success/10 text-success hover:bg-success/15">
           <CheckCircle2 className="size-3" />
           {t("settled")}
         </Badge>
@@ -56,14 +57,14 @@ function StatusBadge({ status }: { status: string }) {
     case "FAILED":
     case "REVERSED":
       return (
-        <Badge className="gap-1 border-red-200 bg-red-50 text-red-700 hover:bg-red-50">
+        <Badge className="gap-1 border-destructive/20 bg-destructive/10 text-destructive hover:bg-destructive/15">
           <XCircle className="size-3" />
           {status === "REVERSED" ? t("reversed") : t("failed")}
         </Badge>
       );
     default:
       return (
-        <Badge className="gap-1 border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-50">
+        <Badge className="gap-1 border-warning/20 bg-warning/10 text-warning hover:bg-warning/15">
           <Clock className="size-3" />
           {t("pending")}
         </Badge>
@@ -163,11 +164,11 @@ export function SettlementsHistoryTable() {
                     </TableCell>
                     <TableCell className="py-3.5">
                       <div className="flex items-center gap-2">
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary/10">
-                          <span className="text-[10px] font-bold text-sidebar-primary">
-                            {item.operatorName.slice(0, 2).toUpperCase()}
-                          </span>
-                        </div>
+                        <CarrierAvatar
+                          name={item.operatorName}
+                          size="sm"
+                          shape="rounded"
+                        />
                         <span className="text-sm font-medium text-foreground">
                           {item.operatorName}
                         </span>
@@ -178,7 +179,7 @@ export function SettlementsHistoryTable() {
                         {formatXOF(item.amountXOF)}
                       </span>
                     </TableCell>
-                    <TableCell className="py-3.5 max-w-[240px]">
+                    <TableCell className="py-3.5 max-w-60">
                       <p
                         className="truncate text-xs text-muted-foreground"
                         title={item.note ?? ""}
@@ -194,7 +195,7 @@ export function SettlementsHistoryTable() {
                       {item.metadata?.settledByUserId ? (
                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                           <User className="size-3 shrink-0" />
-                          <span className="truncate max-w-[120px] font-mono text-[10px]">
+                          <span className="truncate max-w-32 font-mono text-[10px]">
                             {item.metadata.settledByUserId.slice(0, 8)}…
                           </span>
                         </div>
@@ -227,7 +228,7 @@ export function SettlementsHistoryTable() {
                     id="settlements-history-prev"
                     variant="outline"
                     size="sm"
-                    className="h-8 w-8 p-0 border-border"
+                    className="size-8 p-0 border-border"
                     disabled={page <= 1}
                     onClick={() => setPage(page - 1)}
                   >
@@ -240,7 +241,7 @@ export function SettlementsHistoryTable() {
                     id="settlements-history-next"
                     variant="outline"
                     size="sm"
-                    className="h-8 w-8 p-0 border-border"
+                    className="size-8 p-0 border-border"
                     disabled={page >= totalPages}
                     onClick={() => setPage(page + 1)}
                   >

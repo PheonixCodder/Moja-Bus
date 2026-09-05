@@ -7,6 +7,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
+import { Colors, Palette } from "@/constants/theme";
 import { useHomePrefetch } from "../hooks/use-home-prefetch";
 
 interface BlogPostItem {
@@ -32,7 +33,7 @@ export function BlogNewsSection({ posts }: BlogNewsSectionProps) {
   return (
     <View className="gap-3">
       {/* Section label — no emoji */}
-      <Text className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+      <Text className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
         {t("newsBlogTitle", "Travel News & Guides")}
       </Text>
 
@@ -46,34 +47,34 @@ export function BlogNewsSection({ posts }: BlogNewsSectionProps) {
             key={post.id}
             onPressIn={() => prefetchArticle(post.slug)}
             onPress={() => router.push(`/article/${post.slug}` as any)}
-            className="will-change-pressable w-64 bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm active:opacity-80"
+            className="will-change-pressable w-64 bg-card rounded-2xl border border-border overflow-hidden shadow-sm active:opacity-80"
           >
             {/* Thumbnail */}
             {post.coverImage ? (
-              <View className="h-36 w-full bg-slate-100">
+              <View className="h-36 w-full bg-muted">
                 <Image
                   source={{ uri: post.coverImage }}
                   className="w-full h-full"
                   resizeMode="cover"
                 />
                 {post.category && (
-                  <View className="absolute top-2 left-2 bg-rose-500/90 px-2 py-0.5 rounded-full">
-                    <Text className="text-xs font-black text-white uppercase tracking-wider">
+                  <View className="absolute top-2 left-2 bg-primary/90 px-2 py-0.5 rounded-full">
+                    <Text className="text-xs font-black text-primary-foreground uppercase tracking-wider">
                       {post.category.name}
                     </Text>
                   </View>
                 )}
               </View>
             ) : (
-              <View className="h-36 w-full bg-rose-50 items-center justify-center">
-                <HugeiconsIcon icon={Book01Icon} size={28} color="#ee237c" />
+              <View className="h-36 w-full bg-primary/10 items-center justify-center">
+                <HugeiconsIcon icon={Book01Icon} size={28} color={Palette.rose[500]} />
               </View>
             )}
 
             {/* Content */}
             <View className="p-3 gap-2">
               <Text
-                className="text-sm font-bold text-slate-900 leading-snug"
+                className="text-sm font-bold text-foreground leading-snug"
                 numberOfLines={2}
               >
                 {post.title}
@@ -81,15 +82,15 @@ export function BlogNewsSection({ posts }: BlogNewsSectionProps) {
 
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center gap-1">
-                  <HugeiconsIcon icon={Clock01Icon} size={11} color="#94a3b8" />
-                  <Text className="text-sm text-slate-400 font-medium">
+                  <HugeiconsIcon icon={Clock01Icon} size={11} color={Colors.light.textMuted} />
+                  <Text className="text-sm text-muted-foreground font-medium">
                     {post.readingTime || 3} min
                   </Text>
                 </View>
                 <HugeiconsIcon
                   icon={ArrowRight01Icon}
                   size={14}
-                  color="#ee237c"
+                  color={Palette.rose[500]}
                 />
               </View>
             </View>

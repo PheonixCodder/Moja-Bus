@@ -44,19 +44,19 @@ export function TopupDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md border border-border bg-white rounded-2xl p-6 shadow-xl">
+      <DialogContent className="max-w-md border border-border bg-card rounded-2xl p-6 shadow-xl">
         <DialogHeader className="space-y-1">
-          <DialogTitle className="text-xl font-extrabold text-slate-900 tracking-tight">
+          <DialogTitle className="text-xl font-extrabold text-foreground tracking-tight">
             {t("topupDialogTitle")}
           </DialogTitle>
-          <DialogDescription className="text-xs text-slate-500 leading-relaxed">
+          <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
             {t("topupDialogDesc")}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleTopupSubmit} className="space-y-5 py-2">
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
               {t("quickAmount")}
             </label>
             <div className="grid grid-cols-4 gap-2">
@@ -66,7 +66,7 @@ export function TopupDialog({
                   type="button"
                   variant="outline"
                   onClick={() => handlePresetSelect(amount)}
-                  className={`h-9 text-xs font-bold rounded-xl border-slate-200 hover:border-primary hover:text-primary transition-colors ${
+                  className={`h-9 text-xs font-bold rounded-xl border-border hover:border-primary hover:text-primary transition-colors ${
                     topupAmount === amount.toString()
                       ? "border-primary text-primary bg-primary/5"
                       : ""
@@ -79,7 +79,7 @@ export function TopupDialog({
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
               {t("customAmount")}
             </label>
             <div className="relative">
@@ -90,9 +90,9 @@ export function TopupDialog({
                 value={topupAmount}
                 onChange={(e) => setTopupAmount(e.target.value)}
                 required
-                className="pr-12 rounded-xl border-slate-200 h-10 text-sm focus-visible:ring-primary"
+                className="pr-12 rounded-xl border-border h-10 text-sm focus-visible:ring-primary"
               />
-              <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-bold">
+              <span className="absolute right-3 top-2.5 text-xs text-muted-foreground font-bold">
                 XOF
               </span>
             </div>
@@ -102,19 +102,19 @@ export function TopupDialog({
             <Button
               type="button"
               variant="outline"
-              className="h-10 rounded-xl border-slate-200 text-slate-700 font-semibold"
+              className="h-10 rounded-xl border-border text-foreground font-semibold"
               onClick={onClose}
             >
               {t("cancel")}
             </Button>
             <Button
               type="submit"
-              className="bg-primary hover:bg-primary/95 text-white h-10 rounded-xl font-bold shadow-sm"
+              className="bg-primary hover:bg-primary/95 text-primary-foreground h-10 rounded-xl font-bold shadow-sm"
               disabled={isPending}
             >
               {isPending ? (
                 <>
-                  <Spinner className="mr-2 size-4 text-white" />
+                  <Spinner className="mr-2 size-4 text-primary-foreground" />
                   {t("initializing")}
                 </>
               ) : (

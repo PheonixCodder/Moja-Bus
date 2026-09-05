@@ -8,22 +8,22 @@ interface StatCard {
   label: string;
   value: number | string;
   subLabel?: string;
-  color: "emerald" | "sky" | "amber" | "rose";
+  color: "success" | "primary" | "warning" | "destructive";
   icon: React.ReactNode;
 }
 
 function StatChip({ label, value, subLabel, color, icon }: StatCard) {
   const colorMap = {
-    emerald: "text-emerald-600 bg-emerald-50 border-emerald-100",
-    sky: "text-sky-600 bg-sky-50 border-sky-100",
-    amber: "text-amber-600 bg-amber-50 border-amber-100",
-    rose: "text-rose-600 bg-rose-50 border-rose-100",
+    success: "text-success bg-success/10 border-success/20",
+    primary: "text-primary bg-primary/10 border-primary/20",
+    warning: "text-warning bg-warning/10 border-warning/20",
+    destructive: "text-destructive bg-destructive/10 border-destructive/20",
   };
   const numColorMap = {
-    emerald: "text-emerald-700",
-    sky: "text-sky-700",
-    amber: "text-amber-700",
-    rose: "text-rose-700",
+    success: "text-success",
+    primary: "text-primary",
+    warning: "text-warning",
+    destructive: "text-destructive",
   };
 
   return (
@@ -55,19 +55,19 @@ export function AdminDriverMarketplaceWidget() {
   );
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-border bg-card p-5 shadow-xs">
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-bold text-slate-800">
+          <h3 className="text-sm font-bold text-foreground">
             Driver Marketplace
           </h3>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             Supply-side health — verified driver pool
           </p>
         </div>
-        <div className="flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-100 px-2.5 py-1">
-          <div className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-xs font-semibold text-emerald-700">Live</span>
+        <div className="flex items-center gap-1.5 rounded-full bg-success/10 border border-success/20 px-2.5 py-1">
+          <div className="size-1.5 rounded-full bg-success animate-pulse" />
+          <span className="text-xs font-semibold text-success">Live</span>
         </div>
       </div>
 
@@ -76,29 +76,29 @@ export function AdminDriverMarketplaceWidget() {
           label="Verified Drivers"
           value={stats.totalVerified}
           subLabel="Platform-wide"
-          color="sky"
-          icon={<UserCheck size={18} className="text-sky-600" />}
+          color="primary"
+          icon={<UserCheck size={18} className="text-primary" />}
         />
         <StatChip
           label="Available for Hire"
           value={stats.availableForHire}
           subLabel="In marketplace"
-          color="emerald"
-          icon={<Users size={18} className="text-emerald-600" />}
+          color="success"
+          icon={<Users size={18} className="text-success" />}
         />
         <StatChip
           label="Employed"
           value={stats.employed}
           subLabel="Active affiliation"
-          color="amber"
-          icon={<Building2 size={18} className="text-amber-600" />}
+          color="warning"
+          icon={<Building2 size={18} className="text-warning" />}
         />
         <StatChip
           label="Pending Verification"
           value={stats.pendingVerification}
           subLabel="Awaiting review"
-          color="rose"
-          icon={<Clock size={18} className="text-rose-600" />}
+          color="destructive"
+          icon={<Clock size={18} className="text-destructive" />}
         />
       </div>
     </div>
