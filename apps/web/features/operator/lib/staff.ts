@@ -100,7 +100,7 @@ export type StaffMember = {
   role: StaffRole;
   status: OperatorStatus;
   jobTitle: string | null;
-  isVerified: boolean;
+  isVerified: boolean; // mirrors user.emailVerified from listStaff
   isActive: boolean;
   joinedAt: Date | string;
   permissions: string[];

@@ -211,10 +211,10 @@ export function AdminOperatorProfileView({ userId }: { userId: string }) {
                       </div>
                       <div className="flex flex-col gap-0.5">
                         <span className="text-xs text-muted-foreground">
-                          {t("identityVerified")}
+                          {t("emailVerified")}
                         </span>
                         <span className="font-medium">
-                          {op.isVerified ? t("yes") : t("no")}
+                          {user.emailVerified ? t("yes") : t("no")}
                         </span>
                       </div>
                       <div className="flex flex-col gap-0.5">

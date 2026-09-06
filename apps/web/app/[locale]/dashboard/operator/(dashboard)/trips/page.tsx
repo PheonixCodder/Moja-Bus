@@ -42,7 +42,18 @@ export default async function TripsPage({
     pageSize: 50,
   };
 
-  await prefetch(trpc.trips.list.queryOptions(listInput));
+  const countsInput = {
+    serviceType: listInput.serviceType,
+    scheduleId: listInput.scheduleId,
+    q: listInput.q,
+    startDate: listInput.startDate,
+    endDate: listInput.endDate,
+  };
+
+  await Promise.all([
+    prefetch(trpc.trips.list.queryOptions(listInput)),
+    prefetch(trpc.trips.statusCounts.queryOptions(countsInput)),
+  ]);
 
   return (
     <HydrateClient>

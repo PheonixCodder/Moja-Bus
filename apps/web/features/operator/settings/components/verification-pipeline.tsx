@@ -11,7 +11,10 @@ import {
 } from "@moja/ui/components/ui/card";
 import { Button } from "@moja/ui/components/ui/button";
 import { ShieldCheck, ArrowRight, ShieldAlert } from "lucide-react";
-import { getCompanyStatusPresentation } from "../../lib/company-status";
+import {
+  getCompanyStatusPresentation,
+  getDocumentsVerificationState,
+} from "../../lib/company-status";
 import { cn } from "@moja/ui/lib/utils";
 
 interface VerificationPipelineProps {
@@ -22,6 +25,9 @@ export function VerificationPipeline({ onManage }: VerificationPipelineProps) {
   const t = useTranslations("operatorDashboard.settings.verification");
   const { data: settings } = useCompanySettings();
   const status = getCompanyStatusPresentation(settings?.company.status);
+  const docsState = getDocumentsVerificationState(
+    settings?.company.documents || [],
+  );
 
   return (
     <Card
@@ -102,16 +108,12 @@ export function VerificationPipeline({ onManage }: VerificationPipelineProps) {
             <span className="text-muted-foreground">{t("legalDocs")}</span>
             <span
               className={
-                settings?.company.documents?.some(
-                  (d) => d.status === "APPROVED",
-                )
+                docsState === "approved"
                   ? "text-success font-medium"
                   : "text-warning font-medium"
               }
             >
-              {settings?.company.documents?.some((d) => d.status === "APPROVED")
-                ? t("approved")
-                : t("actionNeeded")}
+              {docsState === "approved" ? t("approved") : t("actionNeeded")}
             </span>
           </div>
         </div>

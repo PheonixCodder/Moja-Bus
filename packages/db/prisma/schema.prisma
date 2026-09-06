@@ -774,7 +774,6 @@ model Operator {
   role       StaffRole      @default(OWNER)
   status     OperatorStatus @default(ACTIVE)
   isActive   Boolean        @default(true)
-  isVerified Boolean        @default(false)
   deletedAt  DateTime?
 
   // Onboarding status and tracking

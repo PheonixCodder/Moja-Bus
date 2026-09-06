@@ -40,6 +40,9 @@ Migration `20260826000000_phase3_one_active_exclusive_per_driver` uses a non-pad
 ### Modified migration checksums (resolved 2026-09-01)
 Migrations `20260816120000_voucher_schedule_scope` and `20260818000000_remove_legacy_monetary_vouchers` had their SQL files modified after being applied to the Neon testing DB (defensive `IF NOT EXISTS` / `DO $$ BEGIN ... EXCEPTION` guards were added Aug 20). The production DB was migrated after the edits so its checksum is correct. The Neon testing DB checksum was corrected by direct `UPDATE _prisma_migrations SET checksum = '...'` on 2026-09-01.
 
+### Dropped unused `operator.isVerified` (2026-09-06)
+Migration `20260906120000_drop_operator_is_verified` removes `Operator.isVerified`. The column defaulted to `false`, was forced `false` on staff invite accept, and was never written `true` by any product path — Team Members badges always showed "Unverified". Staff verification UI now reads `User.emailVerified` (already set `true` on invite accept). Do **not** drop `BankAccount.isVerified` or `DriverCompanyAffiliation.isVerified` — those are live verification flags on other models.
+
 ## Playbook — committing previously-untracked migrations to an existing environment
 
 If migrations were applied to some environment *without* being in git (via push, console, or manual SQL), committing them makes the next `migrate deploy` attempt to re-execute them there. Before that deploy runs:

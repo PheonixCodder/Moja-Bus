@@ -1,5 +1,9 @@
 import { getPrismaClient } from "@moja/db";
-import { addAppCalendarDays, startOfAppCalendarDay } from "./timezone";
+import {
+  addAppCalendarDays,
+  OPERATOR_TRIP_BOARD_DAYS,
+  startOfAppCalendarDay,
+} from "./timezone";
 import { getCandidateDepartureDates } from "./schedule-trip-window";
 import { computeDestinationArrivalOffset } from "./trip-destination";
 
@@ -8,7 +12,7 @@ const prisma = getPrismaClient();
 export async function generateTripsForSchedule(
   scheduleId: string,
   busIdOverride?: string | null,
-  daysCount = 14,
+  daysCount = OPERATOR_TRIP_BOARD_DAYS,
 ) {
   const schedule = await prisma.schedule.findUnique({
     where: { id: scheduleId },

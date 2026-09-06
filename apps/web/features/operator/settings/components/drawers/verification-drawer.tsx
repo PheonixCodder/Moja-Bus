@@ -109,6 +109,13 @@ export function VerificationDrawer({
       ),
     },
     {
+      label: t("checklist.taxDoc"),
+      done: company.documents?.some(
+        (d) =>
+          d.type === "TAX_CLEARANCE_CERTIFICATE" && d.status === "APPROVED",
+      ),
+    },
+    {
       label: t("checklist.permitDoc"),
       done: company.documents?.some(
         (d) =>

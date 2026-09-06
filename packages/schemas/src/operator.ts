@@ -23,6 +23,20 @@ export const documentTypeEnum = z.enum([
 ]);
 export type DocumentType = z.infer<typeof documentTypeEnum>;
 
+/**
+ * Documents required to submit for platform verification and to mark
+ * compliance progress complete after admin company approval.
+ * Keep in sync with operator onboarding + admin verifyOperator bulk-approve.
+ */
+export const REQUIRED_OPERATOR_DOCUMENT_TYPES = [
+  "BUSINESS_REGISTRATION_CERTIFICATE",
+  "TAX_CLEARANCE_CERTIFICATE",
+  "TRANSPORT_OPERATING_PERMIT",
+] as const satisfies readonly DocumentType[];
+
+export type RequiredOperatorDocumentType =
+  (typeof REQUIRED_OPERATOR_DOCUMENT_TYPES)[number];
+
 /** Alias of StaffRoleSchema for onboarding / legacy imports */
 export const staffRoleEnum = StaffRoleSchema;
 

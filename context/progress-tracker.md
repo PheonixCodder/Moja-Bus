@@ -29,6 +29,7 @@
 
 ### Known gaps (not blocking dev/demo)
 
+- **Operator Dispatch Board filters (2026-09-06):** Audit `context/audits/operator-dispatch-board-filters/` — **code fix landed** (shared `buildOperatorTripWhere`, windowed statusCounts, All badge, empty copy, endDate EOD). Staging Gate A/B/C + DISP-008 zombie SCHEDULED lifecycle still open.
 - Mobile traveler-app: search/booking audit tracker largely closed (`context/trackers/traveler-app-search-booking-audit.md`) — remaining deferred: M8 mobile-callback, L3 multi-deck; manual device QA pending
 - Deferred: dual-control CASH, OTP bank reveal, heatmaps, monolith splits — _reviews UI + bulk ops now in progress via Phase 7 low-issues (L11, L7)_
 - **Discounts:** always-on (env kill switches removed); operational control via campaign status + referral program `isActive`; remaining is QA + Novu sync + GA

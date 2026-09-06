@@ -5,6 +5,10 @@
     "ogTitle": "Moja Ride | The adventure starts with a ticket",
     "ogDescription": "Book intercity bus tickets across Côte d'Ivoire — fast, safe, comfortable."
   },
+  "dashboardBrand": {
+    "appName": "Moja",
+    "appSuffix": "Ride"
+  },
   "nav": {
     "home": "Home",
     "search": "Search Trips",
