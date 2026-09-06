@@ -34,7 +34,7 @@ export const SearchEmptyState = memo(function SearchEmptyState({
       <div className="bg-primary/10 h-20 w-20 rounded-full flex items-center justify-center mx-auto mb-6 text-primary">
         <Bus className="h-10 w-10 animate-pulse" />
       </div>
-      <h3 className="text-xl font-bold font-montserrat mb-2 text-foreground">
+      <h3 className="text-xl font-bold font-heading mb-2 text-foreground">
         {t("emptyTitle")}
       </h3>
       <p className="text-muted-foreground text-sm max-w-sm mx-auto mb-8">

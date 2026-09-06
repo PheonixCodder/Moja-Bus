@@ -29,7 +29,7 @@ export async function HomeHowItWorks() {
           <h2
             className="text-foreground font-extrabold tracking-tight mb-4"
             style={{
-              fontFamily: "Montserrat, sans-serif",
+              fontFamily: "var(--font-heading)",
               fontSize: "clamp(2rem, 4vw, 2.75rem)",
               lineHeight: 1.15,
             }}

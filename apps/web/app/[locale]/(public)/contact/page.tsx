@@ -58,7 +58,7 @@ export default async function ContactPage() {
             <h2
               className="text-foreground mb-4"
               style={{
-                fontFamily: "Montserrat, sans-serif",
+                fontFamily: "var(--font-heading)",
                 fontSize: "clamp(1.5rem, 3vw, 2rem)",
                 fontWeight: 700,
               }}

@@ -102,7 +102,7 @@ export const OfferCard = memo(function OfferCard({
 
             <div className="grid grid-cols-1 md:grid-cols-7 items-center gap-2 py-2">
               <div className="md:col-span-2">
-                <span className="text-lg md:text-xl font-bold font-montserrat text-foreground">
+                <span className="text-lg md:text-xl font-bold font-heading text-foreground">
                   {formatDepartureTime(offer.departureTime)}
                 </span>
                 <p className="text-[10px] font-bold text-muted-foreground mt-0.5">
@@ -140,7 +140,7 @@ export const OfferCard = memo(function OfferCard({
               </div>
 
               <div className="md:col-span-2 text-left md:text-right">
-                <span className="text-lg md:text-xl font-bold font-montserrat text-foreground">
+                <span className="text-lg md:text-xl font-bold font-heading text-foreground">
                   {formatDepartureTime(offer.arrivalTime)}
                 </span>
                 <p className="text-[10px] font-bold text-muted-foreground mt-0.5">
@@ -168,7 +168,7 @@ export const OfferCard = memo(function OfferCard({
               <span className="text-xs font-bold text-muted-foreground block uppercase tracking-wider">
                 {t("totalFor", { count: passengers })}
               </span>
-              <span className="text-2xl font-black font-montserrat text-primary tracking-tight">
+              <span className="text-2xl font-black font-heading text-primary tracking-tight">
                 {formatPriceXOF(offer.priceXOF)}
               </span>
             </div>

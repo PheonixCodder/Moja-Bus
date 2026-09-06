@@ -43,7 +43,7 @@ export default async function AboutPage() {
                 className="font-bold mb-1"
                 style={{
                   fontSize: "clamp(2rem, 4vw, 3rem)",
-                  fontFamily: "Montserrat, sans-serif",
+                  fontFamily: "var(--font-heading)",
                 }}
               >
                 {["35+", "50k+", "100+", "500+"][i]}
@@ -63,7 +63,7 @@ export default async function AboutPage() {
             <h2
               className="text-foreground mb-6"
               style={{
-                fontFamily: "Montserrat, sans-serif",
+                fontFamily: "var(--font-heading)",
                 fontSize: "clamp(1.5rem, 3vw, 2rem)",
                 fontWeight: 700,
               }}
@@ -94,7 +94,7 @@ export default async function AboutPage() {
           <h2
             className="text-foreground text-center mb-16"
             style={{
-              fontFamily: "Montserrat, sans-serif",
+              fontFamily: "var(--font-heading)",
               fontSize: "clamp(1.5rem, 3vw, 2rem)",
               fontWeight: 700,
             }}

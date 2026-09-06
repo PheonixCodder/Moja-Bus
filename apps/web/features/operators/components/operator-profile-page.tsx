@@ -145,7 +145,7 @@ export function OperatorProfilePage({ slug }: Props) {
               <h1
                 className="text-background mb-2"
                 style={{
-                  fontFamily: "Montserrat, sans-serif",
+                  fontFamily: "var(--font-heading)",
                   fontSize: "clamp(1.5rem, 4vw, 2.5rem)",
                   fontWeight: 800,
                   letterSpacing: "-0.02em",

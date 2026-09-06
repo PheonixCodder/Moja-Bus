@@ -109,7 +109,7 @@ export function PassengerTripCard({
 
         <div className="grid grid-cols-1 sm:grid-cols-7 items-center gap-3">
           <div className="sm:col-span-2">
-            <p className="text-xl font-bold font-montserrat text-foreground">
+            <p className="text-xl font-bold font-heading text-foreground">
               {formatDepartureTime(booking.departureTime)}
             </p>
             <p className="text-[10px] font-semibold text-muted-foreground mt-0.5">
@@ -145,7 +145,7 @@ export function PassengerTripCard({
           </div>
 
           <div className="sm:col-span-2 sm:text-right">
-            <p className="text-xl font-bold font-montserrat text-foreground">
+            <p className="text-xl font-bold font-heading text-foreground">
               {formatDepartureTime(booking.arrivalTime)}
             </p>
             <p className="text-[10px] font-semibold text-muted-foreground mt-0.5">

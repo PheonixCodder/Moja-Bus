@@ -78,7 +78,7 @@ export const FiltersContent = memo(function FiltersContent({
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <h3 className="font-bold font-montserrat flex items-center gap-2 text-foreground">
+        <h3 className="font-bold font-heading flex items-center gap-2 text-foreground">
           <Filter className="h-4 w-4 text-primary" />
           {t("filtersTitle")}
         </h3>

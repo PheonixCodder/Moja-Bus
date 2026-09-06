@@ -85,7 +85,7 @@ export const SearchResults = memo(function SearchResults({
         <div className="bg-muted/50 h-20 w-20 rounded-full flex items-center justify-center mx-auto mb-6 text-muted-foreground/60">
           <MapPinOff className="h-10 w-10" />
         </div>
-        <h3 className="text-lg font-bold font-montserrat mb-1 text-foreground">
+        <h3 className="text-lg font-bold font-heading mb-1 text-foreground">
           {t("noResultsTitle")}
         </h3>
         <p className="text-muted-foreground text-sm max-w-sm mx-auto mb-6">

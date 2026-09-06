@@ -98,7 +98,9 @@ const PhoneInput = React.forwardRef<
          *
          * @param {E164Number | undefined} value - The entered value
          */
-        onChange={(val) => onChange?.(val || ("" as RPNInput.Value))}
+        onChange={(val: RPNInput.Value | undefined) =>
+          onChange?.(val || ("" as RPNInput.Value))
+        }
         {...props}
       />
     );

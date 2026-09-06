@@ -132,7 +132,7 @@ Decoded: style **maia**, baseColor **taupe**, theme pink (overridden), chartColo
 1. ~~Adopt `style-maia.css`~~ — Moja patches: `cn-drawer-content-base`, `cn-font-heading`; switch globals import + `<html class="style-maia">`
 2. ~~`components.json`~~ — `"style": "base-maia"`, `"baseColor": "taupe"`
 3. ~~Theme tokens~~ — taupe neutrals + rose charts; **KEEP** Moja `--primary` / hover / dark / ring / sidebar-primary / selection `#ee237c`
-4. ~~Fonts~~ — Outfit (sans) + Raleway (heading); legacy `font-montserrat` → Outfit
+4. ~~Fonts~~ — Outfit (sans) + Raleway (heading); Montserrat removed from web (classes → `font-heading` / `var(--font-heading)`)
 5. ~~Did not~~ mass-regenerate KEEP components or run blind `shadcn apply` (would overwrite Moja pink)
 
 ---

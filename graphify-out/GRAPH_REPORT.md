@@ -1,16 +1,16 @@
 # Graph Report - moja-buss  (2026-09-05)
 
 ## Corpus Check
-- 2597 files · ~1,702,220 words
+- 2597 files · ~1,702,224 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 21678 nodes · 33306 edges · 1879 communities (1438 shown, 441 thin omitted)
+- 21678 nodes · 33306 edges · 1879 communities (1437 shown, 442 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 178 edges (avg confidence: 0.82)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `535f9751`
+- Built from commit: `9b75faf2`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -194,7 +194,7 @@
 - phase-1-launch-blockers/README.md
 - offers-view.tsx
 - scripts
-- Traveler App — Context Overview
+- traveler-app/AGENTS.md
 - devDependencies
 - [locale]/layout.tsx
 - Driver Adapters
@@ -205,7 +205,7 @@
 - analyze-count3.js
 - find-count-issues.js
 - public-page-shell.tsx
-- driver-app/AGENTS.md
+- Driver App — Context Overview
 - Terminal
 - apis/transactions.md
 - What You Must Do When Invoked
@@ -762,7 +762,7 @@
 - Converter
 - Trigger Activation Charge
 - Integration
-- Novu — Moja Ride Notification Integration
+- Mapbox & Telemetry — Moja Ride Integration Guide
 - UI Registry
 - Frontend Design
 - HTTP Request Step
@@ -1310,7 +1310,7 @@
 - ui-safe-area-scroll.md
 - ui-scrollview-content-inset.md
 - ui-styling.md
-- better-auth
+- Pay with Pesalink
 - 3. Size Bloat & File System Hygiene
 - clsx
 - expo
@@ -1330,7 +1330,7 @@
 - @expo/vector-icons
 - expo-web-browser
 - @hugeicons/core-free-icons
-- Driver App — Context Overview
+- How do I set a gender?
 - trips/page.tsx
 - nativewind
 - AdminCampaignCreateDialog
@@ -1436,7 +1436,7 @@
 - Phase 7 — Monitoring, Observability & Alerting
 - @mdxeditor/editor
 - seat-grid-matrix.tsx
-- Graphify — Moja Ride Knowledge Graph
+- Create
 - @moja/ui
 - Detailed Analysis by Functional Category
 - 04. Color System Audit
@@ -1520,8 +1520,8 @@
 - 2. Concurrency Vulnerabilities
 - react-phone-number-input
 - Sepia (/v5/tailwind/filters/sepia)
-- Capitec Pay
-- Read
+- Big Ears Neutral
+- Critters
 - search-promo-card.tsx
 - InviteSheet
 - @rn-primitives/aspect-ratio
@@ -1538,7 +1538,7 @@
 - passenger-tracking-view.tsx
 - 01. Driver Onboarding & Registration Flow Analysis
 - Complete Driver Domain State Matrix
-- admin-campaigns-view.tsx
+- Fun Emoji
 - driver-auth-deep-audit/README.md
 - 2. Deep-Dive Findings & Edge Cases
 - 2. Identified Verification Defects
@@ -1555,7 +1555,7 @@
 - types.d.ts
 - Anti-patterns and issues
 - Phase 4 — PostgreSQL Tuning & Connection Pooling
-- Your first avatar
+- Glass
 - Comprehensive Final Audit Report: Moja Ride Driver System
 - Engineering Audit: State Management & Data Flow
 - QA Audit: State Machine Integrity & Violations
@@ -1598,10 +1598,10 @@
 - amenities-list.tsx
 - Gaze
 - Step Options
-- Bottts Neutral
-- Support DiceBear
+- Identicon
+- Loops
 - Voxel Art presets
-- Micah
+- Open Peeps
 - Croodles Neutral
 - Cameo presets
 - Using DiceBear as an avatar placeholder API
@@ -1715,9 +1715,9 @@
 - How to load all avatar styles from `@dicebear/styles`?
 - With the C# library
 - App Router
-- Shadows
+- Pixel Art
 - 7. Migration Tree Problems
-- Shape Grid
+- Pixelbot
 - save_exact_user_files.cjs
 - Driver Mobile App Architecture & UI System
 - 2. Implementation Details
@@ -1733,7 +1733,7 @@
 - Godot avatar library: using DiceBear with Godot
 - Flex Direction (/v5/tailwind/flexbox/flex-direction)
 - Clay
-- Toon Head
+- Rings
 - 13. PostgreSQL Configuration Problems
 - 5. Production Database State
 - 8. CI/CD Pipeline Problems
@@ -1746,7 +1746,7 @@
 - Filter avatar variants with tags
 - Self-hosted avatar API: host DiceBear yourself
 - Place Items (/v5/tailwind/flexbox/place-items)
-- Croodles
+- Stack
 - Object Position (/v5/tailwind/layout/object-position)
 - Read
 - driver-conflict.ts
@@ -1760,7 +1760,7 @@
 - styled (/v5/api/styled)
 - Break Inside (/v5/tailwind/layout/break-inside)
 - Avataaars
-- Payload Schema
+- Stripes
 - Big Smile
 - Blobs
 - Bottts
@@ -1769,7 +1769,7 @@
 - Contrast (/v5/tailwind/filters/contrast)
 - Constellation
 - Flex Shrink (/v5/tailwind/flexbox/flex-shrink)
-- Shapes
+- Step Options
 - Order (/v5/tailwind/flexbox/order)
 - Cutouts
 - How avatars are made
@@ -1784,14 +1784,14 @@
 - Landscape
 - Line Face
 - Lorelei
-- Initial Face
+- Common Preference Operations
 - Miniavs
 - Moods
 - @moja/schemas
 - Grayscale (/v5/tailwind/filters/grayscale)
-- Marbles
-- Notionists Neutral
-- remark-gfm
+- account-suspended.ts
+- staff-acceptance-alert.ts
+- List All Preferences
 - Flex Grow (/v5/tailwind/flexbox/flex-grow)
 - Place Self (/v5/tailwind/flexbox/place-self)
 - Squircles
@@ -1806,7 +1806,7 @@
 - Text Transform (/v5/tailwind/typography/text-transform)
 - Outline Style (/v5/tailwind/borders/outline-style)
 - @moja/db
-- List All Preferences
+- react
 - Moja Ride Design System Audit — Driver & Conductor Mobile App
 - Touch Action (/v5/tailwind/interactivity/touch-action)
 - Float (/v5/tailwind/layout/float)
@@ -1817,7 +1817,7 @@
 - Font Smoothing (/v5/tailwind/typography/font-smoothing)
 - Moja Ride Design System Audit — Design System Core (UI & Theme Packages)
 - List All Preferences
-- trip-delayed.ts
+- @aws-sdk/client-s3
 - 14. Connection & Pooling Problems
 - 3. CRITICAL: Schema Drift — Migrations Missing in Git
 - 4. CRITICAL: Production Server Disk Full — Deploys Blocked
@@ -1873,11 +1873,11 @@
 ## Import Cycles
 - None detected.
 
-## Communities (1879 total, 441 thin omitted)
+## Communities (1879 total, 442 thin omitted)
 
 ### Community 0 - "src/components/ui/input.tsx"
 Cohesion: 0.03
-Nodes (142): ActivityLogDetailDialog(), ActivityLogDetailDialogProps, ActivityLogsTable(), CHANNEL_COLORS, BankAccessLogsFilters(), BankAccessLogsTable(), WebhookLogsFilters(), WebhookLogsTable() (+134 more)
+Nodes (151): ActivityLogDetailDialog(), ActivityLogDetailDialogProps, ActivityLogsTable(), CHANNEL_COLORS, BankAccessLogsFilters(), BankAccessLogsTable(), WebhookLogsFilters(), WebhookLogsTable() (+143 more)
 
 ### Community 1 - "src/components/ui/button.tsx"
 Cohesion: 0.03
@@ -1885,7 +1885,7 @@ Nodes (81): ActivityLogsPagination(), ActivityLogsPaginationProps, BankAccessLog
 
 ### Community 2 - "src/components/ui/card.tsx"
 Cohesion: 0.02
-Nodes (145): metadata, metadata, metadata, ImageUploadField(), AdminPromoCreditsCard(), AdminReferralProgramCard(), BlogKpiStrip(), BlogKpiStripProps (+137 more)
+Nodes (142): metadata, metadata, metadata, ImageUploadField(), AdminPromoCreditsCard(), AdminReferralProgramCard(), BlogKpiStrip(), BlogKpiStripProps (+134 more)
 
 ### Community 3 - "banking-view.tsx"
 Cohesion: 0.08
@@ -1909,7 +1909,7 @@ Nodes (26): PageProps, SettingsPage(), PassengerAuthFlow(), handleSendCode(), ha
 
 ### Community 8 - "dependencies"
 Cohesion: 0.06
-Nodes (35): dependencies, @aws-sdk/client-s3, better-auth, feed, libphonenumber-js, @moja/config, @moja/schemas, @moja/types (+27 more)
+Nodes (35): dependencies, better-auth, feed, libphonenumber-js, @moja/config, @moja/schemas, @moja/types, next (+27 more)
 
 ### Community 9 - "Detailed File-by-File Audit Logs (247 Files Tracked)"
 Cohesion: 0.01
@@ -1965,7 +1965,7 @@ Nodes (25): HoldCountdown(), HoldCountdownProps, useCancelBooking(), useCheckout
 
 ### Community 23 - "dependencies"
 Cohesion: 0.06
-Nodes (33): dependencies, @expo/dom-webview, expo-image-manipulator, @expo/metro-runtime, expo-notifications, expo-router, expo-secure-store, expo-status-bar (+25 more)
+Nodes (33): dependencies, better-auth, @expo/dom-webview, expo-image-manipulator, @expo/metro-runtime, expo-notifications, expo-router, expo-secure-store (+25 more)
 
 ### Community 24 - "dependencies"
 Cohesion: 0.05
@@ -2021,7 +2021,7 @@ Nodes (43): gate(), metadata, unique(), extractColdStarts(), gate(), metadata, G
 
 ### Community 37 - "escapeHtml"
 Cohesion: 0.07
-Nodes (31): escapeHtml(), operatorBankRejectedWorkflow, adminOperatorSignupPendingWorkflow, authOtpWorkflow, OTP_INTROS, OTP_SUBJECTS, basePayload, driverOfferCounterAcceptedWorkflow (+23 more)
+Nodes (31): escapeHtml(), operatorBankRejectedWorkflow, operatorBankVerifiedWorkflow, adminOperatorSignupPendingWorkflow, authOtpWorkflow, OTP_INTROS, OTP_SUBJECTS, operatorSignupOtpWorkflow (+23 more)
 
 ### Community 38 - "auth-server.ts"
 Cohesion: 0.05
@@ -2045,7 +2045,7 @@ Nodes (18): buildSearchEntries(), GeocodeInput, geocodePoint(), GeoMunicipality,
 
 ### Community 43 - "payload-contracts.test.ts"
 Cohesion: 0.05
-Nodes (38): accountRestoredSamples, accountSuspendedSamples, campaignPausedSamples, ContractRow, CONTRACTS, driverAssignmentConflictSamples, payoutFailedSamples, profileUpdatedSamples (+30 more)
+Nodes (36): accountRestoredSamples, accountSuspendedSamples, campaignPausedSamples, ContractRow, CONTRACTS, driverAssignmentConflictSamples, payoutFailedSamples, profileUpdatedSamples (+28 more)
 
 ### Community 44 - "routers/schedules.ts"
 Cohesion: 0.04
@@ -2057,7 +2057,7 @@ Nodes (39): 6. Override the lightningcss version, Animation changes, Breaking ch
 
 ### Community 46 - "client.tsx"
 Cohesion: 0.02
-Nodes (113): metadata, UrbanBadge(), DispatchTripList(), groupTripsByCompany(), STATUS_CONFIG, Trip, AdminRouteDrawer(), AdminRoutesHeader() (+105 more)
+Nodes (116): metadata, UrbanBadge(), DispatchTripList(), groupTripsByCompany(), STATUS_CONFIG, Trip, AdminRouteDrawer(), AdminRoutesHeader() (+108 more)
 
 ### Community 47 - "devDependencies"
 Cohesion: 0.08
@@ -2108,8 +2108,8 @@ Cohesion: 0.07
 Nodes (43): LiveLocationData, SpeedometerGauge(), SpeedometerGaugeProps, activeTelemetryHealth, connectTelemetrySocket(), chunkQueue(), computeSmoothedSpeed(), DEFAULT_SPEED_EMA_ALPHA (+35 more)
 
 ### Community 59 - "spinner.tsx"
-Cohesion: 0.03
-Nodes (130): QRCode(), QRCodeComponent, QRCodeProps, MenuItem, NavSectionProps, WebhookPayloadDrawer(), WebhookPayloadDrawerProps, InquiryDetailDrawer() (+122 more)
+Cohesion: 0.02
+Nodes (144): QRCode(), QRCodeComponent, QRCodeProps, MenuItem, NavSectionProps, WebhookPayloadDrawer(), WebhookPayloadDrawerProps, InquiryDetailDrawer() (+136 more)
 
 ### Community 60 - "routers/payments.ts"
 Cohesion: 0.04
@@ -2145,7 +2145,7 @@ Nodes (13): typedRoutes, expo, assetBundlePatterns, experiments, icon, name, ori
 
 ### Community 68 - "workflows/index.ts"
 Cohesion: 0.09
-Nodes (22): dynamic, { GET, POST, OPTIONS }, operatorBankVerifiedWorkflow, operatorSignupOtpWorkflow, operatorWelcomeWorkflow, driverMarketplaceFeaturedWorkflow, driverMarketplaceSuspendedWorkflow, basePayload (+14 more)
+Nodes (22): dynamic, { GET, POST, OPTIONS }, operatorWelcomeWorkflow, driverMarketplaceFeaturedWorkflow, driverMarketplaceSuspendedWorkflow, basePayload, driverAffiliationEndedWorkflow, OPERATOR_REDIRECT (+14 more)
 
 ### Community 69 - "99-final-audit.md"
 Cohesion: 0.08
@@ -2361,7 +2361,7 @@ Nodes (37): source, assist, actions, enabled, css, parser, next, react (+29 more
 
 ### Community 122 - "llms-full.md"
 Cohesion: 0.02
-Nodes (117): Adventurer, Adventurer Neutral, Angular avatar library: using DiceBear with Angular, Avatar styles, Big Ears, Big Ears Neutral, Contribute to the API, Contribute to the documentation (+109 more)
+Nodes (113): Adventurer, Adventurer Neutral, Angular avatar library: using DiceBear with Angular, Avatar styles, Big Ears, Bottts Neutral, Contribute, Contribute to the API (+105 more)
 
 ### Community 123 - "admin-dashboard-view.tsx"
 Cohesion: 0.13
@@ -2583,9 +2583,9 @@ Nodes (15): NotificationBell(), NotificationTokenResponse, PublicRouter, TrpcQue
 Cohesion: 0.13
 Nodes (14): main, name, private, scripts, android, clean, dev, eas-build-pre-install (+6 more)
 
-### Community 179 - "Traveler App — Context Overview"
-Cohesion: 0.29
-Nodes (7): 1. Route Structure (Expo Router), 2. Feature Structure, 3. Key Libraries & Patterns, 4. State Management, 5. Offline & Network Handling, 6. Notification Routing (Mobile), Traveler App — Context Overview
+### Community 179 - "traveler-app/AGENTS.md"
+Cohesion: 0.09
+Nodes (19): Context Loading Order, Key Rules, Traveler App Agent Rules (apps/traveler-app), 1. Route Structure (Expo Router), 2. Feature Structure, 3. Key Libraries & Patterns, 4. State Management, 5. Offline & Network Handling (+11 more)
 
 ### Community 180 - "devDependencies"
 Cohesion: 0.08
@@ -2627,9 +2627,9 @@ Nodes (9): countKeys, en, files, fs, grouped, issues, path, seen (+1 more)
 Cohesion: 0.20
 Nodes (6): facts, metadata, statKeys, values, Props, PublicPageShell()
 
-### Community 191 - "driver-app/AGENTS.md"
-Cohesion: 0.07
-Nodes (19): Context Loading Order, Driver App Agent Rules (apps/driver-app), Key Rules, Driver App — UI Component Registry, Reusable Components, Screens, Context Loading Order, Key Rules (+11 more)
+### Community 191 - "Driver App — Context Overview"
+Cohesion: 0.08
+Nodes (21): Context Loading Order, Driver App Agent Rules (apps/driver-app), Key Rules, 1. Route Structure (Expo Router), 2. Feature Structure, 3. Key Libraries & Patterns, 4. GPS Telemetry Ingest, 5. Document Onboarding (Registration Wizard) (+13 more)
 
 ### Community 192 - "Terminal"
 Cohesion: 0.07
@@ -2709,7 +2709,7 @@ Nodes (11): scripts, build, check, clean, dev, dev:novu, format, lint (+3 more)
 
 ### Community 211 - "Payment Channels"
 Cohesion: 0.07
-Nodes (30): Account expiry, Account Validity, Available Providers, Bank accounts, Cards, Collect bank details, Compliance requirements, Create a charge (+22 more)
+Nodes (30): Account expiry, Available Providers, Bank accounts, Capitec Pay, Cards, Collect bank details, Compliance requirements, Create a charge (+22 more)
 
 ### Community 212 - "package_skill"
 Cohesion: 0.31
@@ -2924,7 +2924,7 @@ Cohesion: 0.29
 Nodes (6): enabled, type, url, mcp, better-auth, $schema
 
 ### Community 267 - "Local Studio & Novu CLI"
-Cohesion: 0.10
+Cohesion: 0.09
 Nodes (21): Bridge running on a non-default port, Can I run multiple bridges simultaneously?, Can I run the Studio without a tunnel?, CLI Flags, Custom bridge path, EU region, Examples, FAQ (+13 more)
 
 ### Community 268 - "Driver Identity & Lifecycle State Machines"
@@ -2948,7 +2948,7 @@ Cohesion: 0.29
 Nodes (7): ABIDJAN_CENTER, FleetLiveMap(), FleetLiveMapProps, FleetVehicle, vehicleFreshness, vehicleIcon(), FleetLiveMap
 
 ### Community 273 - "01. Authentication System Map & Architecture"
-Cohesion: 0.17
+Cohesion: 0.15
 Nodes (12): 01. Authentication System Map & Architecture, 1. System Overview, 1. `user.create.before`, 1. Web Client ([`apps/web/lib/auth-client.ts`](file:///C:/dev/moja-buss/apps/web/lib/auth-client.ts)), 2. Driver App Client ([`apps/driver-app/lib/auth-client.ts`](file:///C:/dev/moja-buss/apps/driver-app/lib/auth-client.ts)), 2. Server Configuration Deep Dive ([`apps/web/lib/auth-server.ts`](file:///C:/dev/moja-buss/apps/web/lib/auth-server.ts)), 2. `user.create.after`, 3. Database Hooks & Operator Auto-Provisioning (+4 more)
 
 ### Community 274 - "Prisma CLI Reference"
@@ -3448,7 +3448,7 @@ Cohesion: 0.13
 Nodes (11): Alternatives, Define translations, Email Template Example, How `subscriber.locale` is set, Install, Mount in your bridge, Setup with i18next, Testing (+3 more)
 
 ### Community 477 - "Production & Security"
-Cohesion: 0.13
+Cohesion: 0.14
 Nodes (14): 1. Bypass token (for sync only), 2. Disable protection on the preview branch (for runtime triggers), Best Practices, Compliance, Environment Variables, EU Region Setup, Header format, HMAC Authentication (+6 more)
 
 ### Community 478 - "Headless Inbox Examples"
@@ -3801,7 +3801,7 @@ Nodes (11): Generate the Hash, Go, HMAC Subscriber Hash, How It Works, Inbox Sec
 
 ### Community 566 - "Subscriber CRUD Examples"
 Cohesion: 0.17
-Nodes (11): Bulk Create, Create, cURL, cURL, cURL, Delete, Node.js, Partial Update (+3 more)
+Nodes (11): Bulk Create, cURL, cURL, cURL — Get Subscriber, Delete, Partial Update, Read, Retrieve Single Subscriber (+3 more)
 
 ### Community 567 - "nuqs Best Practices for Next.js"
 Cohesion: 0.17
@@ -4065,7 +4065,7 @@ Nodes (10): Common Pitfalls, Conversational Digest Example, Cron-Based Digests, 
 
 ### Community 635 - "Subscriber Preferences Examples"
 Cohesion: 0.20
-Nodes (9): Client-Side Preference Updates, Common Preference Operations, cURL, Disable email at global preference level., Node.js, Opt out of email channel for a specific workflow, Subscriber Preferences Examples, Update Global Preferences (+1 more)
+Nodes (9): Client-Side Preference Updates, cURL, cURL, List All Preferences, Node.js, Node.js, Subscriber Preferences Examples, Update Global Preferences (+1 more)
 
 ### Community 636 - "Single Trigger Examples"
 Cohesion: 0.20
@@ -4148,8 +4148,8 @@ Cohesion: 0.20
 Nodes (10): Common Pitfalls, Conversational Digest Example, Cron-Based Digests, Default Configuration, Digest Defaults, Digest Key Composition, See Also, Skip the Digest When (+2 more)
 
 ### Community 656 - "Subscriber Preferences Examples"
-Cohesion: 0.17
-Nodes (12): Client-Side Preference Updates, Common Preference Operations, cURL, cURL, Disable email at global preference level., List All Preferences, Node.js, Node.js (+4 more)
+Cohesion: 0.20
+Nodes (9): Client-Side Preference Updates, Common Preference Operations, cURL, Disable email at global preference level., Node.js, Opt out of email channel for a specific workflow, Subscriber Preferences Examples, Update Global Preferences (+1 more)
 
 ### Community 657 - "Single Trigger Examples"
 Cohesion: 0.20
@@ -4615,9 +4615,9 @@ Nodes (6): Body Parameters, Direct Debit, Headers, Headers, Query Parameters, Tr
 Cohesion: 0.29
 Nodes (6): Body Parameters, Fetch Timeout, Headers, Headers, Integration, Update Timeout
 
-### Community 774 - "Novu — Moja Ride Notification Integration"
-Cohesion: 0.33
-Nodes (6): 1. Outbox Pattern (REQUIRED), 2. Subscriber Identity, 3. Workflow Index, 4. Transaction ID Deduplication, 5. Outbox Contract Files, Novu — Moja Ride Notification Integration
+### Community 774 - "Mapbox & Telemetry — Moja Ride Integration Guide"
+Cohesion: 0.29
+Nodes (7): 1. Architecture Overview, 2. Telemetry Token Authentication, 3. Web Fleet Map (Leaflet), 4. Mobile Map (Driver App), 5. Traveler Tracking Map, 6. Key Invariants, Mapbox & Telemetry — Moja Ride Integration Guide
 
 ### Community 775 - "UI Registry"
 Cohesion: 0.29
@@ -5068,7 +5068,7 @@ Cohesion: 0.40
 Nodes (5): 8.1 Do Not Put Effect Events in Dependency Arrays, 8.2 Initialize App Once, Not Per Mount, 8.3 Store Event Handlers in Refs, 8.4 useEffectEvent for Stable Callback Refs, 8. Advanced Patterns
 
 ### Community 895 - "auth-system-audit/README.md"
-Cohesion: 0.29
+Cohesion: 0.33
 Nodes (3): 04. Notification Workflows & Templates Audit, 1. Notification Subsystem Inventory, 3. Security, Push Tokens, & Outbox Integration
 
 ### Community 896 - "Detailed Wizard Steps:"
@@ -6111,6 +6111,10 @@ Nodes (3): Common Patterns, See Also, Throttle Step
 Cohesion: 0.36
 Nodes (7): apply(), collectText(), matchConcurrency(), matchProviders(), metadata, PROVIDER_LIMITS, PROVIDER_RE
 
+### Community 1333 - "Pay with Pesalink"
+Cohesion: 0.33
+Nodes (6): Account Validity, Create a charge, Handle response, Pay with Pesalink, Receiving notifications, Transaction Reference
+
 ### Community 1334 - "3. Size Bloat & File System Hygiene"
 Cohesion: 0.50
 Nodes (4): 3. Size Bloat & File System Hygiene, Finding B-01: Rogue Nested Repository in `test-archive-1/`, Finding B-02: Untracked Android Build Caches (111.2 MB), Finding B-03: Inadequate `.gitignore`
@@ -6139,9 +6143,9 @@ Nodes (7): MONTHS, parseUTCDate(), SearchDateStrip, SearchDateStripProps, todayU
 Cohesion: 0.13
 Nodes (14): 02. Design System Architecture, 1. Monorepo Package Topology & Dependencies, 2. The Three Competing Design Systems, 3. Ghost Token Pollution in `apps/web`, 4.1 Direct Utility Overrides of Theme Tokens, 4.2 Inconsistent Container Constraints, 4. Bypass Patterns and Anti-Patterns, 5. Architectural Verdict (+6 more)
 
-### Community 1353 - "Driver App — Context Overview"
-Cohesion: 0.25
-Nodes (8): 1. Route Structure (Expo Router), 2. Feature Structure, 3. Key Libraries & Patterns, 4. GPS Telemetry Ingest, 5. Document Onboarding (Registration Wizard), 6. Boot Gate Logic, 7. Notification Routing (Driver), Driver App — Context Overview
+### Community 1353 - "How do I set a gender?"
+Cohesion: 0.40
+Nodes (5): Filter by tags, Find and apply the options, How do I set a gender?, Share and reuse option sets, Why there is no dedicated gender option
 
 ### Community 1354 - "trips/page.tsx"
 Cohesion: 0.29
@@ -6156,7 +6160,7 @@ Cohesion: 0.20
 Nodes (9): 02. UI Guards, Form Integrity, & Client State Audit, 1. Step-by-Step Wizard UI Guard Audit, 2. Critical UI & State Vulnerabilities, 3. UI Guard Verification Checklist, Finding 1: Local `file://` URI Leakage on Selfie Capture (Step 1), Finding 2: Missing Wizard Prerequisite Guards (Step Skipping), Finding 3: In-Memory Zustand Store Volatility, Finding 4: Phone Number Discrepancy without Inline Challenge (+1 more)
 
 ### Community 1364 - "03. Driver Verification, Governance, & Document Security Audit"
-Cohesion: 0.20
+Cohesion: 0.22
 Nodes (9): 03. Driver Verification, Governance, & Document Security Audit, 1. Verification Authority Matrix, 2. Operator Fleet Verification ([`verify-driver-dialog.tsx`](file:///C:/dev/moja-buss/apps/web/features/operator/components/drivers/verify-driver-dialog.tsx)), 3. Platform Admin Verification ([`driver-verification-dialog.tsx`](file:///C:/dev/moja-buss/apps/web/features/admin/components/drivers/driver-verification-dialog.tsx)), 4. Document Presigning & Storage Security ([`driver-doc-mint.ts`](file:///C:/dev/moja-buss/apps/web/features/driver/lib/driver-doc-mint.ts)), Namespace Security Guard:, Security Benefits Verified:, Workflow & Governance: (+1 more)
 
 ### Community 1366 - "2. Detailed Technical Fix Blueprints"
@@ -6199,9 +6203,9 @@ Nodes (15): Add `postgres_exporter` to the Docker Compose stack, Alert 1 — Dis
 Cohesion: 0.29
 Nodes (7): getCellConfig(), GridCell, SeatGridMatrix(), SeatGridMatrixProps, SeatType, Tool, TOOLS
 
-### Community 1459 - "Graphify — Moja Ride Knowledge Graph"
-Cohesion: 0.29
-Nodes (7): Adding a New Service/Platform Integration, Common Query Examples for Moja Ride, Graph Scope (What's Included), Graphify — Moja Ride Knowledge Graph, Installed AI Platform Integrations, Quick Reference, Team Workflow
+### Community 1459 - "Create"
+Cohesion: 0.50
+Nodes (4): Create, cURL, Node.js, Python
 
 ### Community 1461 - "Detailed Analysis by Functional Category"
 Cohesion: 0.14
@@ -6275,13 +6279,13 @@ Nodes (5): 1. Concurrency Controls & Locking Invariants, 2.1 Telemetry Row-Lock 
 Cohesion: 0.67
 Nodes (3): Compatibility, Sepia (/v5/tailwind/filters/sepia), Usage
 
-### Community 1544 - "Capitec Pay"
-Cohesion: 0.33
-Nodes (6): Capitec Pay, Create a charge, Feature Availability, Handling errors, On this Page, Transaction Verification
-
-### Community 1545 - "Read"
+### Community 1544 - "Big Ears Neutral"
 Cohesion: 0.50
-Nodes (4): cURL — Get Subscriber, Read, Retrieve Single Subscriber, Search Subscribers
+Nodes (4): Big Ears Neutral, Options, Presets, Usage
+
+### Community 1545 - "Critters"
+Cohesion: 0.50
+Nodes (4): Critters, Options, Presets, Usage
 
 ### Community 1547 - "InviteSheet"
 Cohesion: 0.70
@@ -6319,13 +6323,13 @@ Nodes (8): 01. Driver Onboarding & Registration Flow Analysis, 1. Flow Compariso
 Cohesion: 0.33
 Nodes (5): 1. Driver Profile Operational Status (`DriverStatus`), 2. Driver Verification Status (`DriverVerificationStatus`), 3. Employment Offer Status (`DriverOfferStatus`), 4. Trip Driver Assignment Roles (`TripDriverAssignment.role`), Complete Driver Domain State Matrix
 
-### Community 1565 - "admin-campaigns-view.tsx"
-Cohesion: 0.18
-Nodes (9): CreateCampaignData, CampaignDrawerTab, AdminCampaignsFilterBar(), AdminCampaignsKpiCards(), AdminCampaignsKpiCardsProps, AdminCampaignsTable(), CampaignListItem, statusVariant() (+1 more)
+### Community 1565 - "Fun Emoji"
+Cohesion: 0.50
+Nodes (4): Fun Emoji, Options, Presets, Usage
 
 ### Community 1566 - "driver-auth-deep-audit/README.md"
-Cohesion: 0.25
-Nodes (6): 04. API Vulnerabilities, Logical Loopholes, & Edge Cases, 1. Vulnerability Inventory, 1. Executive Summary, 2. Audit Document Index, 3. High-Risk Findings Summary (Top 6), Moja Ride — Driver Authentication & Onboarding Subsystem Deep Audit
+Cohesion: 0.33
+Nodes (4): 1. Executive Summary, 2. Audit Document Index, 3. High-Risk Findings Summary (Top 6), Moja Ride — Driver Authentication & Onboarding Subsystem Deep Audit
 
 ### Community 1567 - "2. Deep-Dive Findings & Edge Cases"
 Cohesion: 0.33
@@ -6368,8 +6372,8 @@ Cohesion: 0.33
 Nodes (6): 1. Remediation Phases Overview, 2. Complete Subphase Index, Driver System Remediation Plan — Master Index, [Phase 1: Launch Blockers (`P0`)](./phase-1-launch-blockers/README.md), [Phase 2: Critical Operational Gaps (`P1`)](./phase-2-critical-operational-gaps/README.md), [Phase 3: Operational Polish & UX (`P2`)](./phase-3-operational-polish-and-ux/README.md)
 
 ### Community 1577 - "2. Technical Breakdown of Vulnerabilities"
-Cohesion: 0.33
-Nodes (6): 2. Technical Breakdown of Vulnerabilities, VULN-DRV-01: Unregistered Driver Trapped in `FORBIDDEN` Error Loop, VULN-DRV-02: Local `file://` URI Leakage to Production Database, VULN-DRV-03: Missing Wizard Route Guards & State Persistence, VULN-DRV-04: False-Positive `PHONE_REVERIFICATION_REQUIRED` via Whitespace/Formatting, VULN-DRV-05: Race Condition in Exclusive Affiliation Upsert
+Cohesion: 0.22
+Nodes (8): 04. API Vulnerabilities, Logical Loopholes, & Edge Cases, 1. Vulnerability Inventory, 2. Technical Breakdown of Vulnerabilities, VULN-DRV-01: Unregistered Driver Trapped in `FORBIDDEN` Error Loop, VULN-DRV-02: Local `file://` URI Leakage to Production Database, VULN-DRV-03: Missing Wizard Route Guards & State Persistence, VULN-DRV-04: False-Positive `PHONE_REVERIFICATION_REQUIRED` via Whitespace/Formatting, VULN-DRV-05: Race Condition in Exclusive Affiliation Upsert
 
 ### Community 1578 - "platform-fluid-compute.mjs"
 Cohesion: 0.60
@@ -6387,9 +6391,9 @@ Nodes (13): 11 — Application Usage Audit, Anti-patterns and issues, Attached /
 Cohesion: 0.14
 Nodes (13): Add PgBouncer as a new service in `compose.yml`, Apply changes, Approach, Completion Checklist, Current State (confirmed via live `psql` queries), Phase 4 — PostgreSQL Tuning & Connection Pooling, Pool mode selection, Rationale for each setting (+5 more)
 
-### Community 1582 - "Your first avatar"
-Cohesion: 0.40
-Nodes (5): Generate avatars in your own code, Make it yours, Pick a style, Where to next?, Your first avatar
+### Community 1582 - "Glass"
+Cohesion: 0.50
+Nodes (4): Glass, Options, Presets, Usage
 
 ### Community 1583 - "Comprehensive Final Audit Report: Moja Ride Driver System"
 Cohesion: 0.40
@@ -6555,21 +6559,21 @@ Nodes (4): Gaze, Options, Presets, Usage
 Cohesion: 0.50
 Nodes (4): `disableOutputSanitization`, `providers` (Per-Step Provider Overrides), `skip`, Step Options
 
-### Community 1627 - "Bottts Neutral"
+### Community 1627 - "Identicon"
 Cohesion: 0.50
-Nodes (4): Bottts Neutral, Options, Presets, Usage
+Nodes (4): Identicon, Options, Presets, Usage
 
-### Community 1628 - "Support DiceBear"
+### Community 1628 - "Loops"
 Cohesion: 0.50
-Nodes (4): Contribute, Help other users, Star the repositories, Support DiceBear
+Nodes (4): Loops, Options, Presets, Usage
 
 ### Community 1629 - "Voxel Art presets"
 Cohesion: 0.14
 Nodes (14): Animated, Bare, Bold Pop, Close Up, Duotone, Electric, Full Cast, Greyscale (+6 more)
 
-### Community 1630 - "Micah"
+### Community 1630 - "Open Peeps"
 Cohesion: 0.50
-Nodes (4): Micah, Options, Presets, Usage
+Nodes (4): Open Peeps, Options, Presets, Usage
 
 ### Community 1631 - "Croodles Neutral"
 Cohesion: 0.50
@@ -7023,17 +7027,17 @@ Nodes (8): Installing the packages, Preparing the SVG, Rendering the avatar, Tri
 Cohesion: 0.25
 Nodes (7): App Router, Client component, Next.js avatar library: using DiceBear with Next.js, Pages Router, Route handler (avatar endpoint), Server component (recommended), With the HTTP API
 
-### Community 1744 - "Shadows"
+### Community 1744 - "Pixel Art"
 Cohesion: 0.50
-Nodes (4): Options, Presets, Shadows, Usage
+Nodes (4): Options, Pixel Art, Presets, Usage
 
 ### Community 1745 - "7. Migration Tree Problems"
 Cohesion: 0.29
 Nodes (7): 7. Migration Tree Problems, Finding DB-07 — Timestamp Collision: Two Migrations Share `20260822000000`, Finding DB-08 — Naming Inconsistency: `phase3_` vs `phase03_`, Finding DB-09 — `0_init` Non-Standard Naming, Finding DB-10 — 4-Day Migration Apply Gap: Evidence of Manual/Bulk Deploys, Finding DB-11 — Abandoned Legacy SQL Runner, Finding DB-12 — `db:push` Script Exposed in `package.json`
 
-### Community 1746 - "Shape Grid"
+### Community 1746 - "Pixelbot"
 Cohesion: 0.50
-Nodes (4): Options, Presets, Shape Grid, Usage
+Nodes (4): Options, Pixelbot, Presets, Usage
 
 ### Community 1747 - "save_exact_user_files.cjs"
 Cohesion: 0.29
@@ -7095,9 +7099,9 @@ Nodes (3): Compatibility, Flex Direction (/v5/tailwind/flexbox/flex-direction), 
 Cohesion: 0.50
 Nodes (4): Clay, Options, Presets, Usage
 
-### Community 1762 - "Toon Head"
+### Community 1762 - "Rings"
 Cohesion: 0.50
-Nodes (4): Options, Presets, Toon Head, Usage
+Nodes (4): Options, Presets, Rings, Usage
 
 ### Community 1763 - "13. PostgreSQL Configuration Problems"
 Cohesion: 0.40
@@ -7147,9 +7151,9 @@ Nodes (5): Environment variables, Optional style metadata endpoints, Self-hosted
 Cohesion: 0.67
 Nodes (3): Compatibility, Place Items (/v5/tailwind/flexbox/place-items), Usage
 
-### Community 1775 - "Croodles"
+### Community 1775 - "Stack"
 Cohesion: 0.50
-Nodes (4): Croodles, Options, Presets, Usage
+Nodes (4): Options, Presets, Stack, Usage
 
 ### Community 1776 - "Object Position (/v5/tailwind/layout/object-position)"
 Cohesion: 0.67
@@ -7169,7 +7173,7 @@ Nodes (3): Compatibility, Text Align (/v5/tailwind/typography/text-align), Usage
 
 ### Community 1780 - "operator-fleet-view.tsx"
 Cohesion: 0.02
-Nodes (140): AdminCampaignDrawer(), AdminCampaignDrawerProps, AdminCampaignDrawerCoupons(), AdminCampaignDrawerCouponsProps, AdminCampaignDrawerPerformance(), AdminCampaignDrawerPerformanceProps, CampaignPerformanceData, AdminCampaignDrawerRedemptions() (+132 more)
+Nodes (126): AdminCampaignDrawer(), AdminCampaignDrawerProps, AdminCampaignDrawerCoupons(), AdminCampaignDrawerCouponsProps, AdminCampaignDrawerPerformance(), AdminCampaignDrawerPerformanceProps, CampaignPerformanceData, AdminCampaignDrawerRedemptions() (+118 more)
 
 ### Community 1781 - "Text Overflow (/v5/tailwind/typography/text-overflow)"
 Cohesion: 0.67
@@ -7203,9 +7207,9 @@ Nodes (3): Break Inside (/v5/tailwind/layout/break-inside), Compatibility, Usage
 Cohesion: 0.50
 Nodes (4): Avataaars, Options, Presets, Usage
 
-### Community 1789 - "Payload Schema"
+### Community 1789 - "Stripes"
 Cohesion: 0.50
-Nodes (4): Payload Schema, With Class Validator, With JSON Schema, With Zod
+Nodes (4): Options, Presets, Stripes, Usage
 
 ### Community 1790 - "Big Smile"
 Cohesion: 0.50
@@ -7239,9 +7243,9 @@ Nodes (4): Constellation, Options, Presets, Usage
 Cohesion: 0.67
 Nodes (3): Compatibility, Flex Shrink (/v5/tailwind/flexbox/flex-shrink), Usage
 
-### Community 1798 - "Shapes"
+### Community 1798 - "Step Options"
 Cohesion: 0.50
-Nodes (4): Options, Presets, Shapes, Usage
+Nodes (4): `disableOutputSanitization`, `providers` (Per-Step Provider Overrides), `skip`, Step Options
 
 ### Community 1799 - "Order (/v5/tailwind/flexbox/order)"
 Cohesion: 0.67
@@ -7299,9 +7303,9 @@ Nodes (4): Line Face, Options, Presets, Usage
 Cohesion: 0.50
 Nodes (4): Lorelei, Options, Presets, Usage
 
-### Community 1813 - "Initial Face"
-Cohesion: 0.50
-Nodes (4): Initial Face, Options, Presets, Usage
+### Community 1813 - "Common Preference Operations"
+Cohesion: 0.67
+Nodes (3): Common Preference Operations, Disable email at global preference level., Opt out of email channel for a specific workflow
 
 ### Community 1814 - "Miniavs"
 Cohesion: 0.50
@@ -7315,13 +7319,9 @@ Nodes (4): Moods, Options, Presets, Usage
 Cohesion: 0.67
 Nodes (3): Compatibility, Grayscale (/v5/tailwind/filters/grayscale), Usage
 
-### Community 1818 - "Marbles"
-Cohesion: 0.50
-Nodes (4): Marbles, Options, Presets, Usage
-
-### Community 1819 - "Notionists Neutral"
-Cohesion: 0.50
-Nodes (4): Notionists Neutral, Options, Presets, Usage
+### Community 1820 - "List All Preferences"
+Cohesion: 0.67
+Nodes (3): cURL, List All Preferences, Node.js
 
 ### Community 1821 - "Flex Grow (/v5/tailwind/flexbox/flex-grow)"
 Cohesion: 0.67
@@ -7374,10 +7374,6 @@ Nodes (3): Compatibility, Text Transform (/v5/tailwind/typography/text-transform
 ### Community 1835 - "Outline Style (/v5/tailwind/borders/outline-style)"
 Cohesion: 0.67
 Nodes (3): Compatibility, Outline Style (/v5/tailwind/borders/outline-style), Usage
-
-### Community 1837 - "List All Preferences"
-Cohesion: 0.67
-Nodes (3): cURL, List All Preferences, Node.js
 
 ### Community 1838 - "Moja Ride Design System Audit — Driver & Conductor Mobile App"
 Cohesion: 0.67
@@ -7434,7 +7430,7 @@ Nodes (3): 4. CRITICAL: Production Server Disk Full — Deploys Blocked, Finding
 ## Knowledge Gaps
 - **12265 isolated node(s):** `options`, `results`, `SCRIPT_DIR`, `SKILLS_REPO_ROOT`, `DEFAULT_WORK_ROOT` (+12260 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **441 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **442 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
@@ -7448,8 +7444,8 @@ _Questions this graph is uniquely positioned to answer:_
 - **What connects `options`, `results`, `SCRIPT_DIR` to the rest of the system?**
   _12265 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `src/components/ui/input.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.03253803596127248 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.030146182320095364 - nodes in this community are weakly interconnected._
 - **Should `src/components/ui/button.tsx` be split into smaller, more focused modules?**
   _Cohesion score 0.031123805771693096 - nodes in this community are weakly interconnected._
 - **Should `src/components/ui/card.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.022377622377622378 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.022998805256869773 - nodes in this community are weakly interconnected._

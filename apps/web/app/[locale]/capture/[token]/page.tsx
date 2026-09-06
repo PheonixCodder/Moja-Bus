@@ -54,7 +54,7 @@ function CaptureErrorScreen({
         <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-muted">
           <MapPin className="size-8 text-muted-foreground" strokeWidth={1.5} />
         </div>
-        <h1 className="text-xl font-extrabold text-foreground font-[Montserrat]">
+        <h1 className="text-xl font-extrabold text-foreground font-heading">
           {title}
         </h1>
         <p className="text-sm text-muted-foreground leading-relaxed">{body}</p>

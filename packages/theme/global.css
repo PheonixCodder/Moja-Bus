@@ -67,8 +67,7 @@
   --sidebar-border: oklch(0.922 0.005 34.3);
   --sidebar-ring: #ee237c;
 
-  /* Typography — Outfit body + Raleway heading (b20te54eby); montserrat alias for legacy classes */
-  --font-montserrat: var(--font-outfit);
+  /* Typography — Outfit body + Raleway heading (b20te54eby) */
   --font-display-base:
     var(--font-outfit), Outfit, ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
@@ -247,6 +246,4 @@
   --font-sans: var(--font-display-base);
   --font-heading: var(--font-heading-base);
   --font-mono: var(--font-mono-base);
-  /* Legacy utility class font-montserrat → Outfit body */
-  --font-montserrat: var(--font-display-base);
 }

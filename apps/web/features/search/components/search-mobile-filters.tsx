@@ -55,7 +55,7 @@ export function SearchMobileFilters({
           <div className="w-10 h-1 bg-muted-foreground/20 rounded-full mx-auto mb-4 shrink-0" />
 
           <SheetHeader className="text-left mb-2 shrink-0 border-none p-0">
-            <SheetTitle className="font-montserrat font-bold text-foreground">
+            <SheetTitle className="font-heading font-bold text-foreground">
               {t("filtersTitle")}
             </SheetTitle>
           </SheetHeader>

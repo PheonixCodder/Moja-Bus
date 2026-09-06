@@ -52,7 +52,7 @@ export async function HomeDestinations() {
             <h2
               className="text-slate-900 font-extrabold tracking-tight"
               style={{
-                fontFamily: "Montserrat, sans-serif",
+                fontFamily: "var(--font-heading)",
                 fontSize: "clamp(2rem, 4vw, 2.75rem)",
                 lineHeight: 1.15,
               }}

@@ -166,7 +166,7 @@ export default async function BecomeAPartnerPage() {
           </span>
           <h2
             className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight"
-            style={{ fontFamily: "Montserrat, sans-serif" }}
+            style={{ fontFamily: "var(--font-heading)" }}
           >
             {t("pillarsTitle")}
           </h2>
@@ -185,7 +185,7 @@ export default async function BecomeAPartnerPage() {
               </div>
               <h3
                 className="font-bold text-card-foreground text-xl mb-3"
-                style={{ fontFamily: "Montserrat, sans-serif" }}
+                style={{ fontFamily: "var(--font-heading)" }}
               >
                 {t(titleKey)}
               </h3>
@@ -206,7 +206,7 @@ export default async function BecomeAPartnerPage() {
             </span>
             <h2
               className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight mb-4"
-              style={{ fontFamily: "Montserrat, sans-serif" }}
+              style={{ fontFamily: "var(--font-heading)" }}
             >
               {t("stepsTitle")}
             </h2>
@@ -228,7 +228,7 @@ export default async function BecomeAPartnerPage() {
                   </div>
                   <h4
                     className="font-bold text-card-foreground text-base mb-2"
-                    style={{ fontFamily: "Montserrat, sans-serif" }}
+                    style={{ fontFamily: "var(--font-heading)" }}
                   >
                     {t(titleKey)}
                   </h4>
@@ -259,7 +259,7 @@ export default async function BecomeAPartnerPage() {
             </span>
             <h2
               className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight mb-4"
-              style={{ fontFamily: "Montserrat, sans-serif" }}
+              style={{ fontFamily: "var(--font-heading)" }}
             >
               {t("checklistTitle")}
             </h2>
@@ -310,7 +310,7 @@ export default async function BecomeAPartnerPage() {
             </span>
             <h2
               className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight"
-              style={{ fontFamily: "Montserrat, sans-serif" }}
+              style={{ fontFamily: "var(--font-heading)" }}
             >
               {t("faqTitle")}
             </h2>
@@ -326,7 +326,7 @@ export default async function BecomeAPartnerPage() {
                   <HelpCircle className="h-6 w-6 text-primary shrink-0 mt-0.5" />
                   <h3
                     className="font-bold text-card-foreground text-lg"
-                    style={{ fontFamily: "Montserrat, sans-serif" }}
+                    style={{ fontFamily: "var(--font-heading)" }}
                   >
                     {t(qKey)}
                   </h3>
@@ -352,7 +352,7 @@ export default async function BecomeAPartnerPage() {
             </span>
             <h2
               className="text-3xl md:text-5xl font-extrabold tracking-tight mb-4"
-              style={{ fontFamily: "Montserrat, sans-serif" }}
+              style={{ fontFamily: "var(--font-heading)" }}
             >
               {t("closingTitle")}
             </h2>

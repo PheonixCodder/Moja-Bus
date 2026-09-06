@@ -27,7 +27,7 @@ export function PublicPageShell({
           <h1
             className="text-4xl md:text-5xl font-extrabold tracking-tight"
             style={{
-              fontFamily: "Montserrat, sans-serif",
+              fontFamily: "var(--font-heading)",
               lineHeight: 1.15,
             }}
           >

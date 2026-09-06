@@ -179,7 +179,7 @@ export function CapturePageView({ token, initialInfo }: CapturePageViewProps) {
         <>
           <div className="text-center space-y-2">
             <Radar active={false} />
-            <h1 className="text-2xl font-extrabold text-foreground font-[Montserrat]">
+            <h1 className="text-2xl font-extrabold text-foreground font-heading">
               {t("introTitle")}
             </h1>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -279,7 +279,7 @@ export function CapturePageView({ token, initialInfo }: CapturePageViewProps) {
             <div className="relative mx-auto flex size-20 items-center justify-center rounded-full bg-success/10">
               <MapPin className="size-9 text-success" strokeWidth={2} />
             </div>
-            <h1 className="text-2xl font-extrabold text-foreground font-[Montserrat]">
+            <h1 className="text-2xl font-extrabold text-foreground font-heading">
               {t("previewTitle")}
             </h1>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -384,7 +384,7 @@ export function CapturePageView({ token, initialInfo }: CapturePageViewProps) {
             <CheckCircle2 className="relative size-12 text-success" />
           </div>
           <div className="space-y-1.5">
-            <h1 className="text-2xl font-extrabold text-foreground font-[Montserrat]">
+            <h1 className="text-2xl font-extrabold text-foreground font-heading">
               {t("doneTitle")}
             </h1>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -405,7 +405,7 @@ export function CapturePageView({ token, initialInfo }: CapturePageViewProps) {
             <MapPin className="size-9 text-muted-foreground/60" strokeWidth={1.5} />
           </div>
           <div className="space-y-1.5">
-            <h1 className="text-xl font-extrabold text-foreground font-[Montserrat]">
+            <h1 className="text-xl font-extrabold text-foreground font-heading">
               {error.title}
             </h1>
             <p className="text-sm text-muted-foreground leading-relaxed">

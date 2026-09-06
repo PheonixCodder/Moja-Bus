@@ -10,7 +10,8 @@ Last updated: 2026-09-06 (Phase 9 preset b20te54eby — maia + taupe, Moja pink 
   - Decoded: maia style, taupe base, rose charts, Outfit/Raleway, radius medium (`0.625rem`).
   - `style-maia.css` + `<html class="style-maia">`; `components.json` → `base-maia` / taupe.
   - Theme: taupe neutrals + rose `--chart-*`; **KEEP** Moja `--primary` / ring / sidebar-primary / selection `#ee237c`.
-  - Fonts: Outfit (sans) + Raleway (heading); `font-montserrat` aliases to Outfit.
+  - Fonts: Outfit (sans) + Raleway (heading); Montserrat fully removed from web + theme CSS (RN apps still load Montserrat separately).
+  - `@moja/ui` `noImplicitAny: true` (matches Vercel/Next production typecheck); phone-input `onChange` typed.
   - Moja patches on maia CSS: `cn-drawer-content-base`, `cn-font-heading`. Drawer KEEP (`modal={false}`, overlay) unchanged in TSX.
   - `style-nova.css` retained on disk but unused (rollback).
   - **Next:** Phase 7 manual visual QA under `.style-maia`; optional Toaster adoption.

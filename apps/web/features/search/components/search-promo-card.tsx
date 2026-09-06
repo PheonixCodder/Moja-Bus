@@ -55,7 +55,7 @@ export const SearchPromoCard = memo(function SearchPromoCard() {
             </span>
           </div>
 
-          <h3 className="text-primary-foreground font-extrabold text-xl leading-tight mb-1 font-montserrat">
+          <h3 className="text-primary-foreground font-extrabold text-xl leading-tight mb-1 font-heading">
             {t("promoTitle1")}
             <br />
             {t("promoTitle2")}
