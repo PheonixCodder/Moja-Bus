@@ -1101,6 +1101,7 @@
       "staffRoleLabel": "Staff Role",
       "operatorStatus": "Operator Status",
       "identityVerified": "Identity Verified",
+      "emailVerified": "Email Verified",
       "yes": "Yes",
       "no": "No",
       "joined": "Joined",

@@ -49,6 +49,7 @@ const memberInclude = {
       id: true,
       fullName: true,
       email: true,
+      emailVerified: true,
       phoneNumber: true,
       image: true,
       sessions: {
@@ -170,7 +171,8 @@ export const staffRouter = createTRPCRouter({
           role: m.role,
           status: m.status,
           jobTitle: m.jobTitle,
-          isVerified: m.isVerified,
+          // Derived from User.emailVerified — Operator.isVerified was dropped (unused).
+          isVerified: m.user.emailVerified,
           isActive: m.isActive,
           joinedAt: m.joinedAt,
           permissions: m.permissions,

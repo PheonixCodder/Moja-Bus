@@ -22,8 +22,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-  SidebarTrigger,
-  useSidebar,
 } from "@moja/ui/components/ui/sidebar";
 import { cn } from "@moja/ui/lib/utils";
 import {
@@ -58,6 +56,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { DashboardSidebarBrand } from "@/components/dashboard-sidebar-brand";
 import { DashboardSwitcher } from "@/components/dashboard-switcher";
 import { useAdminPermissions } from "@/features/admin/hooks/use-admin-permissions";
 import { useAuth } from "@/features/auth/hooks/use-auth";
@@ -139,7 +138,6 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ user }: AdminSidebarProps) {
   const pathname = usePathname();
-  const sidebar = useSidebar();
   const { signOut } = useAuth();
   const { can } = useAdminPermissions();
   const t = useTranslations("adminDashboard.nav");
@@ -312,49 +310,8 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
       collapsible="icon"
       className="border-r border-sidebar-border bg-sidebar"
     >
-      <SidebarHeader className="flex flex-col gap-4 px-3 pt-4">
-        <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
-          <div
-            className={cn(
-              "flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-sidebar-primary/10 transition-all duration-300 ease-in-out",
-              sidebar.state === "collapsed" &&
-                "group cursor-pointer hover:bg-sidebar-accent",
-            )}
-          >
-            {sidebar.state === "collapsed" ? (
-              <>
-                <SidebarTrigger
-                  className={cn(
-                    "flex h-full items-center justify-center p-0 text-sidebar-foreground/50 transition-all duration-300 ease-in-out",
-                    "w-0 scale-90 opacity-0 group-hover:w-full group-hover:scale-100 group-hover:opacity-100",
-                    "hover:text-sidebar-foreground",
-                  )}
-                />
-                <ShieldCheck
-                  className={cn(
-                    "size-4.5 shrink-0 text-sidebar-primary transition-all duration-300 ease-in-out",
-                    "group-hover:w-0 group-hover:scale-75 group-hover:opacity-0",
-                  )}
-                />
-              </>
-            ) : (
-              <ShieldCheck className="size-4.5 text-sidebar-primary" />
-            )}
-          </div>
-
-          <div className="group-data-[collapsible=icon]:hidden flex flex-col">
-            <span className="font-semibold text-[15px] tracking-tight text-sidebar-foreground">
-              {tFooter("brand")}
-            </span>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="text-[9px] font-bold uppercase tracking-widest text-sidebar-primary/85 px-1 py-0.2 bg-sidebar-primary/10 rounded">
-                {tFooter("badge")}
-              </span>
-            </div>
-          </div>
-
-          <SidebarTrigger className="ml-auto text-sidebar-foreground/50 hover:text-sidebar-foreground lg:hidden" />
-        </div>
+      <SidebarHeader>
+        <DashboardSidebarBrand href="/dashboard/admin" />
       </SidebarHeader>
 
       <div className="mx-3 my-2 border-b border-sidebar-border" />

@@ -28,6 +28,7 @@ import {
   enqueueOperatorBankRejected,
   enqueueOperatorBankVerified,
 } from "@/features/notifications/outbox/operator-bank";
+import { approveRequiredOperatorDocuments } from "@/features/admin/services/approve-required-operator-documents";
 import { PaystackProvider } from "@/features/payments/providers/paystack-provider";
 import { logBankAccess } from "@/lib/bank-access";
 import { revealBankAccountNumber } from "@/lib/bank-account";
@@ -457,6 +458,12 @@ export const adminRouter = createTRPCRouter({
             verifiedById: ctx.user.id,
             paystackTransferRecipientCode: recipientCode,
           },
+        });
+
+        await approveRequiredOperatorDocuments(tx as any, {
+          companyId: input.companyId,
+          reviewedById: ctx.user.id,
+          reviewedAt: decidedAt,
         });
 
         // P2-3 (D5): durable owner notice, atomic with the verification write.

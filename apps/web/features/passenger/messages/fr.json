@@ -17,9 +17,7 @@
       "walletLedger": "Relevé du portefeuille",
       "signOut": "Se déconnecter",
       "guestUser": "Invité",
-      "noContactDetails": "Aucun coordonnées",
-      "appName": "Moja",
-      "appSuffix": "Ride"
+      "noContactDetails": "Aucun coordonnées"
     },
     "referrals": {
       "metaTitle": "Parrainage — Moja Ride",

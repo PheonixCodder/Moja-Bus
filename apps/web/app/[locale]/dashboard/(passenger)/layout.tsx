@@ -44,7 +44,7 @@ export default async function DashboardLayout({
         }
       >
         <DashboardSidebar user={user} />
-        <SidebarInset className="min-w-0 overflow-x-clip min-h-0 flex flex-col bg-background">
+        <SidebarInset className="min-w-0 overflow-x-clip min-h-0 flex flex-col bg-muted">
           {/* Header matches best-dashboard-setup layout header */}
           <header className="flex h-12 shrink-0 items-center gap-2 border-b sticky top-0 z-50 bg-background/50 backdrop-blur-md transition-all">
             <div className="flex w-full items-center justify-between px-4 lg:px-6">
@@ -63,7 +63,7 @@ export default async function DashboardLayout({
           </header>
 
           {/* Content Pane */}
-          <div className="min-h-0 min-w-0 flex-1 overflow-x-hidden bg-background">
+          <div className="min-h-0 min-w-0 flex-1 overflow-x-hidden">
             <PendingReferralApplier />
             {children}
           </div>

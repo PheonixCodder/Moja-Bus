@@ -25,6 +25,7 @@ import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permiss
 import { useDebounce } from "@/features/operator/hooks/useDebounce";
 import { tripListParsers } from "@/features/operator/lib/trips/trip-search-params";
 import { formatTripHeaderDate } from "@/features/operator/lib/trips/format";
+import { sumStatusCounts } from "@/features/operator/lib/trips/trip-where";
 import { getCalendarDateKey } from "@/lib/timezone";
 import { TripCard } from "@/features/operator/components/trips/trip-card";
 import { TripsToolbar } from "@/features/operator/components/trips/trips-toolbar";
@@ -83,13 +84,17 @@ export function OperatorTripsView() {
   const debouncedQ = useDebounce(q, 300);
   const [refreshing, setRefreshing] = useState(false);
 
-  const listInput = {
-    status: status === "ALL" ? undefined : status,
+  const boardFilters = {
     serviceType: serviceType === "ALL" ? undefined : serviceType,
     scheduleId: scheduleId || undefined,
     q: debouncedQ || undefined,
     startDate: startDate || undefined,
     endDate: endDate || undefined,
+  };
+
+  const listInput = {
+    ...boardFilters,
+    status: status === "ALL" ? undefined : status,
     page,
     pageSize: 50,
   };
@@ -99,9 +104,25 @@ export function OperatorTripsView() {
   );
 
   const { data: statusCountsData } = useQuery({
-    ...trpc.trips.statusCounts.queryOptions(),
+    ...trpc.trips.statusCounts.queryOptions(boardFilters),
   });
   const statusCounts = statusCountsData?.counts ?? {};
+  const allCount = statusCountsData
+    ? sumStatusCounts(statusCounts)
+    : status === "ALL"
+      ? listData.total
+      : null;
+
+  const hasActiveFilters =
+    status !== "ALL" ||
+    serviceType !== "ALL" ||
+    !!scheduleId ||
+    !!debouncedQ ||
+    !!startDate ||
+    !!endDate;
+
+  const windowLabel =
+    listData.window ?? statusCountsData?.window ?? null;
 
   const { data: busesData } = useQuery({
     ...trpc.fleet.getBuses.queryOptions({ slim: true }),
@@ -159,7 +180,9 @@ export function OperatorTripsView() {
           )}
         >
           {t("all")}
-          <span className="font-mono font-bold">{listData.total}</span>
+          <span className="font-mono font-bold">
+            {allCount === null ? "—" : allCount}
+          </span>
         </Button>
         {STATUS_CHIPS.map((chip) => {
           const count = statusCounts[chip.status] ?? 0;
@@ -189,7 +212,15 @@ export function OperatorTripsView() {
             </Button>
           );
         })}
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-2 flex-wrap justify-end">
+          {windowLabel ? (
+            <span className="text-[11px] text-muted-foreground">
+              {t("windowRange", {
+                start: windowLabel.startDate,
+                end: windowLabel.endDate,
+              })}
+            </span>
+          ) : null}
           <span className="text-[11px] text-muted-foreground">
             {t("totalInfo", {
               total: listData.total,
@@ -241,10 +272,12 @@ export function OperatorTripsView() {
             </EmptyMedia>
             <EmptyHeader>
               <EmptyTitle>
-                {listData.total === 0 ? t("noTripsYet") : t("noTripsMatch")}
+                {listData.total === 0 && !hasActiveFilters
+                  ? t("noTripsYet")
+                  : t("noTripsMatch")}
               </EmptyTitle>
               <EmptyDescription>
-                {listData.total === 0
+                {listData.total === 0 && !hasActiveFilters
                   ? t("noTripsYetDesc")
                   : t("noTripsMatchDesc")}
               </EmptyDescription>

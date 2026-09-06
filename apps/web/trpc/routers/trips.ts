@@ -31,11 +31,21 @@ import { getDriverTripConflict } from "@/lib/driver-assignment";
 import { convergeDriversAfterRunEnd } from "@/lib/driver-run-state";
 import { getNovuClient } from "@/lib/novu";
 import { requirePermission } from "@/lib/permissions/authorize";
-import { getAppRollingTripWindow, getCalendarDateKey } from "@/lib/timezone";
+import { buildOperatorTripWhere } from "@/features/operator/lib/trips/trip-where";
 import { finalizeTripArrival } from "@/lib/trip-arrival";
 import { computeDestinationArrivalOffset } from "@/lib/trip-destination";
 import { assertTripTransition } from "@/lib/trip-status";
 import { createTRPCRouter, operatorCompanyProcedure } from "../init";
+
+const tripBoardFilterInput = z.object({
+  status: tripStatusEnum.optional(),
+  serviceType: z.enum(["INTERCITY", "URBAN"]).optional(),
+  routeId: z.string().optional(),
+  scheduleId: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  q: z.string().optional(),
+});
 
 /**
  * Guard against assigning a bus to overlapping active trips across any route.
@@ -279,15 +289,8 @@ export const tripsRouter = createTRPCRouter({
 
   list: operatorCompanyProcedure
     .input(
-      z
-        .object({
-          status: tripStatusEnum.optional(),
-          serviceType: z.enum(["INTERCITY", "URBAN"]).optional(),
-          routeId: z.string().optional(),
-          scheduleId: z.string().optional(),
-          startDate: z.string().optional(),
-          endDate: z.string().optional(),
-          q: z.string().optional(),
+      tripBoardFilterInput
+        .extend({
           driverProfileId: z.string().optional(),
           page: z.number().int().min(1).optional().default(1),
           pageSize: z.number().int().min(1).max(100).optional().default(50),
@@ -296,96 +299,25 @@ export const tripsRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       requirePermission(ctx, "trips:read");
-      const window = getAppRollingTripWindow(14);
-      const startDate = input?.startDate
-        ? new Date(input.startDate)
-        : window.startDate;
-      const endDate = input?.endDate ? new Date(input.endDate) : window.endDate;
-
-      const filters: Record<string, unknown> = {
-        companyId: ctx.companyId,
-        archivedAt: null,
-      };
-
-      // driverProfileId mode: full history (no rolling-window filter)
-      if (input?.driverProfileId) {
-        filters["driverAssignments"] = {
-          some: { driverProfileId: input.driverProfileId },
-        };
-      } else {
-        filters["departureDate"] = { gte: startDate, lte: endDate };
-      }
-
-      if (input?.status) {
-        filters["status"] = input.status;
-      }
-      if (input?.serviceType) {
-        filters["serviceType"] = input.serviceType;
-      }
-      if (input?.scheduleId) {
-        filters["scheduleId"] = input.scheduleId;
-      }
-      if (input?.routeId) {
-        filters["schedule"] = { routeId: input.routeId };
-      }
-
       const page = input?.page ?? 1;
       const pageSize = input?.pageSize ?? 50;
-      const q = input?.q?.trim();
 
-      const where: Record<string, unknown> = {
-        ...filters,
-      };
-
-      if (q) {
-        where["OR"] = [
-          { id: { contains: q, mode: "insensitive" } },
-          {
-            bus: {
-              registrationPlate: { contains: q, mode: "insensitive" },
-            },
-          },
-          {
-            schedule: {
-              route: {
-                OR: [
-                  {
-                    originTerminal: {
-                      OR: [
-                        { name: { contains: q, mode: "insensitive" } },
-                        { city: { contains: q, mode: "insensitive" } },
-                        {
-                          cityRelation: {
-                            name: { contains: q, mode: "insensitive" },
-                          },
-                        },
-                      ],
-                    },
-                  },
-                  {
-                    destTerminal: {
-                      OR: [
-                        { name: { contains: q, mode: "insensitive" } },
-                        { city: { contains: q, mode: "insensitive" } },
-                        {
-                          cityRelation: {
-                            name: { contains: q, mode: "insensitive" },
-                          },
-                        },
-                      ],
-                    },
-                  },
-                ],
-              },
-            },
-          },
-        ];
-      }
+      const { where, window } = buildOperatorTripWhere({
+        companyId: ctx.companyId,
+        status: input?.status,
+        serviceType: input?.serviceType,
+        routeId: input?.routeId,
+        scheduleId: input?.scheduleId,
+        startDate: input?.startDate,
+        endDate: input?.endDate,
+        q: input?.q,
+        driverProfileId: input?.driverProfileId,
+      });
 
       const [total, trips] = await Promise.all([
-        ctx.prisma.trip.count({ where: where as any }),
+        ctx.prisma.trip.count({ where }),
         ctx.prisma.trip.findMany({
-          where: where as any,
+          where,
           include: {
             bus: {
               include: { busType: true, layoutTemplate: true },
@@ -478,32 +410,25 @@ export const tripsRouter = createTRPCRouter({
         page,
         pageSize,
         pageCount: Math.max(1, Math.ceil(total / pageSize)),
-        window: {
-          startDate: getCalendarDateKey(startDate),
-          endDate: getCalendarDateKey(endDate),
-        },
+        window,
       };
     }),
 
-  // M2: global status counts (no pagination) so the dispatch-board chips
-  // reflect every trip for the operator, not just the current page.
+  // Board chips: same date/service/q/schedule window as list (no pagination,
+  // no status filter) so badge counts match the trips you can open.
   statusCounts: operatorCompanyProcedure
-    .input(
-      z
-        .object({
-          scheduleId: z.string().optional(),
-          routeId: z.string().optional(),
-        })
-        .optional(),
-    )
+    .input(tripBoardFilterInput.omit({ status: true }).optional())
     .query(async ({ ctx, input }) => {
       requirePermission(ctx, "trips:read");
-      const where: Prisma.TripWhereInput = {
+      const { where, window } = buildOperatorTripWhere({
         companyId: ctx.companyId,
-        archivedAt: null,
-      };
-      if (input?.scheduleId) where.scheduleId = input.scheduleId;
-      if (input?.routeId) where.schedule = { routeId: input.routeId };
+        serviceType: input?.serviceType,
+        routeId: input?.routeId,
+        scheduleId: input?.scheduleId,
+        startDate: input?.startDate,
+        endDate: input?.endDate,
+        q: input?.q,
+      });
 
       const grouped = await ctx.prisma.trip.groupBy({
         by: ["status"],
@@ -515,7 +440,7 @@ export const tripsRouter = createTRPCRouter({
       for (const g of grouped) {
         counts[g.status] = g._count._all;
       }
-      return { counts };
+      return { counts, window };
     }),
 
   get: operatorCompanyProcedure

@@ -5,6 +5,10 @@
     "ogTitle": "Moja Ride | L'aventure commence avec un ticket",
     "ogDescription": "Réservez vos billets de bus en Côte d'Ivoire — rapide, sûr, confortable."
   },
+  "dashboardBrand": {
+    "appName": "Moja",
+    "appSuffix": "Ride"
+  },
   "nav": {
     "home": "Accueil",
     "search": "Chercher un trajet",

@@ -16,6 +16,7 @@ import {
   cancelBookingSchema,
   rebookBookingSchema,
   listUpcomingScheduleTripsSchema,
+  REQUIRED_OPERATOR_DOCUMENT_TYPES,
 } from "@moja/schemas";
 import {
   rebookPassenger,
@@ -311,12 +312,7 @@ export const operatorRouter = createTRPCRouter({
       });
     }
 
-    const requiredDocs = [
-      "BUSINESS_REGISTRATION_CERTIFICATE",
-      "TAX_CLEARANCE_CERTIFICATE",
-      "TRANSPORT_OPERATING_PERMIT",
-    ];
-    const hasRequiredDocs = requiredDocs.every((docType) =>
+    const hasRequiredDocs = REQUIRED_OPERATOR_DOCUMENT_TYPES.every((docType) =>
       company.documents.some((d) => d.type === docType),
     );
 
@@ -1455,17 +1451,16 @@ export const operatorRouter = createTRPCRouter({
     requirePermission(ctx, "reviews:read");
     const companyId = ctx.companyId;
 
+    const driverUserSelect = {
+      user: { select: { fullName: true, phoneNumber: true } },
+    } as const;
+
     const reviews = await ctx.prisma.review.findMany({
       where: { companyId },
       include: {
         author: { select: { fullName: true, email: true } },
-        driver: {
-          include: {
-            user: {
-              select: { fullName: true, phoneNumber: true },
-            },
-          },
-        },
+        // Denormalized at submit — powers rating chips ("who the passenger rated")
+        driver: { include: driverUserSelect },
         bus: {
           select: {
             id: true,
@@ -1475,30 +1470,49 @@ export const operatorRouter = createTRPCRouter({
         },
         booking: {
           select: {
+            id: true,
             bookingReference: true,
             passengerName: true,
-            seat: { select: { label: true } },
-            trip: {
+          },
+        },
+        // Live trip — corridor, departure, and current crew for the card
+        trip: {
+          select: {
+            id: true,
+            departureDate: true,
+            routeSnapshotJson: true,
+            driver: { include: driverUserSelect },
+            reliefDriver: { include: driverUserSelect },
+            conductorStaff: {
               select: {
-                departureDate: true,
-                schedule: {
+                id: true,
+                user: { select: { fullName: true } },
+              },
+            },
+            bus: {
+              select: {
+                id: true,
+                registrationPlate: true,
+                internalName: true,
+              },
+            },
+            schedule: {
+              select: {
+                route: {
                   select: {
-                    route: {
-                      select: {
-                        originTerminal: {
-                          include: {
-                            cityRelation: true,
-                            municipality: true,
-                            quarter: true,
-                          },
-                        },
-                        destTerminal: {
-                          include: {
-                            cityRelation: true,
-                            municipality: true,
-                            quarter: true,
-                          },
-                        },
+                    name: true,
+                    originTerminal: {
+                      include: {
+                        cityRelation: true,
+                        municipality: true,
+                        quarter: true,
+                      },
+                    },
+                    destTerminal: {
+                      include: {
+                        cityRelation: true,
+                        municipality: true,
+                        quarter: true,
                       },
                     },
                   },

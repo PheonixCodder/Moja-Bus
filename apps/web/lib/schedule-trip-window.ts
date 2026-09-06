@@ -5,6 +5,7 @@ import {
   getWeekdayKey,
   isOnOrAfterCalendarDay,
   isOnOrBeforeCalendarDay,
+  OPERATOR_TRIP_BOARD_DAYS,
   startOfAppCalendarDay,
   type WeekdayKey,
 } from "./timezone";
@@ -57,7 +58,7 @@ export function getCandidateDepartureDates(params: {
     departureTimes,
     calendar,
     exceptions = [],
-    daysCount = 14,
+    daysCount = OPERATOR_TRIP_BOARD_DAYS,
     now = new Date(),
   } = params;
 

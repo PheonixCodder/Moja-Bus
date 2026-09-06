@@ -1,3 +1,5 @@
+import { REQUIRED_OPERATOR_DOCUMENT_TYPES } from "@moja/schemas";
+
 export type CompanyStatusValue =
   | "DRAFT"
   | "PENDING_VERIFICATION"
@@ -94,15 +96,13 @@ export function getCompanyStatusPresentation(
   return STATUS_MAP.DRAFT;
 }
 
-export const REQUIRED_DOC_TYPES = [
-  "BUSINESS_REGISTRATION_CERTIFICATE",
-  "TRANSPORT_OPERATING_PERMIT",
-] as const;
+/** @deprecated Prefer REQUIRED_OPERATOR_DOCUMENT_TYPES from @moja/schemas */
+export const REQUIRED_DOC_TYPES = REQUIRED_OPERATOR_DOCUMENT_TYPES;
 
 export function areRequiredDocumentsApproved(
   documents: Array<{ type: string; status: string }>,
 ): boolean {
-  return REQUIRED_DOC_TYPES.every((docType) =>
+  return REQUIRED_OPERATOR_DOCUMENT_TYPES.every((docType) =>
     documents.some((d) => d.type === docType && d.status === "APPROVED"),
   );
 }
@@ -110,7 +110,7 @@ export function areRequiredDocumentsApproved(
 export function getDocumentsVerificationState(
   documents: Array<{ type: string; status: string }>,
 ): "missing" | "pending" | "approved" {
-  const hasAllTypes = REQUIRED_DOC_TYPES.every((docType) =>
+  const hasAllTypes = REQUIRED_OPERATOR_DOCUMENT_TYPES.every((docType) =>
     documents.some((d) => d.type === docType),
   );
   if (!hasAllTypes) return "missing";

@@ -235,7 +235,6 @@ export const invitationRouter = createTRPCRouter({
                 permissionsUpdatedAt: new Date(),
                 status: "ACTIVE",
                 isActive: true,
-                isVerified: false,
                 onboardingStatus: "COMPLETED",
               },
             }),

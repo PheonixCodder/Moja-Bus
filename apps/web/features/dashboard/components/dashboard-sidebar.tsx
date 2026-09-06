@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   type LucideIcon,
-  BusFront,
   CalendarDays,
   LayoutDashboard,
   LogOut,
@@ -52,6 +51,7 @@ import {
   SidebarRail,
   useSidebar,
 } from "@moja/ui/components/ui/sidebar";
+import { DashboardSidebarBrand } from "@/components/dashboard-sidebar-brand";
 import { DashboardSwitcher } from "@/components/dashboard-switcher";
 import type { User } from "@/lib/auth-client";
 
@@ -98,31 +98,8 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
       collapsible="icon"
       className="border-r border-sidebar-border bg-sidebar"
     >
-      {/* Header section matches best-dashboard-setup exactly */}
       <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              size="default"
-              render={
-                <Link
-                  prefetch={false}
-                  href="/dashboard"
-                  className="flex items-center gap-2"
-                >
-                  <BusFront className="size-4 text-primary" />
-                  <span className="font-semibold text-base tracking-tight text-sidebar-foreground">
-                    {tNav("appName")}
-                    <span className="text-primary font-bold">
-                      {tNav("appSuffix")}
-                    </span>
-                  </span>
-                </Link>
-              }
-              tooltip={`${tNav("appName")} ${tNav("appSuffix")}`}
-            />
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <DashboardSidebarBrand href="/dashboard" />
       </SidebarHeader>
 
       <SidebarContent>

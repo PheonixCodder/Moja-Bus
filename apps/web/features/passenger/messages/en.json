@@ -17,9 +17,7 @@
       "walletLedger": "Wallet Ledger",
       "signOut": "Sign out",
       "guestUser": "Guest User",
-      "noContactDetails": "No contact details",
-      "appName": "Moja",
-      "appSuffix": "Ride"
+      "noContactDetails": "No contact details"
     },
     "referrals": {
       "metaTitle": "Referrals — Moja Ride",

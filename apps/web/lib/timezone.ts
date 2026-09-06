@@ -56,14 +56,28 @@ export function endOfAppCalendarDay(date: Date): Date {
   return new Date(start.getTime() + 24 * 60 * 60 * 1000 - 1);
 }
 
-/** Rolling window: start of today through end of today+daysAhead (Abidjan). */
-export function getAppRollingTripWindow(daysAhead = 14): {
+/**
+ * Operator dispatch board + trip-generator horizon length (calendar days).
+ * Inclusive: today … today+(N-1). Must stay aligned with schedule trip generation.
+ */
+export const OPERATOR_TRIP_BOARD_DAYS = 14;
+
+/**
+ * Rolling board window in Africa/Abidjan: start of today through end of
+ * today+(daysCount-1) inclusive. Matches `getCandidateDepartureDates` daysCount.
+ */
+export function getAppRollingTripWindow(
+  daysCount = OPERATOR_TRIP_BOARD_DAYS,
+  now: Date = new Date(),
+): {
   startDate: Date;
   endDate: Date;
 } {
-  const now = new Date();
   const startDate = startOfAppCalendarDay(now);
-  const endDate = endOfAppCalendarDay(addAppCalendarDays(startDate, daysAhead));
+  const lastDayOffset = Math.max(daysCount, 1) - 1;
+  const endDate = endOfAppCalendarDay(
+    addAppCalendarDays(startDate, lastDayOffset),
+  );
   return { startDate, endDate };
 }
 

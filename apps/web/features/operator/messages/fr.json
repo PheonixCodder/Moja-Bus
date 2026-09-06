@@ -709,6 +709,7 @@
       },
       "all": "Tout",
       "totalInfo": "{total} total · page {page}/{pageCount}",
+      "windowRange": "{start} → {end}",
       "refresh": "Actualiser",
       "filteredSchedule": "Horaire filtré",
       "origin": "Origine",
@@ -717,7 +718,7 @@
       "noTripsYet": "Aucun trajet pour le moment",
       "noTripsYetDesc": "Créez un horaire pour générer automatiquement des trajets. Ils apparaîtront ici.",
       "noTripsMatch": "Aucun trajet correspondant",
-      "noTripsMatchDesc": "Essayez un autre filtre de statut ou un terme de recherche différent.",
+      "noTripsMatchDesc": "Essayez un autre statut, une autre plage de dates ou un autre terme de recherche.",
       "tripCount": "{count, plural, one {# trajet} other {# trajets}}",
       "previous": "Précédent",
       "next": "Suivant",
@@ -1120,8 +1121,8 @@
         "pageInfo": "Page {page} sur {totalPages}",
         "next": "Suivant"
       },
-      "verified": "Vérifié",
-      "unverified": "Non vérifié",
+      "verified": "E-mail vérifié",
+      "unverified": "E-mail non vérifié",
       "editRole": "Modifier le rôle",
       "editPermissions": "Modifier les autorisations",
       "suspend": "Suspendre",
@@ -1329,7 +1330,16 @@
       "passenger": "Passager",
       "responsePublished": "Réponse publiée",
       "responseFailed": "Échec de la publication de la réponse",
-      "responseEmpty": "La réponse ne peut pas être vide"
+      "responseEmpty": "La réponse ne peut pas être vide",
+      "crew": "Équipage du trajet",
+      "primaryDriver": "Chauffeur",
+      "reliefDriver": "Relais",
+      "conductor": "Contrôleur",
+      "noDriverAssigned": "Aucun chauffeur assigné",
+      "viewTrip": "Voir le trajet",
+      "driverChip": "Chauffeur : {name}{rating}",
+      "busChip": "Bus : {plate}{rating}",
+      "punctualityChip": "Ponctualité : {rating}★"
     },
     "withdraw": {
       "metaTitle": "Retraits — Tableau de bord Opérateur Moja Ride",
@@ -1675,6 +1685,7 @@
           "profile": "Informations du profil d'entreprise complétées",
           "bank": "Coordonnées bancaires de règlement vérifiées",
           "registrationDoc": "Certificat d'immatriculation approuvé",
+          "taxDoc": "Attestation de régularité fiscale approuvée",
           "permitDoc": "Permis d'exploitation approuvé"
         },
         "steps": {
