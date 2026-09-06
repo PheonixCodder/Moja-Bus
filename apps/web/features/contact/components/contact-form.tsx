@@ -2,6 +2,19 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { submitInquirySchema } from "@moja/schemas";
+import { Button } from "@moja/ui/components/ui/button";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@moja/ui/components/ui/field";
+import { Input } from "@moja/ui/components/ui/input";
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@moja/ui/components/ui/native-select";
+import { Textarea } from "@moja/ui/components/ui/textarea";
 import { useMutation } from "@tanstack/react-query";
 import { CheckCircle, Send } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -9,8 +22,6 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import { useTRPC } from "@/trpc/client";
-import { Button } from "@moja/ui/components/ui/button";
-import { Input } from "@moja/ui/components/ui/input";
 
 const subjectKeys = [
   "subjectGeneral",
@@ -77,9 +88,6 @@ export function ContactForm() {
     setSubmitted(true);
   }
 
-  const inputClasses =
-    "w-full px-4 py-3.5 border border-border rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-sm";
-
   if (submitted) {
     return (
       <div className="bg-success/10 border border-success/30 rounded-3xl p-10 text-center">
@@ -116,125 +124,105 @@ export function ContactForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
-      <div>
-        <label
-          htmlFor="name"
-          className="block text-sm font-bold text-foreground mb-2"
-        >
-          {t("labelName")}
-        </label>
-        <Input
-          id="name"
-          type="text"
-          placeholder={t("placeholderName")}
-          className="h-12 rounded-2xl border-border text-sm"
-          aria-invalid={errors.name ? "true" : undefined}
-          {...register("name")}
-        />
-        {errors.name && (
-          <p className="mt-2 text-sm font-semibold text-destructive">
-            {errors.name.message}
-          </p>
-        )}
-      </div>
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
+      className="flex flex-col gap-5"
+    >
+      <FieldGroup className="gap-5">
+        <Field data-invalid={errors.name ? true : undefined}>
+          <FieldLabel htmlFor="name" className="font-bold">
+            {t("labelName")}
+          </FieldLabel>
+          <Input
+            id="name"
+            type="text"
+            placeholder={t("placeholderName")}
+            className="h-12 rounded-2xl border-border text-sm"
+            aria-invalid={errors.name ? true : undefined}
+            {...register("name")}
+          />
+          {errors.name ? <FieldError>{errors.name.message}</FieldError> : null}
+        </Field>
 
-      <div>
-        <label
-          htmlFor="email"
-          className="block text-sm font-bold text-foreground mb-2"
-        >
-          {t("labelEmail")}
-        </label>
-        <Input
-          id="email"
-          type="email"
-          placeholder={t("placeholderEmail")}
-          className="h-12 rounded-2xl border-border text-sm"
-          aria-invalid={errors.email ? "true" : undefined}
-          {...register("email")}
-        />
-        {errors.email && (
-          <p className="mt-2 text-sm font-semibold text-destructive">
-            {errors.email.message}
-          </p>
-        )}
-      </div>
+        <Field data-invalid={errors.email ? true : undefined}>
+          <FieldLabel htmlFor="email" className="font-bold">
+            {t("labelEmail")}
+          </FieldLabel>
+          <Input
+            id="email"
+            type="email"
+            placeholder={t("placeholderEmail")}
+            className="h-12 rounded-2xl border-border text-sm"
+            aria-invalid={errors.email ? true : undefined}
+            {...register("email")}
+          />
+          {errors.email ? (
+            <FieldError>{errors.email.message}</FieldError>
+          ) : null}
+        </Field>
 
-      <div>
-        <label
-          htmlFor="phone"
-          className="block text-sm font-bold text-foreground mb-2"
-        >
-          {t("labelPhone")}
-        </label>
-        <Input
-          id="phone"
-          type="tel"
-          placeholder={t("placeholderPhone")}
-          className="h-12 rounded-2xl border-border text-sm"
-          aria-invalid={errors.phone ? "true" : undefined}
-          {...register("phone")}
-        />
-        {errors.phone && (
-          <p className="mt-2 text-sm font-semibold text-destructive">
-            {errors.phone.message}
-          </p>
-        )}
-      </div>
+        <Field data-invalid={errors.phone ? true : undefined}>
+          <FieldLabel htmlFor="phone" className="font-bold">
+            {t("labelPhone")}
+          </FieldLabel>
+          <Input
+            id="phone"
+            type="tel"
+            placeholder={t("placeholderPhone")}
+            className="h-12 rounded-2xl border-border text-sm"
+            aria-invalid={errors.phone ? true : undefined}
+            {...register("phone")}
+          />
+          {errors.phone ? (
+            <FieldError>{errors.phone.message}</FieldError>
+          ) : null}
+        </Field>
 
-      <div>
-        <label
-          htmlFor="subject"
-          className="block text-sm font-bold text-foreground mb-2"
-        >
-          {t("labelSubject")}
-        </label>
-        <select
-          id="subject"
-          className="w-full px-4 py-3.5 border border-border rounded-2xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-sm appearance-none bg-background"
-          {...register("subject")}
-        >
-          {subjectKeys.map((key) => (
-            <option key={key} value={key}>
-              {t(key)}
-            </option>
-          ))}
-        </select>
-        {errors.subject && (
-          <p className="mt-2 text-sm font-semibold text-destructive">
-            {errors.subject.message}
-          </p>
-        )}
-      </div>
+        <Field data-invalid={errors.subject ? true : undefined}>
+          <FieldLabel htmlFor="subject" className="font-bold">
+            {t("labelSubject")}
+          </FieldLabel>
+          <NativeSelect
+            id="subject"
+            className="h-12 w-full min-w-full rounded-2xl text-sm [&_select]:w-full"
+            aria-invalid={errors.subject ? true : undefined}
+            {...register("subject")}
+          >
+            {subjectKeys.map((key) => (
+              <NativeSelectOption key={key} value={key}>
+                {t(key)}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+          {errors.subject ? (
+            <FieldError>{errors.subject.message}</FieldError>
+          ) : null}
+        </Field>
 
-      <div>
-        <label
-          htmlFor="message"
-          className="block text-sm font-bold text-foreground mb-2"
-        >
-          {t("labelMessage")}
-        </label>
-        <textarea
-          id="message"
-          rows={5}
-          placeholder={t("placeholderMessage")}
-          className={`${inputClasses} resize-none`}
-          aria-invalid={errors.message ? "true" : undefined}
-          {...register("message")}
-        />
-        {errors.message && (
-          <p className="mt-2 text-sm font-semibold text-destructive">
-            {errors.message.message}
-          </p>
-        )}
-      </div>
+        <Field data-invalid={errors.message ? true : undefined}>
+          <FieldLabel htmlFor="message" className="font-bold">
+            {t("labelMessage")}
+          </FieldLabel>
+          <Textarea
+            id="message"
+            rows={5}
+            placeholder={t("placeholderMessage")}
+            className="resize-none rounded-2xl border-border text-sm"
+            aria-invalid={errors.message ? true : undefined}
+            {...register("message")}
+          />
+          {errors.message ? (
+            <FieldError>{errors.message.message}</FieldError>
+          ) : null}
+        </Field>
+      </FieldGroup>
 
-      {error && (
+      {error ? (
         <p className="text-sm font-semibold text-destructive bg-destructive/10 border border-destructive/20 rounded-2xl px-4 py-3">
           {error}
         </p>
-      )}
+      ) : null}
 
       <Button
         type="submit"

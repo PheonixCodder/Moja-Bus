@@ -64,54 +64,63 @@ Chose **Adopt-tokens**:
 
 ---
 
-## Phase 4 — Forms (Moderate)
+## Phase 4 — Forms (Moderate) — ✅ DONE (2026-09-06)
 
-1. Codify Field/FieldGroup in web UI standards
-2. Migrate: saved passengers, contact, checkout-related, operator onboarding, remaining admin dialogs
-3. Replace new `space-y` form stacks with `flex flex-col gap-*`
-4. Rename local `FieldLabel` in blog-edit-view (SHADCN-033)
-
----
-
-## Phase 4b — Charts consumers (Moderate)
-
-1. Migrate raw Recharts dashboards to `ChartContainer` (SHADCN-031)
-2. Standardize ChartConfig colors on `var(--chart-N)` / `var(--color-*)` (SHADCN-032)
+1. ~~Codify Field/FieldGroup in web UI standards~~ — noted in `context/code-standards.md`
+2. ~~Migrate priority forms~~ — contact, saved passengers, operator onboarding (`company` / `profile` / `bank`). Checkout has no dedicated Label form stack. Remaining admin dialogs / `terms-step` can follow opportunistically.
+3. ~~Prefer `flex flex-col gap-*` over `space-y` on migrated form stacks~~
+4. ~~Rename local `FieldLabel` in blog-edit-view (SHADCN-033)~~ → `BlogFormLabel`
 
 ---
 
-## Phase 5 — Types / calendar / phone polish (Safe–Moderate)
+## Phase 4b — Charts consumers (Moderate) — ✅ DONE (2026-09-06)
 
-- phone-input typing
-- day-picker v10 verification vs calendar
-- sidebar event typing
+1. ~~Migrate raw Recharts dashboards to `ChartContainer` (SHADCN-031)~~ — admin dashboard revenue, operator revenue analytics, driver analytics charts
+2. ~~Standardize ChartConfig colors on `var(--chart-N)` / `var(--color-*)` (SHADCN-032)~~ — no remaining `hsl(var(--` in `apps/web`; chart series use `var(--color-*)` from ChartConfig
 
----
-
-## Phase 6 — Optional cn package (Safe)
-
-```bash
-cd packages/ui
-pnpm dlx shadcn@latest migrate cn
-```
+**Exit criteria:** `@moja/ui` + `web` typecheck green (verified 2026-09-06)
 
 ---
 
-## Phase 7 — Validation
+## Phase 5 — Types / calendar / phone polish (Safe–Moderate) — ✅ DONE (2026-09-06)
 
-- `pnpm --filter @moja/ui typecheck`
-- `pnpm --filter web typecheck`
-- Biome lint on touched files
-- Manual keyboard pass: dialog, select, dropdown, drawer, combobox
-- Spot-check charts
+- ~~phone-input typing (SHADCN-019)~~ — removed all `as any`; proper `RPNInput.Props`; Flag uses `title={countryName}`; Moja `country` lock prop is not forwarded as undocumented library `country`
+- ~~day-picker v10 verification vs calendar (SHADCN-024)~~ — confirmed on `react-day-picker@10.0.1` with v10 APIs (`getDefaultClassNames`, `DayButton`, Root); aligned missing `cn-calendar-*` / `cn-rtl-flip` classes with pinned base calendar. Bracket access for modifiers kept (web `noPropertyAccessFromIndexSignature`)
+- ~~sidebar event typing (SHADCN-020)~~ — already clean (`onClick?.(event)` with no cast; fixed in earlier sync)
+
+**Exit criteria:** `@moja/ui` + `web` typecheck green (verified 2026-09-06)
 
 ---
 
-## Phase 8 — Cleanup
+## Phase 6 — Optional cn package (Safe) — ✅ DONE in Phase 3
 
-- Dead exports / unused next-themes
-- Document Moja extensions in ui-registry
-- Update graphify after code changes: `graphify update .`
+`shadcn migrate cn` already applied; `packages/ui/src/lib/utils.ts` re-exports `cn` from the `cn` package.
+
+---
+
+## Phase 7 — Validation — ✅ DONE (automated) / manual checklist below (2026-09-06)
+
+- ~~`pnpm --filter @moja/ui typecheck`~~ — green
+- ~~`pnpm --filter web typecheck`~~ — green
+- ~~Biome lint on remedia­tion-touched files~~ — format/imports fixed; calendar modifiers keep bracket access (TS index signature)
+- **Manual keyboard pass** (operator/dev, before calling remedia­tion closed):
+  - [ ] Dialog — Tab cycle, Esc dismiss, focus return
+  - [ ] Select / Combobox — arrow keys, Enter, Esc
+  - [ ] DropdownMenu — keyboard open/nav (Base UI `render`)
+  - [ ] Drawer / ActionDrawer — swipe/Esc/outside-press; dirty-form cancel
+- **Visual spot-check** under `.style-nova`:
+  - [ ] Admin dashboard revenue chart + blog forms
+  - [ ] Operator revenue / driver analytics charts
+  - [ ] Contact form, saved passengers, onboarding company/profile/bank
+  - [ ] Phone input locked + unlocked country UX
+
+---
+
+## Phase 8 — Cleanup — ✅ DONE (2026-09-06)
+
+- ~~Unused `next-themes`~~ — removed from `@moja/ui`; `sonner` Toaster hardcodes `theme="light"` (product is light-only; web still imports raw `sonner` in layouts — optional follow-up to switch to `@moja/ui` Toaster)
+- ~~Document Moja extensions in ui-registry~~ — `apps/web/context/ui-registry.md`
+- ~~`graphify update`~~ after code changes
 
 ---
 

@@ -1,23 +1,23 @@
 "use client";
 
+import { type ChartConfig, ChartContainer } from "@moja/ui/components/ui/chart";
+import { Skeleton } from "@moja/ui/components/ui/skeleton";
+import { useQuery } from "@tanstack/react-query";
+import { BarChart3, Gauge, TrendingUp } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
-  ResponsiveContainer,
-  LineChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
   Line,
+  LineChart,
+  PolarAngleAxis,
+  RadialBar,
+  RadialBarChart,
+  Tooltip,
   XAxis,
   YAxis,
-  Tooltip,
-  CartesianGrid,
-  RadialBarChart,
-  RadialBar,
-  PolarAngleAxis,
-  BarChart,
-  Bar,
 } from "recharts";
-import { TrendingUp, Gauge, BarChart3 } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { useQuery } from "@tanstack/react-query";
-import { Skeleton } from "@moja/ui/components/ui/skeleton";
 import { useTRPC } from "@/trpc/client";
 
 type Analytics = {
@@ -39,7 +39,28 @@ type Analytics = {
   }>;
 };
 
-const CARD_CLS = "rounded-xl border bg-card p-4 space-y-2";
+const CARD_CLS = "rounded-xl border bg-card p-4 flex flex-col gap-2";
+
+const ratingTrendConfig = {
+  averageRating: {
+    label: "Rating",
+    color: "var(--primary)",
+  },
+} satisfies ChartConfig;
+
+const safetyGaugeConfig = {
+  value: {
+    label: "Safety",
+    color: "var(--success)",
+  },
+} satisfies ChartConfig;
+
+const distributionConfig = {
+  count: {
+    label: "Reviews",
+    color: "var(--primary)",
+  },
+} satisfies ChartConfig;
 
 function ChartCard({
   icon: Icon,
@@ -87,7 +108,11 @@ export function DriverAnalyticsCharts({
 
   const analytics = data as Analytics;
   const gaugeData = [
-    { name: "score", value: analytics.summary.safetyScore, fill: "var(--success)" },
+    {
+      name: "score",
+      value: analytics.summary.safetyScore,
+      fill: "var(--color-value)",
+    },
   ];
 
   return (
@@ -99,30 +124,28 @@ export function DriverAnalyticsCharts({
             {t("analytics.noData")}
           </p>
         ) : (
-          <div className="h-40">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={analytics.ratingTrend}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis
-                  dataKey="month"
-                  tick={{ fontSize: 9 }}
-                  tickFormatter={(m: string) => m.slice(2)}
-                />
-                <YAxis domain={[1, 5]} tick={{ fontSize: 9 }} />
-                <Tooltip
-                  contentStyle={{ fontSize: 11, borderRadius: 8 }}
-                  formatter={((v: any) => [Number(v).toFixed(2), "★"]) as any}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="averageRating"
-                  stroke="var(--primary)"
-                  strokeWidth={2}
-                  dot={{ r: 2.5 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          <ChartContainer config={ratingTrendConfig} className="h-40 w-full">
+            <LineChart data={analytics.ratingTrend}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis
+                dataKey="month"
+                tick={{ fontSize: 9 }}
+                tickFormatter={(m: string) => m.slice(2)}
+              />
+              <YAxis domain={[1, 5]} tick={{ fontSize: 9 }} />
+              <Tooltip
+                contentStyle={{ fontSize: 11, borderRadius: 8 }}
+                formatter={((v: any) => [Number(v).toFixed(2), "★"]) as any}
+              />
+              <Line
+                type="monotone"
+                dataKey="averageRating"
+                stroke="var(--color-averageRating)"
+                strokeWidth={2}
+                dot={{ r: 2.5 }}
+              />
+            </LineChart>
+          </ChartContainer>
         )}
       </ChartCard>
 
@@ -130,7 +153,10 @@ export function DriverAnalyticsCharts({
       <ChartCard icon={Gauge} title={t("analytics.safetyGauge")}>
         <div className="flex items-center justify-center gap-6 py-2">
           <div className="relative h-36 w-36">
-            <ResponsiveContainer width="100%" height="100%">
+            <ChartContainer
+              config={safetyGaugeConfig}
+              className="h-full w-full aspect-square"
+            >
               <RadialBarChart
                 innerRadius="72%"
                 outerRadius="100%"
@@ -141,7 +167,7 @@ export function DriverAnalyticsCharts({
                 <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
                 <RadialBar background dataKey="value" cornerRadius={12} />
               </RadialBarChart>
-            </ResponsiveContainer>
+            </ChartContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className="text-3xl font-black text-success">
                 {analytics.summary.safetyScore}
@@ -151,7 +177,7 @@ export function DriverAnalyticsCharts({
               </span>
             </div>
           </div>
-          <div className="space-y-1.5 text-xs">
+          <div className="flex flex-col gap-1.5 text-xs">
             <div className="flex items-center gap-1.5">
               <span className="size-2 rounded-full bg-destructive" />
               <span className="text-muted-foreground">
@@ -176,34 +202,30 @@ export function DriverAnalyticsCharts({
 
       {/* Rating distribution */}
       <ChartCard icon={BarChart3} title={t("analytics.distribution")}>
-        <div className="h-40">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={analytics.distribution}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="var(--border)"
-                vertical={false}
-              />
-              <XAxis
-                dataKey="star"
-                tick={{ fontSize: 9 }}
-                tickFormatter={(s: number) => `${s}★`}
-              />
-              <YAxis allowDecimals={false} tick={{ fontSize: 9 }} />
-              <Tooltip
-                contentStyle={{ fontSize: 11, borderRadius: 8 }}
-                formatter={
-                  ((v: any) => [v, t("analytics.reviewsLabel")]) as any
-                }
-              />
-              <Bar
-                dataKey="count"
-                radius={[4, 4, 0, 0]}
-                className="fill-primary"
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        <ChartContainer config={distributionConfig} className="h-40 w-full">
+          <BarChart data={analytics.distribution}>
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="var(--border)"
+              vertical={false}
+            />
+            <XAxis
+              dataKey="star"
+              tick={{ fontSize: 9 }}
+              tickFormatter={(s: number) => `${s}★`}
+            />
+            <YAxis allowDecimals={false} tick={{ fontSize: 9 }} />
+            <Tooltip
+              contentStyle={{ fontSize: 11, borderRadius: 8 }}
+              formatter={((v: any) => [v, t("analytics.reviewsLabel")]) as any}
+            />
+            <Bar
+              dataKey="count"
+              radius={[4, 4, 0, 0]}
+              fill="var(--color-count)"
+            />
+          </BarChart>
+        </ChartContainer>
       </ChartCard>
     </div>
   );

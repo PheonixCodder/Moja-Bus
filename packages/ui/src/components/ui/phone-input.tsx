@@ -1,8 +1,8 @@
-import * as React from "react";
+import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { CheckIcon, ChevronDownIcon } from "lucide-react";
+import * as React from "react";
 import * as RPNInput from "react-phone-number-input";
 import flags from "react-phone-number-input/flags";
-import { parsePhoneNumberFromString } from "libphonenumber-js";
 
 import { Button } from "#components/ui/button";
 import {
@@ -37,13 +37,17 @@ function validateIvoryCoastPhone(phone?: string | null): boolean {
 }
 
 type PhoneInputProps = Omit<
-  React.ComponentProps<"input">,
-  "onChange" | "value" | "ref"
-> &
-  Omit<RPNInput.Props<typeof RPNInput.default>, "onChange"> & {
-    onChange?: (value: RPNInput.Value) => void;
-    country?: RPNInput.Country;
-  };
+  RPNInput.Props<React.ComponentProps<"input">>,
+  "onChange"
+> & {
+  onChange?: (value: RPNInput.Value) => void;
+  /**
+   * Moja extension: when set, locks the country selector to this country.
+   * Not forwarded as a controlled `country` prop to react-phone-number-input
+   * (that API is for the input-without-select variant only).
+   */
+  country?: RPNInput.Country;
+};
 
 const PhoneInput = React.forwardRef<
   React.ElementRef<typeof RPNInput.default>,
@@ -71,6 +75,7 @@ const PhoneInput = React.forwardRef<
     const CountrySelectComponent: React.ElementType = lockedCountry
       ? FixedCountrySelect
       : CountrySelect;
+    const resolvedDefaultCountry = lockedCountry ?? defaultCountry;
 
     return (
       <RPNInput.default
@@ -80,9 +85,8 @@ const PhoneInput = React.forwardRef<
         countrySelectComponent={CountrySelectComponent}
         inputComponent={InputComponent}
         smartCaret={false}
-        country={lockedCountry as any}
-        defaultCountry={defaultCountry as any}
-        countries={countries as any}
+        defaultCountry={resolvedDefaultCountry}
+        countries={countries}
         placeholder={placeholder}
         {...(value ? { value: value as RPNInput.Value } : {})}
         /**
@@ -94,9 +98,7 @@ const PhoneInput = React.forwardRef<
          *
          * @param {E164Number | undefined} value - The entered value
          */
-        onChange={(val: RPNInput.Value | undefined) =>
-          onChange?.(val || ("" as RPNInput.Value))
-        }
+        onChange={(val) => onChange?.(val || ("" as RPNInput.Value))}
         {...props}
       />
     );
@@ -281,7 +283,7 @@ const FlagComponent = ({ country, countryName }: RPNInput.FlagProps) => {
 
   return (
     <span className="flex h-4 w-6 overflow-hidden rounded-sm bg-foreground/20 [&_svg:not([class*='size-'])]:size-full">
-      {Flag && <Flag {...({ title: countryName } as any)} />}
+      {Flag ? <Flag title={countryName} /> : null}
     </span>
   );
 };

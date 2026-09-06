@@ -1,24 +1,33 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import { useMemo } from "react";
+import {
+  type ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+} from "@moja/ui/components/ui/chart";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
-import { formatXOF } from "../../lib/currency";
+import { useTranslations } from "next-intl";
+import { useMemo } from "react";
 import {
-  AreaChart,
   Area,
+  AreaChart,
+  CartesianGrid,
+  type TooltipContentProps,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  type TooltipContentProps,
-  ResponsiveContainer,
 } from "recharts";
+import { formatXOF } from "../../lib/currency";
+
+const chartConfig = {
+  netXOF: {
+    label: "Net",
+    color: "var(--success)",
+  },
+} satisfies ChartConfig;
 
 export function RevenueAnalyticsChart({
   timeSeries,
-  totalNet,
 }: {
   timeSeries: any[];
   totalNet: number;
@@ -44,15 +53,23 @@ export function RevenueAnalyticsChart({
             {t("noData")}
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height="100%">
+          <ChartContainer config={chartConfig} className="h-full w-full">
             <AreaChart
               data={data}
               margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
             >
               <defs>
                 <linearGradient id="colorNet" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--success)" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="var(--success)" stopOpacity={0} />
+                  <stop
+                    offset="5%"
+                    stopColor="var(--color-netXOF)"
+                    stopOpacity={0.3}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="var(--color-netXOF)"
+                    stopOpacity={0}
+                  />
                 </linearGradient>
               </defs>
               <CartesianGrid
@@ -79,9 +96,9 @@ export function RevenueAnalyticsChart({
                 }
                 dx={-10}
               />
-              <Tooltip
+              <ChartTooltip
                 content={({ active, payload, label }: TooltipContentProps) => {
-                  if (active && payload && payload.length) {
+                  if (active && payload?.length) {
                     return (
                       <div className="bg-popover text-popover-foreground border rounded-lg shadow-lg p-3">
                         <p className="text-sm font-medium text-foreground mb-2">
@@ -105,14 +122,18 @@ export function RevenueAnalyticsChart({
               <Area
                 type="monotone"
                 dataKey="netXOF"
-                stroke="var(--success)"
+                stroke="var(--color-netXOF)"
                 strokeWidth={2}
                 fillOpacity={1}
                 fill="url(#colorNet)"
-                activeDot={{ r: 4, strokeWidth: 0, fill: "var(--success)" }}
+                activeDot={{
+                  r: 4,
+                  strokeWidth: 0,
+                  fill: "var(--color-netXOF)",
+                }}
               />
             </AreaChart>
-          </ResponsiveContainer>
+          </ChartContainer>
         )}
       </div>
     </div>

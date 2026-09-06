@@ -11,6 +11,8 @@
 ## 2. Framework & UI Conventions
 - **Web (`apps/web`)**:
   - Follow shadcn/ui composition conventions with Tailwind CSS.
+  - Prefer `Field` / `FieldGroup` / `FieldLabel` / `FieldError` from `@moja/ui` for form layouts; use `flex flex-col gap-*` instead of `space-y-*` on form stacks.
+  - Wrap Recharts charts in `ChartContainer` with a `ChartConfig` using `var(--chart-N)` or semantic tokens (`var(--primary)`, `var(--success)`); series strokes/fills should use `var(--color-*)`.
   - Separate server components/pages from client components (mark client-side interactives with `'use client'`).
   - Use `nuqs` for type-safe URL search parameter management.
   - Access backend state via `@/trpc/client`.

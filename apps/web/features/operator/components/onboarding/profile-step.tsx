@@ -1,19 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { useTranslations } from "next-intl";
+import type { ProfileStepInput, StaffRole } from "@moja/schemas";
 import { Button } from "@moja/ui/components/ui/button";
-import { Input } from "@moja/ui/components/ui/input";
-import { Label } from "@moja/ui/components/ui/label";
-import { PhoneInput } from "@moja/ui/components/ui/phone-input";
-import {
-  Combobox,
-  ComboboxInput,
-  ComboboxContent,
-  ComboboxList,
-  ComboboxItem,
-  ComboboxEmpty,
-} from "@moja/ui/components/ui/combobox";
 import {
   Card,
   CardContent,
@@ -21,9 +9,33 @@ import {
   CardHeader,
   CardTitle,
 } from "@moja/ui/components/ui/card";
-import { User, IdCard, Calendar } from "lucide-react";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@moja/ui/components/ui/combobox";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@moja/ui/components/ui/field";
+import { Input } from "@moja/ui/components/ui/input";
+import { PhoneInput } from "@moja/ui/components/ui/phone-input";
+import { IdCard, User } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
 import { ImageUploadField } from "@/components/image-upload-field";
-import { type ProfileStepInput, type StaffRole } from "@moja/schemas";
+
+function formatDisplayDob(iso: string) {
+  if (!iso) return "";
+  const parts = iso.split("-");
+  if (parts.length !== 3) return iso;
+  return `${parts[1]}/${parts[2]}/${parts[0]}`;
+}
 
 interface ProfileStepProps {
   initialData?: any;
@@ -76,14 +88,6 @@ export function ProfileStep({
     }
   }, [initialData]);
 
-  // Format ISO date (YYYY-MM-DD) to MM/DD/YYYY for display
-  const formatDisplayDob = (iso: string) => {
-    if (!iso) return "";
-    const parts = iso.split("-");
-    if (parts.length !== 3) return iso;
-    return `${parts[1]}/${parts[2]}/${parts[0]}`;
-  };
-
   // Parse MM/DD/YYYY input to ISO YYYY-MM-DD with validation
   const parseDobInput = (value: string): string => {
     const cleaned = value.replace(/[^\d/]/g, "");
@@ -94,7 +98,8 @@ export function ProfileStep({
     const day = parseInt(parts[1] ?? "", 10);
     const year = parseInt(parts[2] ?? "", 10);
 
-    if (isNaN(month) || isNaN(day) || isNaN(year)) return "";
+    if (Number.isNaN(month) || Number.isNaN(day) || Number.isNaN(year))
+      return "";
     if (
       month < 1 ||
       month > 12 ||
@@ -149,7 +154,7 @@ export function ProfileStep({
   const canContinue = fullName && role && dateOfBirth;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       <Card className="border-border rounded-md shadow-sm">
         <CardHeader className="border-b border-border pb-4">
           <div className="flex items-center gap-3">
@@ -162,160 +167,163 @@ export function ProfileStep({
             </div>
           </div>
         </CardHeader>
-        <CardContent className="pt-6 space-y-4">
-          <div className="flex items-center gap-4">
-            <ImageUploadField
-              purpose="operator-profile-photo"
-              value={profilePhotoUrl || null}
-              onUploaded={(r) => setProfilePhotoUrl(r.fileUrl)}
-              label={t("uploadPhoto")}
-              hint={t("photoHint")}
-              shape="circle"
-              previewClassName="h-20 w-20"
-            />
-            <p className="text-xs text-muted-foreground">{t("photoDesc")}</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <Label
-                htmlFor="fullname"
-                className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
-              >
-                {t("fullName")}
-              </Label>
-              <Input
-                id="fullname"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder={t("fullNamePlaceholder")}
-                required
-                className="rounded-md border-border focus-visible:ring-primary focus-visible:border-primary"
+        <CardContent className="pt-6">
+          <FieldGroup className="gap-4">
+            <div className="flex items-center gap-4">
+              <ImageUploadField
+                purpose="operator-profile-photo"
+                value={profilePhotoUrl || null}
+                onUploaded={(r) => setProfilePhotoUrl(r.fileUrl)}
+                label={t("uploadPhoto")}
+                hint={t("photoHint")}
+                shape="circle"
+                previewClassName="h-20 w-20"
               />
+              <p className="text-xs text-muted-foreground">{t("photoDesc")}</p>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <Label
-                htmlFor="personal-phone"
-                className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
-              >
-                {t("phone")}
-              </Label>
-              <PhoneInput
-                id="personal-phone"
-                value={personalPhone}
-                onChange={(val: string | undefined) =>
-                  setPersonalPhone(val || "")
-                }
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <Label
-                htmlFor="job-title"
-                className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
-              >
-                {t("jobTitle")}
-              </Label>
-              <Input
-                id="job-title"
-                value={jobTitle}
-                onChange={(e) => setJobTitle(e.target.value)}
-                placeholder={t("jobTitlePlaceholder")}
-                className="rounded-md border-border focus-visible:ring-primary focus-visible:border-primary"
-              />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <Label
-                htmlFor="dob"
-                className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
-              >
-                {t("dateOfBirth")}
-              </Label>
-              <Input
-                id="dob"
-                value={dobInput}
-                onChange={(e) => {
-                  const raw = e.target.value;
-                  setDobInput(raw);
-                  setDateOfBirth(parseDobInput(raw));
-                  setDobError("");
-                }}
-                onBlur={() => {
-                  if (dobInput && !dateOfBirth) {
-                    setDobError(t("dateOfBirthInvalid"));
-                  }
-                }}
-                placeholder={t("dateOfBirthPlaceholder")}
-                required
-                className={`rounded-md border-border focus-visible:ring-primary focus-visible:border-primary ${dobError ? "border-destructive text-destructive" : ""}`}
-              />
-              {dobError && <p className="text-xs text-destructive">{dobError}</p>}
-            </div>
-          </div>
-
-          {/* Identification Details */}
-          <div className="pt-2 border-t border-border mt-4">
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-1.5">
-              <IdCard className="w-4 h-4" /> {t("identityVerification")}
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex flex-col gap-2">
-                <Label
-                  htmlFor="id-type"
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Field>
+                <FieldLabel
+                  htmlFor="fullname"
                   className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
                 >
-                  {t("idDocumentType")}
-                </Label>
-                <Combobox
-                  items={idTypes}
-                  value={nationalIdType}
-                  onValueChange={(val) => setNationalIdType(val || "")}
-                >
-                  <ComboboxInput
-                    id="id-type"
-                    placeholder={t("idDocumentPlaceholder")}
-                    className="w-full text-sm"
-                    value={
-                      nationalIdType
-                        ? idTypes.find((t) => t.value === nationalIdType)
-                            ?.label || ""
-                        : ""
-                    }
-                  />
-                  <ComboboxContent>
-                    <ComboboxEmpty>{t("noDocumentType")}</ComboboxEmpty>
-                    <ComboboxList>
-                      {idTypes.map((type) => (
-                        <ComboboxItem key={type.value} value={type.value}>
-                          {type.label}
-                        </ComboboxItem>
-                      ))}
-                    </ComboboxList>
-                  </ComboboxContent>
-                </Combobox>
-              </div>
-
-              <div className="flex flex-col gap-2 md:col-span-2">
-                <Label
-                  htmlFor="id-number"
-                  className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
-                >
-                  {t("idNumber")}
-                </Label>
+                  {t("fullName")}
+                </FieldLabel>
                 <Input
-                  id="id-number"
-                  value={nationalIdNumber}
-                  onChange={(e) => setNationalIdNumber(e.target.value)}
-                  placeholder={t("idNumberPlaceholder")}
+                  id="fullname"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder={t("fullNamePlaceholder")}
+                  required
                   className="rounded-md border-border focus-visible:ring-primary focus-visible:border-primary"
                 />
+              </Field>
+
+              <Field>
+                <FieldLabel
+                  htmlFor="personal-phone"
+                  className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                >
+                  {t("phone")}
+                </FieldLabel>
+                <PhoneInput
+                  id="personal-phone"
+                  value={personalPhone}
+                  onChange={(val: string | undefined) =>
+                    setPersonalPhone(val || "")
+                  }
+                />
+              </Field>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Field>
+                <FieldLabel
+                  htmlFor="job-title"
+                  className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                >
+                  {t("jobTitle")}
+                </FieldLabel>
+                <Input
+                  id="job-title"
+                  value={jobTitle}
+                  onChange={(e) => setJobTitle(e.target.value)}
+                  placeholder={t("jobTitlePlaceholder")}
+                  className="rounded-md border-border focus-visible:ring-primary focus-visible:border-primary"
+                />
+              </Field>
+
+              <Field data-invalid={dobError ? true : undefined}>
+                <FieldLabel
+                  htmlFor="dob"
+                  className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                >
+                  {t("dateOfBirth")}
+                </FieldLabel>
+                <Input
+                  id="dob"
+                  value={dobInput}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    setDobInput(raw);
+                    setDateOfBirth(parseDobInput(raw));
+                    setDobError("");
+                  }}
+                  onBlur={() => {
+                    if (dobInput && !dateOfBirth) {
+                      setDobError(t("dateOfBirthInvalid"));
+                    }
+                  }}
+                  placeholder={t("dateOfBirthPlaceholder")}
+                  required
+                  aria-invalid={dobError ? true : undefined}
+                  className={`rounded-md border-border focus-visible:ring-primary focus-visible:border-primary ${dobError ? "border-destructive text-destructive" : ""}`}
+                />
+                {dobError ? <FieldError>{dobError}</FieldError> : null}
+              </Field>
+            </div>
+
+            {/* Identification Details */}
+            <div className="pt-2 border-t border-border mt-4">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                <IdCard className="w-4 h-4" /> {t("identityVerification")}
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Field>
+                  <FieldLabel
+                    htmlFor="id-type"
+                    className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                  >
+                    {t("idDocumentType")}
+                  </FieldLabel>
+                  <Combobox
+                    items={idTypes}
+                    value={nationalIdType}
+                    onValueChange={(val) => setNationalIdType(val || "")}
+                  >
+                    <ComboboxInput
+                      id="id-type"
+                      placeholder={t("idDocumentPlaceholder")}
+                      className="w-full text-sm"
+                      value={
+                        nationalIdType
+                          ? idTypes.find((t) => t.value === nationalIdType)
+                              ?.label || ""
+                          : ""
+                      }
+                    />
+                    <ComboboxContent>
+                      <ComboboxEmpty>{t("noDocumentType")}</ComboboxEmpty>
+                      <ComboboxList>
+                        {idTypes.map((type) => (
+                          <ComboboxItem key={type.value} value={type.value}>
+                            {type.label}
+                          </ComboboxItem>
+                        ))}
+                      </ComboboxList>
+                    </ComboboxContent>
+                  </Combobox>
+                </Field>
+
+                <Field className="md:col-span-2">
+                  <FieldLabel
+                    htmlFor="id-number"
+                    className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                  >
+                    {t("idNumber")}
+                  </FieldLabel>
+                  <Input
+                    id="id-number"
+                    value={nationalIdNumber}
+                    onChange={(e) => setNationalIdNumber(e.target.value)}
+                    placeholder={t("idNumberPlaceholder")}
+                    className="rounded-md border-border focus-visible:ring-primary focus-visible:border-primary"
+                  />
+                </Field>
               </div>
             </div>
-          </div>
+          </FieldGroup>
         </CardContent>
       </Card>
 

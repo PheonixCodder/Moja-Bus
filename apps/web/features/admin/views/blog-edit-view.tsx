@@ -35,7 +35,6 @@ import {
   Save,
   Search,
   Settings2,
-  Tag,
   X,
 } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -155,7 +154,7 @@ const STATUS_CONFIG = {
 
 // ─── Tab content components ─────────────────────────────────────────────────
 
-function FieldLabel({ children }: { children: React.ReactNode }) {
+function BlogFormLabel({ children }: { children: React.ReactNode }) {
   return (
     <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">
       {children}
@@ -421,7 +420,7 @@ export function BlogEditView({ postId }: { postId: string }) {
 
           {/* MDX Content */}
           <div className="space-y-2 min-w-0 w-full">
-            <FieldLabel>{t("content")}</FieldLabel>
+            <BlogFormLabel>{t("content")}</BlogFormLabel>
             <div className="border border-border rounded-xl overflow-hidden shadow-sm bg-card w-full min-w-0">
               <Controller
                 name="content"
@@ -445,7 +444,7 @@ export function BlogEditView({ postId }: { postId: string }) {
           {/* Excerpt */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <FieldLabel>{t("excerpt")}</FieldLabel>
+              <BlogFormLabel>{t("excerpt")}</BlogFormLabel>
               <span className="text-xs text-muted-foreground">
                 {(watchedExcerpt ?? "").length}/500
               </span>
@@ -586,7 +585,7 @@ export function BlogEditView({ postId }: { postId: string }) {
                     {t("author")} — {post.author?.fullName ?? "Unknown"}
                   </SectionLabel>
                   <div className="space-y-1.5">
-                    <FieldLabel>{t("displayNameOverride")}</FieldLabel>
+                    <BlogFormLabel>{t("displayNameOverride")}</BlogFormLabel>
                     <Input
                       {...register("displayAuthorName")}
                       placeholder={t("overrideName")}
@@ -594,7 +593,7 @@ export function BlogEditView({ postId }: { postId: string }) {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <FieldLabel>{t("bioOverride")}</FieldLabel>
+                    <BlogFormLabel>{t("bioOverride")}</BlogFormLabel>
                     <Textarea
                       {...register("displayAuthorBio")}
                       placeholder={t("overrideBio")}
@@ -608,13 +607,13 @@ export function BlogEditView({ postId }: { postId: string }) {
 
                 <div className="grid grid-cols-2 gap-2">
                   <div className="bg-card rounded-lg border border-border p-3">
-                    <FieldLabel>{t("views")}</FieldLabel>
+                    <BlogFormLabel>{t("views")}</BlogFormLabel>
                     <p className="text-xl font-bold text-foreground mt-0.5">
                       {post.viewCount.toLocaleString()}
                     </p>
                   </div>
                   <div className="bg-card rounded-lg border border-border p-3">
-                    <FieldLabel>{t("words")}</FieldLabel>
+                    <BlogFormLabel>{t("words")}</BlogFormLabel>
                     <p className="text-xl font-bold text-foreground mt-0.5">
                       {post.wordCount.toLocaleString()}
                     </p>
@@ -827,7 +826,7 @@ export function BlogEditView({ postId }: { postId: string }) {
                   ).map((f) =>
                     f === "coverImage" ? (
                       <div key={f} className="space-y-1">
-                        <FieldLabel>{t("image")}</FieldLabel>
+                        <BlogFormLabel>{t("image")}</BlogFormLabel>
                         <ImageUploadField
                           purpose="blog-cover"
                           value={watch("coverImage") || null}
@@ -840,9 +839,9 @@ export function BlogEditView({ postId }: { postId: string }) {
                       </div>
                     ) : (
                       <div key={f} className="space-y-1">
-                        <FieldLabel>
+                        <BlogFormLabel>
                           {f === "coverImageAlt" ? t("altText") : t("credit")}
-                        </FieldLabel>
+                        </BlogFormLabel>
                         <Input
                           {...register(f)}
                           placeholder={
@@ -950,13 +949,13 @@ export function BlogEditView({ postId }: { postId: string }) {
                     ] as const
                   ).map((f) => (
                     <div key={f} className="space-y-1">
-                      <FieldLabel>
+                      <BlogFormLabel>
                         {f === "twitterTitle"
                           ? t("twitterTitle")
                           : f === "twitterDescription"
                             ? t("twitterDescription")
                             : t("twitterImageUrl")}
-                      </FieldLabel>
+                      </BlogFormLabel>
                       {f === "twitterDescription" ? (
                         <Textarea
                           {...register(f)}

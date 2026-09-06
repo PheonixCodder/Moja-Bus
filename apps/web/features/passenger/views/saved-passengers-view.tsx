@@ -1,34 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { useTranslations } from "next-intl";
-import { toast } from "sonner";
-import {
-  Pencil,
-  Plus,
-  Trash2,
-  Search,
-  UserRound,
-  Mail,
-  Phone,
-  Tag,
-} from "lucide-react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { SavedPassengerDTO } from "@moja/types";
+import { Badge } from "@moja/ui/components/ui/badge";
 import { Button } from "@moja/ui/components/ui/button";
-import { UserAvatar } from "@moja/ui/components/ui/user-avatar";
-import { Input } from "@moja/ui/components/ui/input";
-import { PhoneInput } from "@moja/ui/components/ui/phone-input";
-import { Label } from "@moja/ui/components/ui/label";
-import { Spinner } from "@moja/ui/components/ui/spinner";
 import { Card, CardContent } from "@moja/ui/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@moja/ui/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -37,9 +12,34 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@moja/ui/components/ui/dialog";
-import { Badge } from "@moja/ui/components/ui/badge";
+import { Field, FieldGroup, FieldLabel } from "@moja/ui/components/ui/field";
+import { Input } from "@moja/ui/components/ui/input";
+import { PhoneInput } from "@moja/ui/components/ui/phone-input";
+import { Spinner } from "@moja/ui/components/ui/spinner";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@moja/ui/components/ui/table";
+import { UserAvatar } from "@moja/ui/components/ui/user-avatar";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  Mail,
+  Pencil,
+  Phone,
+  Plus,
+  Search,
+  Tag,
+  Trash2,
+  UserRound,
+} from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { toast } from "sonner";
 import { useTRPC } from "@/trpc/client";
-import type { SavedPassengerDTO } from "@moja/types";
 
 type PassengerFormState = {
   fullName: string;
@@ -164,11 +164,10 @@ export function SavedPassengersView() {
     return (
       p.fullName.toLowerCase().includes(term) ||
       p.phone.toLowerCase().includes(term) ||
-      (p.email && p.email.toLowerCase().includes(term)) ||
-      (p.label && p.label.toLowerCase().includes(term))
+      p.email?.toLowerCase().includes(term) ||
+      p.label?.toLowerCase().includes(term)
     );
   });
-
 
   return (
     <div className="space-y-4">
@@ -346,75 +345,79 @@ export function SavedPassengersView() {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="sp-name"
-                className="text-xs font-bold text-foreground"
-              >
-                {t("fullName")}
-              </Label>
-              <Input
-                id="sp-name"
-                value={form.fullName}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, fullName: e.target.value }))
-                }
-                required
-                placeholder={t("namePlaceholder")}
-                className="rounded-xl border-border h-10 text-sm focus-visible:ring-primary"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="sp-phone"
-                className="text-xs font-bold text-foreground"
-              >
-                {t("phone")}
-              </Label>
-              <PhoneInput
-                id="sp-phone"
-                value={form.phone}
-                onChange={(val?: string) => setForm((f) => ({ ...f, phone: val || "" }))}
-                required
-                className="rounded-xl border-border h-10 text-sm focus-visible:ring-primary"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="sp-email"
-                className="text-xs font-bold text-foreground"
-              >
-                {t("emailOptional")}
-              </Label>
-              <Input
-                id="sp-email"
-                type="email"
-                value={form.email}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, email: e.target.value }))
-                }
-                placeholder={t("emailPlaceholder")}
-                className="rounded-xl border-border h-10 text-sm focus-visible:ring-primary"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="sp-label"
-                className="text-xs font-bold text-foreground"
-              >
-                {t("labelOptional")}
-              </Label>
-              <Input
-                id="sp-label"
-                value={form.label}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, label: e.target.value }))
-                }
-                placeholder={t("labelPlaceholder")}
-                className="rounded-xl border-border h-10 text-sm focus-visible:ring-primary"
-              />
-            </div>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4 py-2">
+            <FieldGroup className="gap-4">
+              <Field>
+                <FieldLabel
+                  htmlFor="sp-name"
+                  className="text-xs font-bold text-foreground"
+                >
+                  {t("fullName")}
+                </FieldLabel>
+                <Input
+                  id="sp-name"
+                  value={form.fullName}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, fullName: e.target.value }))
+                  }
+                  required
+                  placeholder={t("namePlaceholder")}
+                  className="rounded-xl border-border h-10 text-sm focus-visible:ring-primary"
+                />
+              </Field>
+              <Field>
+                <FieldLabel
+                  htmlFor="sp-phone"
+                  className="text-xs font-bold text-foreground"
+                >
+                  {t("phone")}
+                </FieldLabel>
+                <PhoneInput
+                  id="sp-phone"
+                  value={form.phone}
+                  onChange={(val?: string) =>
+                    setForm((f) => ({ ...f, phone: val || "" }))
+                  }
+                  required
+                  className="rounded-xl border-border h-10 text-sm focus-visible:ring-primary"
+                />
+              </Field>
+              <Field>
+                <FieldLabel
+                  htmlFor="sp-email"
+                  className="text-xs font-bold text-foreground"
+                >
+                  {t("emailOptional")}
+                </FieldLabel>
+                <Input
+                  id="sp-email"
+                  type="email"
+                  value={form.email}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, email: e.target.value }))
+                  }
+                  placeholder={t("emailPlaceholder")}
+                  className="rounded-xl border-border h-10 text-sm focus-visible:ring-primary"
+                />
+              </Field>
+              <Field>
+                <FieldLabel
+                  htmlFor="sp-label"
+                  className="text-xs font-bold text-foreground"
+                >
+                  {t("labelOptional")}
+                </FieldLabel>
+                <Input
+                  id="sp-label"
+                  value={form.label}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, label: e.target.value }))
+                  }
+                  placeholder={t("labelPlaceholder")}
+                  className="rounded-xl border-border h-10 text-sm focus-visible:ring-primary"
+                />
+              </Field>
+            </FieldGroup>
 
             <DialogFooter className="pt-3 gap-2 sm:gap-0">
               <Button

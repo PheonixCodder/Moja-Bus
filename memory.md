@@ -2,9 +2,28 @@
 
 # Memory — shadcn/ui Audit Complete (Web / UI / Theme)
 
-Last updated: 2026-09-05 (shadcn audit + incremental reaudit finished — audit-only, no code fixes)
+Last updated: 2026-09-06 (Phase 7 automated validation + Phase 8 cleanup)
 
 ## State
+
+- **🏁 SHADCN PHASE 7 + 8 COMPLETE ✅ (2026-09-06)**:
+  - Phase 7 automated: `@moja/ui` + `web` typecheck green; Biome format/imports on remedia­tion files.
+  - Phase 7 **manual** checklist remains in `14-migration-plan.md` (keyboard + visual under `.style-nova`) — not a code blocker.
+  - Phase 8: removed `next-themes` from `@moja/ui`; Sonner Toaster is light-only; Moja KEEP extensions documented in `apps/web/context/ui-registry.md`.
+  - **Next:** Optional — run the Phase 7 manual QA checklist in browser; switch dashboard layouts from raw `sonner` → `@moja/ui` Toaster.
+
+- **🏁 SHADCN PHASE 5 COMPLETE ✅ (2026-09-06)**:
+  - SHADCN-019: phone-input — zero `as any`; typed via `RPNInput.Props`; Flag `title` prop; lock via Moja `country` + FixedCountrySelect (not undocumented library `country`).
+  - SHADCN-024: calendar verified on day-picker v10; `cn-calendar-*` / `cn-rtl-flip` aligned with pinned base calendar.
+  - SHADCN-020: sidebar already typed (no cast) — confirmed.
+  - Typecheck: `@moja/ui` + `web` exit 0.
+  - **Next:** Phase 7 visual/keyboard QA, or Phase 8 cleanup.
+
+- **🏁 SHADCN PHASE 4 + 4b COMPLETE ✅ (2026-09-06)**:
+  - **Forms:** `Field`/`FieldGroup`/`FieldLabel`/`FieldError` on contact, saved passengers, operator onboarding (company/profile/bank). SHADCN-033: blog `FieldLabel` → `BlogFormLabel`. Standards note in `context/code-standards.md`.
+  - **Charts:** SHADCN-031 — `ChartContainer` on admin dashboard revenue, operator revenue analytics, driver analytics. SHADCN-032 — no `hsl(var(--` left in web; configs use `var(--color-*)`.
+  - Typecheck: `@moja/ui` + `web` exit 0.
+  - **Next:** Phase 5 (phone/calendar/sidebar polish) or Phase 7 visual/keyboard QA. Opportunistic: remaining admin dialogs, `terms-step`.
 
 - **🏁 SHADCN PHASE 3 ADOPT-TOKENS COMPLETE ✅ (2026-09-05)**:
   - Chose **Adopt-tokens** (not Stay-inline).
