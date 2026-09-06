@@ -2,13 +2,22 @@
 
 # Memory — shadcn/ui Audit Complete (Web / UI / Theme)
 
-Last updated: 2026-09-06 (Phase 7 automated validation + Phase 8 cleanup)
+Last updated: 2026-09-06 (Phase 9 preset b20te54eby — maia + taupe, Moja pink KEEP)
 
 ## State
 
+- **🏁 PRESET `b20te54eby` → Maia/taupe ADOPTED ✅ (2026-09-06)**:
+  - Decoded: maia style, taupe base, rose charts, Outfit/Raleway, radius medium (`0.625rem`).
+  - `style-maia.css` + `<html class="style-maia">`; `components.json` → `base-maia` / taupe.
+  - Theme: taupe neutrals + rose `--chart-*`; **KEEP** Moja `--primary` / ring / sidebar-primary / selection `#ee237c`.
+  - Fonts: Outfit (sans) + Raleway (heading); `font-montserrat` aliases to Outfit.
+  - Moja patches on maia CSS: `cn-drawer-content-base`, `cn-font-heading`. Drawer KEEP (`modal={false}`, overlay) unchanged in TSX.
+  - `style-nova.css` retained on disk but unused (rollback).
+  - **Next:** Phase 7 manual visual QA under `.style-maia`; optional Toaster adoption.
+
 - **🏁 SHADCN PHASE 7 + 8 COMPLETE ✅ (2026-09-06)**:
   - Phase 7 automated: `@moja/ui` + `web` typecheck green; Biome format/imports on remedia­tion files.
-  - Phase 7 **manual** checklist remains in `14-migration-plan.md` (keyboard + visual under `.style-nova`) — not a code blocker.
+  - Phase 7 **manual** checklist remains in `14-migration-plan.md` (keyboard + visual under `.style-maia`) — not a code blocker.
   - Phase 8: removed `next-themes` from `@moja/ui`; Sonner Toaster is light-only; Moja KEEP extensions documented in `apps/web/context/ui-registry.md`.
   - **Next:** Optional — run the Phase 7 manual QA checklist in browser; switch dashboard layouts from raw `sonner` → `@moja/ui` Toaster.
 

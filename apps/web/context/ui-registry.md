@@ -55,7 +55,7 @@ Canonical primitives live in `packages/ui`. Prefer these over inventing local va
 | `DatePicker` / `TimePicker` / `DateTimePicker` | `@moja/ui/components/ui/date-picker` (etc.) | Moja KEEP pickers on day-picker v10 Calendar. |
 | `Toaster` | `@moja/ui/components/ui/sonner` | Light-only (no `next-themes`). Prefer over raw `sonner` when adopting shared toast chrome. |
 
-Root `<html>` uses `style-nova` for adopt-tokens `cn-*` classes.
+Root `<html>` uses `style-maia` for adopt-tokens `cn-*` classes (preset `b20te54eby`: maia + taupe; Moja KEEP primary `#ee237c`). Body/heading fonts: Outfit / Raleway (`font-montserrat` utility aliases to Outfit).
 
 ---
 

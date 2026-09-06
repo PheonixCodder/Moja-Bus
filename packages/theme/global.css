@@ -4,28 +4,29 @@
    ============================================================================== */
 
 :root {
+  /* Preset b20te54eby: radius medium (same numeric value) */
   --radius: 0.625rem;
 
-  /* Brand Core */
+  /* Brand Core — Moja KEEP pink (not shadcn pink from preset) */
   --primary: #ee237c;
   --primary-foreground: #ffffff;
   --primary-hover: #db1b6f;
   --primary-dark: #be123c;
 
-  /* Canvas & Neutrals — Light */
-  --background: #ffffff;
-  --foreground: #18181b;
-  --card: #ffffff;
-  --card-foreground: #18181b;
-  --card-elevated: #f4f4f5;
-  --popover: #ffffff;
-  --popover-foreground: #18181b;
-  --secondary: #f4f4f5;
-  --secondary-foreground: #18181b;
-  --muted: #f4f4f5;
-  --muted-foreground: #71717a;
-  --accent: #f4f4f5;
-  --accent-foreground: #18181b;
+  /* Canvas & Neutrals — Light (taupe baseColor from b20te54eby) */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.147 0.004 49.3);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.147 0.004 49.3);
+  --card-elevated: oklch(0.96 0.002 17.2);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.147 0.004 49.3);
+  --secondary: oklch(0.96 0.002 17.2);
+  --secondary-foreground: oklch(0.214 0.009 43.1);
+  --muted: oklch(0.96 0.002 17.2);
+  --muted-foreground: oklch(0.547 0.021 43.1);
+  --accent: oklch(0.96 0.002 17.2);
+  --accent-foreground: oklch(0.214 0.009 43.1);
 
   /* Functional Statuses — Light */
   --success: #10b981;
@@ -33,10 +34,10 @@
   --success-subtle: #ecfdf5;
 
   --warning: #f59e0b;
-  --warning-foreground: #18181b;
+  --warning-foreground: oklch(0.147 0.004 49.3);
   --warning-subtle: #fffbeb;
 
-  --destructive: #ef4444;
+  --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: #ffffff;
   --destructive-subtle: #fef2f2;
 
@@ -45,32 +46,35 @@
   --info-subtle: #eff6ff;
 
   /* Controls & Perimeter Lines */
-  --border: #e4e4e7;
-  --input: #e4e4e7;
+  --border: oklch(0.922 0.005 34.3);
+  --input: oklch(0.922 0.005 34.3);
   --ring: #ee237c;
 
-  /* Data Visualization / Charts */
-  --chart-1: #ee237c;
-  --chart-2: #0284c7;
-  --chart-3: #10b981;
-  --chart-4: #f59e0b;
-  --chart-5: #8b5cf6;
+  /* Charts — rose chartColor from b20te54eby (primary stays Moja pink) */
+  --chart-1: oklch(0.81 0.117 11.638);
+  --chart-2: oklch(0.645 0.246 16.439);
+  --chart-3: oklch(0.586 0.253 17.585);
+  --chart-4: oklch(0.514 0.222 16.935);
+  --chart-5: oklch(0.455 0.188 13.697);
 
-  /* Navigation Sidebar */
-  --sidebar: #fafafa;
-  --sidebar-foreground: #18181b;
+  /* Navigation Sidebar — taupe chrome; Moja KEEP sidebar-primary */
+  --sidebar: oklch(0.986 0.002 67.8);
+  --sidebar-foreground: oklch(0.147 0.004 49.3);
   --sidebar-primary: #ee237c;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f4f4f5;
-  --sidebar-accent-foreground: #18181b;
-  --sidebar-border: #e4e4e7;
+  --sidebar-accent: oklch(0.96 0.002 17.2);
+  --sidebar-accent-foreground: oklch(0.214 0.009 43.1);
+  --sidebar-border: oklch(0.922 0.005 34.3);
   --sidebar-ring: #ee237c;
 
-  /* Typography Stacks */
+  /* Typography — Outfit body + Raleway heading (b20te54eby); montserrat alias for legacy classes */
+  --font-montserrat: var(--font-outfit);
   --font-display-base:
-    var(--font-montserrat), Montserrat, Inter, ui-sans-serif, system-ui,
-    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
-    "Noto Color Emoji";
+    var(--font-outfit), Outfit, ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-heading-base:
+    var(--font-raleway), Raleway, var(--font-outfit), Outfit, ui-sans-serif,
+    system-ui, sans-serif;
   --font-mono-base:
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
@@ -80,43 +84,43 @@
   --font-serif-base: Georgia, "Times New Roman", serif;
 
   --font-display: var(--font-display-base);
-  --font-heading: var(--font-display-base);
+  --font-heading: var(--font-heading-base);
   --font-mono: var(--font-mono-base);
   --font-rounded: var(--font-rounded-base);
   --font-serif: var(--font-serif-base);
 
   /* Surface / selection / code (shadcn consumer tokens) */
-  --surface: #fafafa;
-  --surface-foreground: #18181b;
+  --surface: oklch(0.986 0.002 67.8);
+  --surface-foreground: oklch(0.147 0.004 49.3);
   --selection: #ee237c;
   --selection-foreground: #ffffff;
-  --code: #f4f4f5;
-  --code-foreground: #18181b;
-  --code-highlight: #e4e4e7;
-  --code-number: #71717a;
+  --code: oklch(0.96 0.002 17.2);
+  --code-foreground: oklch(0.147 0.004 49.3);
+  --code-highlight: oklch(0.922 0.005 34.3);
+  --code-number: oklch(0.547 0.021 43.1);
 }
 
 .dark {
-  /* Brand Core */
+  /* Brand Core — Moja KEEP pink */
   --primary: #ee237c;
   --primary-foreground: #ffffff;
   --primary-hover: #db1b6f;
   --primary-dark: #be123c;
 
-  /* Canvas & Neutrals — Dark (OLED Cockpit Optimized) */
-  --background: #09090b;
-  --foreground: #fafafa;
-  --card: #18181b;
-  --card-foreground: #fafafa;
-  --card-elevated: #27272a;
-  --popover: #18181b;
-  --popover-foreground: #fafafa;
-  --secondary: #27272a;
-  --secondary-foreground: #fafafa;
-  --muted: #27272a;
-  --muted-foreground: #a1a1aa;
-  --accent: #27272a;
-  --accent-foreground: #fafafa;
+  /* Canvas & Neutrals — Dark (taupe-aligned) */
+  --background: oklch(0.147 0.004 49.3);
+  --foreground: oklch(0.986 0.002 67.8);
+  --card: oklch(0.214 0.009 43.1);
+  --card-foreground: oklch(0.986 0.002 67.8);
+  --card-elevated: oklch(0.268 0.011 36.5);
+  --popover: oklch(0.214 0.009 43.1);
+  --popover-foreground: oklch(0.986 0.002 67.8);
+  --secondary: oklch(0.268 0.011 36.5);
+  --secondary-foreground: oklch(0.986 0.002 67.8);
+  --muted: oklch(0.268 0.011 36.5);
+  --muted-foreground: oklch(0.714 0.014 41.2);
+  --accent: oklch(0.268 0.011 36.5);
+  --accent-foreground: oklch(0.986 0.002 67.8);
 
   /* Functional Statuses — Dark */
   --success: #10b981;
@@ -127,7 +131,7 @@
   --warning-foreground: #ffffff;
   --warning-subtle: #78350f;
 
-  --destructive: #ef4444;
+  --destructive: oklch(0.704 0.191 22.216);
   --destructive-foreground: #ffffff;
   --destructive-subtle: #7f1d1d;
 
@@ -136,35 +140,35 @@
   --info-subtle: #1e3a8a;
 
   /* Controls & Perimeter Lines */
-  --border: #27272a;
-  --input: #27272a;
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
   --ring: #ee237c;
 
-  /* Data Visualization / Charts */
-  --chart-1: #ee237c;
-  --chart-2: #38bdf8;
-  --chart-3: #34d399;
-  --chart-4: #fbbf24;
-  --chart-5: #a78bfa;
+  /* Charts — rose (dark) */
+  --chart-1: oklch(0.81 0.117 11.638);
+  --chart-2: oklch(0.645 0.246 16.439);
+  --chart-3: oklch(0.586 0.253 17.585);
+  --chart-4: oklch(0.514 0.222 16.935);
+  --chart-5: oklch(0.455 0.188 13.697);
 
   /* Navigation Sidebar */
-  --sidebar: #18181b;
-  --sidebar-foreground: #fafafa;
+  --sidebar: oklch(0.214 0.009 43.1);
+  --sidebar-foreground: oklch(0.986 0.002 67.8);
   --sidebar-primary: #ee237c;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #27272a;
-  --sidebar-accent-foreground: #fafafa;
-  --sidebar-border: #27272a;
+  --sidebar-accent: oklch(0.268 0.011 36.5);
+  --sidebar-accent-foreground: oklch(0.986 0.002 67.8);
+  --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: #ee237c;
 
-  --surface: #18181b;
-  --surface-foreground: #a1a1aa;
+  --surface: oklch(0.214 0.009 43.1);
+  --surface-foreground: oklch(0.714 0.014 41.2);
   --selection: #ee237c;
   --selection-foreground: #ffffff;
-  --code: #27272a;
-  --code-foreground: #fafafa;
-  --code-highlight: #3f3f46;
-  --code-number: #a1a1aa;
+  --code: oklch(0.268 0.011 36.5);
+  --code-foreground: oklch(0.986 0.002 67.8);
+  --code-highlight: oklch(0.367 0.016 35.7);
+  --code-number: oklch(0.714 0.014 41.2);
 }
 
 @theme inline {
@@ -241,6 +245,8 @@
   --color-code-number: var(--code-number);
 
   --font-sans: var(--font-display-base);
-  --font-heading: var(--font-display-base);
+  --font-heading: var(--font-heading-base);
   --font-mono: var(--font-mono-base);
+  /* Legacy utility class font-montserrat → Outfit body */
+  --font-montserrat: var(--font-display-base);
 }

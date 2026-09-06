@@ -108,11 +108,12 @@ Chose **Adopt-tokens**:
   - [ ] Select / Combobox — arrow keys, Enter, Esc
   - [ ] DropdownMenu — keyboard open/nav (Base UI `render`)
   - [ ] Drawer / ActionDrawer — swipe/Esc/outside-press; dirty-form cancel
-- **Visual spot-check** under `.style-nova`:
+- **Visual spot-check** under `.style-maia`:
   - [ ] Admin dashboard revenue chart + blog forms
   - [ ] Operator revenue / driver analytics charts
   - [ ] Contact form, saved passengers, onboarding company/profile/bank
   - [ ] Phone input locked + unlocked country UX
+  - [ ] Drawer inset chrome (maia rounded-4xl) + Moja `modal={false}` / overlay
 
 ---
 
@@ -121,6 +122,18 @@ Chose **Adopt-tokens**:
 - ~~Unused `next-themes`~~ — removed from `@moja/ui`; `sonner` Toaster hardcodes `theme="light"` (product is light-only; web still imports raw `sonner` in layouts — optional follow-up to switch to `@moja/ui` Toaster)
 - ~~Document Moja extensions in ui-registry~~ — `apps/web/context/ui-registry.md`
 - ~~`graphify update`~~ after code changes
+
+---
+
+## Phase 9 — Preset `b20te54eby` (maia + taupe) — ✅ DONE (2026-09-06)
+
+Decoded: style **maia**, baseColor **taupe**, theme pink (overridden), chartColor **rose**, fonts Outfit/Raleway, radius medium `0.625rem`.
+
+1. ~~Adopt `style-maia.css`~~ — Moja patches: `cn-drawer-content-base`, `cn-font-heading`; switch globals import + `<html class="style-maia">`
+2. ~~`components.json`~~ — `"style": "base-maia"`, `"baseColor": "taupe"`
+3. ~~Theme tokens~~ — taupe neutrals + rose charts; **KEEP** Moja `--primary` / hover / dark / ring / sidebar-primary / selection `#ee237c`
+4. ~~Fonts~~ — Outfit (sans) + Raleway (heading); legacy `font-montserrat` → Outfit
+5. ~~Did not~~ mass-regenerate KEEP components or run blind `shadcn apply` (would overwrite Moja pink)
 
 ---
 

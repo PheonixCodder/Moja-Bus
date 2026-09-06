@@ -24,7 +24,7 @@ function useDrawer() {
 }
 
 /**
- * Drawer — Base UI (`@base-ui/react/drawer`) with style-nova `cn-*` tokens.
+ * Drawer — Base UI (`@base-ui/react/drawer`) with style-maia `cn-*` tokens.
  * Defaults to non-modal; always shows backdrop for Moja visual parity.
  * Close/Trigger use Base UI `render`, not Radix `asChild`.
  */

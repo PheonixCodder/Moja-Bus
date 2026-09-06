@@ -3,7 +3,7 @@
 @import "shadcn/tailwind.css";
 @plugin "@tailwindcss/typography";
 @import "@moja/theme/global.css";
-@import "./style-nova.css" layer(base);
+@import "./style-maia.css" layer(base);
 
 @source "../components";
 @source "../hooks";
