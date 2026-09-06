@@ -135,7 +135,7 @@ export default function BookingRouteMap({ booking }: BookingRouteMapProps) {
       {/* Origin/Dest floating overlay badge for extra context */}
       <div className="absolute top-4 left-4 z-10 flex flex-col gap-1 rounded-lg border bg-background/90 p-2 shadow-sm backdrop-blur-md">
         <div className="flex items-center gap-2 text-xs">
-          <div className="size-2 rounded-full bg-[#9333ea]" />
+          <div className="size-2 rounded-full bg-primary" />
           <span className="font-medium">
             {formatLocationLabel({
               cityName: booking.originCityName,
@@ -146,7 +146,7 @@ export default function BookingRouteMap({ booking }: BookingRouteMapProps) {
           </span>
         </div>
         <div className="flex items-center gap-2 text-xs">
-          <div className="size-2 rounded-full border-2 border-[#ee237c]" />
+          <div className="size-2 rounded-full border-2 border-primary" />
           <span className="font-medium">
             {formatLocationLabel({
               cityName: booking.destinationCityName,

@@ -30,12 +30,12 @@ export function BookingDialog() {
 
   return (
     <Dialog open={!!offerId} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="sm:max-w-4xl p-0 overflow-hidden bg-slate-50 border-slate-200 max-h-[85vh] flex flex-col">
+      <DialogContent className="sm:max-w-4xl p-0 overflow-hidden bg-card border-border max-h-[85vh] flex flex-col">
         {offerId ? (
           <Suspense
             fallback={
               <div className="flex items-center justify-center min-h-[400px]">
-                <Spinner className="size-8 text-[#ee237c]" />
+                <Spinner className="size-8 text-primary" />
               </div>
             }
           >

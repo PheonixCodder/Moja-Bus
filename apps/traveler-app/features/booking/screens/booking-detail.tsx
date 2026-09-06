@@ -25,7 +25,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { SubpageHeader } from "@/components/subpage-header";
 import { Text } from "@/components/ui/text";
-import { BottomTabInset } from "@/constants/theme";
+import { BottomTabInset, Palette } from "@/constants/theme";
 import { BookingStatusBadge } from "@/features/booking/components/booking-status-badge";
 import { HoldCountdown } from "@/features/booking/components/hold-countdown";
 import {
@@ -100,7 +100,7 @@ export function BookingDetailView({
 	if (isLoading) {
 		return (
 			<View className="flex-1 items-center justify-center bg-background">
-				<ActivityIndicator size="large" color="#ee237c" />
+				<ActivityIndicator size="large" color={Palette.rose[500]} />
 				<Text className="text-muted-foreground mt-3 text-xs font-semibold">
 					{t("loading")}
 				</Text>
@@ -294,7 +294,7 @@ export function BookingDetailView({
 							<HugeiconsIcon
 								icon={ArrowRight01Icon}
 								size={18}
-								color="#ee237c"
+								color={Palette.rose[500]}
 							/>
 						</View>
 
@@ -356,7 +356,7 @@ export function BookingDetailView({
 									<HugeiconsIcon
 										icon={Ticket01Icon}
 										size={16}
-										color="#ee237c"
+										color={Palette.rose[500]}
 									/>
 								</View>
 								<View>
@@ -417,18 +417,19 @@ export function BookingDetailView({
 									initiatePayment.isPending ||
 									isVerifying
 								}
-								className="bg-primary py-4 rounded-xl items-center justify-center flex-row gap-2 shadow-sm active:opacity-90"
+								className="bg-primary py-4 rounded-xl items-center justify-center flex-row gap-2 shadow-sm active:opacity-90 min-h-12"
+								accessibilityRole="button"
 							>
 								{checkoutWalletMutation.isPending ? (
-									<ActivityIndicator size="small" color="#ffffff" />
+									<ActivityIndicator size="small" color={Palette.zinc[50]} />
 								) : (
 									<>
 										<HugeiconsIcon
 											icon={Wallet01Icon}
 											size={18}
-											color="#ffffff"
+											color={Palette.zinc[50]}
 										/>
-										<Text className="text-white font-black text-sm">
+										<Text className="text-primary-foreground font-black text-sm">
 											{t("payWithWallet")} (
 											{formatPriceXOF(booking.totalAmountXOF)})
 										</Text>
@@ -437,23 +438,24 @@ export function BookingDetailView({
 							</Pressable>
 							<Pressable
 								onPress={handleExecutePaystackPayment}
+								accessibilityRole="button"
 								disabled={
 									checkoutWalletMutation.isPending ||
 									initiatePayment.isPending ||
 									isVerifying
 								}
-								className="bg-slate-900 py-4 rounded-xl items-center justify-center flex-row gap-2 shadow-sm active:opacity-90"
+								className="bg-slate-900 py-4 rounded-xl items-center justify-center flex-row gap-2 shadow-sm active:opacity-90 min-h-12"
 							>
 								{initiatePayment.isPending || isVerifying ? (
-									<ActivityIndicator size="small" color="#ffffff" />
+									<ActivityIndicator size="small" color={Palette.zinc[50]} />
 								) : (
 									<>
 										<HugeiconsIcon
 											icon={CreditCardIcon}
 											size={18}
-											color="#ffffff"
+											color={Palette.zinc[50]}
 										/>
-										<Text className="text-white font-black text-sm">
+										<Text className="text-primary-foreground font-black text-sm">
 											{t("payWithPaystack")}
 										</Text>
 									</>
@@ -465,7 +467,8 @@ export function BookingDetailView({
 					{isPending && holdExpired ? (
 						<Pressable
 							onPress={() => router.push("/(tabs)/search" as any)}
-							className="bg-muted border border-border py-3.5 rounded-xl items-center justify-center"
+							accessibilityRole="button"
+							className="bg-muted border border-border py-3.5 rounded-xl items-center justify-center min-h-11"
 						>
 							<Text className="text-foreground font-bold text-xs">
 								{t("searchAgain")}
@@ -486,7 +489,8 @@ export function BookingDetailView({
 										onPress={() =>
 											router.push(`/tracking/${booking.tripId}` as any)
 										}
-										className="bg-primary/20 border border-primary/30 py-3 rounded-xl items-center justify-center flex-row gap-2"
+										accessibilityRole="button"
+										className="bg-primary/20 border border-primary/30 py-3 rounded-xl items-center justify-center flex-row gap-2 min-h-11"
 									>
 										<View className="size-2 rounded-full bg-primary animate-ping" />
 										<Text className="text-primary font-bold text-xs">
@@ -498,14 +502,15 @@ export function BookingDetailView({
 							<View className="flex-row gap-3">
 								<Pressable
 									onPress={() => router.push("/(tabs)/tickets" as any)}
-									className="flex-1 bg-primary py-3.5 rounded-xl items-center justify-center flex-row gap-2 shadow-xs"
+									accessibilityRole="button"
+									className="flex-1 bg-primary py-3.5 rounded-xl items-center justify-center flex-row gap-2 shadow-xs min-h-11"
 								>
 									<HugeiconsIcon
 										icon={Ticket01Icon}
 										size={16}
-										color="#ffffff"
+										color={Palette.zinc[50]}
 									/>
-									<Text className="text-white font-bold text-xs">
+									<Text className="text-primary-foreground font-bold text-xs">
 										{t("viewTicket")}
 									</Text>
 								</Pressable>
@@ -513,9 +518,10 @@ export function BookingDetailView({
 								{/* P2-3 👻 → wired: email the digital-ticket link (17C.4). */}
 								<Pressable
 									onPress={() => setShareDialogOpen(true)}
-									className="bg-muted border border-border px-4 py-3.5 rounded-xl items-center justify-center flex-row gap-1.5"
+									accessibilityRole="button"
+									className="bg-muted border border-border px-4 py-3.5 rounded-xl items-center justify-center flex-row gap-1.5 min-h-11"
 								>
-									<HugeiconsIcon icon={Share01Icon} size={15} color="#0f172a" />
+									<HugeiconsIcon icon={Share01Icon} size={15} color={Palette.zinc[900]} />
 									<Text className="text-foreground font-bold text-xs">
 										{t("shareTicket")}
 									</Text>
@@ -523,12 +529,13 @@ export function BookingDetailView({
 
 								<Pressable
 									onPress={() => setCancelDialogOpen(true)}
-									className="bg-destructive/10 border border-destructive/20 px-4 py-3.5 rounded-xl items-center justify-center flex-row gap-1.5"
+									accessibilityRole="button"
+									className="bg-destructive/10 border border-destructive/20 px-4 py-3.5 rounded-xl items-center justify-center flex-row gap-1.5 min-h-11"
 								>
 									<HugeiconsIcon
 										icon={Cancel01Icon}
 										size={16}
-										color="#ef4444"
+										color={Palette.red[500]}
 									/>
 									<Text className="text-destructive font-bold text-xs">
 										{t("cancel")}
@@ -541,9 +548,10 @@ export function BookingDetailView({
 					{isCompleted ? (
 						<Pressable
 							onPress={() => setReviewSheetOpen(true)}
-							className="bg-primary/10 border border-primary/20 py-3.5 rounded-xl items-center justify-center flex-row gap-2 shadow-xs"
+							accessibilityRole="button"
+							className="bg-primary/10 border border-primary/20 py-3.5 rounded-xl items-center justify-center flex-row gap-2 shadow-xs min-h-11"
 						>
-							<HugeiconsIcon icon={StarIcon} size={16} color="#ee237c" />
+							<HugeiconsIcon icon={StarIcon} size={16} color={Palette.rose[500]} />
 							<Text className="text-primary font-bold text-xs">
 								{t("reviewTrip")}
 							</Text>
@@ -590,14 +598,14 @@ export function BookingDetailView({
 							value={recipientName}
 							onChangeText={setRecipientName}
 							placeholder={t("recipientName")}
-							placeholderTextColor="#94a3b8"
+							placeholderTextColor={Palette.zinc[400]}
 							className="border border-border rounded-xl px-3 py-2.5 text-foreground text-sm"
 						/>
 						<TextInput
 							value={recipientEmail}
 							onChangeText={setRecipientEmail}
 							placeholder={t("recipientEmail")}
-							placeholderTextColor="#94a3b8"
+							placeholderTextColor={Palette.zinc[400]}
 							autoCapitalize="none"
 							keyboardType="email-address"
 							className="border border-border rounded-xl px-3 py-2.5 text-foreground text-sm"
@@ -643,9 +651,9 @@ export function BookingDetailView({
 								className="flex-1 bg-primary rounded-xl py-2.5 items-center"
 							>
 								{shareTicketMutation.isPending ? (
-									<ActivityIndicator size="small" color="#ffffff" />
+									<ActivityIndicator size="small" color={Palette.zinc[50]} />
 								) : (
-									<Text className="text-white font-bold text-xs">
+									<Text className="text-primary-foreground font-bold text-xs">
 										{t("send")}
 									</Text>
 								)}

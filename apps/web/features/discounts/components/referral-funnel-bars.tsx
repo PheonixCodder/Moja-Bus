@@ -20,12 +20,12 @@ export function ReferralFunnelBars({
         return (
           <div key={step.key} className="space-y-1">
             <div className="flex items-center justify-between text-xs">
-              <span className="font-medium text-slate-700">{step.label}</span>
-              <span className="tabular-nums text-slate-500">{step.count}</span>
+              <span className="font-medium text-foreground">{step.label}</span>
+              <span className="tabular-nums text-muted-foreground">{step.count}</span>
             </div>
-            <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+            <div className="h-2 overflow-hidden rounded-full bg-muted">
               <div
-                className="h-full rounded-full bg-[#ee237c] transition-[width] duration-300"
+                className="h-full rounded-full bg-primary transition-[width] duration-300"
                 style={{ width: `${pct}%` }}
               />
             </div>

@@ -1,7 +1,10 @@
 import React, { useRef, useEffect } from "react";
-import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
+import { View, StyleSheet, Text } from "react-native";
 import MapboxGL from "@rnmapbox/maps";
 import { Navigation, MapPin } from "lucide-react-native";
+import { Button } from "@/components/ui/Button";
+import { Palette } from "@moja/theme/tokens";
+import { colors } from "@/constants/theme";
 import { MAPBOX_PUBLIC_TOKEN } from "@/lib/mapbox";
 
 // Initialize Mapbox token
@@ -92,7 +95,7 @@ export function DriverNavigationMap({
             <MapboxGL.LineLayer
               id="driverRouteLineCasing"
               style={{
-                lineColor: "#9f1239",
+                lineColor: Palette.rose[900],
                 lineWidth: 8,
                 lineCap: "round",
                 lineJoin: "round",
@@ -102,7 +105,7 @@ export function DriverNavigationMap({
             <MapboxGL.LineLayer
               id="driverRouteLine"
               style={{
-                lineColor: "#e11d48",
+                lineColor: Palette.rose[600],
                 lineWidth: 5,
                 lineCap: "round",
                 lineJoin: "round",
@@ -119,7 +122,7 @@ export function DriverNavigationMap({
             coordinate={[stop.longitude, stop.latitude]}
           >
             <View style={stop.isTerminal ? styles.terminalMarker : styles.waypointMarker}>
-              <MapPin size={stop.isTerminal ? 14 : 10} color="#ffffff" />
+              <MapPin size={stop.isTerminal ? 14 : 10} color={Palette.zinc[50]} />
             </View>
           </MapboxGL.PointAnnotation>
         ))}
@@ -148,13 +151,14 @@ export function DriverNavigationMap({
       </MapboxGL.MapView>
 
       {/* Recenter Action Button */}
-      <TouchableOpacity
+      <Button
         onPress={handleRecenter}
-        style={styles.recenterButton}
-        activeOpacity={0.8}
+        variant="secondary"
+        size="sm"
+        className="absolute bottom-4 right-4 w-11 h-11 p-0 rounded-full border border-border items-center justify-center shadow-lg"
       >
-        <Navigation size={20} color="#ffffff" />
-      </TouchableOpacity>
+        <Navigation size={20} color={colors.neutral.textPrimary} />
+      </Button>
     </View>
   );
 }
@@ -162,7 +166,7 @@ export function DriverNavigationMap({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#09090b",
+    backgroundColor: colors.neutral.background,
     position: "relative",
   },
   map: {
@@ -172,24 +176,20 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: "#10b981",
+    backgroundColor: Palette.emerald[500],
     borderWidth: 2,
-    borderColor: "#ffffff",
+    borderColor: Palette.zinc[50],
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#10b981",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 6,
     elevation: 6,
   },
   waypointMarker: {
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: "#38bdf8",
+    backgroundColor: Palette.blue[500],
     borderWidth: 2,
-    borderColor: "#ffffff",
+    borderColor: Palette.zinc[50],
     alignItems: "center",
     justifyContent: "center",
   },
@@ -203,15 +203,11 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#e11d48",
+    backgroundColor: Palette.rose[600],
     borderWidth: 3,
-    borderColor: "#ffffff",
+    borderColor: Palette.zinc[50],
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#e11d48",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.6,
-    shadowRadius: 8,
     elevation: 8,
   },
   puckPointer: {
@@ -223,25 +219,7 @@ const styles = StyleSheet.create({
     borderStyle: "solid",
     borderLeftColor: "transparent",
     borderRightColor: "transparent",
-    borderBottomColor: "#ffffff",
+    borderBottomColor: Palette.zinc[50],
     marginTop: -4,
-  },
-  recenterButton: {
-    position: "absolute",
-    bottom: 16,
-    right: 16,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#18181b",
-    borderWidth: 1,
-    borderColor: "#27272a",
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 6,
   },
 });

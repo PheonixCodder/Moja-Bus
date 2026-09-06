@@ -12,17 +12,17 @@ const BADGE_META: Record<
   TOP_RATED: {
     icon: Award,
     labelKey: "trustBadges.topRated",
-    className: "bg-amber-50 text-amber-700 border-amber-200",
+    className: "bg-warning/10 text-warning border-warning/20",
   },
   SAFE_DRIVER: {
     icon: ShieldCheck,
     labelKey: "trustBadges.safeDriver",
-    className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    className: "bg-success/10 text-success border-success/20",
   },
   VETERAN: {
     icon: Medal,
     labelKey: "trustBadges.veteran",
-    className: "bg-violet-50 text-violet-700 border-violet-200",
+    className: "bg-primary/10 text-primary border-primary/20",
   },
 };
 

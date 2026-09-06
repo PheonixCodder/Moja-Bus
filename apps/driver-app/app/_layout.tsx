@@ -16,6 +16,7 @@ import { authClient } from "@/lib/auth-client";
 import { usePushToken } from "@/hooks/use-push-token";
 import { UrgentDispatchGate } from "@/components/urgent-dispatch-gate";
 import { NAV_THEME } from "@/lib/theme";
+import { colors } from "@/constants/theme";
 
 const isExpoGo = Constants.appOwnership === "expo";
 
@@ -169,7 +170,7 @@ export default function RootLayout() {
 						<Stack
 							screenOptions={{
 								headerShown: false,
-								contentStyle: { flex: 1, backgroundColor: "#09090b" },
+								contentStyle: { flex: 1, backgroundColor: colors.neutral.background },
 								animation: "slide_from_right",
 							}}
 						>

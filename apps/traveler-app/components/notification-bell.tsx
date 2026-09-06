@@ -6,6 +6,7 @@ import { router } from "expo-router";
 import { Pressable, View } from "react-native";
 import { useTRPC } from "@/lib/trpc";
 import { authClient } from "@/lib/auth-client";
+import { Colors } from "@/constants/theme";
 import { Text } from "./ui/text";
 
 interface TrpcQuery<TInput, TOutput> {
@@ -60,10 +61,10 @@ function BellWithCount() {
 			style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
 		>
 			<View>
-				<HugeiconsIcon icon={Notification03Icon} size={24} color="#a3a3a3" />
+				<HugeiconsIcon icon={Notification03Icon} size={24} color={Colors.light.textMuted} />
 				{unread > 0 && (
-					<View className="absolute -top-1 -right-1.5 min-w-[18px] h-[18px] rounded-full bg-red-500 items-center justify-center px-1">
-						<Text className="text-xs font-bold text-white">
+					<View className="absolute -top-1 -right-1.5 min-w-[18px] h-[18px] rounded-full bg-destructive items-center justify-center px-1">
+						<Text className="text-xs font-bold text-destructive-foreground">
 							{unread > 99 ? "99+" : unread}
 						</Text>
 					</View>

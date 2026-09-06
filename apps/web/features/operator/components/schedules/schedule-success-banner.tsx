@@ -4,6 +4,8 @@ import Link from "next/link";
 import { CheckCircle2, Radio } from "lucide-react";
 import { useTranslations } from "next-intl";
 
+import { Button } from "@moja/ui/components/ui/button";
+
 export function ScheduleSuccessBanner({
   tripsCreated,
   onDismiss,
@@ -30,13 +32,15 @@ export function ScheduleSuccessBanner({
             <Radio className="size-3.5" />
             {t("successBanner.openDispatch")}
           </Link>
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={onDismiss}
-            className="text-xs text-muted-foreground hover:text-foreground"
+            className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground hover:bg-transparent"
           >
             {t("successBanner.dismiss")}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

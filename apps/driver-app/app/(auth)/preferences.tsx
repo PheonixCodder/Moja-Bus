@@ -7,7 +7,6 @@ import {
 	ActivityIndicator,
 	Alert,
 	Switch,
-	StyleSheet,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -156,29 +155,29 @@ export default function DriverPreferencesScreen() {
 					size="lg"
 					loading={saveMutation.isPending}
 					onPress={handleSave}
-					icon={<HugeiconsIcon icon={ArrowRight01Icon} size={18} color="#ffffff" />}
+					icon={<HugeiconsIcon icon={ArrowRight01Icon} size={18} color={colors.neutral.textPrimary} />}
 					iconPosition="right"
 				/>
 			}
 		>
 			{isLoadingPref ? (
-				<View style={styles.loadingBox}>
+				<View className="items-center justify-center py-12">
 					<ActivityIndicator size="large" color={colors.primary.rose} />
 				</View>
 			) : (
-				<View style={styles.formContainer}>
+				<View className="gap-4">
 					{/* Marketplace Availability Card */}
-					<View style={styles.card}>
-						<View style={styles.cardHeaderRow}>
-							<View style={styles.iconTitleRow}>
-								<View style={styles.iconCircle}>
-									<HugeiconsIcon icon={Briefcase01Icon} size={20} color="#ee237c" />
+					<Card className="p-5 gap-3">
+						<View className="flex-row items-center justify-between">
+							<View className="flex-row items-center gap-2.5 flex-1 pr-2">
+								<View className="w-9 h-9 rounded-xl bg-primary/15 items-center justify-center">
+									<HugeiconsIcon icon={Briefcase01Icon} size={20} color={colors.primary.rose} />
 								</View>
-								<View style={styles.titleWrap}>
-									<Text style={styles.cardTitle}>
+								<View className="flex-1 gap-0.5">
+									<Text className="text-sm font-extrabold text-foreground">
 										{isEn ? "Marketplace Availability" : "Disponibilité Recrutement"}
 									</Text>
-									<Text style={styles.cardSubtitle}>
+									<Text className="text-xs text-muted-foreground leading-4">
 										{isEn
 											? "Allow carriers to discover and send you trip offers"
 											: "Permettre aux compagnies de vous proposer des missions"}
@@ -191,45 +190,46 @@ export default function DriverPreferencesScreen() {
 									DriverFeedback.tap();
 									setIsAvailableForHire(val);
 								}}
-								trackColor={{ false: "#27272a", true: "#ee237c" }}
-								thumbColor="#fafafa"
+								trackColor={{ false: colors.neutral.border, true: colors.primary.rose }}
+								thumbColor={colors.neutral.textPrimary}
 							/>
 						</View>
-					</View>
+					</Card>
 
 					{/* Preferred Service Type */}
-					<View style={styles.card}>
-						<Text style={styles.cardTitle}>
+					<Card className="p-5 gap-3">
+						<Text className="text-sm font-extrabold text-foreground">
 							{isEn ? "Operation Mode" : "Mode d'Opération Principal"}
 						</Text>
-						<Text style={styles.cardSubtitle}>
+						<Text className="text-xs text-muted-foreground">
 							{isEn
 								? "Choose your primary driving engagement"
 								: "Choisissez votre spécialité de conduite"}
 						</Text>
 
-						<View style={styles.optionsList}>
+						<View className="gap-2.5 pt-1">
 							{EMPLOYMENT_OPTIONS.map((opt) => {
 								const isSelected = preferredType === opt.value;
 								return (
-									<TouchableOpacity
+									<Button
 										key={opt.value}
 										onPress={() => {
 											DriverFeedback.tap();
 											setPreferredType(opt.value);
 										}}
-										activeOpacity={0.8}
-										style={[
-											styles.optionCard,
-											isSelected && styles.optionCardSelected,
-										]}
+										variant={isSelected ? "primary" : "outline"}
+										size="md"
+										className={`p-3.5 h-auto rounded-2xl items-start justify-start border-1.5 gap-1 ${
+											isSelected
+												? "border-primary bg-primary/10"
+												: "border-border bg-background"
+										}`}
 									>
-										<View style={styles.optionHeader}>
+										<View className="flex-row items-center justify-between w-full">
 											<Text
-												style={[
-													styles.optionLabel,
-													isSelected && styles.optionLabelSelected,
-												]}
+												className={`text-sm font-bold ${
+													isSelected ? "text-primary" : "text-foreground"
+												}`}
 											>
 												{isEn ? opt.labelEn : opt.label}
 											</Text>
@@ -237,257 +237,103 @@ export default function DriverPreferencesScreen() {
 												<HugeiconsIcon
 													icon={CheckmarkCircle02Icon}
 													size={18}
-													color="#ee237c"
+													color={colors.primary.rose}
 												/>
 											) : null}
 										</View>
-										<Text style={styles.optionDesc}>{opt.description}</Text>
-									</TouchableOpacity>
+										<Text className="text-xs text-muted-foreground leading-4">{opt.description}</Text>
+									</Button>
 								);
 							})}
 						</View>
-					</View>
+					</Card>
 
 					{/* City Base */}
-					<View style={styles.card}>
-						<View style={styles.iconTitleRow}>
-							<HugeiconsIcon icon={Location01Icon} size={18} color="#ee237c" />
-							<Text style={styles.cardTitle}>
+					<Card className="p-5 gap-3">
+						<View className="flex-row items-center gap-2">
+							<HugeiconsIcon icon={Location01Icon} size={18} color={colors.primary.rose} />
+							<Text className="text-sm font-extrabold text-foreground">
 								{isEn ? "Base City (Hub)" : "Ville de Base (Gare Principale)"}
 							</Text>
 						</View>
 
-						<View style={styles.hubsWrap}>
+						<View className="flex-row flex-wrap gap-2 pt-1">
 							{CIV_CITY_HUBS.map((city) => {
 								const isSelected = cityBase === city;
 								return (
-									<TouchableOpacity
+									<Button
 										key={city}
 										onPress={() => {
 											DriverFeedback.tap();
 											setCityBase(city);
 										}}
-										activeOpacity={0.8}
-										style={[
-											styles.hubChip,
-											isSelected && styles.hubChipSelected,
-										]}
+										variant={isSelected ? "primary" : "outline"}
+										size="sm"
+										className={`px-3.5 py-2 h-auto rounded-xl border ${
+											isSelected
+												? "border-primary bg-primary"
+												: "border-border bg-background"
+										}`}
 									>
 										<Text
-											style={[
-												styles.hubText,
-												isSelected && styles.hubTextSelected,
-											]}
+											className={`text-xs font-semibold ${
+												isSelected ? "text-primary-foreground font-bold" : "text-foreground"
+											}`}
 										>
 											{city}
 										</Text>
-									</TouchableOpacity>
+									</Button>
 								);
 							})}
 						</View>
-					</View>
+					</Card>
 
 					{/* Route Experience */}
-					<View style={styles.card}>
-						<View style={styles.iconTitleRow}>
-							<HugeiconsIcon icon={Route01Icon} size={18} color="#ee237c" />
-							<Text style={styles.cardTitle}>
+					<Card className="p-5 gap-3">
+						<View className="flex-row items-center gap-2">
+							<HugeiconsIcon icon={Route01Icon} size={18} color={colors.primary.rose} />
+							<Text className="text-sm font-extrabold text-foreground">
 								{isEn ? "Route Experience" : "Itinéraires Maîtrisés"}
 							</Text>
 						</View>
 
-						<View style={styles.routeInputRow}>
+						<View className="flex-row items-center gap-2">
 							<TextInput
 								value={routeInput}
 								onChangeText={setRouteInput}
 								placeholder="ex: Abidjan - Bouaké"
-								placeholderTextColor="#52525b"
-								style={styles.routeTextInput}
+								placeholderTextColor={colors.neutral.textMuted}
+								className="flex-1 h-12 rounded-xl border border-border bg-background px-3.5 text-foreground text-sm"
 							/>
-							<TouchableOpacity
+							<Button
 								onPress={handleAddRoute}
-								style={styles.addRouteBtn}
+								size="sm"
+								className="w-12 h-12 p-0 rounded-xl bg-primary items-center justify-center"
 							>
-								<HugeiconsIcon icon={Add01Icon} size={18} color="#ffffff" />
-							</TouchableOpacity>
+								<HugeiconsIcon icon={Add01Icon} size={18} color={colors.neutral.textPrimary} />
+							</Button>
 						</View>
 
 						{routeExperience.length > 0 ? (
-							<View style={styles.routeChipsWrap}>
+							<View className="flex-row flex-wrap gap-2 pt-1">
 								{routeExperience.map((r) => (
-									<View key={r} style={styles.routeChip}>
-										<Text style={styles.routeChipText}>{r}</Text>
-										<TouchableOpacity
+									<View key={r} className="flex-row items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-border">
+										<Text className="text-xs text-foreground font-medium">{r}</Text>
+										<Button
 											onPress={() => handleRemoveRoute(r)}
-											style={styles.removeRouteBtn}
+											variant="ghost"
+											size="sm"
+											className="p-0.5 h-auto min-h-0 w-auto"
 										>
-											<HugeiconsIcon icon={Cancel01Icon} size={12} color="#a1a1aa" />
-										</TouchableOpacity>
+											<HugeiconsIcon icon={Cancel01Icon} size={12} color={colors.neutral.textSecondary} />
+										</Button>
 									</View>
 								))}
 							</View>
 						) : null}
-					</View>
+					</Card>
 				</View>
 			)}
 		</ScreenShell>
 	);
 }
-
-const styles = StyleSheet.create({
-	loadingBox: {
-		alignItems: "center",
-		justifyContent: "center",
-		paddingVertical: 48,
-	},
-	formContainer: {
-		gap: 16,
-	},
-	card: {
-		backgroundColor: "#18181b",
-		borderWidth: 1,
-		borderColor: "#27272a",
-		borderRadius: 20,
-		padding: 20,
-		gap: 12,
-	},
-	cardHeaderRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-	},
-	iconTitleRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 10,
-		flex: 1,
-	},
-	iconCircle: {
-		width: 36,
-		height: 36,
-		borderRadius: 12,
-		backgroundColor: "rgba(238, 35, 124, 0.12)",
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	titleWrap: {
-		flex: 1,
-		gap: 2,
-	},
-	cardTitle: {
-		fontSize: 15,
-		fontWeight: "800",
-		color: "#fafafa",
-	},
-	cardSubtitle: {
-		fontSize: 12,
-		color: "#a1a1aa",
-		lineHeight: 16,
-	},
-	optionsList: {
-		gap: 10,
-		paddingTop: 4,
-	},
-	optionCard: {
-		padding: 14,
-		borderRadius: 16,
-		borderWidth: 1.5,
-		borderColor: "#27272a",
-		backgroundColor: "#09090b",
-		gap: 4,
-	},
-	optionCardSelected: {
-		borderColor: "#ee237c",
-		backgroundColor: "rgba(238, 35, 124, 0.06)",
-	},
-	optionHeader: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-	},
-	optionLabel: {
-		fontSize: 14,
-		fontWeight: "700",
-		color: "#fafafa",
-	},
-	optionLabelSelected: {
-		color: "#ee237c",
-	},
-	optionDesc: {
-		fontSize: 11,
-		color: "#71717a",
-		lineHeight: 16,
-	},
-	hubsWrap: {
-		flexDirection: "row",
-		flexWrap: "wrap",
-		gap: 8,
-		paddingTop: 4,
-	},
-	hubChip: {
-		paddingHorizontal: 14,
-		paddingVertical: 8,
-		borderRadius: 10,
-		borderWidth: 1,
-		borderColor: "#27272a",
-		backgroundColor: "#09090b",
-	},
-	hubChipSelected: {
-		borderColor: "#ee237c",
-		backgroundColor: "#ee237c",
-	},
-	hubText: {
-		fontSize: 12,
-		fontWeight: "600",
-		color: "#d4d4d8",
-	},
-	hubTextSelected: {
-		color: "#ffffff",
-	},
-	routeInputRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 8,
-	},
-	routeTextInput: {
-		flex: 1,
-		height: 48,
-		borderRadius: 12,
-		borderWidth: 1,
-		borderColor: "#27272a",
-		backgroundColor: "#09090b",
-		paddingHorizontal: 14,
-		color: "#fafafa",
-		fontSize: 14,
-	},
-	addRouteBtn: {
-		width: 48,
-		height: 48,
-		borderRadius: 12,
-		backgroundColor: "#ee237c",
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	routeChipsWrap: {
-		flexDirection: "row",
-		flexWrap: "wrap",
-		gap: 8,
-		paddingTop: 4,
-	},
-	routeChip: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 6,
-		paddingHorizontal: 10,
-		paddingVertical: 6,
-		borderRadius: 8,
-		backgroundColor: "#27272a",
-	},
-	routeChipText: {
-		fontSize: 12,
-		color: "#fafafa",
-	},
-	removeRouteBtn: {
-		padding: 2,
-	},
-});

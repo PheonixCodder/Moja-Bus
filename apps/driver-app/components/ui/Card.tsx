@@ -14,10 +14,10 @@ export function Card({
 	...props
 }: CardProps) {
 	const variantStyles = {
-		default: "bg-[#18181b] border border-[#27272a]",
-		elevated: "bg-[#27272a] border border-[#3f3f46]",
-		outline: "bg-transparent border border-[#27272a]",
-		highlight: "bg-[#18181b] border border-[#ee237c]/30",
+		default: "bg-card border border-border",
+		elevated: "bg-card-elevated border border-border",
+		outline: "bg-transparent border border-border",
+		highlight: "bg-card border border-primary/30",
 	}[variant];
 
 	return (

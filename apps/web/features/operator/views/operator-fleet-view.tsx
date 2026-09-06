@@ -225,11 +225,11 @@ function BusCard({
         </div>
 
         {bus.notes && (
-          <div className="rounded-md bg-amber-50/60 border border-amber-200/60 px-2.5 py-1.5">
-            <p className="text-[10px] text-amber-700 font-semibold uppercase tracking-wider">
+          <div className="rounded-md bg-warning/10 border border-warning/20 px-2.5 py-1.5">
+            <p className="text-[10px] text-warning font-semibold uppercase tracking-wider">
               {t("busCard.notes")}
             </p>
-            <p className="text-xs text-amber-800/90 mt-0.5 line-clamp-2">
+            <p className="text-xs text-warning/90 mt-0.5 line-clamp-2">
               {bus.notes}
             </p>
           </div>
@@ -766,9 +766,9 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
         onOpenChange={(o) => {
           if (!o) setPreviewLayout(null);
         }}
-        direction="right"
+        swipeDirection="right"
       >
-        <DrawerContent className="bg-background border-l border-border sm:max-w-xl w-full">
+        <DrawerContent className="w-full border-l border-border bg-background data-[swipe-axis=x]:[--drawer-content-width:100%] sm:data-[swipe-axis=x]:[--drawer-content-width:36rem]">
           <DrawerHeader className="border-b border-border pb-4">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 border border-primary/20">
@@ -799,15 +799,16 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
             )}
           </div>
           <DrawerFooter className="border-t border-border pt-4">
-            <DrawerClose asChild>
-              <Button
+            <DrawerClose
+              render={
+                <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 text-muted-foreground hover:text-foreground"
-              >
+                className="h-8 text-muted-foreground hover:text-foreground" />
+              }
+            >
                 {tc("close")}
-              </Button>
-            </DrawerClose>
+              </DrawerClose>
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
@@ -993,13 +994,14 @@ export function OperatorFleetView() {
               { id: "layouts", label: t("tabs.layouts"), count: undefined },
             ] as const
           ).map((tab) => (
-            <button
+            <Button
               key={tab.id}
               type="button"
+              variant="ghost"
               id={`fleet-tab-${tab.id}`}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "relative flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors duration-150 border-b-2 -mb-px",
+                "relative flex items-center gap-2 px-4 py-2.5 h-auto text-sm font-medium transition-colors duration-150 border-b-2 -mb-px rounded-none shadow-none",
                 activeTab === tab.id
                   ? "border-primary text-foreground"
                   : "border-transparent text-muted-foreground hover:text-foreground hover:border-border",
@@ -1018,7 +1020,7 @@ export function OperatorFleetView() {
                   {tab.count}
                 </span>
               )}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
@@ -1101,7 +1103,7 @@ export function OperatorFleetView() {
                   <ComboboxInput
                     id="fleet-status-filter"
                     placeholder={t("selectStatus")}
-                    className="h-8 text-xs bg-card border-border w-full sm:w-[160px]"
+                    className="h-8 text-xs bg-card border-border w-full sm:w-40"
                     value={
                       statusFilter === "ALL"
                         ? t("allStatuses")
@@ -1265,7 +1267,7 @@ export function OperatorFleetView() {
             setSeatMapBusTitle(null);
           }
         }}
-        direction="right"
+        swipeDirection="right"
       >
         <DrawerContent className="bg-background border-l border-border sm:max-w-xl w-full">
           <DrawerHeader className="border-b border-border pb-4">
@@ -1301,15 +1303,16 @@ export function OperatorFleetView() {
           </div>
 
           <DrawerFooter className="border-t border-border pt-4">
-            <DrawerClose asChild>
-              <Button
+            <DrawerClose
+              render={
+                <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 text-muted-foreground hover:text-foreground"
-              >
+                className="h-8 text-muted-foreground hover:text-foreground" />
+              }
+            >
                 {t("seatMap.close")}
-              </Button>
-            </DrawerClose>
+              </DrawerClose>
           </DrawerFooter>
         </DrawerContent>
       </Drawer>

@@ -63,7 +63,7 @@ export default async function BookingSuccessPage({
       <Suspense
         fallback={
           <div className="min-h-screen flex items-center justify-center">
-            <Spinner className="size-8 text-[#ee237c]" />
+            <Spinner className="size-8 text-primary" />
           </div>
         }
       >

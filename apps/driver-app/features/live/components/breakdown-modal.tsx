@@ -4,8 +4,7 @@ import {
 	Text,
 	TextInput,
 	Modal,
-	TouchableOpacity,
-	StyleSheet,
+	Pressable,
 	ScrollView,
 } from "react-native";
 import { HugeiconsIcon } from "@hugeicons/react-native";
@@ -13,6 +12,7 @@ import { Alert02Icon, Location01Icon } from "@hugeicons/core-free-icons";
 import { DriverFeedback } from "@/lib/haptics";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
+import { colors } from "@/constants/theme";
 import type { DriverBreakdownType } from "@moja/schemas";
 
 export const BREAKDOWN_TYPES: Array<{
@@ -68,29 +68,29 @@ export function BreakdownModal({
 			animationType="slide"
 			onRequestClose={onClose}
 		>
-			<View style={styles.backdrop}>
-				<View style={styles.modalSheet}>
+			<View className="flex-1 bg-black/80 justify-end">
+				<View className="bg-card rounded-t-3xl p-5 border-t border-destructive/30 max-h-[85%]">
 					<ScrollView
 						showsVerticalScrollIndicator={false}
-						contentContainerStyle={styles.scrollContent}
+						contentContainerStyle={{ gap: 18, paddingBottom: 16 }}
 					>
 						{/* Header */}
-						<View style={styles.headerRow}>
-							<View style={styles.iconWrap}>
-								<HugeiconsIcon icon={Alert02Icon} size={22} color="#ef4444" />
+						<View className="flex-row items-center gap-3">
+							<View className="p-2.5 rounded-2xl bg-destructive/15">
+								<HugeiconsIcon icon={Alert02Icon} size={22} color={colors.semantic.error} />
 							</View>
-							<View style={{ flex: 1, gap: 2 }}>
-								<Text style={styles.modalTitle}>{t("breakdownTitle")}</Text>
-								<Text style={styles.modalSubtitle}>{t("breakdownSubtitle")}</Text>
+							<View className="flex-1 gap-0.5">
+								<Text className="text-lg font-extrabold text-foreground">{t("breakdownTitle")}</Text>
+								<Text className="text-xs text-muted-foreground leading-4">{t("breakdownSubtitle")}</Text>
 							</View>
 						</View>
 
 						{/* GPS Position Fix Preview */}
-						<View style={styles.gpsCard}>
-							<HugeiconsIcon icon={Location01Icon} size={16} color="#38bdf8" />
-							<View style={{ flex: 1 }}>
-								<Text style={styles.gpsTitle}>{t("breakdownGpsFix")}</Text>
-								<Text style={styles.gpsCoords}>
+						<View className="flex-row items-center gap-2.5 p-3 rounded-xl bg-info/10 border border-info/20">
+							<HugeiconsIcon icon={Location01Icon} size={16} color={colors.semantic.info} />
+							<View className="flex-1">
+								<Text className="text-[11px] font-bold text-info">{t("breakdownGpsFix")}</Text>
+								<Text className="text-xs text-foreground font-semibold">
 									{currentLocation
 										? `${currentLocation.latitude.toFixed(5)}, ${currentLocation.longitude.toFixed(5)} (±${Math.round(currentLocation.accuracy ?? 10)}m)`
 										: t("breakdownGpsWaiting")}
@@ -99,43 +99,42 @@ export function BreakdownModal({
 						</View>
 
 						{/* Failure Category */}
-						<View style={styles.fieldGroup}>
-							<Text style={styles.fieldLabel}>{t("breakdownTypeLabel")}</Text>
-							<View style={styles.reasonsGrid}>
+						<View className="gap-2">
+							<Text className="text-xs font-semibold text-muted-foreground">{t("breakdownTypeLabel")}</Text>
+							<View className="flex-row flex-wrap gap-2">
 								{BREAKDOWN_TYPES.map((option) => {
 									const isSelected = breakdownType === option.value;
 									return (
-										<TouchableOpacity
+										<Pressable
 											key={option.value}
 											onPress={() => {
 												DriverFeedback.tap();
 												onBreakdownTypeChange(option.value);
 											}}
-											activeOpacity={0.8}
-											style={[
-												styles.reasonChip,
-												isSelected && styles.reasonChipSelected,
-											]}
+											className={`px-3 py-2 rounded-xl border ${
+												isSelected
+													? "bg-destructive/20 border-destructive"
+													: "bg-background border-border"
+											}`}
 										>
 											<Text
-												style={[
-													styles.reasonText,
-													isSelected && styles.reasonTextSelected,
-												]}
+												className={`text-xs font-semibold ${
+													isSelected ? "text-destructive font-bold" : "text-muted-foreground"
+												}`}
 											>
 												{t(option.labelKey)}
 											</Text>
-										</TouchableOpacity>
+										</Pressable>
 									);
 								})}
 							</View>
 						</View>
 
 						{/* Delay Minutes Estimate */}
-						<View style={styles.fieldGroup}>
-							<Text style={styles.fieldLabel}>{t("breakdownDelayLabel")}</Text>
+						<View className="gap-2">
+							<Text className="text-xs font-semibold text-muted-foreground">{t("breakdownDelayLabel")}</Text>
 							<TextInput
-								style={styles.textInput}
+								className="bg-background rounded-xl border border-border px-3.5 py-2.5 text-foreground text-sm font-semibold"
 								keyboardType="number-pad"
 								value={delayMinutes}
 								onChangeText={onDelayMinutesChange}
@@ -143,21 +142,21 @@ export function BreakdownModal({
 						</View>
 
 						{/* Incident Notes / Description */}
-						<View style={styles.fieldGroup}>
-							<Text style={styles.fieldLabel}>{t("breakdownDescLabel")}</Text>
+						<View className="gap-2">
+							<Text className="text-xs font-semibold text-muted-foreground">{t("breakdownDescLabel")}</Text>
 							<TextInput
-								style={[styles.textInput, styles.textArea]}
+								className="bg-background rounded-xl border border-border px-3.5 py-2.5 text-foreground text-sm min-h-[70px] text-top"
 								multiline
 								numberOfLines={3}
 								placeholder={t("breakdownDescPlaceholder")}
-								placeholderTextColor="#71717a"
+								placeholderTextColor={colors.neutral.textMuted}
 								value={description}
 								onChangeText={onDescriptionChange}
 							/>
 						</View>
 
 						{/* Action Buttons */}
-						<View style={styles.buttonRow}>
+						<View className="flex-row gap-3 mt-2">
 							<Button
 								title={t("cancel") || "Annuler"}
 								variant="outline"
@@ -171,7 +170,7 @@ export function BreakdownModal({
 								size="md"
 								loading={submitting}
 								onPress={onSubmit}
-								icon={<HugeiconsIcon icon={Alert02Icon} size={16} color="#ffffff" />}
+								icon={<HugeiconsIcon icon={Alert02Icon} size={16} color={colors.neutral.textPrimary} />}
 								className="flex-1"
 							/>
 						</View>
@@ -181,117 +180,3 @@ export function BreakdownModal({
 		</Modal>
 	);
 }
-
-const styles = StyleSheet.create({
-	backdrop: {
-		flex: 1,
-		backgroundColor: "rgba(0, 0, 0, 0.8)",
-		justifyContent: "flex-end",
-	},
-	modalSheet: {
-		backgroundColor: "#18181b",
-		borderTopLeftRadius: 24,
-		borderTopRightRadius: 24,
-		padding: 20,
-		borderTopWidth: 1,
-		borderColor: "rgba(239, 68, 68, 0.3)",
-		maxHeight: "85%",
-	},
-	scrollContent: {
-		gap: 18,
-		paddingBottom: 16,
-	},
-	headerRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 12,
-	},
-	iconWrap: {
-		padding: 10,
-		borderRadius: 14,
-		backgroundColor: "rgba(239, 68, 68, 0.15)",
-	},
-	modalTitle: {
-		fontSize: 18,
-		fontWeight: "800",
-		color: "#fafafa",
-	},
-	modalSubtitle: {
-		fontSize: 12,
-		color: "#a1a1aa",
-		lineHeight: 16,
-	},
-	gpsCard: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 10,
-		padding: 12,
-		borderRadius: 12,
-		backgroundColor: "rgba(56, 189, 248, 0.08)",
-		borderWidth: 1,
-		borderColor: "rgba(56, 189, 248, 0.2)",
-	},
-	gpsTitle: {
-		fontSize: 11,
-		fontWeight: "700",
-		color: "#38bdf8",
-	},
-	gpsCoords: {
-		fontSize: 12,
-		color: "#fafafa",
-		fontWeight: "600",
-	},
-	fieldGroup: {
-		gap: 8,
-	},
-	fieldLabel: {
-		fontSize: 13,
-		fontWeight: "600",
-		color: "#e4e4e7",
-	},
-	textInput: {
-		backgroundColor: "#27272a",
-		borderRadius: 12,
-		borderWidth: 1,
-		borderColor: "#3f3f46",
-		paddingHorizontal: 14,
-		paddingVertical: 10,
-		color: "#fafafa",
-		fontSize: 14,
-	},
-	textArea: {
-		minHeight: 70,
-		textAlignVertical: "top",
-	},
-	reasonsGrid: {
-		flexDirection: "row",
-		flexWrap: "wrap",
-		gap: 8,
-	},
-	reasonChip: {
-		paddingHorizontal: 12,
-		paddingVertical: 8,
-		borderRadius: 10,
-		backgroundColor: "#27272a",
-		borderWidth: 1,
-		borderColor: "#3f3f46",
-	},
-	reasonChipSelected: {
-		backgroundColor: "rgba(239, 68, 68, 0.2)",
-		borderColor: "#ef4444",
-	},
-	reasonText: {
-		fontSize: 12,
-		color: "#a1a1aa",
-		fontWeight: "600",
-	},
-	reasonTextSelected: {
-		color: "#ef4444",
-		fontWeight: "700",
-	},
-	buttonRow: {
-		flexDirection: "row",
-		gap: 12,
-		marginTop: 8,
-	},
-});

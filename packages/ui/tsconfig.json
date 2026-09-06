@@ -6,7 +6,7 @@
       "#hooks/*": ["./src/hooks/*"],
       "#lib/*": ["./src/lib/*"]
     },
-    "noImplicitAny": false
+    "noImplicitAny": true
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts"],
   "exclude": ["node_modules"]

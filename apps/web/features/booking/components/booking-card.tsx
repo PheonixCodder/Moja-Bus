@@ -3,6 +3,7 @@
 import * as React from "react";
 import { BusFront } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { Button } from "@moja/ui/components/ui/button";
 import { cn } from "@moja/ui/lib/utils";
 import type {
   PassengerBookingSummary,
@@ -24,8 +25,8 @@ const STATUS_PROGRESS: Record<PassengerBookingStatus, number> = {
 
 const STATUS_RING_CLASS: Record<PassengerBookingStatus, string> = {
   CONFIRMED: "text-primary",
-  PENDING_PAYMENT: "text-amber-500",
-  REFUND_PENDING: "text-amber-600",
+  PENDING_PAYMENT: "text-warning",
+  REFUND_PENDING: "text-warning",
   COMPLETED: "text-muted-foreground",
   CANCELLED: "text-destructive",
   EXPIRED: "text-muted-foreground",
@@ -73,7 +74,7 @@ function HoldLabel({ booking }: { booking: PassengerBookingSummary }) {
   );
   if (booking.status !== "PENDING_PAYMENT") return null;
   return (
-    <span className="text-amber-600 text-[10px]">
+    <span className="text-warning text-[10px]">
       {countdown?.label ?? t("awaitingPayment")}
     </span>
   );
@@ -92,15 +93,16 @@ export function BookingCard({ booking, active, onSelect }: BookingCardProps) {
   const shortRef = ref.length > 10 ? ref.slice(0, 10) : ref;
 
   return (
-    <button
+    <Button
       type="button"
+      variant="ghost"
       aria-pressed={active}
       onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
         e.currentTarget.blur();
         onSelect(booking.groupId);
       }}
       className={cn(
-        "flex w-full flex-col gap-3.5 rounded-xl border p-3 text-left transition-colors",
+        "flex h-auto w-full flex-col gap-3.5 rounded-xl border p-3 text-left transition-colors font-normal",
         "hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
         active && "border-primary bg-muted/50",
       )}
@@ -188,6 +190,6 @@ export function BookingCard({ booking, active, onSelect }: BookingCardProps) {
       </div>
 
       {booking.status === "PENDING_PAYMENT" && <HoldLabel booking={booking} />}
-    </button>
+    </Button>
   );
 }

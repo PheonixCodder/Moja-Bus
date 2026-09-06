@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { Cancel01Icon, FilterIcon, CheckmarkCircle01Icon } from '@hugeicons/core-free-icons';
-import { Colors } from '@moja/theme/tokens';
+import { Colors, Palette } from '@/constants/theme';
 import type { SearchFilters } from '../types';
 import { EMPTY_FILTERS, AMENITY_IDS, TIME_IDS, SEAT_CLASS_IDS } from '../lib/constants';
 
@@ -82,13 +82,13 @@ export function FiltersSheet({
             onPress={() => onToggle(item)}
             className={`flex-row items-center px-4 py-2.5 rounded-2xl border ${
               isSelected
-                ? 'bg-pink-50/80 border-[#ee237c]'
-                : 'bg-slate-50 border-slate-200 active:bg-slate-100'
+                ? 'bg-primary/10 border-primary'
+                : 'bg-muted/50 border-border active:bg-muted'
             }`}
           >
             <Text
               className={`text-xs font-extrabold ${
-                isSelected ? 'text-[#ee237c]' : 'text-slate-700'
+                isSelected ? 'text-primary' : 'text-foreground'
               }`}
             >
               {getLabel(item)}
@@ -97,7 +97,7 @@ export function FiltersSheet({
               <HugeiconsIcon
                 icon={CheckmarkCircle01Icon}
                 size={14}
-                color="#ee237c"
+                color={Palette.rose[500]}
                 className="ml-1.5"
               />
             ) : null}
@@ -114,18 +114,18 @@ export function FiltersSheet({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-white" style={{ paddingTop: Math.max(insets.top, 12) }}>
+      <View className="flex-1 bg-background" style={{ paddingTop: Math.max(insets.top, 12) }}>
         {/* Header */}
-        <View className="flex-row items-center justify-between p-4 border-b border-slate-100">
+        <View className="flex-row items-center justify-between p-4 border-b border-border bg-card">
           <View className="flex-row items-center gap-2">
-            <View className="w-8 h-8 rounded-full bg-pink-50 border border-pink-200 items-center justify-center">
-              <HugeiconsIcon icon={FilterIcon} size={16} color="#ee237c" />
+            <View className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 items-center justify-center">
+              <HugeiconsIcon icon={FilterIcon} size={16} color={Palette.rose[500]} />
             </View>
-            <Text className="text-lg font-extrabold text-slate-900">{t('filtersTitle')}</Text>
+            <Text className="text-lg font-extrabold text-card-foreground">{t('filtersTitle')}</Text>
           </View>
 
           <Pressable onPress={clearAll} className="px-2 py-1">
-            <Text className="text-[#ee237c] font-black text-xs uppercase tracking-wider">
+            <Text className="text-primary font-black text-xs uppercase tracking-wider">
               {t('clearAll')}
             </Text>
           </Pressable>
@@ -136,22 +136,22 @@ export function FiltersSheet({
           contentContainerStyle={{ padding: 16, paddingBottom: 110 }}
         >
           {/* Express Non-Stop Toggle */}
-          <View className="flex-row items-center justify-between mb-6 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+          <View className="flex-row items-center justify-between mb-6 bg-muted/50 p-4 rounded-2xl border border-border">
             <View>
-              <Text className="text-sm font-extrabold text-slate-900">{t('expressOnly')}</Text>
-              <Text className="text-xs text-slate-500 mt-0.5">{t('directRoutesOnly')}</Text>
+              <Text className="text-sm font-extrabold text-foreground">{t('expressOnly')}</Text>
+              <Text className="text-xs text-muted-foreground mt-0.5">{t('directRoutesOnly')}</Text>
             </View>
             <Switch
               value={localFilters.isExpress}
               onValueChange={(val) => setLocalFilters((prev) => ({ ...prev, isExpress: val }))}
-              trackColor={{ false: Colors.light.textSecondary, true: '#fbcfe8' }}
-              thumbColor={localFilters.isExpress ? '#ee237c' : '#f8fafc'}
+              trackColor={{ false: Colors.light.borderStrong, true: Palette.rose[200] }}
+              thumbColor={localFilters.isExpress ? Palette.rose[500] : Colors.light.card}
             />
           </View>
 
           {operators.length > 0 ? (
             <>
-              <Text className="text-xs font-black uppercase text-slate-400 tracking-widest mb-2.5">
+              <Text className="text-xs font-black uppercase text-muted-foreground tracking-widest mb-2.5">
                 {t('busOperator')}
               </Text>
               <FilterChipRow
@@ -164,7 +164,7 @@ export function FiltersSheet({
           ) : null}
 
           {/* Bus Class */}
-          <Text className="text-xs font-black uppercase text-slate-400 tracking-widest mb-2.5">
+          <Text className="text-xs font-black uppercase text-muted-foreground tracking-widest mb-2.5">
             {t('filterClass')}
           </Text>
           <FilterChipRow
@@ -175,7 +175,7 @@ export function FiltersSheet({
           />
 
           {/* Departure Time */}
-          <Text className="text-xs font-black uppercase text-slate-400 tracking-widest mb-2.5">
+          <Text className="text-xs font-black uppercase text-muted-foreground tracking-widest mb-2.5">
             {t('filterDeparture')}
           </Text>
           <FilterChipRow
@@ -186,7 +186,7 @@ export function FiltersSheet({
           />
 
           {/* Amenities */}
-          <Text className="text-xs font-black uppercase text-slate-400 tracking-widest mb-2.5">
+          <Text className="text-xs font-black uppercase text-muted-foreground tracking-widest mb-2.5">
             {t('amenities')}
           </Text>
           <FilterChipRow
@@ -199,25 +199,17 @@ export function FiltersSheet({
 
         {/* Sticky Apply Button */}
         <View
-          className="absolute left-4 right-4 bg-white p-3 border-t border-slate-100 rounded-t-2xl shadow-lg"
+          className="absolute left-4 right-4 bg-card p-3 border-t border-border rounded-t-2xl shadow-lg"
           style={{ bottom: Math.max(insets.bottom, 16) }}
         >
           <Pressable
             onPress={apply}
+            className="bg-primary min-h-12 h-12 rounded-xl items-center justify-center shadow-md shadow-primary/25"
             style={({ pressed }) => ({
-              backgroundColor: pressed ? '#d01867' : '#ee237c',
-              padding: 16,
-              borderRadius: 16,
-              alignItems: 'center',
-              justifyContent: 'center',
-              shadowColor: '#ee237c',
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.2,
-              shadowRadius: 8,
-              elevation: 4,
+              opacity: pressed ? 0.85 : 1,
             })}
           >
-            <Text className="text-white font-black text-base uppercase tracking-wider">
+            <Text className="text-primary-foreground font-black text-base uppercase tracking-wider">
               {filterCount > 0 ? t('applyFilters', { count: filterCount }) : t('viewResults')}
             </Text>
           </Pressable>

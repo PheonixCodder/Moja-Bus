@@ -16,24 +16,24 @@ export function SessionsPanel({ trips }: SessionsPanelProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-text-primary">
+        <h2 className="text-lg font-semibold text-foreground">
           {t("title")}
         </h2>
         <Link
           href="/dashboard/bookings?tab=upcoming"
-          className="inline-flex items-center rounded-md border border-border bg-transparent px-3 py-1.5 text-sm text-text-secondary transition-colors duration-150 hover:border-border-strong hover:text-text-primary"
+          className="inline-flex items-center rounded-md border border-border bg-transparent px-3 py-1.5 text-sm text-muted-foreground transition-colors duration-150 hover:border-border-strong hover:text-foreground"
         >
           {t("viewAll")}
         </Link>
       </div>
 
       {trips.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-bg-surface py-16 text-center">
-          <BusFront className="mb-3 size-10 text-text-muted" />
-          <p className="text-sm font-medium text-text-secondary">
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-surface py-16 text-center">
+          <BusFront className="mb-3 size-10 text-muted-foreground" />
+          <p className="text-sm font-medium text-muted-foreground">
             {t("noTripsYet")}
           </p>
-          <p className="mb-4 mt-1 text-xs text-text-muted">
+          <p className="mb-4 mt-1 text-xs text-muted-foreground">
             {t("noTripsDesc")}
           </p>
           <Link
@@ -86,7 +86,7 @@ export function SessionsPanel({ trips }: SessionsPanelProps) {
                 {firstSeat ? (
                   <Link
                     href={`/tickets/${firstSeat.ticketToken}`}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors duration-150 hover:border-border-strong hover:text-text-primary"
+                    className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors duration-150 hover:border-border-strong hover:text-foreground"
                   >
                     <Ticket className="size-3.5" />
                     {t("viewTicket")}

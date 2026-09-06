@@ -276,8 +276,8 @@ export function PassengerDashboardView({
                         <div
                           className={cn(
                             "absolute -left-[21px] top-1.5 size-2.5 rounded-full border-2 bg-background transition-all group-hover:scale-110",
-                            isConfirmed && "border-emerald-500 bg-emerald-500",
-                            isPending && "border-amber-500 bg-amber-500",
+                            isConfirmed && "border-success bg-success",
+                            isPending && "border-warning bg-warning",
                           )}
                         />
 
@@ -289,9 +289,9 @@ export function PassengerDashboardView({
                                 className={cn(
                                   "text-[9px] font-bold uppercase tracking-wider shrink-0",
                                   isConfirmed &&
-                                    "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20",
+                                    "bg-success/10 text-success border border-success/20",
                                   isPending &&
-                                    "bg-amber-500/10 text-amber-600 border border-amber-500/20",
+                                    "bg-warning/10 text-warning border border-warning/20",
                                 )}
                               >
                                 {isConfirmed

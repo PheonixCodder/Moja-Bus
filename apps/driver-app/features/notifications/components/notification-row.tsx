@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Notification01Icon } from "@hugeicons/core-free-icons";
 import { colors } from "@/constants/theme";
@@ -48,123 +48,44 @@ export function NotificationRow({ item, onPress }: NotificationRowProps) {
 				: false;
 
 	return (
-		<TouchableOpacity
+		<Pressable
 			onPress={onPress}
-			activeOpacity={0.8}
-			style={[
-				styles.container,
-				isRead ? styles.containerRead : styles.containerUnread,
-			]}
+			className={`mx-4 mb-2.5 rounded-2xl border px-4 py-3.5 ${
+				isRead ? "border-border bg-card" : "border-primary/30 bg-primary/10"
+			}`}
 		>
-			<View style={styles.row}>
+			<View className="flex-row gap-3">
 				<View
-					style={[
-						styles.iconBox,
-						isRead ? styles.iconBoxRead : styles.iconBoxUnread,
-					]}
+					className={`mt-0.5 w-10 h-10 rounded-xl items-center justify-center ${
+						isRead ? "bg-background" : "bg-primary/15"
+					}`}
 				>
 					<HugeiconsIcon
 						icon={Notification01Icon}
 						size={18}
-						color={isRead ? "#71717a" : colors.primary.rose}
+						color={isRead ? colors.neutral.textMuted : colors.primary.rose}
 					/>
 				</View>
-				<View style={styles.contentWrap}>
-					<View style={styles.titleRow}>
+				<View className="flex-1 gap-1">
+					<View className="flex-row items-start justify-between gap-2">
 						<Text
-							style={[
-								styles.subjectText,
-								isRead ? styles.subjectRead : styles.subjectUnread,
-							]}
+							className={`flex-1 text-sm text-foreground ${
+								isRead ? "font-semibold" : "font-extrabold"
+							}`}
 							numberOfLines={2}
 						>
 							{item.subject || "Notification"}
 						</Text>
-						{!isRead ? <View style={styles.unreadDot} /> : null}
+						{!isRead ? <View className="mt-1 w-2 h-2 rounded-full bg-primary" /> : null}
 					</View>
 					{item.body ? (
-						<Text style={styles.bodyText} numberOfLines={3}>
+						<Text className="text-xs leading-5 text-muted-foreground" numberOfLines={3}>
 							{item.body}
 						</Text>
 					) : null}
-					<Text style={styles.timeText}>{timeAgo(item.createdAt)}</Text>
+					<Text className="text-[10px] font-medium text-muted-foreground">{timeAgo(item.createdAt)}</Text>
 				</View>
 			</View>
-		</TouchableOpacity>
+		</Pressable>
 	);
 }
-
-const styles = StyleSheet.create({
-	container: {
-		marginHorizontal: 16,
-		marginBottom: 10,
-		borderRadius: 16,
-		borderWidth: 1,
-		paddingHorizontal: 16,
-		paddingVertical: 14,
-	},
-	containerRead: {
-		borderColor: "#27272a",
-		backgroundColor: "#18181b",
-	},
-	containerUnread: {
-		borderColor: "rgba(238, 35, 124, 0.3)",
-		backgroundColor: "rgba(238, 35, 124, 0.08)",
-	},
-	row: {
-		flexDirection: "row",
-		gap: 12,
-	},
-	iconBox: {
-		marginTop: 2,
-		width: 40,
-		height: 40,
-		borderRadius: 12,
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	iconBoxRead: {
-		backgroundColor: "#09090b",
-	},
-	iconBoxUnread: {
-		backgroundColor: "rgba(238, 35, 124, 0.15)",
-	},
-	contentWrap: {
-		flex: 1,
-		gap: 4,
-	},
-	titleRow: {
-		flexDirection: "row",
-		alignItems: "flex-start",
-		justifyContent: "space-between",
-		gap: 8,
-	},
-	subjectText: {
-		flex: 1,
-		fontSize: 14,
-		color: "#fafafa",
-	},
-	subjectRead: {
-		fontWeight: "600",
-	},
-	subjectUnread: {
-		fontWeight: "800",
-	},
-	unreadDot: {
-		marginTop: 4,
-		width: 8,
-		height: 8,
-		borderRadius: 4,
-		backgroundColor: "#ee237c",
-	},
-	bodyText: {
-		fontSize: 12,
-		lineHeight: 18,
-		color: "#a1a1aa",
-	},
-	timeText: {
-		fontSize: 10,
-		fontWeight: "500",
-		color: "#71717a",
-	},
-});

@@ -84,10 +84,10 @@ export function TripAuditTimeline({ tripId }: { tripId: string }) {
                   className={cn(
                     "relative z-10 flex size-6 shrink-0 items-center justify-center rounded-full border-2 mt-0.5",
                     active &&
-                      "border-primary bg-primary text-white shadow-md shadow-primary/30",
+                      "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/30",
                     done &&
                       !active &&
-                      "border-emerald-500 bg-emerald-500 text-white",
+                      "border-success bg-success text-success-foreground",
                     !done && "border-border bg-card text-muted-foreground",
                   )}
                 >
@@ -140,7 +140,7 @@ export function TripAuditTimeline({ tripId }: { tripId: string }) {
           <div className="space-y-3">
             {trip.tripStops.map((stop, idx) => (
               <div key={stop.id} className="flex items-start gap-3">
-                <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[10px] font-bold text-slate-600 mt-0.5">
+                <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-bold text-foreground mt-0.5">
                   {idx + 1}
                 </div>
                 <div>
@@ -161,7 +161,7 @@ export function TripAuditTimeline({ tripId }: { tripId: string }) {
                       </span>
                     )}
                     {stop.actualArrival && (
-                      <span className="text-xs font-medium text-emerald-600">
+                      <span className="text-xs font-medium text-success">
                         {t("actualArrLabel")}:{" "}
                         {format(new Date(stop.actualArrival), "h:mm a")}
                       </span>

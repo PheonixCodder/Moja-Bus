@@ -72,8 +72,8 @@ export function CampaignCouponsPanel({
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-sm font-semibold text-slate-900">{t("title")}</h2>
-          <p className="text-xs text-slate-500">{t("description")}</p>
+          <h2 className="text-sm font-semibold text-foreground">{t("title")}</h2>
+          <p className="text-xs text-muted-foreground">{t("description")}</p>
         </div>
         <Button type="button" variant="ghost" size="sm" onClick={onClose}>
           {t("close")}
@@ -100,9 +100,9 @@ export function CampaignCouponsPanel({
       </div>
 
       {onBulkCreate ? (
-        <div className="flex flex-col gap-2 rounded-lg border border-dashed border-slate-200 bg-slate-50/80 p-3 sm:flex-row sm:items-end">
+        <div className="flex flex-col gap-2 rounded-lg border border-dashed border-border bg-muted/40 p-3 sm:flex-row sm:items-end">
           <div className="flex-1 space-y-1">
-            <p className="text-xs font-medium text-slate-600">
+            <p className="text-xs font-medium text-muted-foreground">
               {t("bulkGenerate")}
             </p>
             <Input
@@ -113,7 +113,7 @@ export function CampaignCouponsPanel({
             />
           </div>
           <div className="w-full space-y-1 sm:w-28">
-            <p className="text-xs font-medium text-slate-600">{t("count")}</p>
+            <p className="text-xs font-medium text-muted-foreground">{t("count")}</p>
             <Input
               inputMode="numeric"
               value={bulkCount}
@@ -144,7 +144,7 @@ export function CampaignCouponsPanel({
         </div>
       ) : null}
 
-      <div className="overflow-hidden rounded-lg border border-slate-200">
+      <div className="overflow-hidden rounded-lg border border-border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -160,7 +160,7 @@ export function CampaignCouponsPanel({
               <TableRow>
                 <TableCell
                   colSpan={5}
-                  className="py-8 text-center text-sm text-slate-500"
+                  className="py-8 text-center text-sm text-muted-foreground"
                 >
                   {t("loading")}
                 </TableCell>
@@ -169,7 +169,7 @@ export function CampaignCouponsPanel({
               <TableRow>
                 <TableCell
                   colSpan={5}
-                  className="py-8 text-center text-sm text-slate-500"
+                  className="py-8 text-center text-sm text-muted-foreground"
                 >
                   {t("noCodes")}
                 </TableCell>
@@ -179,7 +179,7 @@ export function CampaignCouponsPanel({
                 <TableRow
                   key={c.id}
                   className={
-                    selectedCouponId === c.id ? "bg-pink-50/60" : undefined
+                    selectedCouponId === c.id ? "bg-primary/10" : undefined
                   }
                 >
                   <TableCell className="font-mono text-sm font-semibold">
@@ -190,11 +190,11 @@ export function CampaignCouponsPanel({
                       {c.isActive ? "Active" : "Off"}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-sm text-slate-600">
+                  <TableCell className="text-sm text-muted-foreground">
                     {c.redemptionCount}
                     {c.maxRedemptions != null ? ` / ${c.maxRedemptions}` : ""}
                   </TableCell>
-                  <TableCell className="text-sm text-slate-500">
+                  <TableCell className="text-sm text-muted-foreground">
                     {c.expiresAt
                       ? format(new Date(c.expiresAt), "dd MMM yyyy")
                       : "—"}

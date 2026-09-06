@@ -3,12 +3,17 @@
 // suppressHydrationWarning is set on <html> because the lang attribute is
 // set dynamically on the client via a LangSetter component.
 
-import { Montserrat } from "next/font/google";
+import { Outfit, Raleway } from "next/font/google";
 import "./globals.css";
 
-const montserrat = Montserrat({
+const outfit = Outfit({
   subsets: ["latin"],
-  variable: "--font-montserrat",
+  variable: "--font-outfit",
+});
+
+const raleway = Raleway({
+  subsets: ["latin"],
+  variable: "--font-raleway",
 });
 
 export default function RootLayout({
@@ -19,7 +24,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${montserrat.variable} h-full antialiased`}
+      className={`${outfit.variable} ${raleway.variable} style-maia h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col font-sans">{children}</body>

@@ -6,6 +6,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@moja/ui/components/ui/avatar";
+import { UserAvatar } from "@moja/ui/components/ui/user-avatar";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { Button } from "@moja/ui/components/ui/button";
 import { Card, CardContent, CardFooter } from "@moja/ui/components/ui/card";
@@ -100,14 +101,16 @@ export function TravelersGrid({ table }: { table: TableType<TravelerRow> }) {
                 <CardContent className="p-5 flex-1 flex flex-col items-center text-center gap-3">
                   <div className="flex w-full justify-end mb-[-1rem]">
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          className="size-8 text-muted-foreground hover:bg-muted/50 rounded-md"
-                        >
-                          <MoreHorizontal className="size-4" />
-                        </Button>
+                      <DropdownMenuTrigger
+                        render={
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            className="size-8 text-muted-foreground hover:bg-muted/50 rounded-md"
+                          />
+                        }
+                      >
+                        <MoreHorizontal className="size-4" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
@@ -143,17 +146,13 @@ export function TravelersGrid({ table }: { table: TableType<TravelerRow> }) {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-                  <Avatar className="size-16 font-medium ring-2 ring-background mt-2">
-                    <AvatarImage
-                      src={traveler.image ?? undefined}
-                      alt={traveler.name}
-                    />
-                    <AvatarFallback
-                      className={cn("text-lg", getAvatarTone(traveler.name))}
-                    >
-                      {getInitials(traveler.name)}
-                    </AvatarFallback>
-                  </Avatar>
+                  <UserAvatar
+                    name={traveler.name}
+                    src={traveler.image}
+                    seed={traveler.id}
+                    size="xl"
+                    className="size-16 font-medium ring-2 ring-background mt-2"
+                  />
                   <div className="space-y-1">
                     <h3 className="font-semibold leading-none tracking-tight">
                       {traveler.name}

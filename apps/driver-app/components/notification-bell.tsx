@@ -57,12 +57,14 @@ function BellWithCount() {
 		<TouchableOpacity
 			onPress={() => router.push("/notifications")}
 			activeOpacity={0.7}
-			className="size-10 rounded-2xl bg-[#18181b] border border-[#27272a] items-center justify-center relative"
+			accessibilityRole="button"
+			accessibilityLabel={unread > 0 ? `${unread} unread notifications` : "Notifications"}
+			className="size-11 rounded-2xl bg-card border border-border items-center justify-center relative active:bg-secondary"
 		>
-			<HugeiconsIcon icon={Notification01Icon} size={20} color="#a1a1aa" />
+			<HugeiconsIcon icon={Notification01Icon} size={20} color={colors.neutral.textSecondary} />
 			{unread > 0 && (
-				<View className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-[#ee237c] items-center justify-center px-1 border-2 border-[#09090b]">
-					<Text className="text-[10px] font-bold text-white">
+				<View className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-primary items-center justify-center px-1 border-2 border-background">
+					<Text className="text-[10px] font-bold text-primary-foreground">
 						{unread > 99 ? "99+" : unread}
 					</Text>
 				</View>

@@ -157,35 +157,35 @@ export function AdminCategoriesView() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-slate-900">{t("title")}</h2>
-          <p className="text-xs text-slate-500 mt-0.5">{t("subtitle")}</p>
+          <h2 className="text-xl font-bold text-foreground">{t("title")}</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">{t("subtitle")}</p>
         </div>
         <Button
           onClick={() => {
             resetForm();
             setIsDialogOpen(true);
           }}
-          className="gap-2 bg-slate-900 text-white hover:bg-slate-800 h-9 text-xs font-semibold"
+          className="gap-2 h-9 text-xs font-semibold"
         >
           <Plus className="size-4" />
           {t("addCategory")}
         </Button>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+      <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
         <Table>
-          <TableHeader className="bg-slate-50/70">
+          <TableHeader className="bg-muted/40">
             <TableRow>
-              <TableHead className="w-1/3 text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+              <TableHead className="w-1/3 text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4">
                 {t("name")}
               </TableHead>
-              <TableHead className="w-1/3 text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+              <TableHead className="w-1/3 text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4">
                 {t("description")}
               </TableHead>
-              <TableHead className="w-1/4 text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+              <TableHead className="w-1/4 text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4">
                 {t("parentCategory")}
               </TableHead>
-              <TableHead className="text-right text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+              <TableHead className="text-right text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4">
                 {t("actions")}
               </TableHead>
             </TableRow>
@@ -195,40 +195,40 @@ export function AdminCategoriesView() {
               <TableRow>
                 <TableCell
                   colSpan={4}
-                  className="text-center py-10 text-slate-400 text-xs"
+                  className="text-center py-10 text-muted-foreground text-xs"
                 >
                   {t("noCategories")}
                 </TableCell>
               </TableRow>
             ) : (
               categories.map((cat) => (
-                <TableRow key={cat.id} className="hover:bg-slate-50/50">
-                  <TableCell className="px-4 py-3 text-sm font-semibold text-slate-900">
+                <TableRow key={cat.id} className="hover:bg-muted/50">
+                  <TableCell className="px-4 py-3 text-sm font-semibold text-foreground">
                     <div className="flex items-center gap-2">
                       {cat.parentId ? (
                         <>
-                          <ArrowRight className="size-3 text-slate-400 ml-2" />
-                          <span className="text-slate-600 font-normal">
+                          <ArrowRight className="size-3 text-muted-foreground ml-2" />
+                          <span className="text-muted-foreground font-normal">
                             {cat.name}
                           </span>
                         </>
                       ) : (
-                        <span className="text-slate-900 font-bold">
+                        <span className="text-foreground font-bold">
                           {cat.name}
                         </span>
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-sm text-slate-500 truncate max-w-[240px]">
+                  <TableCell className="px-4 py-3 text-sm text-muted-foreground truncate max-w-60">
                     {cat.description || "—"}
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-sm text-slate-500">
+                  <TableCell className="px-4 py-3 text-sm text-muted-foreground">
                     {cat.parent ? (
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-700 text-xs font-medium">
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-muted border border-border text-foreground text-xs font-medium">
                         {cat.parent.name}
                       </span>
                     ) : (
-                      <span className="text-slate-300">—</span>
+                      <span className="text-muted-foreground">—</span>
                     )}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-right">
@@ -237,7 +237,7 @@ export function AdminCategoriesView() {
                         onClick={() => handleEdit(cat)}
                         size="sm"
                         variant="ghost"
-                        className="h-8 w-8 p-0 text-slate-400 hover:text-slate-900"
+                        className="size-8 p-0 text-muted-foreground hover:text-foreground"
                       >
                         <Edit2 className="size-3.5" />
                         <span className="sr-only">{t("edit")}</span>
@@ -246,7 +246,7 @@ export function AdminCategoriesView() {
                         onClick={() => handleDelete(cat.id)}
                         size="sm"
                         variant="ghost"
-                        className="h-8 w-8 p-0 text-slate-400 hover:text-rose-600"
+                        className="size-8 p-0 text-muted-foreground hover:text-destructive"
                         disabled={deleteCategory.isPending}
                       >
                         <Trash2 className="size-3.5" />
@@ -265,14 +265,14 @@ export function AdminCategoriesView() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <div className="flex items-center gap-2.5 mb-1">
-              <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center flex-shrink-0">
-                <FolderKanban className="size-4 text-white" />
+              <div className="size-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
+                <FolderKanban className="size-4 text-primary-foreground" />
               </div>
-              <DialogTitle className="text-base font-bold text-slate-900">
+              <DialogTitle className="text-base font-bold text-foreground">
                 {editingCategory ? t("editCategory") : t("addCategoryTitle")}
               </DialogTitle>
             </div>
-            <DialogDescription className="text-xs text-slate-500 leading-relaxed">
+            <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
               {t("createCategoryFolder")}
             </DialogDescription>
           </DialogHeader>
@@ -281,7 +281,7 @@ export function AdminCategoriesView() {
             <div className="space-y-1">
               <label
                 htmlFor="cat-name"
-                className="text-[10px] font-bold text-slate-700 uppercase tracking-wider"
+                className="text-xs font-bold text-foreground uppercase tracking-wider"
               >
                 {t("name")}
               </label>
@@ -290,7 +290,7 @@ export function AdminCategoriesView() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder={t("namePlaceholder")}
-                className="h-9 text-sm bg-white"
+                className="h-9 text-sm bg-background"
                 required
                 autoFocus
               />
@@ -299,7 +299,7 @@ export function AdminCategoriesView() {
             <div className="space-y-1">
               <label
                 htmlFor="cat-parent"
-                className="text-[10px] font-bold text-slate-700 uppercase tracking-wider"
+                className="text-xs font-bold text-foreground uppercase tracking-wider"
               >
                 {t("parentCategory")}
               </label>
@@ -311,13 +311,13 @@ export function AdminCategoriesView() {
               >
                 <SelectTrigger
                   id="cat-parent"
-                  className="w-full h-9 text-sm bg-white"
+                  className="w-full h-9 text-sm bg-background"
                 >
                   <SelectValue placeholder={t("noParentCategory")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">
-                    <span className="text-slate-400">
+                    <span className="text-muted-foreground">
                       {t("noParentCategory")}
                     </span>
                   </SelectItem>
@@ -333,7 +333,7 @@ export function AdminCategoriesView() {
             <div className="space-y-1">
               <label
                 htmlFor="cat-desc"
-                className="text-[10px] font-bold text-slate-700 uppercase tracking-wider"
+                className="text-xs font-bold text-foreground uppercase tracking-wider"
               >
                 {t("description")}
               </label>
@@ -342,7 +342,7 @@ export function AdminCategoriesView() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder={t("optionalDescription")}
-                className="text-sm resize-none min-h-[60px] bg-white"
+                className="text-sm resize-none min-h-16 bg-background"
                 rows={2}
               />
             </div>
@@ -364,11 +364,11 @@ export function AdminCategoriesView() {
                   createCategory.isPending ||
                   updateCategory.isPending
                 }
-                className="h-9 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs"
+                className="h-9 font-semibold text-xs"
               >
                 {createCategory.isPending || updateCategory.isPending ? (
                   <>
-                    <Spinner className="mr-2 size-3.5 text-white" />
+                    <Spinner className="mr-2 size-3.5" />
                     {t("saving")}
                   </>
                 ) : (

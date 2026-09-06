@@ -97,7 +97,7 @@ export function DriverVerificationDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-xl font-bold font-display flex items-center gap-2">
@@ -108,10 +108,10 @@ export function DriverVerificationDialog({
               variant="outline"
               className={
                 driver.verificationStatus === "VERIFIED"
-                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                  ? "bg-success/10 text-success border-success/20"
                   : driver.verificationStatus === "REJECTED"
-                    ? "bg-rose-50 text-rose-700 border-rose-200"
-                    : "bg-amber-50 text-amber-700 border-amber-200"
+                    ? "bg-destructive/10 text-destructive border-destructive/20"
+                    : "bg-warning/10 text-warning border-warning/20"
               }
             >
               {driver.verificationStatus}
@@ -125,8 +125,8 @@ export function DriverVerificationDialog({
 
         <div className="space-y-6 py-4">
           {/* Driver Demographics Header */}
-          <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200/80">
-            <div className="size-16 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center text-slate-500 font-bold text-xl border">
+          <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/40 border border-border">
+            <div className="size-16 rounded-full bg-muted overflow-hidden flex items-center justify-center text-muted-foreground font-bold text-xl border border-border">
               {driver.user?.image ? (
                 <img
                   src={driver.user.image}
@@ -134,21 +134,21 @@ export function DriverVerificationDialog({
                   className="size-full object-cover"
                 />
               ) : (
-                <User className="size-8 text-slate-400" />
+                <User className="size-8 text-muted-foreground" />
               )}
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-bold text-slate-900">
+              <h3 className="text-lg font-bold text-foreground">
                 {driver.user?.fullName ?? "Unnamed Driver"}
               </h3>
-              <p className="text-sm font-mono text-slate-500">
+              <p className="text-sm font-mono text-muted-foreground">
                 {driver.user?.phoneNumber ?? "No phone"} • {driver.user?.email}
               </p>
               <div className="flex items-center gap-3 mt-1.5">
-                <span className="text-xs font-semibold px-2 py-0.5 rounded bg-rose-100 text-rose-700 font-mono">
+                <span className="text-xs font-semibold px-2 py-0.5 rounded bg-primary/10 text-primary font-mono">
                   Class {driver.licenseCategory} Commercial
                 </span>
-                <span className="text-xs text-slate-500 flex items-center gap-1">
+                <span className="text-xs text-muted-foreground flex items-center gap-1">
                   <Award className="size-3.5" /> {driver.yearsOfExperience}{" "}
                   Years Experience
                 </span>
@@ -158,31 +158,31 @@ export function DriverVerificationDialog({
 
           {/* License & Credentials Inspection */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-2">
-              <span className="text-xs font-semibold uppercase text-slate-400">
+            <div className="p-4 rounded-xl border border-border bg-card space-y-2">
+              <span className="text-xs font-semibold uppercase text-muted-foreground">
                 Driving License Number
               </span>
-              <p className="text-base font-mono font-bold text-slate-900 flex items-center gap-2">
-                <CreditCard className="size-4 text-slate-500" />
+              <p className="text-base font-mono font-bold text-foreground flex items-center gap-2">
+                <CreditCard className="size-4 text-muted-foreground" />
                 {driver.licenseNumber}
               </p>
-              <p className="text-xs text-slate-500 flex items-center gap-1">
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <Calendar className="size-3.5" />
                 Expires:{" "}
                 {new Date(driver.licenseExpiryDate).toLocaleDateString()}
               </p>
             </div>
 
-            <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-2">
-              <span className="text-xs font-semibold uppercase text-slate-400">
+            <div className="p-4 rounded-xl border border-border bg-card space-y-2">
+              <span className="text-xs font-semibold uppercase text-muted-foreground">
                 Carrier Affiliation
               </span>
-              <p className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <Building2 className="size-4 text-slate-500" />
+              <p className="text-base font-bold text-foreground flex items-center gap-2">
+                <Building2 className="size-4 text-muted-foreground" />
                 {driver.companyAffiliations?.[0]?.company?.name ??
                   "Independent Freelance"}
               </p>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 Type:{" "}
                 {driver.companyAffiliations?.[0]?.employmentType ??
                   "CONTRACTOR_URBAN"}
@@ -195,7 +195,7 @@ export function DriverVerificationDialog({
               (it always gated approval but was never visible). */}
 
           <div className="space-y-3">
-            <h4 className="text-sm font-bold text-slate-900">
+            <h4 className="text-sm font-bold text-foreground">
               Submitted Documents
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -225,16 +225,16 @@ export function DriverVerificationDialog({
 
           {/* Rejection Note Form (If Rejecting) */}
           {isRejecting && (
-            <div className="p-4 rounded-xl border border-rose-200 bg-rose-50/50 space-y-3">
-              <label className="text-xs font-bold text-rose-900 flex items-center gap-1.5">
-                <AlertTriangle className="size-4 text-rose-600" />
+            <div className="p-4 rounded-xl border border-destructive/20 bg-destructive/10 space-y-3">
+              <label className="text-xs font-bold text-destructive flex items-center gap-1.5">
+                <AlertTriangle className="size-4 text-destructive" />
                 Reason for Rejection (Displayed to Driver)
               </label>
               <Textarea
                 placeholder="e.g. License photo is unreadable or expired. Please upload high-resolution scan."
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
-                className="bg-white border-rose-300"
+                className="bg-card border-destructive/30"
               />
             </div>
           )}
@@ -258,7 +258,7 @@ export function DriverVerificationDialog({
             <div className="flex items-center justify-between w-full">
               <Button
                 variant="outline"
-                className="text-amber-600 border-amber-200 hover:bg-amber-50"
+                className="text-warning border-warning/20 hover:bg-warning/10"
                 onClick={handleSuspend}
                 disabled={verifyMutation.isPending}
               >
@@ -268,7 +268,7 @@ export function DriverVerificationDialog({
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
-                  className="text-rose-600 border-rose-200 hover:bg-rose-50"
+                  className="text-destructive border-destructive/20 hover:bg-destructive/10"
                   onClick={() => setIsRejecting(true)}
                   disabled={verifyMutation.isPending}
                 >
@@ -278,7 +278,7 @@ export function DriverVerificationDialog({
                     server-refused anyway; mirror that here so the button tells
                     the truth instead of failing on click. */}
                 <Button
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold gap-1.5"
+                  className="bg-success text-success-foreground hover:bg-success/90 font-bold gap-1.5"
                   onClick={handleApprove}
                   disabled={
                     verifyMutation.isPending ||

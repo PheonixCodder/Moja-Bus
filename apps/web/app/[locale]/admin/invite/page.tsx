@@ -36,7 +36,7 @@ export default async function AdminInvitePage({ searchParams }: Props) {
       <Suspense
         fallback={
           <div className="min-h-screen flex items-center justify-center">
-            <Loader2 className="h-6 w-6 animate-spin text-[#ee237c]" />
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
         }
       >

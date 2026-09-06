@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { Cancel01Icon, Ticket01Icon } from '@hugeicons/core-free-icons';
-import { Colors } from '@moja/theme/tokens';
+import { Colors, Palette } from '@/constants/theme';
 import { PassengerSeatMap } from '@/features/booking/components/passenger-seat-map';
 import { TripSummaryCard } from '@/features/booking/components/trip-summary-card';
 import { useSeatAvailability } from '@/features/booking/hooks/use-seat-availability';
@@ -86,16 +86,16 @@ export function SeatSelectionSheet({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-slate-50" style={{ paddingTop: Math.max(insets.top, 12) }}>
-        <View className="flex-row items-center justify-between p-4 bg-white border-b border-slate-100">
+      <View className="flex-1 bg-background" style={{ paddingTop: Math.max(insets.top, 12) }}>
+        <View className="flex-row items-center justify-between p-4 bg-card border-b border-border">
           <View className="flex-row items-center gap-2">
-            <View className="w-8 h-8 rounded-full bg-pink-50 border border-pink-200 items-center justify-center">
-              <HugeiconsIcon icon={Ticket01Icon} size={16} color="#ee237c" />
+            <View className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 items-center justify-center">
+              <HugeiconsIcon icon={Ticket01Icon} size={16} color={Palette.rose[500]} />
             </View>
-            <Text className="text-lg font-extrabold text-slate-900">{t('seatSelection')}</Text>
+            <Text className="text-lg font-extrabold text-card-foreground">{t('seatSelection')}</Text>
           </View>
 
-          <Pressable onPress={onClose} className="p-2 bg-slate-100 rounded-full">
+          <Pressable onPress={onClose} className="p-2 bg-muted rounded-full">
             <HugeiconsIcon icon={Cancel01Icon} size={18} color={Colors.light.textSecondary} />
           </Pressable>
         </View>
@@ -116,41 +116,42 @@ export function SeatSelectionSheet({
             />
           </View>
 
-          <View className="flex-row items-center justify-between bg-white border border-slate-200 rounded-2xl p-4 mb-4 shadow-xs">
-            <Text className="text-sm font-extrabold text-slate-900">
+          <View className="flex-row items-center justify-between bg-card border border-border rounded-2xl p-4 mb-4 shadow-xs">
+            <Text className="text-sm font-extrabold text-card-foreground">
               Select {passengers} Seat{passengers > 1 ? 's' : ''}
             </Text>
-            <View className="bg-pink-50 border border-pink-200 px-3 py-1.5 rounded-full">
-              <Text className="text-[#ee237c] text-xs font-black">
+            <View className="bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-full">
+              <Text className="text-primary text-xs font-black">
                 {selectedSeatIds.length} / {passengers} Selected
               </Text>
             </View>
           </View>
 
-          <View className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
+          <View className="bg-card rounded-3xl p-5 shadow-sm border border-border">
             {isLoading ? (
               <View className="py-12 items-center justify-center gap-3">
-                <ActivityIndicator size="large" color="#ee237c" />
-                <Text className="text-slate-500 text-sm font-bold">{t('loading')}</Text>
+                <ActivityIndicator size="large" color={Palette.rose[500]} />
+                <Text className="text-muted-foreground text-sm font-bold">{t('loading')}</Text>
               </View>
             ) : isError ? (
               <View className="py-12 items-center justify-center gap-3">
-                <Text className="text-slate-700 text-sm font-bold text-center">
+                <Text className="text-foreground text-sm font-bold text-center">
                   {t('seatLoadError')}
                 </Text>
                 <Pressable
                   onPress={() => refetch()}
-                  className="bg-[#ee237c] px-4 py-2.5 rounded-xl"
+                  accessibilityRole="button"
+                  className="bg-primary/10 border border-primary/20 px-4 py-2 rounded-xl min-h-11 items-center justify-center"
                 >
-                  <Text className="text-white font-bold text-xs">{t('retry', 'Retry')}</Text>
+                  <Text className="text-primary text-xs font-bold">{t('retry', { defaultValue: 'Retry' })}</Text>
                 </Pressable>
               </View>
             ) : isSoldOut ? (
               <View className="py-12 items-center justify-center gap-2">
-                <Text className="text-slate-800 text-base font-black text-center">
+                <Text className="text-foreground text-base font-black text-center">
                   {t('soldOutTrip')}
                 </Text>
-                <Text className="text-slate-500 text-sm font-semibold text-center">
+                <Text className="text-muted-foreground text-sm font-semibold text-center">
                   {t('soldOut')}
                 </Text>
               </View>
@@ -167,7 +168,7 @@ export function SeatSelectionSheet({
         </ScrollView>
 
         <View
-          className="absolute left-4 right-4 bg-white p-3 border-t border-slate-100 rounded-t-2xl shadow-lg"
+          className="absolute left-4 right-4 bg-card p-3 border-t border-border rounded-t-2xl shadow-lg"
           style={{ bottom: Math.max(insets.bottom, 16) }}
         >
           <Pressable
@@ -175,31 +176,16 @@ export function SeatSelectionSheet({
             disabled={
               selectedSeatIds.length !== passengers || isLoading || isError || isSoldOut
             }
-            style={({ pressed }) => {
-              const isEnabled =
-                selectedSeatIds.length === passengers &&
-                !isLoading &&
-                !isError &&
-                !isSoldOut;
-              return {
-                backgroundColor: !isEnabled
-                  ? '#cbd5e1'
-                  : pressed
-                  ? '#d01867'
-                  : '#ee237c',
-                padding: 16,
-                borderRadius: 16,
-                alignItems: 'center',
-                justifyContent: 'center',
-                shadowColor: isEnabled ? '#ee237c' : 'transparent',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: isEnabled ? 0.2 : 0,
-                shadowRadius: 8,
-                elevation: isEnabled ? 4 : 0,
-              };
-            }}
+            className={`min-h-12 h-12 rounded-xl items-center justify-center ${
+              selectedSeatIds.length === passengers && !isLoading && !isError && !isSoldOut
+                ? 'bg-primary shadow-md shadow-primary/25'
+                : 'bg-muted opacity-60'
+            }`}
+            style={({ pressed }) => ({
+              opacity: pressed ? 0.85 : undefined,
+            })}
           >
-            <Text className="text-white font-black text-base uppercase tracking-wider">
+            <Text className="text-primary-foreground font-black text-base uppercase tracking-wider">
               {t('continueToPassengers')}
             </Text>
           </Pressable>

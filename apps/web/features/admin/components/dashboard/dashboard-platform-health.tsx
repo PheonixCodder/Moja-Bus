@@ -67,9 +67,9 @@ export function DashboardPlatformHealth({
       <CardContent className="space-y-4">
         {/* Status Items */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50/60 dark:bg-amber-950/20 dark:border-amber-900/30 px-3 py-2.5">
+          <div className="flex items-center justify-between rounded-lg border border-warning/20 bg-warning/10 px-3 py-2.5">
             <div className="flex items-center gap-2.5">
-              <ShieldAlert className="size-4 text-amber-600 shrink-0" />
+              <ShieldAlert className="size-4 text-warning shrink-0" />
               <span className="text-sm">
                 <span className="font-semibold">{pendingOperatorsCount}</span>{" "}
                 {pendingOperatorsCount === 1
@@ -90,9 +90,9 @@ export function DashboardPlatformHealth({
             </Button>
           </div>
 
-          <div className="flex items-center justify-between rounded-lg border border-green-200 bg-green-50/60 dark:bg-green-950/20 dark:border-green-900/30 px-3 py-2.5">
+          <div className="flex items-center justify-between rounded-lg border border-success/20 bg-success/10 px-3 py-2.5">
             <div className="flex items-center gap-2.5">
-              <Activity className="size-4 text-green-600 shrink-0" />
+              <Activity className="size-4 text-success shrink-0" />
               <span className="text-sm">
                 <span className="font-semibold">{activeTripsCount}</span>{" "}
                 {activeTripsCount === 1
@@ -117,7 +117,7 @@ export function DashboardPlatformHealth({
             </span>
             <Badge
               variant="outline"
-              className="border-green-200 bg-green-500/10 text-green-700 text-[10px]"
+              className="border-success/20 bg-success/10 text-success text-[10px]"
             >
               {t("cronActive")}
             </Badge>

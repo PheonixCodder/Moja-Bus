@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@moja/ui/components/ui/badge";
+import { CarrierAvatar } from "@moja/ui/components/ui/carrier-avatar";
 import { Button } from "@moja/ui/components/ui/button";
 import { Checkbox } from "@moja/ui/components/ui/checkbox";
 import {
@@ -113,17 +114,20 @@ export function getCompanyColumns({
         const company = row.original;
         return (
           <div className="flex items-center gap-3">
-            <div className="size-9 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-500 font-medium select-none">
-              {company.name.slice(0, 2).toUpperCase()}
-            </div>
+            <CarrierAvatar
+              name={company.name}
+              logoUrl={company.logoUrl}
+              size="md"
+              shape="rounded"
+            />
             <div className="min-w-0">
               <Link
                 href={`/dashboard/admin/verifications/${company.id}`}
-                className="truncate font-semibold text-slate-900 text-sm hover:text-primary transition-colors cursor-pointer"
+                className="truncate font-semibold text-foreground text-sm hover:text-primary transition-colors cursor-pointer"
               >
                 {company.name}
               </Link>
-              <div className="truncate text-slate-400 text-[10px] uppercase font-mono mt-0.5">
+              <div className="truncate text-muted-foreground text-xs uppercase font-mono mt-0.5">
                 Reg: {company.registrationNumber} • {t("tax")}: {company.taxId}
               </div>
             </div>
@@ -137,20 +141,21 @@ export function getCompanyColumns({
       cell: ({ row }: any) => {
         const rep = row.original.operators[0]?.user;
         if (!rep)
-          return <span className="text-xs text-slate-400">{t("na")}</span>;
+          return <span className="text-xs text-muted-foreground">{t("na")}</span>;
+
         return (
           <div className="grid gap-0.5 text-xs">
-            <div className="font-semibold text-slate-700 flex items-center gap-1.5">
-              <User className="size-3 text-slate-400 shrink-0" />
+            <div className="font-semibold text-foreground flex items-center gap-1.5">
+              <User className="size-3 text-muted-foreground shrink-0" />
               {rep.fullName}
             </div>
-            <div className="text-slate-500 flex items-center gap-1.5 font-medium">
-              <Mail className="size-3 text-slate-400 shrink-0" />
+            <div className="text-muted-foreground flex items-center gap-1.5 font-medium">
+              <Mail className="size-3 text-muted-foreground shrink-0" />
               {rep.email}
             </div>
             {rep.phoneNumber && (
-              <div className="text-slate-400 flex items-center gap-1.5 font-medium">
-                <Phone className="size-3 text-slate-400 shrink-0" />
+              <div className="text-muted-foreground flex items-center gap-1.5 font-medium">
+                <Phone className="size-3 text-muted-foreground shrink-0" />
                 {rep.phoneNumber}
               </div>
             )}
@@ -181,10 +186,10 @@ export function getCompanyColumns({
                 key={item.label}
                 title={`${item.label}: ${item.active ? t("verified") : t("pending")}`}
                 className={cn(
-                  "flex items-center gap-0.5 rounded px-1.5 py-0.5 border text-[10px] font-bold tracking-tight select-none",
+                  "flex items-center gap-0.5 rounded px-1.5 py-0.5 border text-xs font-bold tracking-tight select-none",
                   item.active
-                    ? "bg-green-50 text-green-700 border-green-200"
-                    : "bg-slate-50 text-slate-400 border-slate-200",
+                    ? "bg-success/15 text-success border-success/30"
+                    : "bg-muted text-muted-foreground border-border",
                 )}
               >
                 <item.icon className="size-3 shrink-0" />
@@ -200,21 +205,21 @@ export function getCompanyColumns({
       header: t("status"),
       cell: ({ row }: any) => {
         const status = row.original.status;
-        let badgeClass = "bg-slate-50 text-slate-700 border-slate-200";
-        let dotClass = "bg-slate-400";
+        let badgeClass = "bg-muted text-muted-foreground border-border";
+        let dotClass = "bg-muted-foreground";
 
         if (status === "ACTIVE") {
-          badgeClass = "bg-green-50 text-green-700 border-green-200";
-          dotClass = "bg-green-600";
+          badgeClass = "bg-success/15 text-success border-success/30";
+          dotClass = "bg-success";
         } else if (status === "PENDING_VERIFICATION") {
-          badgeClass = "bg-amber-50 text-amber-700 border-amber-200";
-          dotClass = "bg-amber-500";
+          badgeClass = "bg-warning/15 text-warning border-warning/30";
+          dotClass = "bg-warning";
         } else if (status === "REJECTED" || status === "SUSPENDED") {
-          badgeClass = "bg-red-50 text-red-700 border-red-200";
-          dotClass = "bg-red-600";
+          badgeClass = "bg-destructive/15 text-destructive border-destructive/30";
+          dotClass = "bg-destructive";
         } else if (status === "DRAFT") {
-          badgeClass = "bg-sky-50 text-sky-700 border-sky-200";
-          dotClass = "bg-sky-500";
+          badgeClass = "bg-primary/15 text-primary border-primary/30";
+          dotClass = "bg-primary";
         }
 
         return (
@@ -235,9 +240,8 @@ export function getCompanyColumns({
       accessorKey: "createdAt",
       header: t("submitted"),
       cell: ({ row }: any) => {
-        const date = new Date(row.original.createdAt);
         return (
-          <div className="text-slate-600 text-xs font-semibold">
+          <div className="text-muted-foreground text-xs font-semibold">
             {formatAdminDate(row.original.createdAt)}
           </div>
         );
@@ -267,7 +271,7 @@ export function getCompanyColumns({
               />
               <DropdownMenuContent
                 align="end"
-                className="bg-white border border-border rounded shadow-md"
+                className="bg-popover border border-border rounded shadow-md"
               >
                 <DropdownMenuItem
                   onClick={() => onReview(company)}
@@ -289,7 +293,7 @@ export function getCompanyColumns({
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => onReject(company)}
-                      className="cursor-pointer text-xs text-red-600 focus:bg-red-50 focus:text-red-700"
+                      className="cursor-pointer text-xs text-destructive focus:bg-destructive/10 focus:text-destructive"
                     >
                       {t("rejectRequest")}
                     </DropdownMenuItem>

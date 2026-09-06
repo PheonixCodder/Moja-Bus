@@ -22,7 +22,7 @@ export function LicenseExpiryBadge({
 
   if (status === "EXPIRED") {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-destructive/10 text-destructive border border-destructive/20">
         <ShieldAlert className="size-3.5" />
         License expired{expiry ? ` ${expiry}` : ""}
       </span>
@@ -30,7 +30,7 @@ export function LicenseExpiryBadge({
   }
 
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-warning/10 text-warning border border-warning/20">
       <AlertTriangle className="size-3.5" />
       Expires {expiry}
     </span>

@@ -173,7 +173,7 @@ export function RoleSheet({
                 {t("cancel")}
               </Button>
               <Button
-                className="flex-1 bg-[#ee237c] hover:bg-[#d11f6e] text-white"
+                className="flex-1"
                 onClick={handleSave}
                 disabled={saving}
               >

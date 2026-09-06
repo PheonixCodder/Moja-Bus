@@ -16,8 +16,8 @@ function StarRating({ rating }: { rating: number }) {
           className={cn(
             "size-4",
             i < rating
-              ? "fill-amber-400 text-amber-400"
-              : "fill-slate-200 text-slate-200",
+              ? "fill-warning text-warning"
+              : "fill-muted text-muted",
           )}
         />
       ))}
@@ -81,10 +81,10 @@ export function TripAuditReviews({ tripId }: { tripId: string }) {
                 <span className="text-xs text-muted-foreground w-3">
                   {star}
                 </span>
-                <Star className="size-3 fill-amber-400 text-amber-400" />
+                <Star className="size-3 fill-warning text-warning" />
                 <div className="flex-1 h-1.5 bg-border rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-amber-400 rounded-full"
+                    className="h-full bg-warning rounded-full"
                     style={{ width: `${pct}%` }}
                   />
                 </div>
@@ -108,7 +108,7 @@ export function TripAuditReviews({ tripId }: { tripId: string }) {
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-600">
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold text-foreground">
                     {booking.passengerName.charAt(0).toUpperCase()}
                   </div>
                   <div>

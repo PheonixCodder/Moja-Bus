@@ -28,12 +28,12 @@ export const ADMIN_ROLE_LABELS: Record<AdminStaffRole, string> = {
 };
 
 export const ADMIN_ROLE_COLORS: Record<AdminStaffRole, string> = {
-  SUPER_ADMIN: "bg-red-500/15 text-red-600 border-red-500/30",
-  ADMIN: "bg-purple-500/15 text-purple-600 border-purple-500/30",
-  OPERATIONS: "bg-blue-500/15 text-blue-600 border-blue-500/30",
-  SUPPORT: "bg-green-500/15 text-green-600 border-green-500/30",
-  COMPLIANCE: "bg-orange-500/15 text-orange-600 border-orange-500/30",
-  FINANCE: "bg-amber-500/15 text-amber-600 border-amber-500/30",
+  SUPER_ADMIN: "bg-destructive/15 text-destructive border-destructive/30",
+  ADMIN: "bg-primary/15 text-primary border-primary/30",
+  OPERATIONS: "bg-primary/10 text-primary border-primary/20",
+  SUPPORT: "bg-success/15 text-success border-success/30",
+  COMPLIANCE: "bg-warning/15 text-warning border-warning/30",
+  FINANCE: "bg-warning/10 text-warning border-warning/20",
 };
 
 export const ADMIN_ROLE_BADGE_CLASSES = ADMIN_ROLE_COLORS;
@@ -44,17 +44,17 @@ export const ADMIN_STATUS_CONFIG: Record<
 > = {
   ACTIVE: {
     label: "Active",
-    className: "text-emerald-700",
+    className: "text-success",
     icon: "●",
   },
   INACTIVE: {
     label: "Inactive",
-    className: "text-slate-600",
+    className: "text-muted-foreground",
     icon: "○",
   },
   SUSPENDED: {
     label: "Suspended",
-    className: "text-red-700",
+    className: "text-destructive",
     icon: "⊘",
   },
 };
@@ -121,14 +121,12 @@ export function getInitials(name: string | null | undefined): string {
 }
 
 const AVATAR_COLORS = [
-  "bg-rose-500",
-  "bg-orange-500",
-  "bg-amber-500",
-  "bg-lime-600",
-  "bg-emerald-600",
-  "bg-cyan-600",
-  "bg-blue-600",
-  "bg-violet-600",
+  "bg-primary text-primary-foreground",
+  "bg-secondary text-secondary-foreground",
+  "bg-accent text-accent-foreground",
+  "bg-muted text-muted-foreground",
+  "bg-primary/80 text-primary-foreground",
+  "bg-secondary/80 text-secondary-foreground",
 ];
 
 export function getAvatarColor(name: string | null | undefined): string {
@@ -137,7 +135,7 @@ export function getAvatarColor(name: string | null | undefined): string {
   for (let i = 0; i < s.length; i++) {
     hash = (hash + s.charCodeAt(i) * 17) % AVATAR_COLORS.length;
   }
-  return AVATAR_COLORS[hash] ?? "bg-slate-500";
+  return AVATAR_COLORS[hash] ?? "bg-muted text-muted-foreground";
 }
 
 export function formatRelativeTime(date: Date | string): string {

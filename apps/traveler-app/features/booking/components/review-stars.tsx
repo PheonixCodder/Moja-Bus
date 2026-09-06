@@ -19,14 +19,14 @@ export function ReviewStars({ rating, onRatingChange, size = 28 }: ReviewStarsPr
 					<Text
 						style={{ fontSize: size }}
 						className={`font-extrabold ${
-							star <= rating ? "text-amber-400" : "text-slate-200"
+							star <= rating ? "text-warning" : "text-muted"
 						}`}
 					>
 						★
 					</Text>
 				</Pressable>
 			))}
-			<Text className="text-xs font-semibold text-slate-400 ml-1">
+			<Text className="text-xs font-semibold text-muted-foreground ml-1">
 				{rating}/5
 			</Text>
 		</View>

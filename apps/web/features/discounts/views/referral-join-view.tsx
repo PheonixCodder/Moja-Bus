@@ -51,7 +51,7 @@ export function ReferralJoinView({ code }: Props) {
   if (sessionPending || programQuery.isLoading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
-        <Loader2 className="size-8 animate-spin text-[#ee237c]" />
+        <Loader2 className="size-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -63,37 +63,37 @@ export function ReferralJoinView({ code }: Props) {
     <div className="mx-auto flex min-h-[70vh] max-w-lg flex-col justify-center px-4 py-12">
       <Card className="space-y-5 p-6 sm:p-8">
         <div className="flex items-start gap-3">
-          <div className="rounded-full bg-pink-50 p-2.5 text-[#ee237c]">
+          <div className="rounded-full bg-primary/10 p-2.5 text-primary">
             <Gift className="size-6" />
           </div>
           <div className="space-y-1">
-            <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900">
+            <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">
               {t("invitedTitle")}
             </h1>
-            <p className="text-sm leading-relaxed text-slate-500">
+            <p className="text-sm leading-relaxed text-muted-foreground">
               {t("invitedDesc")}
             </p>
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-          <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">
+        <div className="rounded-xl border border-border bg-muted/40 px-4 py-3">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             {t("inviteCode")}
           </p>
-          <p className="mt-1 font-mono text-xl font-bold tracking-widest text-slate-900">
+          <p className="mt-1 font-mono text-xl font-bold tracking-widest text-foreground">
             {code}
           </p>
         </div>
 
         {inactive ? (
-          <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          <p className="rounded-lg bg-warning/15 px-3 py-2 text-sm text-warning">
             {t("pausedNotice")}
           </p>
         ) : program ? (
-          <ul className="space-y-1.5 text-sm text-slate-600">
+          <ul className="space-y-1.5 text-sm text-muted-foreground">
             <li>
               {t("friendEarns")}{" "}
-              <span className="font-semibold text-slate-900">
+              <span className="font-semibold text-foreground">
                 {program.referrerCreditAmountXOF.toLocaleString()} XOF
               </span>{" "}
               {t("friendEarnsSuffix")}

@@ -8,7 +8,8 @@ import { DangerZoneRow } from "../components/danger-zone-row";
 import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/text";
-import { BottomTabInset } from "@/constants/theme";
+import { BottomTabInset, Palette } from "@/constants/theme";
+
 export function SettingsView() {
 	const insets = useSafeAreaInsets();
 	const { t } = useTranslation("settings");
@@ -17,8 +18,8 @@ export function SettingsView() {
 
 	if (isPending) {
 		return (
-			<View className="flex-1 items-center justify-center bg-slate-900">
-				<ActivityIndicator size="large" color="#ee237c" />
+			<View className="flex-1 items-center justify-center bg-background">
+				<ActivityIndicator size="large" color={Palette.rose[500]} />
 			</View>
 		);
 	}
@@ -27,7 +28,7 @@ export function SettingsView() {
 
 	return (
 		<ScrollView
-			className="flex-1 bg-slate-900"
+			className="flex-1 bg-background"
 			contentContainerStyle={{ paddingBottom: BottomTabInset }}
 		>
 			<View
@@ -44,14 +45,15 @@ export function SettingsView() {
 					</View>
 				) : (
 					<View className="items-center py-6 gap-4">
-						<Text className="text-white/60 text-base text-center">
+						<Text className="text-muted-foreground text-base text-center">
 							{t("signInToManage")}
 						</Text>
 						<Pressable
 							onPress={() => router.push("/(auth)/login" as any)}
-							className="px-8 py-3 bg-[#ee237c] rounded-2xl active:opacity-85"
+							accessibilityRole="button"
+							className="px-8 py-3 bg-primary rounded-2xl active:opacity-85 min-h-12 justify-center items-center"
 						>
-							<Text className="text-white font-bold text-sm">
+							<Text className="text-primary-foreground font-bold text-sm">
 								{t("signIn")}
 							</Text>
 						</Pressable>
@@ -60,14 +62,14 @@ export function SettingsView() {
 			</View>
 
 			<View
-				className="bg-white rounded-3xl mx-3 px-5 pt-6 shadow-xl"
+				className="bg-card rounded-3xl mx-3 px-5 pt-6 shadow-xl border border-border"
 				style={{ paddingBottom: BottomTabInset }}
 			>
 				<SettingsDetails isAuthenticated={isAuthenticated} />
 
 				<AccountSettingsList isAuthenticated={isAuthenticated} />
 
-				<View className="h-[0.5px] bg-slate-100 mx-5 mt-2" />
+				<View className="h-[0.5px] bg-border mx-5 mt-2" />
 
 				<DangerZoneRow />
 			</View>

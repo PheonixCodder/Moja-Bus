@@ -49,26 +49,26 @@ export function TransactionHistory({
   const currentPage = currentPageParam - 1;
 
   return (
-    <Card className="border-border bg-bg-surface overflow-hidden shadow-sm">
-      <CardHeader className="flex flex-row items-center justify-between py-5 px-6 border-b border-border bg-bg-base">
+    <Card className="border-border bg-surface overflow-hidden shadow-sm">
+      <CardHeader className="flex flex-row items-center justify-between py-5 px-6 border-b border-border bg-muted">
         <div>
-          <CardTitle className="text-base font-extrabold text-text-primary tracking-tight font-display">
+          <CardTitle className="text-base font-extrabold text-foreground tracking-tight font-display">
             {t("history")}
           </CardTitle>
           <CardDescription className="text-xs">
             {t("historyDesc")}
           </CardDescription>
         </div>
-        <History className="w-4 h-4 text-text-muted" />
+        <History className="w-4 h-4 text-muted-foreground" />
       </CardHeader>
       <CardContent className="p-0">
         {ledgerResult && ledgerResult.items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center text-sm text-text-secondary space-y-3">
-            <div className="w-12 h-12 bg-bg-elevated rounded-full flex items-center justify-center text-text-muted">
+          <div className="flex flex-col items-center justify-center py-20 text-center text-sm text-muted-foreground space-y-3">
+            <div className="w-12 h-12 bg-card-elevated rounded-full flex items-center justify-center text-muted-foreground">
               <History className="w-6 h-6" />
             </div>
             <p className="font-medium">{t("noTransactions")}</p>
-            <p className="text-xs text-text-muted max-w-[280px]">
+            <p className="text-xs text-muted-foreground max-w-[280px]">
               {t("noTransactionsDesc")}
             </p>
           </div>
@@ -76,18 +76,18 @@ export function TransactionHistory({
           <div className="space-y-0">
             <div className="overflow-x-auto">
               <Table>
-                <TableHeader className="bg-bg-base">
+                <TableHeader className="bg-muted">
                   <TableRow className="border-b border-border/80 hover:bg-transparent">
-                    <TableHead className="text-[10px] font-bold text-text-muted uppercase tracking-wider h-11 px-6">
+                    <TableHead className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider h-11 px-6">
                       {t("colTransaction")}
                     </TableHead>
-                    <TableHead className="text-[10px] font-bold text-text-muted uppercase tracking-wider h-11 px-6">
+                    <TableHead className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider h-11 px-6">
                       {t("colAmount")}
                     </TableHead>
-                    <TableHead className="text-[10px] font-bold text-text-muted uppercase tracking-wider h-11 px-6">
+                    <TableHead className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider h-11 px-6">
                       {t("colMethod")}
                     </TableHead>
-                    <TableHead className="text-[10px] font-bold text-text-muted uppercase tracking-wider h-11 px-6">
+                    <TableHead className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider h-11 px-6">
                       {t("colDate")}
                     </TableHead>
                   </TableRow>
@@ -102,15 +102,15 @@ export function TransactionHistory({
                     return (
                       <TableRow
                         key={entry.id}
-                        className="border-b border-border/50 hover:bg-bg-base/30 transition-colors"
+                        className="border-b border-border/50 hover:bg-muted/30 transition-colors"
                       >
                         <TableCell className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <div
                               className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 border ${
                                 isCredit
-                                  ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                                  : "bg-red-50 text-[#ee237c] border-red-100"
+                                  ? "bg-success/10 text-success border-success/20"
+                                  : "bg-destructive/10 text-destructive border-destructive/20"
                               }`}
                             >
                               {isCredit ? (
@@ -119,7 +119,7 @@ export function TransactionHistory({
                                 <ArrowUpRight className="size-4" />
                               )}
                             </div>
-                            <span className="font-bold text-xs text-text-primary truncate max-w-[200px]">
+                            <span className="font-bold text-xs text-foreground truncate max-w-[200px]">
                               {desc}
                             </span>
                           </div>
@@ -128,8 +128,8 @@ export function TransactionHistory({
                           <span
                             className={
                               isCredit
-                                ? "text-emerald-600"
-                                : "text-text-primary"
+                                ? "text-success"
+                                : "text-foreground"
                             }
                           >
                             {isCredit ? "+" : "-"}
@@ -137,11 +137,11 @@ export function TransactionHistory({
                           </span>
                         </TableCell>
                         <TableCell className="px-6 py-4">
-                          <span className="text-[10px] uppercase font-bold tracking-wider text-text-muted px-2 py-0.5 bg-bg-base rounded-md border border-border">
+                          <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground px-2 py-0.5 bg-muted rounded-md border border-border">
                             {isCredit ? "Paystack" : t("methodWallet")}
                           </span>
                         </TableCell>
-                        <TableCell className="px-6 py-4 text-text-secondary text-xs font-medium">
+                        <TableCell className="px-6 py-4 text-muted-foreground text-xs font-medium">
                           {new Date(entry.createdAt).toLocaleDateString(
                             locale,
                             {
@@ -160,8 +160,8 @@ export function TransactionHistory({
             </div>
 
             {ledgerResult.total > pageSize && (
-              <div className="flex justify-between items-center text-xs p-5 border-t border-border bg-bg-base/50">
-                <span className="text-text-secondary font-medium">
+              <div className="flex justify-between items-center text-xs p-5 border-t border-border bg-muted/50">
+                <span className="text-muted-foreground font-medium">
                   {t("showingEntries", {
                     start: currentPage * pageSize + 1,
                     end: Math.min(

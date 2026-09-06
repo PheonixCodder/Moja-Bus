@@ -74,9 +74,9 @@ export function TransactionLedgerTable() {
   };
 
   return (
-    <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
+    <div className="bg-card text-card-foreground border rounded-xl overflow-hidden shadow-sm">
       <div className="p-4 border-b flex items-center justify-between gap-3">
-        <h3 className="text-sm font-semibold text-slate-900">
+        <h3 className="text-sm font-semibold text-foreground">
           {t("ledger.title")}
         </h3>
         <div className="flex items-center gap-2">
@@ -138,7 +138,7 @@ export function TransactionLedgerTable() {
       </div>
 
       <Table>
-        <TableHeader className="bg-slate-50/50">
+        <TableHeader className="bg-muted/50">
           <TableRow>
             <TableHead>{t("ledger.columns.date")}</TableHead>
             <TableHead>{t("ledger.columns.type")}</TableHead>
@@ -154,23 +154,23 @@ export function TransactionLedgerTable() {
             <TableRow>
               <TableCell
                 colSpan={5}
-                className="h-32 text-center text-slate-500"
+                className="h-32 text-center text-muted-foreground"
               >
                 {t("ledger.empty")}
               </TableCell>
             </TableRow>
           ) : (
             data.entries.map((entry) => (
-              <TableRow key={entry.id} className="hover:bg-slate-50/50">
-                <TableCell className="text-slate-600">
+              <TableRow key={entry.id} className="hover:bg-muted/50">
+                <TableCell className="text-muted-foreground">
                   {format(new Date(entry.createdAt), "dd MMM yyyy, HH:mm")}
                 </TableCell>
                 <TableCell>
-                  <div className="font-medium text-slate-900">
+                  <div className="font-medium text-foreground">
                     {formatSourceType(entry.sourceType)}
                   </div>
                 </TableCell>
-                <TableCell className="text-slate-600 truncate max-w-[300px]">
+                <TableCell className="text-muted-foreground truncate max-w-[300px]">
                   {entry.description || "-"}
                 </TableCell>
                 <TableCell>
@@ -188,8 +188,8 @@ export function TransactionLedgerTable() {
                   <div
                     className={`flex items-center justify-end font-medium ${
                       entry.entryType === "CREDIT"
-                        ? "text-emerald-600"
-                        : "text-slate-900"
+                        ? "text-success"
+                        : "text-foreground"
                     }`}
                   >
                     {entry.entryType === "CREDIT" ? (
@@ -207,8 +207,8 @@ export function TransactionLedgerTable() {
       </Table>
 
       {/* Pagination controls */}
-      <div className="p-4 border-t flex items-center justify-between bg-slate-50/50 text-sm">
-        <div className="text-slate-500">
+      <div className="p-4 border-t flex items-center justify-between bg-muted/50 text-sm">
+        <div className="text-muted-foreground">
           {t("ledger.pagination", {
             page: data.meta.page,
             totalPages: data.meta.totalPages || 1,

@@ -34,32 +34,32 @@ export function VerificationDetailsDecision({
   const hasBank = company.bankAccounts && company.bankAccounts.length > 0;
 
   // Status badges config
-  let badgeClass = "bg-slate-50 text-slate-700 border-slate-200";
-  let dotClass = "bg-slate-400";
+  let badgeClass = "bg-muted text-muted-foreground border-border";
+  let dotClass = "bg-muted-foreground";
 
   if (status === "ACTIVE") {
-    badgeClass = "bg-green-50 text-green-700 border-green-200";
-    dotClass = "bg-green-600";
+    badgeClass = "bg-success/15 text-success border-success/30";
+    dotClass = "bg-success";
   } else if (status === "PENDING_VERIFICATION") {
-    badgeClass = "bg-amber-50 text-amber-700 border-amber-200";
-    dotClass = "bg-amber-500";
+    badgeClass = "bg-warning/15 text-warning border-warning/30";
+    dotClass = "bg-warning";
   } else if (status === "REJECTED" || status === "SUSPENDED") {
-    badgeClass = "bg-red-50 text-red-700 border-red-200";
-    dotClass = "bg-red-600";
+    badgeClass = "bg-destructive/15 text-destructive border-destructive/30";
+    dotClass = "bg-destructive";
   } else if (status === "DRAFT") {
-    badgeClass = "bg-sky-50 text-sky-700 border-sky-200";
-    dotClass = "bg-sky-500";
+    badgeClass = "bg-primary/15 text-primary border-primary/30";
+    dotClass = "bg-primary";
   }
 
   return (
-    <Card className="bg-white border-border shadow-sm overflow-hidden">
-      <CardHeader className="bg-slate-50/50 border-b border-border/60 pb-4">
+    <Card className="bg-card border-border shadow-sm overflow-hidden">
+      <CardHeader className="bg-muted/40 border-b border-border/60 pb-4">
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
-            <CardTitle className="text-base font-bold text-slate-900">
+            <CardTitle className="text-base font-bold text-foreground">
               {t("platformDecisionBoard")}
             </CardTitle>
-            <CardDescription className="text-xs text-slate-400">
+            <CardDescription className="text-xs text-muted-foreground">
               {t("decisionBoardDescription")}
             </CardDescription>
           </div>
@@ -78,19 +78,19 @@ export function VerificationDetailsDecision({
       <CardContent className="p-6 space-y-4">
         {status === "PENDING_VERIFICATION" && (
           <div className="space-y-3">
-            <div className="text-xs text-slate-500 leading-relaxed font-medium">
+            <div className="text-xs text-muted-foreground leading-relaxed font-medium">
               {t("approveChecklistNote")}
             </div>
             <div className="flex flex-col gap-3 pt-2">
               <Button
                 variant="outline"
-                className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 h-10 font-bold text-xs"
+                className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30 h-10 font-bold text-xs"
                 onClick={onRejectClick}
               >
                 {t("rejectVerification")}
               </Button>
               <Button
-                className="w-full bg-primary hover:bg-primary/95 text-white h-10 font-bold text-xs"
+                className="w-full h-10 font-bold text-xs"
                 disabled={!hasBank}
                 onClick={onApproveClick}
               >
@@ -102,29 +102,29 @@ export function VerificationDetailsDecision({
         )}
 
         {status === "ACTIVE" && (
-          <div className="rounded-lg border border-green-100 bg-green-50/30 p-4 space-y-3">
+          <div className="rounded-lg border border-success/20 bg-success/10 p-4 space-y-3">
             <div className="flex gap-2.5">
-              <BadgeCheck className="size-5 text-green-600 shrink-0 mt-0.5" />
+              <BadgeCheck className="size-5 text-success shrink-0 mt-0.5" />
               <div className="space-y-1">
-                <div className="text-xs font-bold text-green-800">
+                <div className="text-xs font-bold text-success">
                   {t("operatorVerified")}
                 </div>
-                <p className="text-[11px] text-green-700 leading-relaxed font-medium">
+                <p className="text-xs text-success leading-relaxed font-medium">
                   {t("operatorApproved")}{" "}
-                  <span className="font-mono font-bold bg-green-100 px-1 py-0.5 rounded text-green-800">
+                  <span className="font-mono font-bold bg-success/20 px-1 py-0.5 rounded text-success">
                     {company.paystackTransferRecipientCode || t("na")}
                   </span>
                 </p>
               </div>
             </div>
             {company.verifiedAt && (
-              <div className="text-[10px] text-slate-400 font-medium border-t border-green-100/50 pt-2 flex items-center justify-between">
+              <div className="text-xs text-muted-foreground font-medium border-t border-success/20 pt-2 flex items-center justify-between">
                 <span>
                   {t("verifiedOn")}:{" "}
                   {new Date(company.verifiedAt).toLocaleString()}
                 </span>
                 {company.verifiedById && (
-                  <span className="font-bold text-slate-500">
+                  <span className="font-bold text-muted-foreground">
                     {t("idLabel")}: {company.verifiedById.slice(0, 8)}
                   </span>
                 )}
@@ -134,23 +134,23 @@ export function VerificationDetailsDecision({
         )}
 
         {status === "REJECTED" && (
-          <div className="rounded-lg border border-red-100 bg-red-50/30 p-4 space-y-3">
+          <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-4 space-y-3">
             <div className="flex gap-2.5">
-              <AlertCircle className="size-5 text-red-600 shrink-0 mt-0.5" />
+              <AlertCircle className="size-5 text-destructive shrink-0 mt-0.5" />
               <div className="space-y-1">
-                <div className="text-xs font-bold text-red-800">
+                <div className="text-xs font-bold text-destructive">
                   {t("registrationRejected")}
                 </div>
-                <div className="text-[11px] text-red-700 leading-relaxed font-semibold">
+                <div className="text-xs text-destructive leading-relaxed font-semibold">
                   {t("reasonLabel")}:
-                  <p className="font-normal text-red-600 bg-white rounded border border-red-100/50 p-2.5 mt-1 leading-normal italic shadow-3xs">
+                  <p className="font-normal text-destructive bg-card rounded border border-destructive/20 p-2.5 mt-1 leading-normal italic">
                     {company.rejectionReason || t("noReasonSpecified")}
                   </p>
                 </div>
               </div>
             </div>
             {company.activityLogs?.[0]?.createdAt && (
-              <div className="text-[10px] text-slate-400 font-medium border-t border-red-100/50 pt-2">
+              <div className="text-xs text-muted-foreground font-medium border-t border-destructive/20 pt-2">
                 {t("rejectedOn")}:{" "}
                 {new Date(company.activityLogs[0].createdAt).toLocaleString()}
               </div>
@@ -159,13 +159,13 @@ export function VerificationDetailsDecision({
         )}
 
         {status === "DRAFT" && (
-          <div className="rounded-lg border border-sky-100 bg-sky-50/30 p-4 flex gap-2.5">
-            <AlertCircle className="size-5 text-sky-600 shrink-0 mt-0.5" />
+          <div className="rounded-lg border border-primary/20 bg-primary/10 p-4 flex gap-2.5">
+            <AlertCircle className="size-5 text-primary shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <div className="text-xs font-bold text-sky-800">
+              <div className="text-xs font-bold text-primary">
                 {t("draftMode")}
               </div>
-              <p className="text-[11px] text-sky-700 leading-relaxed font-medium">
+              <p className="text-xs text-primary leading-relaxed font-medium">
                 {t("draftDescription")}
               </p>
             </div>

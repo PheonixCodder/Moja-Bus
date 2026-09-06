@@ -11,6 +11,7 @@ import {
 	TextInput,
 	View,
 } from "react-native";
+import { Palette } from "@/constants/theme";
 import { ReviewStars } from "@/features/booking/components/review-stars";
 import { useSubmitReview } from "@/features/booking/hooks/use-reviews";
 
@@ -76,7 +77,7 @@ export function ReviewSheet({
 			onRequestClose={onClose}
 		>
 			<Pressable className="flex-1 bg-black/50" onPress={onClose} />
-			<View className="bg-white dark:bg-zinc-900 rounded-t-3xl px-5 py-6 gap-4 shadow-2xl max-h-[85%]">
+			<View className="bg-card rounded-t-3xl px-5 py-6 gap-4 shadow-2xl max-h-[85%] border-t border-border">
 				<View className="flex-row items-center justify-between">
 					<View>
 						<Text className="text-xl font-extrabold text-foreground">
@@ -86,7 +87,7 @@ export function ReviewSheet({
 							{t("reviewSheetSubtitle")}
 						</Text>
 					</View>
-					<Pressable onPress={onClose} hitSlop={12}>
+					<Pressable onPress={onClose} hitSlop={12} accessibilityRole="button" accessibilityLabel="Close">
 						<Text className="text-lg text-muted-foreground">✕</Text>
 					</Pressable>
 				</View>
@@ -108,7 +109,7 @@ export function ReviewSheet({
 						{/* Driver Rating */}
 						<View className="flex-row items-center justify-between p-3 rounded-xl bg-card border border-border">
 							<View className="flex-row items-center gap-2">
-								<User size={16} color="#e11d48" />
+								<User size={16} color={Palette.rose[500]} />
 								<Text className="text-xs font-bold text-foreground">
 									{t("driverCriteria")}
 								</Text>
@@ -123,7 +124,7 @@ export function ReviewSheet({
 						{/* Bus Cleanliness Rating */}
 						<View className="flex-row items-center justify-between p-3 rounded-xl bg-card border border-border">
 							<View className="flex-row items-center gap-2">
-								<Bus size={16} color="#38bdf8" />
+								<Bus size={16} color={Palette.blue[500]} />
 								<Text className="text-xs font-bold text-foreground">
 									{t("busCriteria")}
 								</Text>
@@ -138,7 +139,7 @@ export function ReviewSheet({
 						{/* Punctuality Rating */}
 						<View className="flex-row items-center justify-between p-3 rounded-xl bg-card border border-border">
 							<View className="flex-row items-center gap-2">
-								<Clock size={16} color="#10b981" />
+								<Clock size={16} color={Palette.emerald[500]} />
 								<Text className="text-xs font-bold text-foreground">
 									{t("punctualityCriteria")}
 								</Text>
@@ -155,7 +156,7 @@ export function ReviewSheet({
 						value={comment}
 						onChangeText={setComment}
 						placeholder={t("reviewNotePlaceholder")}
-						placeholderTextColor="#94a3b8"
+						placeholderTextColor={Palette.zinc[400]}
 						multiline
 						numberOfLines={3}
 						className="bg-muted/40 rounded-xl border border-border p-3.5 text-xs font-medium text-foreground min-h-[70px]"
@@ -165,13 +166,14 @@ export function ReviewSheet({
 					<Pressable
 						onPress={handleSubmit}
 						disabled={submitReview.isPending || overallRating === 0}
-						className="py-3.5 rounded-xl bg-primary items-center mt-2 shadow-lg"
+						className="py-3.5 rounded-xl bg-primary items-center mt-2 shadow-lg min-h-12 justify-center"
+						accessibilityRole="button"
 						style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
 					>
 						{submitReview.isPending ? (
-							<ActivityIndicator size="small" color="#ffffff" />
+							<ActivityIndicator size="small" color={Palette.zinc[50]} />
 						) : (
-							<Text className="text-sm font-bold text-white">
+							<Text className="text-sm font-bold text-primary-foreground">
 								{t("submit3WayReview")}
 							</Text>
 						)}

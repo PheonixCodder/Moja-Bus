@@ -20,21 +20,21 @@ export async function AdminPageShell({
 }: AdminPageShellProps) {
   const t = await getTranslations("adminDashboard");
   return (
-    <div className="flex flex-col min-h-0 flex-1 bg-slate-50/50">
+    <div className="flex flex-col min-h-0 flex-1 bg-muted/40">
       {/* Header bar */}
-      <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-white px-6">
+      <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-card px-6">
         <div className="flex items-center gap-4">
           <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
           <Separator orientation="vertical" className="h-4 bg-border" />
 
           {/* Breadcrumbs */}
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
-            <span className="text-slate-400">
+            <span className="text-muted-foreground/60">
               {t("overview.breadcrumb.admin")}
             </span>
             {breadcrumbs?.map((crumb, idx) => (
               <React.Fragment key={idx}>
-                <span className="text-slate-300">/</span>
+                <span className="text-muted-foreground/40">/</span>
                 {crumb.href ? (
                   <a
                     href={crumb.href}
@@ -43,7 +43,7 @@ export async function AdminPageShell({
                     {crumb.label}
                   </a>
                 ) : (
-                  <span className="text-slate-700 font-semibold">
+                  <span className="text-foreground font-semibold">
                     {crumb.label}
                   </span>
                 )}
@@ -60,11 +60,11 @@ export async function AdminPageShell({
         <div className="mx-auto max-w-6xl space-y-6">
           {/* Header Title Section */}
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold font-display tracking-tight text-slate-900">
+            <h1 className="text-2xl font-bold font-display tracking-tight text-foreground">
               {title}
             </h1>
             {description && (
-              <p className="text-sm text-slate-500 max-w-2xl leading-relaxed">
+              <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
                 {description}
               </p>
             )}

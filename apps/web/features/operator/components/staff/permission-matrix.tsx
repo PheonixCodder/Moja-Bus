@@ -3,6 +3,7 @@
 import { Checkbox } from "@moja/ui/components/ui/checkbox";
 import { Label } from "@moja/ui/components/ui/label";
 import { Input } from "@moja/ui/components/ui/input";
+import { Button } from "@moja/ui/components/ui/button";
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
@@ -86,14 +87,16 @@ export function PermissionMatrix({
           return (
             <div key={group} className="space-y-2">
               <div className="flex items-center justify-between border-b border-border pb-1.5">
-                <button
+                <Button
                   type="button"
-                  className="text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground"
+                  variant="ghost"
+                  size="sm"
+                  className="h-auto p-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground hover:bg-transparent"
                   onClick={() => toggleGroup(keys, allSelected)}
                   disabled={disabled}
                 >
                   {group}
-                </button>
+                </Button>
                 <span className="text-[11px] text-muted-foreground">
                   {someSelected
                     ? `${keys.filter((k) => selectedSet.has(k)).length}/${keys.length}`

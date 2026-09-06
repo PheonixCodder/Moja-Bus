@@ -98,14 +98,14 @@ export function TransferOwnershipDialog({
       <AlertDialogContent className="border-border bg-card max-w-md">
         <AlertDialogHeader>
           <div className="flex items-center gap-2 mb-1">
-            <AlertTriangle className="h-5 w-5 text-amber-500" />
+            <AlertTriangle className="size-5 text-warning" />
             <AlertDialogTitle className="text-base font-semibold">
               {t("title")}
             </AlertDialogTitle>
           </div>
           <AlertDialogDescription className="text-[13px] text-muted-foreground space-y-2">
             <p>{t("description", { name: member?.user.fullName ?? "" })}</p>
-            <p className="text-amber-600 font-medium">{t("warning")}</p>
+            <p className="text-warning font-medium">{t("warning")}</p>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="space-y-3 px-0 pb-2">
@@ -147,11 +147,11 @@ export function TransferOwnershipDialog({
             {tp("cancel")}
           </AlertDialogCancel>
           <AlertDialogAction
-            className="h-9 text-[13px] bg-red-600 hover:bg-red-700 text-white border-0"
+            className="h-9 text-[13px] bg-destructive hover:bg-destructive/90 text-destructive-foreground border-0"
             onClick={handleConfirm}
             disabled={confirming || otp.length < 6}
           >
-            {confirming ? <Spinner className="h-3.5 w-3.5" /> : t("confirm")}
+            {confirming ? <Spinner className="size-3.5" /> : t("confirm")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

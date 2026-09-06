@@ -79,20 +79,22 @@ export function CalendarStep({
           {DAYS.map((d) => {
             const active = config.days[d.key];
             return (
-              <button
+              <Button
                 type="button"
+                variant={active ? "default" : "outline"}
+                size="sm"
                 key={d.key}
                 onClick={() => toggleDay(d.key)}
                 aria-pressed={active}
                 className={cn(
-                  "px-4 py-2 rounded-full border text-xs font-bold transition-all duration-150",
+                  "px-4 py-2 h-auto rounded-full text-xs font-bold transition-all duration-150",
                   active
-                    ? "border-primary bg-primary text-white shadow-sm"
+                    ? "border-primary bg-primary text-primary-foreground shadow-sm"
                     : "border-border bg-background text-muted-foreground hover:border-primary/40",
                 )}
               >
                 {d.label}
-              </button>
+              </Button>
             );
           })}
         </div>

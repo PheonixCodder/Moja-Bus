@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@moja/ui/components/ui/avatar";
+import { UserAvatar } from "@moja/ui/components/ui/user-avatar";
 import { Badge } from "@moja/ui/components/ui/badge";
 import {
   Table,
@@ -72,7 +68,7 @@ export function BankAccessLogsTable() {
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-[180px] pl-4">{t("timestamp")}</TableHead>
+              <TableHead className="w-44 pl-4">{t("timestamp")}</TableHead>
               <TableHead>{t("action")}</TableHead>
               <TableHead>{t("targetCompany")}</TableHead>
               <TableHead>{t("userActor")}</TableHead>
@@ -97,7 +93,7 @@ export function BankAccessLogsTable() {
                     }
                     className={`text-[10px] uppercase font-mono px-1.5 py-0 ${
                       log.action === "CREATE" || log.action === "UPDATE"
-                        ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                        ? "bg-primary/10 text-primary hover:bg-primary/20 border-primary/20"
                         : ""
                     }`}
                   >
@@ -106,26 +102,27 @@ export function BankAccessLogsTable() {
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium text-foreground truncate max-w-[160px]">
+                    <span className="text-sm font-medium text-foreground truncate max-w-40">
                       {log.company.name}
                     </span>
-                    <span className="text-[10px] text-muted-foreground font-mono truncate max-w-[160px]">
+                    <span className="text-[10px] text-muted-foreground font-mono truncate max-w-40">
                       {log.company.id}
                     </span>
                   </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <Avatar className="h-6 w-6">
-                      <AvatarFallback className="text-[10px]">
-                        {log.user.fullName.substring(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+                    <UserAvatar
+                      name={log.user.fullName}
+                      seed={log.user.id}
+                      size="sm"
+                      className="h-6 w-6"
+                    />
                     <div className="flex flex-col">
                       <span className="text-sm font-medium text-foreground">
                         {log.user.fullName}
                       </span>
-                      <span className="text-[10px] text-muted-foreground truncate max-w-[140px]">
+                      <span className="text-[10px] text-muted-foreground truncate max-w-36">
                         {log.user.email}
                       </span>
                     </div>

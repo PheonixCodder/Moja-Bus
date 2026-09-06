@@ -22,7 +22,7 @@ export function TripAuditHeader({ tripId }: { tripId: string }) {
       <div className="flex flex-col gap-6 md:flex-row md:items-center justify-between">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-700 rounded-full font-semibold">
+            <span className="text-xs px-2 py-0.5 bg-muted text-muted-foreground rounded-full font-semibold">
               {trip.company.name}
             </span>
             <Badge
@@ -41,7 +41,7 @@ export function TripAuditHeader({ tripId }: { tripId: string }) {
             {trip.delayMinutes ? (
               <Badge
                 variant="outline"
-                className="text-amber-600 border-amber-200 bg-amber-50"
+                className="text-warning border-warning/20 bg-warning/10"
               >
                 {t("delayMinutes", { minutes: trip.delayMinutes })}
               </Badge>
@@ -63,8 +63,8 @@ export function TripAuditHeader({ tripId }: { tripId: string }) {
 
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-full bg-slate-100">
-              <Bus className="size-5 text-slate-600" />
+            <div className="flex size-10 items-center justify-center rounded-full bg-muted">
+              <Bus className="size-5 text-muted-foreground" />
             </div>
             <div>
               <p className="text-xs font-semibold uppercase text-muted-foreground">
@@ -77,8 +77,8 @@ export function TripAuditHeader({ tripId }: { tripId: string }) {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-full bg-slate-100">
-              <MapPin className="size-5 text-slate-600" />
+            <div className="flex size-10 items-center justify-center rounded-full bg-muted">
+              <MapPin className="size-5 text-muted-foreground" />
             </div>
             <div>
               <p className="text-xs font-semibold uppercase text-muted-foreground">

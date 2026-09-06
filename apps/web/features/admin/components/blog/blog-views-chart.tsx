@@ -32,7 +32,7 @@ interface BlogViewsChartProps {
 const chartConfig = {
   views: {
     label: "Views",
-    color: "hsl(var(--chart-1))",
+    color: "var(--chart-1)",
   },
 } satisfies ChartConfig;
 
@@ -86,14 +86,14 @@ export function BlogViewsChart({ data }: BlogViewsChartProps) {
               tickMargin={8}
               tickFormatter={(val: string) => format(parseISO(val), "MMM d")}
               minTickGap={32}
-              style={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+              style={{ fontSize: 12, fill: "var(--muted-foreground)" }}
             />
             <YAxis
               tickLine={false}
               axisLine={false}
               tickMargin={8}
               tickFormatter={(value: string | number) => `${value}`}
-              style={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+              style={{ fontSize: 12, fill: "var(--muted-foreground)" }}
             />
             <ChartTooltip
               content={({ active, payload }: TooltipContentProps) => {

@@ -43,14 +43,14 @@ export function LiveBoardingPass({
   }, [departureTime, t]);
 
   return (
-    <div className="bg-linear-to-r from-emerald-500/10 via-emerald-500/5 to-card border border-emerald-500/30 rounded-xl p-5 relative overflow-hidden shadow-xs dark:bg-card">
+    <div className="bg-linear-to-r from-success/10 via-success/5 to-card border border-success/30 rounded-xl p-5 relative overflow-hidden shadow-xs dark:bg-card">
       <div className="flex flex-col sm:flex-row gap-5 items-center">
         <div className="bg-white p-2.5 rounded-lg border border-border shadow-xs shrink-0">
           <QRCode value={qrPayload} size={88} />
         </div>
         <div className="flex-1 space-y-2 text-center sm:text-left">
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-            <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full animate-pulse">
+            <span className="text-[9px] font-bold text-success uppercase tracking-widest bg-success/10 border border-success/20 px-2 py-0.5 rounded-full animate-pulse">
               {t("livePass")}
             </span>
             <span className="text-[10px] font-bold text-muted-foreground font-mono">

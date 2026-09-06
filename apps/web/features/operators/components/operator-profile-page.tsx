@@ -22,6 +22,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 
+import { Button } from "@moja/ui/components/ui/button";
+
 interface Props {
   slug: string;
 }
@@ -53,10 +55,10 @@ export function OperatorProfilePage({ slug }: Props) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-[#ee237c] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-slate-500">{t("loading")}</p>
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">{t("loading")}</p>
         </div>
       </div>
     );
@@ -64,16 +66,16 @@ export function OperatorProfilePage({ slug }: Props) {
 
   if (error || !operator) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center px-6">
+      <div className="min-h-screen bg-background flex items-center justify-center px-6">
         <div className="text-center max-w-md">
-          <Bus className="h-16 w-16 text-slate-300 mx-auto mb-6" />
-          <h1 className="text-2xl font-bold text-slate-900 mb-3">
+          <Bus className="h-16 w-16 text-muted-foreground/40 mx-auto mb-6" />
+          <h1 className="text-2xl font-bold text-foreground mb-3">
             {t("notFoundTitle")}
           </h1>
-          <p className="text-slate-500 mb-8">{t("notFoundDesc")}</p>
+          <p className="text-muted-foreground mb-8">{t("notFoundDesc")}</p>
           <Link
             href="/operators"
-            className="inline-flex items-center gap-2 bg-[#ee237c] text-white px-6 py-3 rounded-2xl font-bold hover:bg-[#d01867] transition-all"
+            className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-2xl font-bold hover:bg-primary/90 transition-all shadow-sm"
           >
             {t("viewAllOperators")} <ArrowRight className="h-4 w-4" />
           </Link>
@@ -101,29 +103,29 @@ export function OperatorProfilePage({ slug }: Props) {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* Hero band */}
-      <div className="bg-gradient-to-br from-slate-900 to-slate-800 px-6 md:px-8 pt-12 pb-0">
+      <div className="bg-foreground text-background px-6 md:px-8 pt-12 pb-0">
         <div className="max-w-7xl mx-auto">
           {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-slate-400 text-sm mb-8">
-            <Link href="/" className="hover:text-white transition-colors">
+          <nav className="flex items-center gap-2 text-background/60 text-sm mb-8">
+            <Link href="/" className="hover:text-background transition-colors">
               {t("breadcrumbHome")}
             </Link>
             <ChevronRight className="h-3.5 w-3.5" />
             <Link
               href="/operators"
-              className="hover:text-white transition-colors"
+              className="hover:text-background transition-colors"
             >
               {t("breadcrumbOperators")}
             </Link>
             <ChevronRight className="h-3.5 w-3.5" />
-            <span className="text-white font-medium">{operator.name}</span>
+            <span className="text-background font-medium">{operator.name}</span>
           </nav>
 
           <div className="flex flex-col md:flex-row items-start gap-8 pb-12">
             {/* Logo */}
-            <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center border-4 border-white/20 shadow-2xl overflow-hidden shrink-0">
+            <div className="w-24 h-24 bg-card rounded-3xl flex items-center justify-center border-4 border-background/20 shadow-2xl overflow-hidden shrink-0">
               {operator.logoUrl ? (
                 <Image
                   src={operator.logoUrl}
@@ -133,7 +135,7 @@ export function OperatorProfilePage({ slug }: Props) {
                   className="object-cover"
                 />
               ) : (
-                <span className="text-3xl font-black text-slate-400">
+                <span className="text-3xl font-black text-muted-foreground">
                   {abbr}
                 </span>
               )}
@@ -141,9 +143,9 @@ export function OperatorProfilePage({ slug }: Props) {
 
             <div className="flex-1">
               <h1
-                className="text-white mb-2"
+                className="text-background mb-2"
                 style={{
-                  fontFamily: "Montserrat, sans-serif",
+                  fontFamily: "var(--font-heading)",
                   fontSize: "clamp(1.5rem, 4vw, 2.5rem)",
                   fontWeight: 800,
                   letterSpacing: "-0.02em",
@@ -152,37 +154,37 @@ export function OperatorProfilePage({ slug }: Props) {
                 {operator.name}
               </h1>
               {operator.description && (
-                <p className="text-slate-300 text-base max-w-2xl mb-6">
+                <p className="text-background/80 text-base max-w-2xl mb-6">
                   {operator.description}
                 </p>
               )}
 
               {/* Stats strip */}
               <div className="flex flex-wrap gap-6">
-                <div className="flex items-center gap-2 text-slate-300 text-sm">
-                  <Route className="h-4 w-4 text-[#ee237c]" />
-                  <span className="font-semibold text-white">
+                <div className="flex items-center gap-2 text-background/80 text-sm">
+                  <Route className="h-4 w-4 text-primary" />
+                  <span className="font-semibold text-background">
                     {operator._count.routes}
                   </span>
                   <span>{t("activeRoutes")}</span>
                 </div>
-                <div className="flex items-center gap-2 text-slate-300 text-sm">
-                  <Bus className="h-4 w-4 text-[#ee237c]" />
-                  <span className="font-semibold text-white">
+                <div className="flex items-center gap-2 text-background/80 text-sm">
+                  <Bus className="h-4 w-4 text-primary" />
+                  <span className="font-semibold text-background">
                     {operator._count.fleet}
                   </span>
                   <span>{t("busesInFleet")}</span>
                 </div>
-                <div className="flex items-center gap-2 text-slate-300 text-sm">
-                  <MapPin className="h-4 w-4 text-[#ee237c]" />
-                  <span className="font-semibold text-white">
+                <div className="flex items-center gap-2 text-background/80 text-sm">
+                  <MapPin className="h-4 w-4 text-primary" />
+                  <span className="font-semibold text-background">
                     {operator.locations.length}
                   </span>
                   <span>{t("terminals")}</span>
                 </div>
                 {operator.yearEstablished && (
-                  <div className="flex items-center gap-2 text-slate-300 text-sm">
-                    <Calendar className="h-4 w-4 text-[#ee237c]" />
+                  <div className="flex items-center gap-2 text-background/80 text-sm">
+                    <Calendar className="h-4 w-4 text-primary" />
                     <span>{t("est", { year: operator.yearEstablished })}</span>
                   </div>
                 )}
@@ -192,7 +194,7 @@ export function OperatorProfilePage({ slug }: Props) {
             {/* Quick action */}
             <Link
               href={`/search`}
-              className="shrink-0 flex items-center gap-2 bg-[#ee237c] text-white px-6 py-3.5 rounded-2xl font-bold text-sm hover:bg-[#d01867] transition-all shadow-xl shadow-pink-900/30"
+              className="shrink-0 flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3.5 rounded-2xl font-bold text-sm hover:bg-primary/90 transition-all shadow-xl shadow-primary/30"
             >
               <span>{t("bookTrip")}</span>
               <ArrowRight className="h-4 w-4" />
@@ -200,15 +202,16 @@ export function OperatorProfilePage({ slug }: Props) {
           </div>
 
           {/* Tab bar */}
-          <div className="flex gap-1 border-b border-slate-700">
+          <div className="flex gap-1 border-b border-background/20">
             {tabs.map((tab) => (
-              <button
+              <Button
                 key={tab.id}
+                variant="ghost"
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-5 py-3 text-sm font-semibold rounded-t-lg transition-all ${
+                className={`px-5 py-3 h-auto text-sm font-semibold rounded-b-none rounded-t-lg transition-all ${
                   activeTab === tab.id
-                    ? "bg-white text-slate-900"
-                    : "text-slate-400 hover:text-white"
+                    ? "bg-background text-foreground hover:bg-background hover:text-foreground"
+                    : "text-background/60 hover:text-background hover:bg-background/10"
                 }`}
               >
                 {tab.label}
@@ -216,14 +219,14 @@ export function OperatorProfilePage({ slug }: Props) {
                   <span
                     className={`ml-2 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
                       activeTab === tab.id
-                        ? "bg-[#ee237c]/10 text-[#ee237c]"
-                        : "bg-slate-600 text-slate-300"
+                        ? "bg-primary/10 text-primary"
+                        : "bg-background/20 text-background"
                     }`}
                   >
                     {tab.count}
                   </span>
                 )}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
@@ -238,10 +241,10 @@ export function OperatorProfilePage({ slug }: Props) {
             <div className="lg:col-span-2 space-y-8">
               {operator.description && (
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900 mb-4">
+                  <h2 className="text-xl font-bold text-foreground mb-4">
                     {t("aboutHeading")}
                   </h2>
-                  <p className="text-slate-600 leading-relaxed">
+                  <p className="text-muted-foreground leading-relaxed">
                     {operator.description}
                   </p>
                 </div>
@@ -251,38 +254,40 @@ export function OperatorProfilePage({ slug }: Props) {
               {operator.routes.length > 0 && (
                 <div>
                   <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-bold text-slate-900">
+                    <h2 className="text-xl font-bold text-foreground">
                       {t("tabRoutes")}
                     </h2>
-                    <button
+                    <Button
+                      type="button"
+                      variant="ghost"
                       onClick={() => setActiveTab("routes")}
-                      className="text-sm text-[#ee237c] font-bold flex items-center gap-1 hover:gap-2 transition-all"
+                      className="text-sm text-primary font-bold flex items-center gap-1 hover:gap-2 transition-all p-0 h-auto hover:bg-transparent hover:text-primary"
                     >
                       {t("viewAllRoutes")}{" "}
                       <ArrowRight className="h-3.5 w-3.5" />
-                    </button>
+                    </Button>
                   </div>
                   <div className="space-y-3">
                     {operator.routes.slice(0, 3).map((route) => (
                       <div
                         key={route.id}
-                        className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100"
+                        className="flex items-center justify-between p-4 bg-muted/50 rounded-2xl border border-border"
                       >
                         <div>
-                          <p className="font-semibold text-slate-900 text-sm">
+                          <p className="font-semibold text-foreground text-sm">
                             {route.originTerminal.cityRelation?.name ??
                               route.originTerminal.city}{" "}
                             →{" "}
                             {route.destTerminal.cityRelation?.name ??
                               route.destTerminal.city}
                           </p>
-                          <p className="text-slate-400 text-xs mt-0.5">
+                          <p className="text-muted-foreground text-xs mt-0.5">
                             {route.name}
                           </p>
                         </div>
                         <div className="text-right">
                           {route.schedules[0]?.fares[0] && (
-                            <p className="text-xs text-[#ee237c] font-bold">
+                            <p className="text-xs text-primary font-bold">
                               {t("fromPrice")}{" "}
                               {route.schedules[0].fares[0].priceXOF.toLocaleString()}{" "}
                               FCFA
@@ -298,26 +303,26 @@ export function OperatorProfilePage({ slug }: Props) {
 
             {/* Right: contact card */}
             <div>
-              <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100 sticky top-24">
-                <h3 className="font-bold text-slate-900 mb-5">
+              <div className="bg-muted/30 rounded-3xl p-6 border border-border sticky top-24">
+                <h3 className="font-bold text-foreground mb-5">
                   {t("contactHeading")}
                 </h3>
                 <div className="space-y-4">
                   {operator.phone && (
                     <a
                       href={`tel:${operator.phone}`}
-                      className="flex items-center gap-3 text-sm text-slate-600 hover:text-[#ee237c] transition-colors"
+                      className="flex items-center gap-3 text-sm text-muted-foreground hover:text-primary transition-colors"
                     >
-                      <Phone className="h-4 w-4 text-[#ee237c]/60" />
+                      <Phone className="h-4 w-4 text-primary/60" />
                       {operator.phone}
                     </a>
                   )}
                   {operator.email && (
                     <a
                       href={`mailto:${operator.email}`}
-                      className="flex items-center gap-3 text-sm text-slate-600 hover:text-[#ee237c] transition-colors"
+                      className="flex items-center gap-3 text-sm text-muted-foreground hover:text-primary transition-colors"
                     >
-                      <Mail className="h-4 w-4 text-[#ee237c]/60" />
+                      <Mail className="h-4 w-4 text-primary/60" />
                       {operator.email}
                     </a>
                   )}
@@ -326,9 +331,9 @@ export function OperatorProfilePage({ slug }: Props) {
                       href={operator.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-3 text-sm text-slate-600 hover:text-[#ee237c] transition-colors"
+                      className="flex items-center gap-3 text-sm text-muted-foreground hover:text-primary transition-colors"
                     >
-                      <Globe className="h-4 w-4 text-[#ee237c]/60" />
+                      <Globe className="h-4 w-4 text-primary/60" />
                       {operator.website.replace(/^https?:\/\//, "")}
                     </a>
                   )}
@@ -337,7 +342,7 @@ export function OperatorProfilePage({ slug }: Props) {
                 <div className="mt-8">
                   <Link
                     href="/search"
-                    className="w-full flex items-center justify-center gap-2 bg-[#ee237c] text-white py-4 rounded-2xl font-bold text-sm hover:bg-[#d01867] transition-all"
+                    className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground py-4 rounded-2xl font-bold text-sm hover:bg-primary/90 transition-all shadow-xs"
                   >
                     {t("searchTrips")}
                     <ArrowRight className="h-4 w-4" />
@@ -351,22 +356,22 @@ export function OperatorProfilePage({ slug }: Props) {
         {/* ROUTES */}
         {activeTab === "routes" && (
           <div>
-            <h2 className="text-xl font-bold text-slate-900 mb-8">
+            <h2 className="text-xl font-bold text-foreground mb-8">
               {t("activeRoutesCount", { count: operator.routes.length })}
             </h2>
             {operator.routes.length === 0 ? (
               <div className="text-center py-16">
-                <Route className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-500">{t("noRoutes")}</p>
+                <Route className="h-12 w-12 text-muted-foreground/40 mx-auto mb-4" />
+                <p className="text-muted-foreground">{t("noRoutes")}</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {operator.routes.map((route) => {
                   const originCity =
-                    route.originTerminal.cityRelation?.name ??
+                    route.originTerminal.cityRelation?.name ||
                     route.originTerminal.city;
                   const destCity =
-                    route.destTerminal.cityRelation?.name ??
+                    route.destTerminal.cityRelation?.name ||
                     route.destTerminal.city;
                   const minFare = route.schedules
                     .flatMap((s) => s.fares)
@@ -375,24 +380,24 @@ export function OperatorProfilePage({ slug }: Props) {
                   return (
                     <div
                       key={route.id}
-                      className="bg-white border border-slate-200 rounded-3xl p-6 hover:shadow-lg transition-all hover:border-[#ee237c]/20 group"
+                      className="bg-card border border-border rounded-3xl p-6 hover:shadow-lg transition-all hover:border-primary/20 group"
                     >
                       {/* Route name */}
-                      <h3 className="text-lg font-bold text-slate-900 mb-1">
+                      <h3 className="text-lg font-bold text-foreground mb-1">
                         {originCity} → {destCity}
                       </h3>
-                      <p className="text-slate-400 text-sm mb-5">
+                      <p className="text-muted-foreground text-sm mb-5">
                         {route.name}
                       </p>
 
                       {/* Stats */}
                       <div className="grid grid-cols-2 gap-4 mb-6">
                         {route.distanceKm && (
-                          <div className="bg-slate-50 rounded-xl p-3">
-                            <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">
+                          <div className="bg-muted/40 rounded-xl p-3">
+                            <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">
                               {t("distance")}
                             </p>
-                            <p className="font-semibold text-slate-800 text-sm">
+                            <p className="font-semibold text-foreground text-sm">
                               {route.distanceKm} km
                             </p>
                           </div>
@@ -402,14 +407,14 @@ export function OperatorProfilePage({ slug }: Props) {
                       {/* Schedules */}
                       {route.schedules.length > 0 && (
                         <div className="mb-5">
-                          <p className="text-xs font-bold text-slate-400 uppercase mb-2">
+                          <p className="text-xs font-bold text-muted-foreground uppercase mb-2">
                             {t("departureTimes")}
                           </p>
                           <div className="flex flex-wrap gap-2">
                             {route.schedules.map((s) => (
                               <span
                                 key={s.id}
-                                className="flex items-center gap-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-full text-xs font-medium text-slate-600"
+                                className="flex items-center gap-1 px-3 py-1.5 bg-muted/40 border border-border rounded-full text-xs font-medium text-foreground"
                               >
                                 <Clock className="h-3 w-3" />
                                 {s.departureTime}
@@ -422,9 +427,9 @@ export function OperatorProfilePage({ slug }: Props) {
                       {/* Price + Book */}
                       <div className="flex items-center justify-between">
                         {minFare ? (
-                          <p className="text-sm text-slate-500">
+                          <p className="text-sm text-muted-foreground">
                             {t("fromPrice")}{" "}
-                            <span className="text-[#ee237c] font-bold text-base">
+                            <span className="text-primary font-bold text-base">
                               {minFare.priceXOF.toLocaleString()} FCFA
                             </span>
                           </p>
@@ -433,7 +438,7 @@ export function OperatorProfilePage({ slug }: Props) {
                         )}
                         <Link
                           href={`/search?date=${today()}`}
-                          className="flex items-center gap-1.5 text-sm font-bold text-[#ee237c] group-hover:gap-3 transition-all"
+                          className="flex items-center gap-1.5 text-sm font-bold text-primary group-hover:gap-3 transition-all"
                         >
                           {t("book")} <ArrowRight className="h-3.5 w-3.5" />
                         </Link>
@@ -449,30 +454,30 @@ export function OperatorProfilePage({ slug }: Props) {
         {/* TERMINALS */}
         {activeTab === "terminals" && (
           <div>
-            <h2 className="text-xl font-bold text-slate-900 mb-8">
+            <h2 className="text-xl font-bold text-foreground mb-8">
               {t("terminalCount", { count: operator.locations.length })}
             </h2>
             {operator.locations.length === 0 ? (
               <div className="text-center py-16">
-                <Building2 className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-500">{t("noTerminals")}</p>
+                <Building2 className="h-12 w-12 text-muted-foreground/40 mx-auto mb-4" />
+                <p className="text-muted-foreground">{t("noTerminals")}</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {operator.locations.map((loc) => (
                   <div
                     key={loc.id}
-                    className="bg-white border border-slate-200 rounded-3xl p-6 hover:shadow-md transition-all"
+                    className="bg-card border border-border rounded-3xl p-6 hover:shadow-md transition-all"
                   >
                     <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 bg-[#ee237c]/10 rounded-xl flex items-center justify-center shrink-0">
-                        <MapPin className="h-5 w-5 text-[#ee237c]" />
+                      <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
+                        <MapPin className="h-5 w-5 text-primary" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-bold text-slate-900 mb-1">
+                        <h3 className="font-bold text-foreground mb-1">
                           {loc.name}
                         </h3>
-                        <p className="text-slate-500 text-sm mb-1">
+                        <p className="text-muted-foreground text-sm mb-1">
                           {loc.addressLine1}
                           {loc.cityRelation?.name
                             ? `, ${loc.cityRelation.name}`
@@ -483,14 +488,14 @@ export function OperatorProfilePage({ slug }: Props) {
                         {loc.phone && (
                           <a
                             href={`tel:${loc.phone}`}
-                            className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-[#ee237c] transition-colors mt-2"
+                            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors mt-2"
                           >
                             <Phone className="h-3.5 w-3.5" />
                             {loc.phone}
                           </a>
                         )}
                         {loc.managerName && (
-                          <p className="text-xs text-slate-400 mt-1">
+                          <p className="text-xs text-muted-foreground mt-1">
                             {t("manager", { name: loc.managerName })}
                           </p>
                         )}
@@ -506,16 +511,16 @@ export function OperatorProfilePage({ slug }: Props) {
         {/* REVIEWS — placeholder */}
         {activeTab === "reviews" && (
           <div className="text-center py-24">
-            <Star className="h-16 w-16 text-slate-200 mx-auto mb-6" />
-            <h3 className="text-xl font-bold text-slate-700 mb-3">
+            <Star className="h-16 w-16 text-muted-foreground/30 mx-auto mb-6" />
+            <h3 className="text-xl font-bold text-foreground mb-3">
               {t("reviewsSoon")}
             </h3>
-            <p className="text-slate-400 max-w-sm mx-auto">
+            <p className="text-muted-foreground max-w-sm mx-auto">
               {t("reviewsSoonDesc")}
             </p>
             <Link
               href="/search"
-              className="inline-flex items-center gap-2 mt-8 bg-[#ee237c] text-white px-6 py-3 rounded-2xl font-bold hover:bg-[#d01867] transition-all text-sm"
+              className="inline-flex items-center gap-2 mt-8 bg-primary text-primary-foreground px-6 py-3 rounded-2xl font-bold hover:bg-primary/90 transition-all text-sm shadow-sm"
             >
               {t("bookTripNow")} <ArrowRight className="h-4 w-4" />
             </Link>

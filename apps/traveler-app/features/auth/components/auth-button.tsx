@@ -6,6 +6,7 @@ import {
 } from "react-native";
 
 import { cn } from "@/lib/utils";
+import { Colors } from "@/constants/theme";
 
 type AuthButtonProps = {
 	label: string;
@@ -39,7 +40,7 @@ export function AuthButton({
 		>
 			{isPending ? (
 				<>
-					<ActivityIndicator color={isSecondary ? "#171717" : "#ffffff"} />
+					<ActivityIndicator color={isSecondary ? Colors.light.textPrimary : Colors.light.card} />
 					<Text
 						className={cn(
 							"text-[15px] font-bold",

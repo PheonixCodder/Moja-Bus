@@ -49,10 +49,10 @@ export function WithdrawalsFilterBar({ total }: { total: number }) {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-border rounded-xl bg-bg-base shadow-sm">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-border rounded-xl bg-muted shadow-sm">
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 px-3 py-1.5 border border-border/60 rounded-md bg-bg-muted text-sm font-medium">
-          <ListFilter className="size-4 text-text-muted" />
+        <div className="flex items-center gap-2 px-3 py-1.5 border border-border/60 rounded-md bg-muted text-sm font-medium">
+          <ListFilter className="size-4 text-muted-foreground" />
           <span>{t("filters")}</span>
         </div>
 
@@ -157,7 +157,7 @@ export function WithdrawalsFilterBar({ total }: { total: number }) {
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="text-sm text-text-muted">{t("totalMatching")}</span>
+        <span className="text-sm text-muted-foreground">{t("totalMatching")}</span>
         <Badge
           variant="secondary"
           className="px-2.5 py-0.5 rounded-full font-semibold"

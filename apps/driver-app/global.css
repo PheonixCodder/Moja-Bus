@@ -3,27 +3,21 @@
 @import "tailwindcss/utilities.css";
 
 @import "nativewind/theme";
+@import "@moja/theme/global.css";
 
 @theme {
-  /* Primary & Brand Colors */
-  --color-primary: #ee237c;
-  --color-primary-dark: #be123c;
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
-  --color-info: #3b82f6;
-
-  /* Neutral Surface & Background Colors */
-  --color-bg-app: #09090b;
-  --color-bg-card: #18181b;
-  --color-bg-elevated: #27272a;
-  --color-border-subtle: #27272a;
+  /* Canonical Backward-Compatibility Aliases mapped to @moja/theme */
+  --color-bg-app: var(--background);
+  --color-bg-card: var(--card);
+  --color-bg-elevated: var(--card-elevated);
+  --color-border-subtle: var(--border);
   --color-border-strong: #3f3f46;
 
-  /* Text Colors */
-  --color-text-primary: #fafafa;
-  --color-text-secondary: #a1a1aa;
+  --color-text-primary: var(--foreground);
+  --color-text-secondary: var(--muted-foreground);
   --color-text-muted: #71717a;
+
+  --color-error: var(--destructive);
 
   /* Font Families */
   --font-montserrat: "Montserrat";

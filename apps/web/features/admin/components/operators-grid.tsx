@@ -5,6 +5,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@moja/ui/components/ui/avatar";
+import { UserAvatar } from "@moja/ui/components/ui/user-avatar";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { Button } from "@moja/ui/components/ui/button";
 import { Card, CardContent } from "@moja/ui/components/ui/card";
@@ -144,20 +145,13 @@ export function OperatorsGrid({ table }: OperatorsGridProps) {
                   </div>
 
                   <div className="flex flex-col items-center px-4 pb-6">
-                    <Avatar
-                      className={cn(
-                        "h-16 w-16 shrink-0 font-medium mb-3 shadow-sm",
-                        toneClass,
-                      )}
-                    >
-                      <AvatarImage
-                        src={operator.avatar || undefined}
-                        alt={operator.fullName}
-                      />
-                      <AvatarFallback className={cn("text-xl", toneClass)}>
-                        {initials}
-                      </AvatarFallback>
-                    </Avatar>
+                    <UserAvatar
+                      name={operator.fullName}
+                      src={operator.avatar}
+                      seed={operator.id}
+                      size="xl"
+                      className="h-16 w-16 shrink-0 font-medium mb-3 shadow-sm"
+                    />
                     <h3 className="font-semibold text-base text-center line-clamp-1">
                       {operator.fullName}
                     </h3>

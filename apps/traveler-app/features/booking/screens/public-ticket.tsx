@@ -12,7 +12,7 @@ import QRCode from "react-native-qrcode-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SubpageHeader } from "@/components/subpage-header";
 import { Text } from "@/components/ui/text";
-import { BottomTabInset } from "@/constants/theme";
+import { BottomTabInset, Colors, Palette } from "@/constants/theme";
 import { useGetTicketByToken } from "@/features/booking/hooks/use-bookings";
 import {
 	formatDateWithWeekday,
@@ -27,12 +27,12 @@ type PublicTicketViewProps = {
 
 function TicketQrCode({ payload }: { payload: string }) {
 	return (
-		<View className="items-center justify-center rounded-2xl border border-border bg-white p-3 shadow-xs">
+		<View className="items-center justify-center rounded-2xl border border-border bg-card p-3 shadow-xs">
 			<QRCode
 				value={payload}
 				size={200}
-				backgroundColor="#ffffff"
-				color="#0f172a"
+				backgroundColor={Colors.light.card}
+				color={Colors.light.textPrimary}
 				ecl="M"
 			/>
 		</View>
@@ -64,13 +64,13 @@ export function PublicTicketView({ ticketToken }: PublicTicketViewProps) {
 
 		return (
 			<>
-				<View className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 flex-row gap-3 items-start">
-					<HugeiconsIcon icon={Shield01Icon} size={20} color="#059669" />
+				<View className="rounded-xl border border-success/20 bg-success/10 px-4 py-3 flex-row gap-3 items-start">
+					<HugeiconsIcon icon={Shield01Icon} size={20} color={Palette.emerald[600]} />
 					<View className="flex-1 gap-1">
-						<Text className="text-sm font-semibold text-emerald-900">
+						<Text className="text-sm font-semibold text-success">
 							{t("validTicket", { defaultValue: "Valid ticket" })}
 						</Text>
-						<Text className="text-xs text-emerald-800/90">
+						<Text className="text-xs text-success/80">
 							{t("validTicketDesc", {
 								defaultValue: "Present this QR code at boarding.",
 							})}
@@ -151,7 +151,7 @@ export function PublicTicketView({ ticketToken }: PublicTicketViewProps) {
 					</Text>
 				) : isLoading ? (
 					<View className="items-center py-16">
-						<ActivityIndicator size="large" color="#ee237c" />
+						<ActivityIndicator size="large" color={Palette.rose[500]} />
 					</View>
 				) : isError || !ticket ? (
 					<View className="items-center gap-4 py-16">
@@ -164,7 +164,7 @@ export function PublicTicketView({ ticketToken }: PublicTicketViewProps) {
 							onPress={() => refetch()}
 							className="rounded-full bg-primary px-4 py-2"
 						>
-							<Text className="text-sm font-bold text-white">
+							<Text className="text-sm font-bold text-primary-foreground">
 								{t("retry", { ns: "search", defaultValue: "Retry" })}
 							</Text>
 						</Pressable>

@@ -68,26 +68,26 @@ export function OperatorPromotionsTable({
   }
 
   return (
-    <Card className="overflow-hidden border-slate-200/80 shadow-xs">
+    <Card className="overflow-hidden border-border shadow-xs bg-card">
       <Table>
         <TableHeader>
-          <TableRow className="bg-slate-50/60">
-            <TableHead className="font-semibold text-slate-600">
+          <TableRow className="bg-muted/40">
+            <TableHead className="font-semibold text-muted-foreground">
               {t("promotion")}
             </TableHead>
-            <TableHead className="font-semibold text-slate-600">
+            <TableHead className="font-semibold text-muted-foreground">
               {t("benefit")}
             </TableHead>
-            <TableHead className="font-semibold text-slate-600">
+            <TableHead className="font-semibold text-muted-foreground">
               {t("status")}
             </TableHead>
-            <TableHead className="font-semibold text-slate-600">
+            <TableHead className="font-semibold text-muted-foreground">
               {t("usage")}
             </TableHead>
-            <TableHead className="font-semibold text-slate-600">
+            <TableHead className="font-semibold text-muted-foreground">
               {t("created")}
             </TableHead>
-            <TableHead className="text-right font-semibold text-slate-600">
+            <TableHead className="text-right font-semibold text-muted-foreground">
               {t("actions")}
             </TableHead>
           </TableRow>
@@ -97,7 +97,7 @@ export function OperatorPromotionsTable({
             <TableRow>
               <TableCell
                 colSpan={6}
-                className="py-12 text-center text-sm text-slate-400"
+                className="py-12 text-center text-sm text-muted-foreground"
               >
                 {t("loading")}
               </TableCell>
@@ -106,14 +106,14 @@ export function OperatorPromotionsTable({
             <TableRow>
               <TableCell colSpan={6} className="py-16 text-center">
                 <div className="mx-auto flex max-w-xs flex-col items-center gap-3">
-                  <div className="flex size-12 items-center justify-center rounded-full bg-slate-100">
-                    <Tag className="size-6 text-slate-400" />
+                  <div className="flex size-12 items-center justify-center rounded-full bg-muted">
+                    <Tag className="size-6 text-muted-foreground" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-slate-700">
+                    <p className="text-sm font-semibold text-foreground">
                       {t("emptyTitle")}
                     </p>
-                    <p className="mt-0.5 text-xs text-slate-400">
+                    <p className="mt-0.5 text-xs text-muted-foreground">
                       {t("emptyDesc")}
                     </p>
                   </div>
@@ -130,15 +130,15 @@ export function OperatorPromotionsTable({
                 key={item.id}
                 className={
                   selectedPromoId === item.id
-                    ? "bg-slate-50"
-                    : "hover:bg-slate-50/50"
+                    ? "bg-muted/50"
+                    : "hover:bg-muted/30"
                 }
               >
                 <TableCell>
-                  <div className="font-medium text-slate-900">{item.name}</div>
+                  <div className="font-medium text-foreground">{item.name}</div>
                 </TableCell>
                 <TableCell>
-                  <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                  <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-foreground/80">
                     {benefitLabel(item)}
                   </span>
                 </TableCell>
@@ -150,16 +150,16 @@ export function OperatorPromotionsTable({
                     {item.status.toLowerCase()}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-sm text-slate-600">
-                  <span className="font-semibold tabular-nums">
+                <TableCell className="text-sm text-muted-foreground">
+                  <span className="font-semibold text-foreground tabular-nums">
                     {t("usesCount", { count: item._count.redemptions })}
                   </span>
-                  <span className="text-slate-400"> · </span>
+                  <span className="text-muted-foreground/70"> · </span>
                   <span className="tabular-nums">
                     {t("codesCount", { count: item._count.coupons })}
                   </span>
                 </TableCell>
-                <TableCell className="whitespace-nowrap text-sm text-slate-500">
+                <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
                   {format(new Date(item.createdAt), "dd MMM yyyy")}
                 </TableCell>
                 <TableCell className="text-right">

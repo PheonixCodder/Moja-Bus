@@ -329,7 +329,7 @@ export function DriverRosterActions({
                   const inputId = `doc-replace-${slotMeta.field}`;
                   return (
                     <div key={slotMeta.field} className="flex items-center">
-                      <input
+                      <Input
                         id={inputId}
                         type="file"
                         accept="image/*,.pdf"

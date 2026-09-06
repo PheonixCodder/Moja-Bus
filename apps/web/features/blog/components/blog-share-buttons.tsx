@@ -35,7 +35,7 @@ export function BlogShareButtons({ title }: BlogShareButtonsProps) {
         onClick={handleCopyLink}
         variant="outline"
         size="sm"
-        className="h-8 w-8 p-0 text-slate-400 hover:text-slate-800 border-slate-200"
+        className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground border-border"
       >
         <Link2 className="size-3.5" />
         <span className="sr-only">{t("copyLinkSr")}</span>
@@ -44,7 +44,7 @@ export function BlogShareButtons({ title }: BlogShareButtonsProps) {
         onClick={handleTwitterShare}
         variant="outline"
         size="sm"
-        className="h-8 w-8 p-0 text-slate-400 hover:text-sky-500 border-slate-200"
+        className="h-8 w-8 p-0 text-muted-foreground hover:text-info border-border"
       >
         <Twitter className="size-3.5" />
         <span className="sr-only">{t("shareTwitterSr")}</span>

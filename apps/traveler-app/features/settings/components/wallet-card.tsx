@@ -1,6 +1,7 @@
 import { Wallet, Plus, ShieldCheck } from "lucide-react-native";
 import { View, Pressable } from "react-native";
 import { Text } from "@/components/ui/text";
+import { Palette, Colors } from "@/constants/theme";
 
 type WalletCardProps = {
   availableBalance: number;
@@ -12,7 +13,7 @@ export function WalletCard({ availableBalance, walletId, onOpenTopup }: WalletCa
   const accountSuffix = walletId ? walletId.slice(-6).toUpperCase() : "XXXXXX";
 
   return (
-    <View className="bg-pink-600 rounded-3xl px-4 py-5 min-h-[200px] overflow-hidden shadow-xl shadow-pink-500/40">
+    <View className="bg-primary rounded-3xl px-4 py-5 min-h-[200px] overflow-hidden shadow-xl shadow-primary/40">
       {/* Decorative circles */}
       <View className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/[0.08]" />
       <View className="absolute -bottom-8 -left-8 w-36 h-36 rounded-full bg-black/[0.06]" />
@@ -22,7 +23,7 @@ export function WalletCard({ availableBalance, walletId, onOpenTopup }: WalletCa
         <View className="flex-row items-start justify-between">
           <View className="flex-row items-center gap-2">
             <View className="w-10 h-10 rounded-2xl bg-white/10 items-center justify-center">
-              <Wallet size={20} color="#fff" />
+              <Wallet size={20} color={Palette.zinc[50]} />
             </View>
             <View>
               <Text className="text-xs font-extrabold tracking-widest text-white/90 uppercase">Moja Wallet</Text>
@@ -31,7 +32,7 @@ export function WalletCard({ availableBalance, walletId, onOpenTopup }: WalletCa
           </View>
 
           <View className="flex-row items-center gap-1 px-2.5 py-1 rounded-full bg-white/10">
-            <ShieldCheck size={14} color="#6ee7b7" />
+            <ShieldCheck size={14} color={Palette.emerald[500]} />
             <Text className="text-xs font-extrabold tracking-widest text-white uppercase">Verified</Text>
           </View>
         </View>
@@ -53,10 +54,11 @@ export function WalletCard({ availableBalance, walletId, onOpenTopup }: WalletCa
 
           <Pressable
             onPress={onOpenTopup}
-            className="flex-row items-center gap-1 bg-white px-4 py-2.5 rounded-2xl active:opacity-90"
+            accessibilityRole="button"
+            className="flex-row items-center gap-1 bg-white px-4 py-2.5 rounded-2xl active:opacity-90 min-h-10"
           >
-            <Plus size={16} color="#ee237c" />
-            <Text className="text-xs font-bold text-pink-600">Top Up</Text>
+            <Plus size={16} color={Palette.rose[500]} />
+            <Text className="text-xs font-bold text-primary">Top Up</Text>
           </Pressable>
         </View>
       </View>

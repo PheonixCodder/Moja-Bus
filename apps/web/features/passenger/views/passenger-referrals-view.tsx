@@ -95,14 +95,14 @@ export function PassengerReferralsView() {
   return (
     <div className="space-y-6">
       {program && !programActive ? (
-        <Card className="border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+        <Card className="border-warning/20 bg-warning/10 p-4 text-sm text-foreground">
           {t("programInactive")}
         </Card>
       ) : null}
 
       {program && programActive ? (
-        <Card className="space-y-2 p-4 text-sm text-slate-600">
-          <p className="font-medium text-slate-900">{t("howItWorks")}</p>
+        <Card className="space-y-2 p-4 text-sm text-muted-foreground">
+          <p className="font-medium text-foreground">{t("howItWorks")}</p>
           <p>
             {t("howItWorksBody", {
               amount: program.referrerCreditAmountXOF.toLocaleString(),
@@ -116,18 +116,18 @@ export function PassengerReferralsView() {
 
       <Card className="space-y-4 p-6">
         <div className="flex items-start gap-3">
-          <div className="rounded-full bg-pink-50 p-2 text-[#ee237c]">
+          <div className="rounded-full bg-primary/10 p-2 text-primary">
             <Gift className="size-5" />
           </div>
           <div className="space-y-1">
-            <h2 className="text-base font-semibold text-slate-900">
+            <h2 className="text-base font-semibold text-foreground">
               {t("yourCode")}
             </h2>
-            <p className="text-sm text-slate-500">{t("yourCodeHint")}</p>
+            <p className="text-sm text-muted-foreground">{t("yourCodeHint")}</p>
           </div>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 font-mono text-lg font-bold tracking-widest text-slate-900">
+          <div className="flex-1 rounded-lg border border-border bg-muted/40 px-4 py-3 font-mono text-lg font-bold tracking-widest text-foreground">
             {referralQuery.isLoading ? "…" : code}
           </div>
           <Button
@@ -152,27 +152,27 @@ export function PassengerReferralsView() {
           </Button>
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
-          <div className="rounded-lg border border-slate-100 p-3">
-            <p className="text-xs text-slate-500">{t("attributed")}</p>
-            <p className="text-xl font-bold text-slate-900">
+          <div className="rounded-lg border border-border p-3">
+            <p className="text-xs text-muted-foreground">{t("attributed")}</p>
+            <p className="text-xl font-bold text-foreground">
               {referralQuery.data?.attributed ?? 0}
             </p>
           </div>
-          <div className="rounded-lg border border-slate-100 p-3">
-            <p className="text-xs text-slate-500">{t("qualified")}</p>
-            <p className="text-xl font-bold text-slate-900">
+          <div className="rounded-lg border border-border p-3">
+            <p className="text-xs text-muted-foreground">{t("qualified")}</p>
+            <p className="text-xl font-bold text-foreground">
               {referralQuery.data?.qualified ?? 0}
             </p>
           </div>
-          <div className="rounded-lg border border-slate-100 p-3">
-            <p className="text-xs text-slate-500">{t("rewarded")}</p>
-            <p className="text-xl font-bold text-slate-900">
+          <div className="rounded-lg border border-border p-3">
+            <p className="text-xs text-muted-foreground">{t("rewarded")}</p>
+            <p className="text-xl font-bold text-foreground">
               {referralQuery.data?.rewarded ?? 0}
             </p>
           </div>
         </div>
         <ReferralFunnelBars
-          className="space-y-3 border-t border-slate-100 pt-4"
+          className="space-y-3 border-t border-border pt-4"
           steps={[
             {
               key: "attributed",
@@ -196,16 +196,16 @@ export function PassengerReferralsView() {
       <Card className="space-y-3 p-6">
         <div className="flex items-center justify-between gap-2">
           <div>
-            <h2 className="text-base font-semibold text-slate-900">
+            <h2 className="text-base font-semibold text-foreground">
               {t("inviteesTitle")}
             </h2>
-            <p className="text-sm text-slate-500">{t("inviteesHint")}</p>
+            <p className="text-sm text-muted-foreground">{t("inviteesHint")}</p>
           </div>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-muted-foreground">
             {inviteesQuery.data?.total ?? 0}
           </p>
         </div>
-        <div className="overflow-hidden rounded-lg border border-slate-200">
+        <div className="overflow-hidden rounded-lg border border-border">
           <Table>
             <TableHeader>
               <TableRow>
@@ -219,7 +219,7 @@ export function PassengerReferralsView() {
                 <TableRow>
                   <TableCell
                     colSpan={3}
-                    className="py-8 text-center text-sm text-slate-500"
+                    className="py-8 text-center text-sm text-muted-foreground"
                   >
                     …
                   </TableCell>
@@ -228,7 +228,7 @@ export function PassengerReferralsView() {
                 <TableRow>
                   <TableCell
                     colSpan={3}
-                    className="py-8 text-center text-sm text-slate-500"
+                    className="py-8 text-center text-sm text-muted-foreground"
                   >
                     {t("inviteesEmpty")}
                   </TableCell>
@@ -236,13 +236,13 @@ export function PassengerReferralsView() {
               ) : (
                 inviteesQuery.data?.items.map((row) => (
                   <TableRow key={row.id}>
-                    <TableCell className="text-sm font-medium text-slate-900">
+                    <TableCell className="text-sm font-medium text-foreground">
                       {row.refereeName}
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary">{row.status}</Badge>
                     </TableCell>
-                    <TableCell className="text-sm text-slate-500">
+                    <TableCell className="text-sm text-muted-foreground">
                       {format(new Date(row.attributedAt), "dd MMM yyyy")}
                     </TableCell>
                   </TableRow>
@@ -254,10 +254,10 @@ export function PassengerReferralsView() {
       </Card>
 
       <Card className="space-y-3 p-6">
-        <h2 className="text-base font-semibold text-slate-900">
+        <h2 className="text-base font-semibold text-foreground">
           {t("haveCode")}
         </h2>
-        <p className="text-sm text-slate-500">{t("haveCodeHint")}</p>
+        <p className="text-sm text-muted-foreground">{t("haveCodeHint")}</p>
         <div className="flex flex-col gap-2 sm:flex-row">
           <Input
             className="uppercase"

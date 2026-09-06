@@ -50,3 +50,6 @@ google-services.json
 moja-ride-41bbe-319a8befcc6c.json
 # OSM raster tile database — 121MB exceeds GitHub 100MB/file limit; keep local-only
 ivory_coast_data/*.mbtiles
+
+# docs
+context/services/shadcn/*

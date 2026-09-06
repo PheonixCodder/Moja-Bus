@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@moja/ui/components/ui/button";
 import { Checkbox } from "@moja/ui/components/ui/checkbox";
 import { Input } from "@moja/ui/components/ui/input";
 import { Label } from "@moja/ui/components/ui/label";
@@ -67,7 +68,7 @@ export function AdminPermissionMatrix({
         onChange={(e) => setFilter(e.target.value)}
         className="h-9"
       />
-      <div className="max-h-[420px] space-y-5 overflow-y-auto pr-1">
+      <div className="max-h-96 space-y-5 overflow-y-auto pr-1">
         {Object.entries(groups).map(([group, items]) => {
           const visible = items.filter((item) => {
             if (grantableSet && !grantableSet.has(item.key)) return false;
@@ -86,14 +87,16 @@ export function AdminPermissionMatrix({
           return (
             <div key={group} className="space-y-2">
               <div className="flex items-center justify-between border-b border-border pb-1.5">
-                <button
+                <Button
                   type="button"
-                  className="text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground"
+                  variant="ghost"
+                  size="sm"
+                  className="h-auto p-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground hover:bg-transparent"
                   onClick={() => toggleGroup(keys, allSelected)}
                   disabled={disabled}
                 >
                   {group}
-                </button>
+                </Button>
                 <span className="text-[11px] text-muted-foreground">
                   {someSelected
                     ? `${keys.filter((k) => selectedSet.has(k)).length}/${keys.length}`

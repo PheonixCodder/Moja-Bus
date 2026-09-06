@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar, AvatarFallback } from "@moja/ui/components/ui/avatar";
+import { CarrierAvatar } from "@moja/ui/components/ui/carrier-avatar";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { Button } from "@moja/ui/components/ui/button";
 import {
@@ -38,20 +38,17 @@ export function createWithdrawalsColumns(
       header: t("companyName"),
       cell: ({ row }) => {
         const companyName = row.getValue("companyName") as string;
-        const initial = companyName ? companyName.charAt(0).toUpperCase() : "?";
-
         return (
           <div className="flex items-center gap-3">
-            <Avatar className="size-8 border border-border">
-              <AvatarFallback className="bg-bg-muted text-xs font-medium">
-                {initial}
-              </AvatarFallback>
-            </Avatar>
+            <CarrierAvatar
+              name={companyName}
+              size="md"
+            />
             <div className="flex flex-col">
-              <span className="font-medium text-text-primary">
+              <span className="font-medium text-foreground">
                 {companyName}
               </span>
-              <span className="text-[10px] text-text-muted font-mono">
+              <span className="text-xs text-muted-foreground font-mono">
                 {row.original.companyId.slice(0, 8)}
               </span>
             </div>
@@ -69,15 +66,15 @@ export function createWithdrawalsColumns(
         return (
           <div className="flex flex-col gap-0.5">
             {extId ? (
-              <span className="font-mono text-xs text-text-primary">
+              <span className="font-mono text-xs text-foreground">
                 {extId}
               </span>
             ) : (
-              <span className="text-xs text-text-muted italic">
+              <span className="text-xs text-muted-foreground italic">
                 {t("noExternalId")}
               </span>
             )}
-            <span className="font-mono text-[10px] text-text-muted">
+            <span className="font-mono text-xs text-muted-foreground">
               {internalId.split("-")[0]}
             </span>
           </div>
@@ -96,7 +93,7 @@ export function createWithdrawalsColumns(
             return (
               <Badge
                 variant="outline"
-                className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+                className="bg-warning/15 text-warning border-warning/30"
               >
                 {t("pending")}
               </Badge>
@@ -105,7 +102,7 @@ export function createWithdrawalsColumns(
             return (
               <Badge
                 variant="outline"
-                className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                className="bg-success/15 text-success border-success/30"
               >
                 {t("settled")}
               </Badge>
@@ -115,7 +112,7 @@ export function createWithdrawalsColumns(
             return (
               <Badge
                 variant="outline"
-                className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20"
+                className="bg-destructive/15 text-destructive border-destructive/30"
               >
                 {status === "FAILED" ? t("failed") : t("reversed")}
               </Badge>
@@ -135,7 +132,7 @@ export function createWithdrawalsColumns(
             <span className="text-sm font-medium">
               {format(date, "dd MMM yyyy", { locale: fr })}
             </span>
-            <span className="text-xs text-text-muted">
+            <span className="text-xs text-muted-foreground">
               {format(date, "HH:mm")}
             </span>
           </div>
@@ -172,7 +169,7 @@ export function createWithdrawalsColumns(
                       variant="ghost"
                       size="sm"
                       onClick={() => onResolve(row.original)}
-                      className="h-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                      className="h-8 text-warning hover:text-warning hover:bg-warning/10"
                     />
                   }
                 >

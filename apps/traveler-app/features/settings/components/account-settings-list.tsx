@@ -18,6 +18,7 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Pressable, View } from "react-native";
 import { router } from "expo-router";
 import { Text } from "@/components/ui/text";
+import { Palette } from "@/constants/theme";
 import i18n from "@/lib/i18n";
 import { useSettingsPrefetch } from "../hooks/use-settings-prefetch";
 
@@ -56,7 +57,7 @@ export function AccountSettingsList({ isAuthenticated }: AccountSettingsListProp
 
   return (
     <View>
-      <Text className="text-sm font-bold text-slate-400 tracking-wider uppercase mb-2 mt-4 px-5">
+      <Text className="text-sm font-bold text-muted-foreground tracking-wider uppercase mb-2 mt-4 px-5">
         {t("accountPreferences")}
       </Text>
 
@@ -65,32 +66,33 @@ export function AccountSettingsList({ isAuthenticated }: AccountSettingsListProp
           <Pressable
             onPressIn={() => handlePressIn(item.route)}
             onPress={() => router.push(item.route as any)}
-            className="flex-row items-center py-4 px-5 active:opacity-60"
+            accessibilityRole="button"
+            className="flex-row items-center py-4 px-5 active:opacity-60 min-h-12"
           >
             <View className="w-6 items-center mr-5">
-              <HugeiconsIcon icon={item.icon} size={20} color="#ee237c" />
+              <HugeiconsIcon icon={item.icon} size={20} color={Palette.rose[500]} />
             </View>
 
-            <Text className="text-base font-medium text-slate-900 flex-1">
+            <Text className="text-base font-medium text-foreground flex-1">
               {t(item.labelKey as any)}
             </Text>
 
             {item.valueKey ? (
               <View className="mr-2">
-                <Text className="text-xs font-medium text-slate-500">
+                <Text className="text-xs font-medium text-muted-foreground">
                   {item.valueKey === "settings:currentLanguage" ? getLocaleLabel(locale) : t(item.valueKey as any)}
                 </Text>
               </View>
             ) : null}
 
-            <HugeiconsIcon icon={ArrowRight02Icon} size={16} color="#94a3b8" />
+            <HugeiconsIcon icon={ArrowRight02Icon} size={16} color={Palette.zinc[400]} />
           </Pressable>
 
-          <View className="h-[0.5px] bg-slate-100 mx-5" />
+          <View className="h-[0.5px] bg-border mx-5" />
         </View>
       ))}
 
-      <Text className="text-sm font-bold text-slate-400 tracking-wider uppercase mb-2 mt-5 px-5">
+      <Text className="text-sm font-bold text-muted-foreground tracking-wider uppercase mb-2 mt-5 px-5">
         {t("supportSecurity")}
       </Text>
 
@@ -98,20 +100,21 @@ export function AccountSettingsList({ isAuthenticated }: AccountSettingsListProp
         <View key={item.route}>
           <Pressable
             onPress={() => router.push(item.route as any)}
-            className="flex-row items-center py-4 px-5 active:opacity-60"
+            accessibilityRole="button"
+            className="flex-row items-center py-4 px-5 active:opacity-60 min-h-12"
           >
             <View className="w-6 items-center mr-5">
-              <HugeiconsIcon icon={item.icon} size={20} color="#ee237c" />
+              <HugeiconsIcon icon={item.icon} size={20} color={Palette.rose[500]} />
             </View>
 
-            <Text className="text-base font-medium text-slate-900 flex-1">
+            <Text className="text-base font-medium text-foreground flex-1">
               {t(item.labelKey as any)}
             </Text>
 
-            <HugeiconsIcon icon={ArrowRight02Icon} size={16} color="#94a3b8" />
+            <HugeiconsIcon icon={ArrowRight02Icon} size={16} color={Palette.zinc[400]} />
           </Pressable>
           {index < securityAndSupportItems.length - 1 ? (
-            <View className="h-[0.5px] bg-slate-100 mx-5" />
+            <View className="h-[0.5px] bg-border mx-5" />
           ) : null}
         </View>
       ))}

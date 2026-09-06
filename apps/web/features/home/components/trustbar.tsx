@@ -31,8 +31,8 @@ const PAYMENT_METHODS = [
     label: "Mastercard",
     render: (
       <span className="flex items-center">
-        <span className="w-4 h-4 rounded-full bg-[#EB001B]" />
-        <span className="w-4 h-4 -ml-1.5 rounded-full bg-[#F79E1B] mix-blend-multiply" />
+        <span className="w-4 h-4 rounded-full bg-destructive" />
+        <span className="w-4 h-4 -ml-1.5 rounded-full bg-warning opacity-80" />
       </span>
     ),
   },
@@ -40,7 +40,7 @@ const PAYMENT_METHODS = [
     id: "visa",
     label: "Visa",
     render: (
-      <span className="font-black italic text-[15px] tracking-tight text-[#1A1F71]">
+      <span className="font-black italic text-[15px] tracking-tight text-foreground/80">
         VISA
       </span>
     ),
@@ -54,9 +54,9 @@ export function TrustBar() {
       <div className="relative rounded-2xl px-5 py-4 md:px-8 md:py-5">
         <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-0">
           {/* Payment methods */}
-          <div className="flex items-center gap-4 md:gap-5 shrink-0 md:justify-end pt-3 md:pt-0 border-t md:border-t-0 border-slate-100">
-            <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 shrink-0">
-              <ShieldCheck className="w-3.5 h-3.5 text-slate-300" />
+          <div className="flex items-center gap-4 md:gap-5 shrink-0 md:justify-end pt-3 md:pt-0 border-t md:border-t-0 border-border">
+            <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground shrink-0">
+              <ShieldCheck className="w-3.5 h-3.5 text-muted-foreground/70" />
               {t("securePay")}
             </span>
             <div className="flex items-center gap-3.5">

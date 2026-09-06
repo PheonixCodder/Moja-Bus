@@ -66,7 +66,7 @@ export function BankSection({ onManage }: BankSectionProps) {
                 ) : (
                   <Badge
                     variant="outline"
-                    className="bg-amber-500/10 text-amber-600 border-amber-200"
+                    className="bg-warning/10 text-warning border-warning/20"
                   >
                     <Clock className="w-3 h-3 mr-1" /> {t("pending")}
                   </Badge>
@@ -94,7 +94,7 @@ export function BankSection({ onManage }: BankSectionProps) {
           <div className="flex flex-col items-center justify-center py-8 text-center border-2 border-dashed rounded-lg bg-muted/30">
             <Landmark className="w-8 h-8 text-muted-foreground mb-3" />
             <p className="font-medium text-sm">{t("noPayoutAccount")}</p>
-            <p className="text-xs text-muted-foreground mt-1 max-w-[200px]">
+            <p className="text-xs text-muted-foreground mt-1 max-w-48">
               {t("noPayoutAccountDesc")}
             </p>
             <Button

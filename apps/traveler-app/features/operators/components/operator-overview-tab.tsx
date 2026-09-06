@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { ArrowRight01Icon, Bus01Icon, Location01Icon, Calendar01Icon } from '@hugeicons/core-free-icons';
+import { Palette } from '@/constants/theme';
 
 interface RoutePreviewItem {
   id: string;
@@ -61,11 +62,11 @@ export function OperatorOverviewTab({
     >
       {/* Description */}
       {description ? (
-        <View className="bg-white border border-slate-100 rounded-2xl p-4">
-          <Text className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+        <View className="bg-card border border-border rounded-2xl p-4">
+          <Text className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-2">
             {t('aboutHeading')}
           </Text>
-          <Text className="text-sm text-slate-600 leading-relaxed">{description}</Text>
+          <Text className="text-sm text-foreground/80 leading-relaxed">{description}</Text>
         </View>
       ) : null}
 
@@ -73,29 +74,31 @@ export function OperatorOverviewTab({
       <View className="flex-row gap-3">
         <Pressable
           onPress={() => onTabChange('routes')}
-          className="will-change-pressable flex-1 bg-white border border-slate-100 rounded-2xl p-4 items-center gap-1 active:bg-slate-50"
+          accessibilityRole="button"
+          className="flex-1 bg-card border border-border rounded-2xl p-4 items-center gap-1 active:bg-muted min-h-12 justify-center"
         >
-          <HugeiconsIcon icon={Bus01Icon} size={20} color="#ee237c" />
-          <Text className="text-2xl font-black text-slate-900">{routes.length}</Text>
-          <Text className="text-xs font-bold text-slate-400 uppercase tracking-wider text-center">
+          <HugeiconsIcon icon={Bus01Icon} size={20} color={Palette.rose[500]} />
+          <Text className="text-2xl font-black text-foreground">{routes.length}</Text>
+          <Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-center">
             {t('activeRoutes')}
           </Text>
         </Pressable>
         <Pressable
           onPress={() => onTabChange('terminals')}
-          className="will-change-pressable flex-1 bg-[#ffffff] border border-slate-100 rounded-2xl p-4 items-center gap-1 active:bg-slate-50"
+          accessibilityRole="button"
+          className="flex-1 bg-card border border-border rounded-2xl p-4 items-center gap-1 active:bg-muted min-h-12 justify-center"
         >
-          <HugeiconsIcon icon={Location01Icon} size={20} color="#ee237c" />
-          <Text className="text-2xl font-black text-slate-900">{locations.length}</Text>
-          <Text className="text-xs font-bold text-slate-400 uppercase tracking-wider text-center">
+          <HugeiconsIcon icon={Location01Icon} size={20} color={Palette.rose[500]} />
+          <Text className="text-2xl font-black text-foreground">{locations.length}</Text>
+          <Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-center">
             {t('terminals')}
           </Text>
         </Pressable>
         {yearEstablished ? (
-          <View className="flex-1 bg-white border border-slate-100 rounded-2xl p-4 items-center gap-1">
-            <HugeiconsIcon icon={Calendar01Icon} size={20} color="#94a3b8" />
-            <Text className="text-xl font-black text-slate-900">{yearEstablished}</Text>
-            <Text className="text-xs font-bold text-slate-400 uppercase tracking-wider text-center">
+          <View className="flex-1 bg-card border border-border rounded-2xl p-4 items-center gap-1 justify-center">
+            <HugeiconsIcon icon={Calendar01Icon} size={20} color={Palette.zinc[400]} />
+            <Text className="text-xl font-black text-foreground">{yearEstablished}</Text>
+            <Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-center">
               {t('est', { year: String(yearEstablished) })}
             </Text>
           </View>
@@ -104,14 +107,14 @@ export function OperatorOverviewTab({
 
       {/* Quick routes preview */}
       {routes.length > 0 && (
-        <View className="bg-white border border-slate-100 rounded-2xl overflow-hidden">
+        <View className="bg-card border border-border rounded-2xl overflow-hidden">
           <View className="flex-row items-center justify-between px-4 pt-4 pb-2">
-            <Text className="text-xs font-black text-slate-400 uppercase tracking-widest">
+            <Text className="text-xs font-black text-muted-foreground uppercase tracking-widest">
               {t('tabRoutes')}
             </Text>
-            <Pressable onPress={() => onTabChange('routes')} className="will-change-pressable flex-row items-center gap-1">
-              <Text className="text-xs font-bold text-[#ee237c]">{t('viewAllRoutes')}</Text>
-              <HugeiconsIcon icon={ArrowRight01Icon} size={12} color="#ee237c" />
+            <Pressable onPress={() => onTabChange('routes')} accessibilityRole="button" className="flex-row items-center gap-1 py-1">
+              <Text className="text-xs font-bold text-primary">{t('viewAllRoutes')}</Text>
+              <HugeiconsIcon icon={ArrowRight01Icon} size={12} color={Palette.rose[500]} />
             </Pressable>
           </View>
           {routes.slice(0, 3).map((route, idx) => {
@@ -124,13 +127,13 @@ export function OperatorOverviewTab({
             return (
               <View
                 key={route.id}
-                className={`flex-row items-center justify-between px-4 py-3 ${idx < routes.slice(0, 3).length - 1 ? 'border-b border-slate-50' : ''}`}
+                className={`flex-row items-center justify-between px-4 py-3 ${idx < routes.slice(0, 3).length - 1 ? 'border-b border-border/40' : ''}`}
               >
-                <Text className="text-sm font-semibold text-slate-800 flex-1">
+                <Text className="text-sm font-semibold text-foreground flex-1">
                   {originCity} → {destCity}
                 </Text>
                 {minFare ? (
-                  <Text className="text-xs font-bold text-[#ee237c]">
+                  <Text className="text-xs font-bold text-primary">
                     {t('fromPrice')} {minFare.priceXOF.toLocaleString()}
                   </Text>
                 ) : null}
@@ -143,11 +146,11 @@ export function OperatorOverviewTab({
       {/* Book trip CTA */}
       <Pressable
         onPress={handleBookTrip}
-        className="will-change-pressable bg-[#ee237c] rounded-2xl p-4 flex-row items-center justify-center gap-2 active:bg-[#d01867]"
-        style={{ shadowColor: '#ee237c', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 12, elevation: 6 }}
+        accessibilityRole="button"
+        className="bg-primary rounded-2xl p-4 flex-row items-center justify-center gap-2 active:opacity-90 min-h-12 shadow-sm"
       >
-        <Text className="text-white font-black text-sm uppercase tracking-wider">{t('bookTrip')}</Text>
-        <HugeiconsIcon icon={ArrowRight01Icon} size={16} color="#fff" />
+        <Text className="text-primary-foreground font-black text-sm uppercase tracking-wider">{t('bookTrip')}</Text>
+        <HugeiconsIcon icon={ArrowRight01Icon} size={16} color={Palette.zinc[50]} />
       </Pressable>
     </ScrollView>
   );

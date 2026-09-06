@@ -21,7 +21,7 @@ const STATUS_MAP: Record<CompanyStatusValue, CompanyStatusPresentation> = {
     label: "Setup in progress",
     shortLabel: "Draft",
     badgeClassName:
-      "bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-900 dark:text-slate-300 dark:border-slate-700",
+      "bg-muted text-muted-foreground border-border",
     description:
       "Complete your company profile, bank details, and compliance documents, then submit for verification.",
     canSubmitForVerification: true,
@@ -32,7 +32,7 @@ const STATUS_MAP: Record<CompanyStatusValue, CompanyStatusPresentation> = {
     label: "Pending review",
     shortLabel: "Pending",
     badgeClassName:
-      "bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-950 dark:text-amber-400 dark:border-amber-800",
+      "bg-warning/10 text-warning border-warning/20",
     description:
       "Your registration has been submitted and is pending review by the Moja Ride team. You can continue setting up terminals, routes, and schedules.",
     canSubmitForVerification: false,
@@ -43,7 +43,7 @@ const STATUS_MAP: Record<CompanyStatusValue, CompanyStatusPresentation> = {
     label: "Verified operator",
     shortLabel: "Verified",
     badgeClassName:
-      "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-400 dark:border-emerald-800",
+      "bg-success/10 text-success border-success/20",
     description:
       "Your company is verified. You can manage fleet, routes, schedules, and sell digital tickets.",
     canSubmitForVerification: false,
@@ -54,7 +54,7 @@ const STATUS_MAP: Record<CompanyStatusValue, CompanyStatusPresentation> = {
     label: "Verified operator",
     shortLabel: "Active",
     badgeClassName:
-      "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-400 dark:border-emerald-800",
+      "bg-success/10 text-success border-success/20",
     description:
       "Your company is active and authorized to operate on Moja Ride.",
     canSubmitForVerification: false,
@@ -65,7 +65,7 @@ const STATUS_MAP: Record<CompanyStatusValue, CompanyStatusPresentation> = {
     label: "Account suspended",
     shortLabel: "Suspended",
     badgeClassName:
-      "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-400 dark:border-orange-800",
+      "bg-warning/15 text-warning border-warning/30",
     description:
       "Your operator account has been suspended. Contact Moja Ride support for assistance.",
     canSubmitForVerification: false,
@@ -76,7 +76,7 @@ const STATUS_MAP: Record<CompanyStatusValue, CompanyStatusPresentation> = {
     label: "Verification rejected",
     shortLabel: "Rejected",
     badgeClassName:
-      "bg-red-50 text-red-600 border-red-200 dark:bg-red-950 dark:text-red-400 dark:border-red-800",
+      "bg-destructive/10 text-destructive border-destructive/20",
     description:
       "Your verification was rejected. Review the feedback, update your profile and documents, then resubmit.",
     canSubmitForVerification: false,

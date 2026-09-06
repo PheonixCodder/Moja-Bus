@@ -4,12 +4,12 @@ import {
 	Text,
 	TextInput,
 	Modal,
-	TouchableOpacity,
-	StyleSheet,
+	Pressable,
 } from "react-native";
 import { DriverFeedback } from "@/lib/haptics";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
+import { colors } from "@/constants/theme";
 
 export const DELAY_REASONS = [
 	{ value: "TRAFFIC", labelKey: "delay.reasons.TRAFFIC" },
@@ -53,69 +53,68 @@ export function DelayModal({
 			animationType="slide"
 			onRequestClose={onClose}
 		>
-			<View style={styles.backdrop}>
-				<View style={styles.modalSheet}>
+			<View className="flex-1 bg-black/80 justify-end">
+				<View className="bg-card border-t border-border rounded-t-3xl p-6 gap-4">
 					<View>
-						<Text style={styles.modalTitle}>{t("delay.title")}</Text>
-						<Text style={styles.modalSubtitle}>
+						<Text className="text-xl font-extrabold text-foreground tracking-tight">{t("delay.title")}</Text>
+						<Text className="text-xs text-muted-foreground mt-0.5">
 							{t("delay.subtitle")}
 						</Text>
 					</View>
 
-					<View style={styles.fieldGroup}>
-						<Text style={styles.fieldLabel}>{t("delay.minutesLabel")}</Text>
+					<View className="gap-1.5">
+						<Text className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{t("delay.minutesLabel")}</Text>
 						<TextInput
-							style={styles.textInput}
+							className="bg-background border border-border rounded-2xl px-4 h-12 text-foreground text-sm font-semibold"
 							keyboardType="number-pad"
 							value={delayMinutes}
 							onChangeText={onDelayMinutesChange}
 						/>
 					</View>
 
-					<View style={styles.fieldGroup}>
-						<Text style={styles.fieldLabel}>{t("delay.reasonLabel")}</Text>
-						<View style={styles.reasonsGrid}>
+					<View className="gap-1.5">
+						<Text className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{t("delay.reasonLabel")}</Text>
+						<View className="flex-row flex-wrap gap-2">
 							{DELAY_REASONS.map((option) => {
 								const isSelected = delayReason === option.value;
 								return (
-									<TouchableOpacity
+									<Pressable
 										key={option.value}
 										onPress={() => {
 											DriverFeedback.tap();
 											onDelayReasonChange(option.value);
 										}}
-										activeOpacity={0.8}
-										style={[
-											styles.reasonChip,
-											isSelected && styles.reasonChipSelected,
-										]}
+										className={`px-3 py-2 rounded-xl border ${
+											isSelected
+												? "bg-primary/15 border-primary"
+												: "border-border bg-background"
+										}`}
 									>
 										<Text
-											style={[
-												styles.reasonText,
-												isSelected && styles.reasonTextSelected,
-											]}
+											className={`text-xs font-bold ${
+												isSelected ? "text-primary" : "text-muted-foreground"
+											}`}
 										>
 											{t(option.labelKey)}
 										</Text>
-									</TouchableOpacity>
+									</Pressable>
 								);
 							})}
 						</View>
 					</View>
 
-					<View style={styles.fieldGroup}>
-						<Text style={styles.fieldLabel}>{t("delay.noteLabel")}</Text>
+					<View className="gap-1.5">
+						<Text className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{t("delay.noteLabel")}</Text>
 						<TextInput
-							style={styles.textInput}
+							className="bg-background border border-border rounded-2xl px-4 h-12 text-foreground text-sm font-semibold"
 							placeholder={t("delay.notePlaceholder")}
-							placeholderTextColor="#71717a"
+							placeholderTextColor={colors.neutral.textMuted}
 							value={delayNote}
 							onChangeText={onDelayNoteChange}
 						/>
 					</View>
 
-					<View style={styles.buttonRow}>
+					<View className="flex-row gap-3 pt-2">
 						<Button
 							title={t("delay.cancel")}
 							variant="outline"
@@ -137,82 +136,3 @@ export function DelayModal({
 		</Modal>
 	);
 }
-
-const styles = StyleSheet.create({
-	backdrop: {
-		flex: 1,
-		backgroundColor: "rgba(0,0,0,0.8)",
-		justifyContent: "flex-end",
-	},
-	modalSheet: {
-		backgroundColor: "#18181b",
-		borderTopWidth: 1,
-		borderTopColor: "#27272a",
-		borderTopLeftRadius: 28,
-		borderTopRightRadius: 28,
-		padding: 24,
-		gap: 16,
-	},
-	modalTitle: {
-		fontSize: 20,
-		fontWeight: "800",
-		color: "#fafafa",
-		letterSpacing: -0.3,
-	},
-	modalSubtitle: {
-		fontSize: 12,
-		color: "#a1a1aa",
-		marginTop: 2,
-	},
-	fieldGroup: {
-		gap: 6,
-	},
-	fieldLabel: {
-		fontSize: 11,
-		fontWeight: "700",
-		color: "#d4d4d8",
-		textTransform: "uppercase",
-		letterSpacing: 0.5,
-	},
-	textInput: {
-		backgroundColor: "#09090b",
-		borderWidth: 1,
-		borderColor: "#27272a",
-		borderRadius: 14,
-		paddingHorizontal: 16,
-		height: 50,
-		color: "#fafafa",
-		fontSize: 14,
-		fontWeight: "600",
-	},
-	reasonsGrid: {
-		flexDirection: "row",
-		flexWrap: "wrap",
-		gap: 8,
-	},
-	reasonChip: {
-		paddingHorizontal: 12,
-		paddingVertical: 8,
-		borderRadius: 10,
-		borderWidth: 1,
-		borderColor: "#27272a",
-		backgroundColor: "#09090b",
-	},
-	reasonChipSelected: {
-		backgroundColor: "rgba(238, 35, 124, 0.15)",
-		borderColor: "#ee237c",
-	},
-	reasonText: {
-		fontSize: 12,
-		fontWeight: "700",
-		color: "#a1a1aa",
-	},
-	reasonTextSelected: {
-		color: "#ee237c",
-	},
-	buttonRow: {
-		flexDirection: "row",
-		gap: 12,
-		paddingTop: 8,
-	},
-});

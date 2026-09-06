@@ -12,7 +12,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SubpageHeader } from "@/components/subpage-header";
 import { Text } from "@/components/ui/text";
-import { BottomTabInset } from "@/constants/theme";
+import { BottomTabInset, Palette } from "@/constants/theme";
 import type { SavedPassengerDTO } from "@/hooks/use-passengers";
 import {
 	useCreateSavedPassenger,
@@ -130,16 +130,16 @@ export function PassengersView() {
 
 	if (sessionPending || isLoading) {
 		return (
-			<View className="flex-1 items-center justify-center bg-white">
-				<ActivityIndicator size="large" color="#ee237c" />
+			<View className="flex-1 items-center justify-center bg-background">
+				<ActivityIndicator size="large" color={Palette.rose[500]} />
 			</View>
 		);
 	}
 
 	if (!isAuth) {
 		return (
-			<View className="flex-1 items-center justify-center bg-white">
-				<Text className="text-base text-slate-500">{t("signInToView")}</Text>
+			<View className="flex-1 items-center justify-center bg-background">
+				<Text className="text-base text-muted-foreground">{t("signInToView")}</Text>
 			</View>
 		);
 	}
@@ -149,7 +149,7 @@ export function PassengersView() {
 	const others = passengers.filter((p) => !p.isSelf);
 
 	return (
-		<View className="flex-1 bg-white">
+		<View className="flex-1 bg-background">
 			<SubpageHeader title={t("passengersLabel")} />
 
 			<ScrollView
@@ -163,36 +163,37 @@ export function PassengersView() {
 			>
 				{passengers.length === 0 ? (
 					<View className="flex-1 items-center justify-center py-20 gap-4">
-						<View className="w-18 h-18 rounded-full bg-pink-50 items-center justify-center">
-							<View className="w-14 h-14 rounded-full bg-pink-100 items-center justify-center">
-								<HugeiconsIcon icon={UserGroupIcon} size={28} color="#ee237c" />
+						<View className="w-18 h-18 rounded-full bg-primary/10 items-center justify-center">
+							<View className="w-14 h-14 rounded-full bg-primary/20 items-center justify-center">
+								<HugeiconsIcon icon={UserGroupIcon} size={28} color={Palette.rose[500]} />
 							</View>
 						</View>
 						<View className="items-center gap-1">
-							<Text className="text-base font-medium text-slate-500">{t("signInToView")}</Text>
-							<Text className="text-sm text-slate-400 text-center max-w-[280px] leading-[18px]">
+							<Text className="text-base font-medium text-muted-foreground">{t("signInToView")}</Text>
+							<Text className="text-sm text-muted-foreground text-center max-w-[280px] leading-[18px]">
 								{t("travelCompanionDescription")}
 							</Text>
 						</View>
 						<Pressable
 							onPress={openCreate}
-							className="flex-row items-center gap-1 px-6 py-3.5 rounded-2xl bg-pink-600 mt-1 shadow-lg shadow-pink-500/40 active:opacity-85"
+							accessibilityRole="button"
+							className="flex-row items-center gap-1 px-6 py-3.5 rounded-2xl bg-primary mt-1 shadow-lg shadow-primary/40 active:opacity-85 min-h-12"
 						>
-							<HugeiconsIcon icon={PlusSignIcon} size={18} color="#fff" />
-							<Text className="text-sm font-bold text-white">{t("addFirstTraveler")}</Text>
+							<HugeiconsIcon icon={PlusSignIcon} size={18} color={Palette.zinc[50]} />
+							<Text className="text-sm font-bold text-primary-foreground">{t("addFirstTraveler")}</Text>
 						</Pressable>
 					</View>
 				) : (
 					<>
 						<View className="flex-row items-center justify-between pb-2">
-							<Text className="text-xs font-bold text-slate-400 tracking-wide uppercase">
+							<Text className="text-xs font-bold text-muted-foreground tracking-wide uppercase">
 								{passengers.length} {passengers.length === 1 ? "Passenger" : "Passengers"}
 							</Text>
 						</View>
 
 						{selfPassenger ? (
 							<>
-								<Text className="text-sm font-bold text-slate-400 tracking-wide uppercase -mb-1">
+								<Text className="text-sm font-bold text-muted-foreground tracking-wide uppercase -mb-1">
 									{t("myProfileLabel")}
 								</Text>
 								<PassengerCard
@@ -208,7 +209,7 @@ export function PassengersView() {
 						{others.length > 0 ? (
 							<>
 								<Text
-									className={`text-sm font-bold text-slate-400 tracking-wide uppercase -mb-1 ${selfPassenger ? "mt-2" : ""}`}
+									className={`text-sm font-bold text-muted-foreground tracking-wide uppercase -mb-1 ${selfPassenger ? "mt-2" : ""}`}
 								>
 									{t("travelCompanions")}
 								</Text>
@@ -230,10 +231,11 @@ export function PassengersView() {
 			{/* FAB */}
 			<Pressable
 				onPress={openCreate}
-				className="absolute right-5 w-14 h-14 rounded-full bg-pink-600 items-center justify-center shadow-xl shadow-pink-500/40 active:opacity-85"
+				accessibilityRole="button"
+				className="absolute right-5 w-14 h-14 rounded-full bg-primary items-center justify-center shadow-xl shadow-primary/40 active:opacity-85 min-h-14"
 				style={{ bottom: BottomTabInset + insets.bottom + 20 }}
 			>
-				<HugeiconsIcon icon={PlusSignIcon} size={24} color="#fff" />
+				<HugeiconsIcon icon={PlusSignIcon} size={24} color={Palette.zinc[50]} />
 			</Pressable>
 
 			<PassengerFormSheet

@@ -41,7 +41,7 @@ function BookingStatusBadge({ booking }: { booking: Booking }) {
   const t = useTranslations("adminDashboard.tripAuditManifest");
   if (booking.boardedAt) {
     return (
-      <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100">
+      <Badge className="bg-success/10 text-success border-success/20 hover:bg-success/15">
         <CheckCircle2 className="size-3 mr-1" />
         {t("boarded")}
       </Badge>
@@ -49,7 +49,7 @@ function BookingStatusBadge({ booking }: { booking: Booking }) {
   }
   if (booking.checkedInAt) {
     return (
-      <Badge className="bg-sky-100 text-sky-700 border-sky-200 hover:bg-sky-100">
+      <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/15">
         <Clock className="size-3 mr-1" />
         {t("checkedIn")}
       </Badge>
@@ -57,7 +57,7 @@ function BookingStatusBadge({ booking }: { booking: Booking }) {
   }
   if (booking.status === "CONFIRMED") {
     return (
-      <Badge className="bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100">
+      <Badge className="bg-warning/10 text-warning border-warning/20 hover:bg-warning/15">
         <User className="size-3 mr-1" />
         {t("notBoarded")}
       </Badge>
@@ -65,7 +65,7 @@ function BookingStatusBadge({ booking }: { booking: Booking }) {
   }
   if (booking.status === "CANCELLED") {
     return (
-      <Badge variant="destructive" className="border-red-200">
+      <Badge variant="destructive" className="border-destructive/20">
         <XCircle className="size-3 mr-1" />
         {t("cancelled")}
       </Badge>
@@ -121,7 +121,7 @@ export function TripAuditManifest({ tripId }: { tripId: string }) {
           />
         </div>
         <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v)}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-44">
             <SelectValue placeholder={t("allStatuses")} />
           </SelectTrigger>
           <SelectContent>
@@ -138,7 +138,7 @@ export function TripAuditManifest({ tripId }: { tripId: string }) {
       <div className="rounded-lg border border-border bg-card overflow-hidden shadow-sm">
         <Table>
           <TableHeader>
-            <TableRow className="bg-slate-50/70">
+            <TableRow className="bg-muted/40">
               <TableHead className="font-semibold text-xs">
                 {t("seat")}
               </TableHead>
@@ -174,9 +174,9 @@ export function TripAuditManifest({ tripId }: { tripId: string }) {
               </TableRow>
             ) : (
               filtered.map((booking) => (
-                <TableRow key={booking.id} className="hover:bg-slate-50/50">
+                <TableRow key={booking.id} className="hover:bg-muted/50">
                   <TableCell>
-                    <div className="flex size-8 items-center justify-center rounded-md bg-slate-100 text-xs font-bold text-slate-700">
+                    <div className="flex size-8 items-center justify-center rounded-md bg-muted text-xs font-bold text-foreground">
                       {booking.seat?.label ?? "?"}
                     </div>
                   </TableCell>
@@ -204,7 +204,7 @@ export function TripAuditManifest({ tripId }: { tripId: string }) {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <span className="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded">
+                    <span className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">
                       {booking.bookingReference}
                     </span>
                   </TableCell>
@@ -226,7 +226,7 @@ export function TripAuditManifest({ tripId }: { tripId: string }) {
         </Table>
 
         {filtered.length > 0 && (
-          <div className="border-t border-border bg-slate-50/50 px-4 py-2 flex items-center justify-between">
+          <div className="border-t border-border bg-muted/20 px-4 py-2 flex items-center justify-between">
             <span className="text-xs text-muted-foreground">
               {t("showingPassengers", {
                 shown: filtered.length,

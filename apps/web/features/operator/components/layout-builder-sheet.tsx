@@ -830,14 +830,15 @@ export function LayoutBuilderSheet({
                       const tk = toolKeyMap[tool.id];
                       const isActive = activeTool === tool.id;
                       return (
-                        <button
+                        <Button
                           key={tool.id}
                           type="button"
+                          variant="ghost"
                           onClick={() => setActiveTool(tool.id)}
                           className={cn(
-                            "w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-all duration-150",
+                            "w-full flex items-center justify-start gap-3 rounded-lg px-3 py-2.5 text-left transition-all duration-150 h-auto font-normal",
                             isActive
-                              ? "bg-primary/10 border border-primary/30 shadow-sm"
+                              ? "bg-primary/10 border border-primary/30 shadow-sm hover:bg-primary/15"
                               : "border border-transparent hover:bg-muted hover:border-border",
                           )}
                         >
@@ -847,7 +848,7 @@ export function LayoutBuilderSheet({
                               tool.paletteDot,
                             )}
                           />
-                          <div className="min-w-0">
+                          <div className="min-w-0 flex-1">
                             <p
                               className={cn(
                                 "text-[11px] font-semibold",
@@ -863,7 +864,7 @@ export function LayoutBuilderSheet({
                           {isActive && (
                             <div className="shrink-0 h-1.5 w-1.5 rounded-full bg-primary ml-auto" />
                           )}
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>

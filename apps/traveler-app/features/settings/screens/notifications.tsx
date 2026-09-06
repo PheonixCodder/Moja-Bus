@@ -14,7 +14,7 @@ import { useTranslation } from "react-i18next";
 import { useRouter } from "expo-router";
 import { SubpageHeader } from "@/components/subpage-header";
 import { Text } from "@/components/ui/text";
-import { BottomTabInset } from "@/constants/theme";
+import { BottomTabInset, Palette } from "@/constants/theme";
 import {
 	type NotificationRouteData,
 	resolveNotificationRoute,
@@ -68,28 +68,29 @@ function NotificationRow({
 	return (
 		<Pressable
 			onPress={onPress}
-			className={`mx-4 mb-2.5 rounded-2xl border px-4 py-3.5 active:opacity-80 ${
+			accessibilityRole="button"
+			className={`mx-4 mb-2.5 rounded-2xl border px-4 py-3.5 active:opacity-80 min-h-12 ${
 				isRead
-					? "border-slate-100 bg-white"
-					: "border-pink-100 bg-pink-50/70"
+					? "border-border bg-card"
+					: "border-primary/20 bg-primary/10"
 			}`}
 		>
 			<View className="flex-row gap-3">
 				<View
 					className={`mt-0.5 h-10 w-10 items-center justify-center rounded-full ${
-						isRead ? "bg-slate-100" : "bg-pink-100"
+						isRead ? "bg-muted" : "bg-primary/20"
 					}`}
 				>
 					<HugeiconsIcon
 						icon={Notification03Icon}
 						size={18}
-						color={isRead ? "#94a3b8" : "#ee237c"}
+						color={isRead ? Palette.zinc[400] : Palette.rose[500]}
 					/>
 				</View>
 				<View className="min-w-0 flex-1 gap-1">
 					<View className="flex-row items-start justify-between gap-2">
 						<Text
-							className={`flex-1 text-[15px] text-slate-900 ${
+							className={`flex-1 text-[15px] text-foreground ${
 								isRead ? "font-semibold" : "font-bold"
 							}`}
 							numberOfLines={2}
@@ -97,15 +98,15 @@ function NotificationRow({
 							{item.subject || "Notification"}
 						</Text>
 						{!isRead ? (
-							<View className="mt-1.5 h-2 w-2 rounded-full bg-pink-600" />
+							<View className="mt-1.5 h-2 w-2 rounded-full bg-primary" />
 						) : null}
 					</View>
 					{item.body ? (
-						<Text className="text-sm leading-5 text-slate-500" numberOfLines={3}>
+						<Text className="text-sm leading-5 text-muted-foreground" numberOfLines={3}>
 							{item.body}
 						</Text>
 					) : null}
-					<Text className="text-xs font-medium text-slate-400">
+					<Text className="text-xs font-medium text-muted-foreground">
 						{timeAgo(item.createdAt)}
 					</Text>
 				</View>
@@ -213,7 +214,7 @@ export function NotificationsView() {
 			return <View style={{ height: BottomTabInset + insets.bottom + 24 }} />;
 		return (
 			<View className="items-center py-3">
-				<ActivityIndicator size="small" color="#ee237c" />
+				<ActivityIndicator size="small" color={Palette.rose[500]} />
 			</View>
 		);
 	};
@@ -222,13 +223,13 @@ export function NotificationsView() {
 		if (isLoading) return null;
 		return (
 			<View className="flex-1 items-center justify-center px-8 pt-16">
-				<View className="mb-4 h-16 w-16 items-center justify-center rounded-full bg-pink-50">
-					<HugeiconsIcon icon={Notification03Icon} size={28} color="#ee237c" />
+				<View className="mb-4 h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+					<HugeiconsIcon icon={Notification03Icon} size={28} color={Palette.rose[500]} />
 				</View>
-				<Text className="mb-1 text-base font-bold text-slate-900">
+				<Text className="mb-1 text-base font-bold text-foreground">
 					{t("noNotifications")}
 				</Text>
-				<Text className="text-center text-sm leading-5 text-slate-500">
+				<Text className="text-center text-sm leading-5 text-muted-foreground">
 					{t("allCaughtUp")}
 				</Text>
 			</View>
@@ -236,12 +237,12 @@ export function NotificationsView() {
 	};
 
 	return (
-		<View className="flex-1 bg-slate-50">
+		<View className="flex-1 bg-background">
 			<SubpageHeader title={t("notifications")} />
 
 			{unreadCount > 0 ? (
 				<View className="mb-2 flex-row items-center justify-between px-4 pt-1">
-					<Text className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+					<Text className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
 						{t("unreadCount", {
 							count: unreadCount,
 							defaultValue: `${unreadCount} unread`,
@@ -250,14 +251,15 @@ export function NotificationsView() {
 					<Pressable
 						onPress={markAllRead}
 						disabled={markingAll}
-						className="flex-row items-center gap-1.5 rounded-full bg-white border border-slate-200 px-3 py-1.5 active:opacity-80"
+						accessibilityRole="button"
+						className="flex-row items-center gap-1.5 rounded-full bg-card border border-border px-3 py-1.5 active:opacity-80 min-h-8"
 					>
 						{markingAll ? (
-							<ActivityIndicator size="small" color="#ee237c" />
+							<ActivityIndicator size="small" color={Palette.rose[500]} />
 						) : (
-							<HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} color="#ee237c" />
+							<HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} color={Palette.rose[500]} />
 						)}
-						<Text className="text-xs font-bold text-pink-600">
+						<Text className="text-xs font-bold text-primary">
 							{t("markAllRead", { defaultValue: "Mark all read" })}
 						</Text>
 					</Pressable>
@@ -266,7 +268,7 @@ export function NotificationsView() {
 
 			{isLoading && !notifications?.length ? (
 				<View className="flex-1 items-center justify-center">
-					<ActivityIndicator size="large" color="#ee237c" />
+					<ActivityIndicator size="large" color={Palette.rose[500]} />
 				</View>
 			) : (
 				<FlatList
@@ -284,7 +286,7 @@ export function NotificationsView() {
 						<RefreshControl
 							refreshing={!!isFetching && !isLoading}
 							onRefresh={refetch}
-							tintColor="#ee237c"
+							tintColor={Palette.rose[500]}
 						/>
 					}
 				/>

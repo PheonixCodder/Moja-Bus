@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, Pressable, View } from "react-native";
 import { Text } from "@/components/ui/text";
+import { Palette } from "@/constants/theme";
 import { authClient } from "@/lib/auth-client";
 
 export function DangerZoneRow() {
@@ -41,12 +42,13 @@ export function DangerZoneRow() {
 			<Pressable
 				onPress={handleLogout}
 				disabled={isSigningOut}
-				className="flex-row items-center py-4 px-5 active:opacity-60 disabled:opacity-50"
+				accessibilityRole="button"
+				className="flex-row items-center py-4 px-5 active:opacity-60 disabled:opacity-50 min-h-12"
 			>
 				<View className="w-6 items-center mr-5">
-					<HugeiconsIcon icon={Logout01Icon} size={20} color="#e11d48" />
+					<HugeiconsIcon icon={Logout01Icon} size={20} color={Palette.rose[600]} />
 				</View>
-				<Text className="text-base font-semibold text-rose-600">
+				<Text className="text-base font-semibold text-destructive">
 					Log Out
 				</Text>
 			</Pressable>

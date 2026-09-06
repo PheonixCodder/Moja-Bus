@@ -18,6 +18,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@moja/ui/components/ui/avatar";
+import { UserAvatar } from "@moja/ui/components/ui/user-avatar";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { Button } from "@moja/ui/components/ui/button";
 import { cn } from "@moja/ui/lib/utils";
@@ -65,21 +66,21 @@ interface MarketplaceDriverCardProps {
 const EMPLOYMENT_LABELS: Record<string, { label: string; color: string }> = {
   EXCLUSIVE_INTERCITY: {
     label: "Intercity",
-    color: "bg-blue-50 text-blue-700 border-blue-200",
+    color: "bg-primary/10 text-primary border-primary/20",
   },
   CONTRACTOR_URBAN: {
     label: "Urban",
-    color: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    color: "bg-success/10 text-success border-success/20",
   },
   HYBRID: {
     label: "Hybrid",
-    color: "bg-violet-50 text-violet-700 border-violet-200",
+    color: "bg-primary/10 text-primary border-primary/20",
   },
 };
 
 const DEFAULT_EMPLOYMENT_META = {
   label: "Intercity",
-  color: "bg-blue-50 text-blue-700 border-blue-200",
+  color: "bg-primary/10 text-primary border-primary/20",
 };
 
 function getEmploymentMeta(type?: string) {
@@ -93,7 +94,12 @@ function SafetyScoreRing({ score }: { score: number }) {
   const r = 14;
   const circ = 2 * Math.PI * r;
   const dash = circ * pct;
-  const color = score >= 90 ? "#10b981" : score >= 75 ? "#f59e0b" : "#f43f5e";
+  const color =
+    score >= 90
+      ? "var(--success)"
+      : score >= 75
+        ? "var(--warning)"
+        : "var(--destructive)";
 
   return (
     <div className="relative flex items-center justify-center size-10">
@@ -103,7 +109,7 @@ function SafetyScoreRing({ score }: { score: number }) {
           cy="20"
           r={r}
           fill="none"
-          stroke="#e5e7eb"
+          stroke="var(--border)"
           strokeWidth="3"
         />
         <circle
@@ -127,11 +133,11 @@ function SafetyScoreRing({ score }: { score: number }) {
 function StarRating({ rating, reviews }: { rating: number; reviews: number }) {
   return (
     <div className="flex items-center gap-1">
-      <Star className="size-3.5 fill-amber-400 text-amber-400" />
-      <span className="text-sm font-bold text-slate-800">
+      <Star className="size-3.5 fill-warning text-warning" />
+      <span className="text-sm font-bold text-foreground">
         {rating.toFixed(1)}
       </span>
-      <span className="text-xs text-slate-400">({reviews})</span>
+      <span className="text-xs text-muted-foreground">({reviews})</span>
     </div>
   );
 }
@@ -164,15 +170,15 @@ export function MarketplaceDriverCard({
   return (
     <div
       className={cn(
-        "group relative flex flex-col rounded-2xl border bg-white shadow-sm transition-all duration-200",
-        "hover:shadow-md hover:border-slate-300 cursor-pointer",
-        pref?.isFeatured && "ring-2 ring-amber-300 ring-offset-1",
+        "group relative flex flex-col rounded-2xl border border-border bg-card shadow-sm transition-all duration-200",
+        "hover:shadow-md hover:border-border/80 cursor-pointer",
+        pref?.isFeatured && "ring-2 ring-warning/50 ring-offset-1",
       )}
       onClick={() => onViewProfile(driver.id)}
     >
       {/* Featured badge */}
       {pref?.isFeatured && (
-        <div className="absolute -top-2.5 left-4 flex items-center gap-1 rounded-full bg-amber-400 px-2.5 py-0.5 text-[10px] font-bold text-amber-900 shadow">
+        <div className="absolute -top-2.5 left-4 flex items-center gap-1 rounded-full bg-warning px-2.5 py-0.5 text-[10px] font-bold text-warning-foreground shadow">
           <Sparkles className="size-2.5" />
           Featured
         </div>
@@ -180,22 +186,23 @@ export function MarketplaceDriverCard({
 
       {/* Card Header */}
       <div className="flex items-start gap-3 p-4 pb-3">
-        <Avatar className="size-14 shrink-0 border-2 border-slate-100 shadow-sm">
-          <AvatarImage src={driver.user.image ?? undefined} />
-          <AvatarFallback className="bg-primary/10 text-primary font-black text-lg">
-            {initials}
-          </AvatarFallback>
-        </Avatar>
+        <UserAvatar
+          name={driver.user.fullName}
+          src={driver.user.image}
+          seed={driver.id || (driver.user.fullName ?? undefined)}
+          size="lg"
+          className="size-14 shrink-0 border-2 border-border shadow-sm"
+        />
 
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <h3 className="text-sm font-bold text-slate-900 truncate leading-tight">
+              <h3 className="text-sm font-bold text-foreground truncate leading-tight">
                 {driver.user.fullName ?? "—"}
               </h3>
               <div className="flex items-center gap-1.5 mt-0.5">
-                <BadgeCheck className="size-3.5 text-emerald-500 shrink-0" />
-                <span className="text-[11px] text-slate-500">
+                <BadgeCheck className="size-3.5 text-success shrink-0" />
+                <span className="text-[11px] text-muted-foreground">
                   Class {driver.licenseCategory} · {driver.yearsOfExperience}yr
                   exp
                 </span>
@@ -226,22 +233,22 @@ export function MarketplaceDriverCard({
       </div>
 
       {/* Stats Row */}
-      <div className="mx-4 mb-3 grid grid-cols-3 divide-x divide-slate-100 rounded-xl bg-slate-50 border border-slate-100">
+      <div className="mx-4 mb-3 grid grid-cols-3 divide-x divide-border rounded-xl bg-muted/40 border border-border">
         <div className="flex flex-col items-center py-2">
           <SafetyScoreRing score={driver.safetyScore} />
-          <span className="text-[10px] text-slate-500 mt-0.5">Safety</span>
+          <span className="text-[10px] text-muted-foreground mt-0.5">Safety</span>
         </div>
         <div className="flex flex-col items-center justify-center py-2">
-          <span className="text-sm font-bold text-slate-800 font-mono">
+          <span className="text-sm font-bold text-foreground font-mono">
             {driver.totalTripsCompleted.toLocaleString()}
           </span>
-          <span className="text-[10px] text-slate-500">Trips</span>
+          <span className="text-[10px] text-muted-foreground">Trips</span>
         </div>
         <div className="flex flex-col items-center justify-center py-2">
-          <span className="text-sm font-bold text-slate-800 font-mono">
+          <span className="text-sm font-bold text-foreground font-mono">
             {Math.round(driver.totalDistanceKm / 1000)}k km
           </span>
-          <span className="text-[10px] text-slate-500">Distance</span>
+          <span className="text-[10px] text-muted-foreground">Distance</span>
         </div>
       </div>
 
@@ -249,26 +256,26 @@ export function MarketplaceDriverCard({
       <div className="px-4 pb-3 space-y-1.5">
         {pref?.cityBase && (
           <div className="flex items-center gap-1.5">
-            <MapPin className="size-3.5 text-slate-400 shrink-0" />
-            <span className="text-xs text-slate-600 font-medium">
+            <MapPin className="size-3.5 text-muted-foreground shrink-0" />
+            <span className="text-xs text-foreground/80 font-medium">
               {pref.cityBase}
             </span>
           </div>
         )}
         {topRoutes.length > 0 && (
           <div className="flex items-start gap-1.5">
-            <Route className="size-3.5 text-slate-400 shrink-0 mt-0.5" />
+            <Route className="size-3.5 text-muted-foreground shrink-0 mt-0.5" />
             <div className="flex flex-wrap gap-1">
               {topRoutes.map((r) => (
                 <span
                   key={r}
-                  className="text-[10px] font-medium bg-slate-100 text-slate-600 rounded px-1.5 py-0.5"
+                  className="text-[10px] font-medium bg-muted text-muted-foreground rounded px-1.5 py-0.5"
                 >
                   {r}
                 </span>
               ))}
               {(pref?.routeExperience?.length ?? 0) > 2 && (
-                <span className="text-[10px] text-slate-400">
+                <span className="text-[10px] text-muted-foreground/70">
                   +{(pref?.routeExperience?.length ?? 0) - 2} more
                 </span>
               )}
@@ -278,7 +285,7 @@ export function MarketplaceDriverCard({
       </div>
 
       {/* CTA Footer */}
-      <div className="mt-auto flex gap-2 border-t border-slate-100 p-3">
+      <div className="mt-auto flex gap-2 border-t border-border p-3">
         <Button
           variant="outline"
           size="sm"
@@ -297,10 +304,10 @@ export function MarketplaceDriverCard({
             size="sm"
             variant="outline"
             disabled
-            className="flex-1 h-8 text-xs font-semibold gap-1.5 bg-slate-50"
+            className="flex-1 h-8 text-xs font-semibold gap-1.5 bg-muted/50"
             onClick={(e: MouseEvent<HTMLButtonElement>) => e.stopPropagation()}
           >
-            <BadgeCheck className="size-3.5 text-emerald-600" />
+            <BadgeCheck className="size-3.5 text-success" />
             On Your Roster
           </Button>
         ) : (

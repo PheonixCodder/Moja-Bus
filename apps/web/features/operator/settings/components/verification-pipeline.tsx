@@ -27,14 +27,14 @@ export function VerificationPipeline({ onManage }: VerificationPipelineProps) {
     <Card
       className={cn(
         "overflow-hidden border-2",
-        status.isFullyVerified ? "border-emerald-500/50" : "border-border",
+        status.isFullyVerified ? "border-success/50" : "border-border",
       )}
     >
       <CardHeader
         className={cn(
           "pb-4",
           status.isFullyVerified
-            ? "bg-emerald-500/5 dark:bg-emerald-500/10"
+            ? "bg-success/5 dark:bg-success/10"
             : "bg-muted/30",
         )}
       >
@@ -42,7 +42,7 @@ export function VerificationPipeline({ onManage }: VerificationPipelineProps) {
           <div className="space-y-1">
             <CardTitle className="flex items-center gap-2">
               {status.isFullyVerified ? (
-                <ShieldCheck className="w-5 h-5 text-emerald-500" />
+                <ShieldCheck className="w-5 h-5 text-success" />
               ) : (
                 <ShieldAlert className="w-5 h-5 text-muted-foreground" />
               )}
@@ -75,8 +75,8 @@ export function VerificationPipeline({ onManage }: VerificationPipelineProps) {
             <span
               className={
                 settings?.company.name && settings?.company.taxId
-                  ? "text-emerald-600 font-medium"
-                  : "text-amber-600 font-medium"
+                  ? "text-success font-medium"
+                  : "text-warning font-medium"
               }
             >
               {settings?.company.name && settings?.company.taxId
@@ -89,8 +89,8 @@ export function VerificationPipeline({ onManage }: VerificationPipelineProps) {
             <span
               className={
                 settings?.company?.bankAccounts?.some((b) => b.isVerified)
-                  ? "text-emerald-600 font-medium"
-                  : "text-amber-600 font-medium"
+                  ? "text-success font-medium"
+                  : "text-warning font-medium"
               }
             >
               {settings?.company?.bankAccounts?.some((b) => b.isVerified)
@@ -105,8 +105,8 @@ export function VerificationPipeline({ onManage }: VerificationPipelineProps) {
                 settings?.company.documents?.some(
                   (d) => d.status === "APPROVED",
                 )
-                  ? "text-emerald-600 font-medium"
-                  : "text-amber-600 font-medium"
+                  ? "text-success font-medium"
+                  : "text-warning font-medium"
               }
             >
               {settings?.company.documents?.some((d) => d.status === "APPROVED")

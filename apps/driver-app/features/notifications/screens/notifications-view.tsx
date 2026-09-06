@@ -5,8 +5,7 @@ import {
 	RefreshControl,
 	Text,
 	View,
-	TouchableOpacity,
-	StyleSheet,
+	Pressable,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -113,43 +112,41 @@ export function NotificationsView() {
 	const renderEmpty = () => {
 		if (isLoading) return null;
 		return (
-			<View style={styles.emptyBox}>
-				<View style={styles.emptyIconWrap}>
-					<HugeiconsIcon icon={Notification01Icon} size={28} color="#71717a" />
+			<View className="flex-1 items-center justify-center px-8 pt-16 gap-3">
+				<View className="w-16 h-16 rounded-2xl bg-card border border-border items-center justify-center">
+					<HugeiconsIcon icon={Notification01Icon} size={28} color={colors.neutral.textMuted} />
 				</View>
-				<Text style={styles.emptyTitle}>{t("noNotifications")}</Text>
-				<Text style={styles.emptySubtitle}>{t("allCaughtUp")}</Text>
+				<Text className="text-base font-bold text-foreground">{t("noNotifications")}</Text>
+				<Text className="text-center text-xs text-muted-foreground leading-5 max-w-[280px]">{t("allCaughtUp")}</Text>
 			</View>
 		);
 	};
 
 	return (
-		<View style={[styles.root, { paddingTop: insets.top }]}>
+		<View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
 			{/* Header */}
-			<View style={styles.headerBar}>
-				<TouchableOpacity
+			<View className="flex-row items-center justify-between border-b border-border px-4 pb-3 pt-2">
+				<Pressable
 					onPress={() => router.back()}
-					activeOpacity={0.8}
-					style={styles.backBtn}
+					className="w-10 h-10 rounded-2xl bg-card border border-border items-center justify-center"
 				>
-					<HugeiconsIcon icon={ArrowLeft01Icon} size={20} color="#fafafa" />
-				</TouchableOpacity>
+					<HugeiconsIcon icon={ArrowLeft01Icon} size={20} color={colors.neutral.textPrimary} />
+				</Pressable>
 
-				<View style={styles.headerTitleWrap}>
-					<Text style={styles.headerTitle}>{t("title")}</Text>
+				<View className="flex-1 items-center">
+					<Text className="text-lg font-extrabold text-foreground">{t("title")}</Text>
 					{unreadCount > 0 && (
-						<Text style={styles.unreadBadgeText}>
+						<Text className="text-xs text-primary font-bold">
 							{unreadCount} {t("unread")}
 						</Text>
 					)}
 				</View>
 
 				{unreadCount > 0 ? (
-					<TouchableOpacity
+					<Pressable
 						onPress={markAllRead}
 						disabled={markingAll}
-						activeOpacity={0.8}
-						style={styles.markAllBtn}
+						className="w-10 h-10 rounded-2xl bg-card border border-border items-center justify-center"
 					>
 						{markingAll ? (
 							<ActivityIndicator size="small" color={colors.primary.rose} />
@@ -160,15 +157,15 @@ export function NotificationsView() {
 								color={colors.primary.rose}
 							/>
 						)}
-					</TouchableOpacity>
+					</Pressable>
 				) : (
-					<View style={styles.placeholder} />
+					<View className="w-10" />
 				)}
 			</View>
 
 			{/* List */}
 			{isLoading ? (
-				<View style={styles.loadingBox}>
+				<View className="flex-1 items-center justify-center">
 					<ActivityIndicator size="large" color={colors.primary.rose} />
 				</View>
 			) : (
@@ -177,10 +174,10 @@ export function NotificationsView() {
 					keyExtractor={(item) => item.id}
 					renderItem={renderItem}
 					ListEmptyComponent={renderEmpty}
-					contentContainerStyle={[
-						styles.listContent,
-						{ paddingBottom: Math.max(insets.bottom, 24) + 40 },
-					]}
+					contentContainerStyle={{
+						paddingTop: 16,
+						paddingBottom: Math.max(insets.bottom, 24) + 40,
+					}}
 					showsVerticalScrollIndicator={false}
 					refreshControl={
 						<RefreshControl
@@ -194,95 +191,3 @@ export function NotificationsView() {
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	root: {
-		flex: 1,
-		backgroundColor: "#09090b",
-	},
-	headerBar: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-		borderBottomWidth: 1,
-		borderBottomColor: "#27272a",
-		paddingHorizontal: 16,
-		paddingBottom: 12,
-		paddingTop: 8,
-	},
-	backBtn: {
-		width: 40,
-		height: 40,
-		borderRadius: 14,
-		backgroundColor: "#18181b",
-		borderWidth: 1,
-		borderColor: "#27272a",
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	headerTitleWrap: {
-		flex: 1,
-		alignItems: "center",
-	},
-	headerTitle: {
-		fontSize: 18,
-		fontWeight: "800",
-		color: "#fafafa",
-	},
-	unreadBadgeText: {
-		fontSize: 11,
-		color: "#ee237c",
-		fontWeight: "700",
-	},
-	markAllBtn: {
-		width: 40,
-		height: 40,
-		borderRadius: 14,
-		backgroundColor: "#18181b",
-		borderWidth: 1,
-		borderColor: "#27272a",
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	placeholder: {
-		width: 40,
-	},
-	loadingBox: {
-		flex: 1,
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	emptyBox: {
-		flex: 1,
-		alignItems: "center",
-		justifyContent: "center",
-		paddingHorizontal: 32,
-		paddingTop: 64,
-		gap: 12,
-	},
-	emptyIconWrap: {
-		width: 64,
-		height: 64,
-		borderRadius: 20,
-		backgroundColor: "#18181b",
-		borderWidth: 1,
-		borderColor: "#27272a",
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	emptyTitle: {
-		fontSize: 16,
-		fontWeight: "700",
-		color: "#fafafa",
-	},
-	emptySubtitle: {
-		textAlign: "center",
-		fontSize: 12,
-		color: "#a1a1aa",
-		lineHeight: 18,
-		maxWidth: 280,
-	},
-	listContent: {
-		paddingTop: 16,
-	},
-});

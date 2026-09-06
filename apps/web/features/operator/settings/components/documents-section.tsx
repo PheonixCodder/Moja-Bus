@@ -58,7 +58,7 @@ export function DocumentsSection({ onManage }: DocumentsSectionProps) {
               {state === "approved" && (
                 <Badge
                   variant="outline"
-                  className="bg-green-500/10 text-green-600 border-green-200"
+                  className="bg-success/10 text-success border-success/20"
                 >
                   <CheckCircle2 className="w-3 h-3 mr-1" /> {t("allApproved")}
                 </Badge>
@@ -66,7 +66,7 @@ export function DocumentsSection({ onManage }: DocumentsSectionProps) {
               {state === "pending" && (
                 <Badge
                   variant="outline"
-                  className="bg-yellow-500/10 text-yellow-600 border-yellow-200"
+                  className="bg-warning/10 text-warning border-warning/20"
                 >
                   <Clock className="w-3 h-3 mr-1" /> {t("inReview")}
                 </Badge>
@@ -74,7 +74,7 @@ export function DocumentsSection({ onManage }: DocumentsSectionProps) {
               {state === "missing" && (
                 <Badge
                   variant="outline"
-                  className="bg-orange-500/10 text-orange-600 border-orange-200"
+                  className="bg-warning/10 text-warning border-warning/20"
                 >
                   <AlertCircle className="w-3 h-3 mr-1" /> {t("actionRequired")}
                 </Badge>
@@ -98,17 +98,17 @@ export function DocumentsSection({ onManage }: DocumentsSectionProps) {
                 {t(`types.${doc.type}` as any) || doc.type.replace(/_/g, " ")}
               </span>
               {doc.status === "APPROVED" && (
-                <span className="text-green-600 font-medium text-xs">
+                <span className="text-success font-medium text-xs">
                   {t("status.APPROVED")}
                 </span>
               )}
               {doc.status === "PENDING" && (
-                <span className="text-yellow-600 font-medium text-xs">
+                <span className="text-warning font-medium text-xs">
                   {t("status.PENDING")}
                 </span>
               )}
               {doc.status === "REJECTED" && (
-                <span className="text-red-600 font-medium text-xs">
+                <span className="text-destructive font-medium text-xs">
                   {t("status.REJECTED")}
                 </span>
               )}

@@ -3,6 +3,7 @@
 import { CalendarClock, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { Button } from "@moja/ui/components/ui/button";
 import type { RouterOutputs } from "@/trpc/client";
 
 type RouteType = RouterOutputs["routes"]["list"][number];
@@ -37,12 +38,14 @@ export function RouteSuccessPanel({
             <CalendarClock className="size-3.5" />
             {t("successPanel.createSchedule")}
           </Link>
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={onDismiss}
-            className="text-xs text-muted-foreground hover:text-foreground"
+            className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground hover:bg-transparent"
           >
             {t("successPanel.dismiss")}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

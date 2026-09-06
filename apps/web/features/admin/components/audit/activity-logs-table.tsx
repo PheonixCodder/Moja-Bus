@@ -21,11 +21,11 @@ import { ActivityLogDetailDialog } from "./activity-log-detail-dialog";
 import { ActivityLogsPagination } from "./activity-logs-pagination";
 
 const CHANNEL_COLORS: Record<string, string> = {
-  email: "bg-blue-100 text-blue-700 border-blue-200",
-  sms: "bg-green-100 text-green-700 border-green-200",
-  in_app: "bg-purple-100 text-purple-700 border-purple-200",
-  push: "bg-orange-100 text-orange-700 border-orange-200",
-  chat: "bg-yellow-100 text-yellow-700 border-yellow-200",
+  email: "bg-primary/10 text-primary border-primary/20",
+  sms: "bg-success/10 text-success border-success/20",
+  in_app: "bg-primary/15 text-primary border-primary/25",
+  push: "bg-warning/10 text-warning border-warning/20",
+  chat: "bg-warning/15 text-warning border-warning/25",
 };
 
 export function ActivityLogsTable() {
@@ -77,7 +77,7 @@ export function ActivityLogsTable() {
         <Table>
           <TableHeader>
             <TableRow className="border-b bg-muted/30">
-              <TableHead className="w-[160px] whitespace-nowrap pl-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <TableHead className="w-40 whitespace-nowrap pl-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 {t("time")}
               </TableHead>
               <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -119,12 +119,12 @@ export function ActivityLogsTable() {
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium text-foreground truncate max-w-[160px]">
+                      <span className="text-sm font-medium text-foreground truncate max-w-40">
                         {log.subscriber?.firstName ??
                           log.subscriber?.subscriberId ??
                           "—"}
                       </span>
-                      <span className="text-xs text-muted-foreground font-mono truncate max-w-[160px]">
+                      <span className="text-xs text-muted-foreground font-mono truncate max-w-40">
                         {log.subscriber?.subscriberId ?? ""}
                       </span>
                     </div>
@@ -143,7 +143,7 @@ export function ActivityLogsTable() {
                             variant="outline"
                             className={`text-[10px] px-1.5 py-0 font-medium ${
                               CHANNEL_COLORS[String(ch)] ??
-                              "bg-slate-100 text-slate-600"
+                              "bg-muted text-muted-foreground"
                             }`}
                           >
                             {String(ch)}
@@ -160,10 +160,10 @@ export function ActivityLogsTable() {
                         variant="outline"
                         className={
                           log.status === "sent" || log.status === "completed"
-                            ? "border-green-200 bg-green-50 text-green-700 text-[10px]"
+                            ? "border-success/20 bg-success/10 text-success text-[10px]"
                             : log.status === "failed" || log.status === "error"
-                              ? "border-red-200 bg-red-50 text-red-700 text-[10px]"
-                              : "border-yellow-200 bg-yellow-50 text-yellow-700 text-[10px]"
+                              ? "border-destructive/20 bg-destructive/10 text-destructive text-[10px]"
+                              : "border-warning/20 bg-warning/10 text-warning text-[10px]"
                         }
                       >
                         {log.status}

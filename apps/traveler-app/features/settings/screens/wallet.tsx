@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { SubpageHeader } from "@/components/subpage-header";
 import { Text } from "@/components/ui/text";
-import { BottomTabInset } from "@/constants/theme";
+import { BottomTabInset, Palette } from "@/constants/theme";
 import { authClient } from "@/lib/auth-client";
 import {
   useWalletBalance,
@@ -130,16 +130,16 @@ export function WalletView() {
 
   if (sessionPending || balanceQuery.isLoading) {
     return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator size="large" color="#ee237c" />
+      <View className="flex-1 items-center justify-center bg-background">
+        <ActivityIndicator size="large" color={Palette.rose[500]} />
       </View>
     );
   }
 
   if (!isAuth) {
     return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <Text className="text-base text-slate-500">{t("signInToViewWallet")}</Text>
+      <View className="flex-1 items-center justify-center bg-background">
+        <Text className="text-base text-muted-foreground">{t("signInToViewWallet")}</Text>
       </View>
     );
   }
@@ -149,13 +149,13 @@ export function WalletView() {
   const walletId = balance?.postedBalance?.toString() ?? "";
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-background">
       <SubpageHeader title={t("wallet")} />
 
       {isVerifying ? (
-        <View className="flex-row items-center gap-2 px-4 py-2 bg-yellow-50 mx-4 mt-2 rounded-xl">
-          <ActivityIndicator size="small" color="#ee237c" />
-          <Text className="text-sm text-yellow-800">{t("verifyingTopUp")}</Text>
+        <View className="flex-row items-center gap-2 px-4 py-2 bg-warning/10 mx-4 mt-2 rounded-xl">
+          <ActivityIndicator size="small" color={Palette.rose[500]} />
+          <Text className="text-sm text-warning">{t("verifyingTopUp")}</Text>
         </View>
       ) : null}
 

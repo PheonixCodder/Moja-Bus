@@ -9,6 +9,7 @@ import {
 	type ViewStyle,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { colors } from "@/constants/theme";
 
 type ScreenShellProps = {
 	children: ReactNode;
@@ -73,7 +74,7 @@ export function ScreenShell({
 const styles = StyleSheet.create({
 	root: {
 		flex: 1,
-		backgroundColor: "#09090b",
+		backgroundColor: colors.neutral.background,
 	},
 	keyboardView: {
 		flex: 1,
@@ -99,8 +100,8 @@ const styles = StyleSheet.create({
 	},
 	footerWrap: {
 		borderTopWidth: 1,
-		borderTopColor: "#27272a",
-		backgroundColor: "#09090b",
+		borderTopColor: colors.neutral.border,
+		backgroundColor: colors.neutral.background,
 		paddingHorizontal: 20,
 		paddingVertical: 14,
 	},

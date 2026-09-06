@@ -18,7 +18,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { Sorting01Icon, FilterIcon } from '@hugeicons/core-free-icons';
 import { Colors } from '@moja/theme/tokens';
-import { BottomTabInset } from '@/constants/theme';
+import { BottomTabInset, Palette } from '@/constants/theme';
 import { NotificationBell } from '@/components/notification-bell';
 import { authClient } from '@/lib/auth-client';
 import {
@@ -562,7 +562,7 @@ export function SearchView() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#f8fafc' }}>
+    <View className="flex-1 bg-background">
       {/* ═══════════════════════════════════════
           BACKGROUND LAYER — Full-Screen Map
           ═══════════════════════════════════════ */}
@@ -573,19 +573,9 @@ export function SearchView() {
 
       {/* Floating Notification Bell Chip */}
       <View
+        className="absolute right-4 z-40 bg-card rounded-full p-1 border border-border shadow-sm"
         style={{
-          position: 'absolute',
           top: insets.top + 10,
-          right: 16,
-          zIndex: 40,
-          backgroundColor: '#ffffff',
-          borderRadius: 20,
-          padding: 4,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.12,
-          shadowRadius: 8,
-          elevation: 4,
         }}
       >
         <NotificationBell />
@@ -595,20 +585,11 @@ export function SearchView() {
           BOTTOM SHEET — draggable results panel
           ═══════════════════════════════════════ */}
       <Animated.View
+        className="absolute left-0 right-0 bottom-0 bg-card shadow-lg border-t border-border"
         style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
           top: sheetY,
-          bottom: 0,
-          backgroundColor: '#fff',
           borderTopLeftRadius: SHEET_RADIUS,
           borderTopRightRadius: SHEET_RADIUS,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -6 },
-          shadowOpacity: 0.1,
-          shadowRadius: 24,
-          elevation: 16,
         }}
       >
         {/* ── DRAGGABLE HEADER AREA (entire upper section acts as drag target) ── */}
@@ -623,14 +604,7 @@ export function SearchView() {
               borderTopRightRadius: SHEET_RADIUS,
             }}
           >
-            <View
-              style={{
-                width: 40,
-                height: 4,
-                borderRadius: 2,
-                backgroundColor: '#cbd5e1',
-              }}
-            />
+            <View className="w-10 h-1 rounded-full bg-muted-foreground/30" />
           </View>
 
           {/* Search Form */}
@@ -666,75 +640,54 @@ export function SearchView() {
             />
           )}
 
-          {/* Filter / Results bar (post-search only) */}
+          {/* ── Sort & Filters toolbar ── */}
           {!isPreSearch && (
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                paddingHorizontal: 16,
-                paddingVertical: 10,
-                borderBottomWidth: 1,
-                borderBottomColor: '#f8fafc',
-              }}
-            >
+            <View className="flex-row items-center justify-between px-4 py-2.5 border-b border-border/40">
               <View>
-                <Text style={{ fontSize: 13, fontWeight: '900', color: '#0f172a' }}>
+                <Text className="text-xs font-black text-foreground">
                   {tripResults?.total ?? offers.length}
                 </Text>
-                <Text style={{ fontSize: 10, fontWeight: '600', color: '#94a3b8' }}>
+                <Text className="text-[10px] font-semibold text-muted-foreground">
                   {t((tripResults?.total ?? offers.length) === 1 ? 'resultSingular' : 'resultPlural')}
                 </Text>
               </View>
 
-              <View style={{ flexDirection: 'row', gap: 8 }}>
+              <View className="flex-row gap-2">
                 <Pressable
                   onPress={() => setSortVisible(true)}
-                  style={({ pressed }) => ({
-                    flexDirection: 'row', alignItems: 'center', gap: 5,
-                    borderWidth: 1, borderColor: '#f1f5f9',
-                    paddingHorizontal: 12, paddingVertical: 7,
-                    borderRadius: 20, backgroundColor: pressed ? '#f1f5f9' : '#f9fafb',
-                  })}
+                  accessibilityRole="button"
+                  className="flex-row items-center gap-1.5 border border-border px-3 py-1.5 rounded-full bg-card active:bg-muted min-h-8"
                 >
-                  <HugeiconsIcon icon={Sorting01Icon} size={13} color={Colors.light.textSecondary} />
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#475569' }}>
+                  <HugeiconsIcon icon={Sorting01Icon} size={13} color={Palette.zinc[400]} />
+                  <Text className="text-xs font-bold text-muted-foreground">
                     {t('sortLabel')}
                   </Text>
                 </Pressable>
 
                 <Pressable
                   onPress={() => setFiltersVisible(true)}
-                  style={({ pressed }) => ({
-                    flexDirection: 'row', alignItems: 'center', gap: 5,
-                    borderWidth: 1,
-                    borderColor: activeFilterCount > 0 ? '#fbcfe8' : '#f1f5f9',
-                    paddingHorizontal: 12, paddingVertical: 7,
-                    borderRadius: 20,
-                    backgroundColor: activeFilterCount > 0 ? (pressed ? '#fbcfe8' : '#fdf2f8') : (pressed ? '#f1f5f9' : '#f9fafb'),
-                  })}
+                  accessibilityRole="button"
+                  className={`flex-row items-center gap-1.5 border px-3 py-1.5 rounded-full min-h-8 ${
+                    activeFilterCount > 0
+                      ? 'border-primary/30 bg-primary/10'
+                      : 'border-border bg-card active:bg-muted'
+                  }`}
                 >
                   <HugeiconsIcon
                     icon={FilterIcon}
                     size={13}
-                    color={activeFilterCount > 0 ? '#ee237c' : Colors.light.textSecondary}
+                    color={activeFilterCount > 0 ? Palette.rose[500] : Palette.zinc[400]}
                   />
                   <Text
-                    style={{
-                      fontSize: 12, fontWeight: '700',
-                      color: activeFilterCount > 0 ? '#ee237c' : '#475569',
-                    }}
+                    className={`text-xs font-bold ${
+                      activeFilterCount > 0 ? 'text-primary' : 'text-muted-foreground'
+                    }`}
                   >
                     {t('filtersTitle')}
                   </Text>
                   {activeFilterCount > 0 && (
-                    <View style={{
-                      width: 16, height: 16, borderRadius: 8,
-                      backgroundColor: '#ee237c',
-                      alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      <Text style={{ color: '#fff', fontSize: 9, fontWeight: '900' }}>
+                    <View className="size-4 rounded-full bg-primary items-center justify-center">
+                      <Text className="text-primary-foreground text-[9px] font-black">
                         {activeFilterCount}
                       </Text>
                     </View>
@@ -787,21 +740,16 @@ export function SearchView() {
           ListFooterComponent={() => {
             if (!isPreSearch && allOffers.length > 0) {
               return (
-                <View style={{ padding: 16, alignItems: 'center' }}>
+                <View className="p-4 items-center">
                   {isFetching && page > 1 ? (
-                    <ActivityIndicator color="#ee237c" />
+                    <ActivityIndicator color={Palette.rose[500]} />
                   ) : tripResults?.hasNextPage ? (
                     <Pressable
                       onPress={() => setPage((p) => p + 1)}
-                      className="will-change-pressable"
-                      style={{
-                        borderWidth: 1, borderColor: '#e2e8f0',
-                        backgroundColor: '#fff',
-                        paddingHorizontal: 24, paddingVertical: 12,
-                        borderRadius: 20,
-                      }}
+                      accessibilityRole="button"
+                      className="border border-border bg-card px-6 py-3 rounded-full active:bg-muted min-h-11 items-center justify-center"
                     >
-                      <Text style={{ color: '#475569', fontWeight: '700', fontSize: 14 }}>
+                      <Text className="text-foreground font-bold text-sm">
                         {t('loadMore')}
                       </Text>
                     </Pressable>

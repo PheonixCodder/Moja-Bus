@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { Search01Icon, Cancel01Icon, Location01Icon, Navigation01Icon, Bus01Icon } from '@hugeicons/core-free-icons';
-import { Colors } from '@moja/theme/tokens';
+import { Colors, Palette } from '@/constants/theme';
 import { useSearchCities } from '../hooks/use-search-cities';
 import type { CityValue } from '../types';
 
@@ -42,13 +42,13 @@ export function CitySearchField({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-white" style={{ paddingTop: Math.max(insets.top, 12) }}>
+      <View className="flex-1 bg-background" style={{ paddingTop: Math.max(insets.top, 12) }}>
         {/* Header Search Input */}
-        <View className="flex-row items-center p-4 border-b border-slate-100 gap-3">
-          <View className="flex-1 flex-row items-center bg-slate-100/80 border border-slate-200/60 rounded-2xl px-3.5 py-3">
+        <View className="flex-row items-center p-4 border-b border-border gap-3">
+          <View className="flex-1 flex-row items-center bg-muted/60 border border-border rounded-2xl px-3.5 py-3">
             <HugeiconsIcon icon={Search01Icon} size={18} color={Colors.light.textSecondary} />
             <TextInput
-              className="flex-1 ml-2.5 text-base text-slate-900 font-extrabold"
+              className="flex-1 ml-2.5 text-base text-foreground font-extrabold"
               placeholder={t('fromPlaceholder')}
               placeholderTextColor={Colors.light.textSecondary}
               value={query}
@@ -62,14 +62,14 @@ export function CitySearchField({
             )}
           </View>
           <Pressable onPress={onClose} className="py-2 px-1">
-            <Text className="text-slate-600 font-bold text-sm">{t('close')}</Text>
+            <Text className="text-muted-foreground font-bold text-sm">{t('close')}</Text>
           </Pressable>
         </View>
 
         {/* Quick Select Popular Cities Chips when query is empty */}
         {query.trim().length === 0 ? (
-          <View className="p-4 border-b border-slate-100 bg-slate-50/50">
-            <Text className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2.5">
+          <View className="p-4 border-b border-border bg-muted/30">
+            <Text className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-2.5">
               {t('popularHubs')}
             </Text>
             <View className="flex-row flex-wrap gap-2">
@@ -80,10 +80,10 @@ export function CitySearchField({
                     onSelect(city);
                     onClose();
                   }}
-                  className="bg-white border border-slate-200 px-3.5 py-2 rounded-full flex-row items-center shadow-xs active:bg-pink-50"
+                  className="bg-card border border-border px-3.5 py-2 rounded-full flex-row items-center shadow-xs active:bg-primary/10"
                 >
-                  <HugeiconsIcon icon={Navigation01Icon} size={12} color="#ee237c" className="mr-1.5" />
-                  <Text className="text-xs font-bold text-slate-800">{city.text}</Text>
+                  <HugeiconsIcon icon={Navigation01Icon} size={12} color={Palette.rose[500]} className="mr-1.5" />
+                  <Text className="text-xs font-bold text-foreground">{city.text}</Text>
                 </Pressable>
               ))}
             </View>
@@ -98,7 +98,7 @@ export function CitySearchField({
           }
           renderItem={({ item }) => (
             <Pressable
-              className="flex-row items-center p-4 border-b border-slate-100 active:bg-pink-50/60"
+              className="flex-row items-center p-4 border-b border-border active:bg-muted"
               onPress={() => {
                 onSelect({
                   id: item.id,
@@ -113,26 +113,26 @@ export function CitySearchField({
                 onClose();
               }}
             >
-              <View className="w-9 h-9 rounded-2xl bg-pink-50 border border-pink-100 items-center justify-center mr-3">
+              <View className="w-9 h-9 rounded-2xl bg-primary/10 border border-primary/20 items-center justify-center mr-3">
                 {item.level === 'terminal' ? (
-                  <HugeiconsIcon icon={Bus01Icon} size={18} color="#ee237c" />
+                  <HugeiconsIcon icon={Bus01Icon} size={18} color={Palette.rose[500]} />
                 ) : (
-                  <HugeiconsIcon icon={Location01Icon} size={18} color="#ee237c" />
+                  <HugeiconsIcon icon={Location01Icon} size={18} color={Palette.rose[500]} />
                 )}
               </View>
               <View className="flex-1">
-                <Text className="text-base text-slate-900 font-extrabold">
+                <Text className="text-base text-foreground font-extrabold">
                   {item.hierarchyLabel ?? item.name}
                 </Text>
                 <View className="flex-row items-center gap-1.5 mt-0.5">
                   {item.level ? (
-                    <Text className="text-xs font-bold text-slate-400 capitalize">
+                    <Text className="text-xs font-bold text-muted-foreground capitalize">
                       {item.level}
                     </Text>
                   ) : null}
                   {item.level === 'terminal' && item.companyName ? (
-                    <View className="bg-slate-100 rounded-full px-2 py-0.5">
-                      <Text className="text-[10px] font-bold text-slate-500">
+                    <View className="bg-muted rounded-full px-2 py-0.5">
+                      <Text className="text-[10px] font-bold text-muted-foreground">
                         {item.companyName}
                       </Text>
                     </View>
@@ -140,8 +140,8 @@ export function CitySearchField({
                 </View>
               </View>
               {item.isMajorHub && (
-                <View className="bg-pink-50 border border-pink-200 px-2.5 py-1 rounded-full">
-                  <Text className="text-[#ee237c] text-xs font-extrabold uppercase">
+                <View className="bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full">
+                  <Text className="text-primary text-xs font-extrabold uppercase">
                     {t('majorHub')}
                   </Text>
                 </View>
@@ -150,7 +150,7 @@ export function CitySearchField({
           )}
           ListEmptyComponent={() => (
             <View className="p-8 items-center justify-center">
-              <Text className="text-slate-500 text-center font-bold text-sm">
+              <Text className="text-muted-foreground text-center font-bold text-sm">
                 {isSearchable
                   ? isLoading
                     ? t('loading')

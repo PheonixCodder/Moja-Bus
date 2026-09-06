@@ -123,7 +123,7 @@ export function SendOfferDialog({
           </DialogTitle>
           <DialogDescription>
             Formal offer for{" "}
-            <span className="font-semibold text-slate-700">{driverName}</span>.
+            <span className="font-semibold text-foreground">{driverName}</span>.
             They have 7 days to respond before it expires.
           </DialogDescription>
         </DialogHeader>
@@ -158,7 +158,7 @@ export function SendOfferDialog({
             {employmentType === "EXCLUSIVE_INTERCITY" &&
               licenseCategory &&
               ["B", "C"].includes(licenseCategory) && (
-                <p className="flex items-center gap-1 text-[11px] text-amber-600 font-medium">
+                <p className="flex items-center gap-1 text-[11px] text-warning font-medium">
                   <AlertTriangle className="size-3 shrink-0" />
                   Driver holds class {licenseCategory} — intercity requires D or
                   higher.
@@ -185,7 +185,7 @@ export function SendOfferDialog({
               </span>
             </div>
             {salaryNum >= 1000 && (
-              <p className="text-[11px] text-emerald-600 font-medium">
+              <p className="text-[11px] text-success font-medium">
                 {salaryNum.toLocaleString("fr-FR")} FCFA per month
               </p>
             )}

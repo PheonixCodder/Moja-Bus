@@ -22,7 +22,7 @@ export function AmenityChips({ amenities }: { amenities: Amenity[] }) {
   if (amenities.length === 0) return null;
 
   return (
-    <div className="flex items-center gap-4 text-xs font-semibold text-slate-400">
+    <div className="flex items-center gap-4 text-xs font-semibold text-muted-foreground/70">
       <span>{t("amenitiesIncludes")}</span>
       <div className="flex flex-wrap items-center gap-3">
         {amenities.map((amenity) => {
@@ -36,9 +36,9 @@ export function AmenityChips({ amenities }: { amenities: Amenity[] }) {
           return (
             <span
               key={amenity}
-              className="flex items-center gap-1 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md text-[10px] font-bold text-slate-500"
+              className="flex items-center gap-1 bg-muted/40 border border-border px-2 py-1 rounded-md text-[10px] font-bold text-muted-foreground"
             >
-              <Icon className="h-3 w-3 text-pink-500" /> {label}
+              <Icon className="h-3 w-3 text-primary" /> {label}
             </span>
           );
         })}

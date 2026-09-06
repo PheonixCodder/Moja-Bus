@@ -38,10 +38,10 @@ interface DashboardActivityFeedProps {
 
 function statusVariant(status: string) {
   if (status === "ACTIVE")
-    return "bg-green-500/10 text-green-700 border-green-200";
+    return "bg-success/10 text-success border-success/20";
   if (status === "PENDING_VERIFICATION")
-    return "bg-amber-500/10 text-amber-700 border-amber-200";
-  if (status === "REJECTED") return "bg-red-500/10 text-red-700 border-red-200";
+    return "bg-warning/10 text-warning border-warning/20";
+  if (status === "REJECTED") return "bg-destructive/10 text-destructive border-destructive/20";
   return "bg-muted text-muted-foreground";
 }
 
@@ -87,7 +87,7 @@ export function DashboardActivityFeed({
           ) : (
             recentCompanies.map((company) => (
               <div key={company.id} className="flex items-center gap-3">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-blue-500/10 text-blue-600">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                   <Building2 className="size-4" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -135,7 +135,7 @@ export function DashboardActivityFeed({
           ) : (
             recentBookings.map((booking) => (
               <div key={booking.id} className="flex items-center gap-3">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-success/10 text-success">
                   <Ticket className="size-4" />
                 </div>
                 <div className="flex-1 min-w-0">

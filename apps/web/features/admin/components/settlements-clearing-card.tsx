@@ -65,12 +65,12 @@ export function SettlementsClearingCard() {
           {/* Right — health badge */}
           <div className="shrink-0">
             {isHealthy ? (
-              <Badge className="gap-1.5 border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50">
+              <Badge className="gap-1.5 border border-success/20 bg-success/10 px-3 py-1.5 text-xs font-semibold text-success hover:bg-success/15">
                 <ShieldCheck className="size-3.5" />
                 {t("ledgerHealthy")}
               </Badge>
             ) : (
-              <Badge className="gap-1.5 border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-50">
+              <Badge className="gap-1.5 border border-warning/20 bg-warning/10 px-3 py-1.5 text-xs font-semibold text-warning hover:bg-warning/15">
                 <AlertTriangle className="size-3.5" />
                 {t("reviewRequired")}
               </Badge>
@@ -95,8 +95,8 @@ export function SettlementsClearingCard() {
           </div>
 
           <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-4 py-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50">
-              <ArrowDownLeft className="size-4 text-blue-600" />
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+              <ArrowDownLeft className="size-4 text-primary" />
             </div>
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -109,8 +109,8 @@ export function SettlementsClearingCard() {
           </div>
 
           <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-4 py-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-50">
-              <Lock className="size-4 text-amber-600" />
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-warning/10">
+              <Lock className="size-4 text-warning" />
             </div>
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">

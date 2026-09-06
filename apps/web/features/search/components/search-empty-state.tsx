@@ -31,18 +31,18 @@ export const SearchEmptyState = memo(function SearchEmptyState({
 
   return (
     <div className="text-center py-16 px-6">
-      <div className="bg-rose-50 h-20 w-20 rounded-full flex items-center justify-center mx-auto mb-6 text-[#ee237c]">
+      <div className="bg-primary/10 h-20 w-20 rounded-full flex items-center justify-center mx-auto mb-6 text-primary">
         <Bus className="h-10 w-10 animate-pulse" />
       </div>
-      <h3 className="text-xl font-bold font-montserrat mb-2 text-slate-800">
+      <h3 className="text-xl font-bold font-heading mb-2 text-foreground">
         {t("emptyTitle")}
       </h3>
-      <p className="text-slate-500 text-sm max-w-sm mx-auto mb-8">
+      <p className="text-muted-foreground text-sm max-w-sm mx-auto mb-8">
         {t("emptySubtitle")}
       </p>
 
       <div>
-        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-3">
           {t("popularRoutes")}
         </p>
         <div className="flex flex-wrap gap-2 justify-center">
@@ -51,7 +51,7 @@ export const SearchEmptyState = memo(function SearchEmptyState({
               key={route.label}
               variant="outline"
               size="sm"
-              className="rounded-full border-rose-200 text-[#ee237c] hover:bg-rose-50 text-xs font-semibold transition-all"
+              className="rounded-full border-primary/20 text-primary hover:bg-primary/10 text-xs font-semibold transition-all"
               onClick={() =>
                 onQuickSearch({
                   from: decodeURIComponent(route.from),

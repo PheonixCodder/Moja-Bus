@@ -58,14 +58,18 @@ function vehicleIcon(
 ): L.DivIcon {
   const onTrip = vehicle.status === "ON_TRIP";
   const color =
-    freshness === "stale" ? "#71717a" : onTrip ? "#e11d48" : "#38bdf8";
+    freshness === "stale"
+      ? "var(--muted-foreground)"
+      : onTrip
+        ? "var(--destructive)"
+        : "var(--primary)";
   const size = selected ? 22 : freshness === "fresh" ? 16 : 13;
   const ring = selected
-    ? "box-shadow: 0 0 0 4px rgba(16,185,129,0.35), 0 1px 6px rgba(0,0,0,0.35);"
+    ? "box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 35%, transparent), 0 1px 6px rgba(0,0,0,0.35);"
     : "box-shadow: 0 1px 4px rgba(0,0,0,0.3);";
   return L.divIcon({
     className: "",
-    html: `<div style="width:${size}px;height:${size}px;background:${color};border:2.5px solid #fff;border-radius:50%;${ring}opacity:${freshness === "stale" ? 0.45 : 1};"></div>`,
+    html: `<div style="width:${size}px;height:${size}px;background:${color};border:2.5px solid var(--background);border-radius:50%;${ring}opacity:${freshness === "stale" ? 0.45 : 1};"></div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
   });

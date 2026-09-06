@@ -11,11 +11,7 @@ import {
 } from "@moja/ui/components/ui/card";
 import { Button } from "@moja/ui/components/ui/button";
 import { Building2, Pencil } from "lucide-react";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@moja/ui/components/ui/avatar";
+import { CarrierAvatar } from "@moja/ui/components/ui/carrier-avatar";
 import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
 
 interface ProfileSectionProps {
@@ -48,15 +44,12 @@ export function ProfileSection({ onManage }: ProfileSectionProps) {
       </CardHeader>
       <CardContent className="flex-1 mt-4">
         <div className="flex items-start gap-4">
-          <Avatar className="w-16 h-16 border">
-            <AvatarImage
-              src={company?.logoUrl || undefined}
-              alt={company?.name}
-            />
-            <AvatarFallback className="bg-muted text-muted-foreground text-lg">
-              {company?.name?.charAt(0).toUpperCase() || "C"}
-            </AvatarFallback>
-          </Avatar>
+          <CarrierAvatar
+            name={company?.name || ""}
+            logoUrl={company?.logoUrl}
+            size="xl"
+            className="w-16 h-16 border"
+          />
           <div className="space-y-1 overflow-hidden">
             <h3 className="font-semibold text-lg truncate">
               {company?.name || t("noCompanyName")}

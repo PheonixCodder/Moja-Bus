@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -44,10 +44,10 @@ const TABS = [
     id: "buses",
     label: "Buses",
     icon: Bus,
-    color: "from-[#ee237c] to-[#c71d65]",
-    bg: "bg-pink-50",
-    border: "border-[#ee237c]",
-    text: "text-[#ee237c]",
+    color: "from-primary to-primary/80",
+    bg: "bg-primary/5",
+    border: "border-primary",
+    text: "text-primary",
     placeholder: { from: "From city", to: "To city" },
     comingSoon: false,
   },
@@ -55,10 +55,10 @@ const TABS = [
     id: "flights",
     label: "Flights",
     icon: Plane,
-    color: "from-[#ee237c] to-[#c71d65]",
-    bg: "bg-pink-50",
-    border: "border-[#ee237c]",
-    text: "text-[#ee237c]",
+    color: "from-primary to-primary/80",
+    bg: "bg-primary/5",
+    border: "border-primary",
+    text: "text-primary",
     placeholder: { from: "From (e.g. Abidjan)", to: "To (e.g. Paris)" },
     comingSoon: true,
   },
@@ -66,10 +66,10 @@ const TABS = [
     id: "hotels",
     label: "Hotels",
     icon: Hotel,
-    color: "from-[#ee237c] to-[#c71d65]",
-    bg: "bg-pink-50",
-    border: "border-[#ee237c]",
-    text: "text-[#ee237c]",
+    color: "from-primary to-primary/80",
+    bg: "bg-primary/5",
+    border: "border-primary",
+    text: "text-primary",
     placeholder: { from: "City or hotel name", to: "" },
     comingSoon: true,
   },
@@ -77,10 +77,10 @@ const TABS = [
     id: "trains",
     label: "Trains",
     icon: Train,
-    color: "from-[#ee237c] to-[#c71d65]",
-    bg: "bg-pink-50",
-    border: "border-[#ee237c]",
-    text: "text-[#ee237c]",
+    color: "from-primary to-primary/80",
+    bg: "bg-primary/5",
+    border: "border-primary",
+    text: "text-primary",
     placeholder: { from: "From station", to: "To station" },
     comingSoon: true,
   },
@@ -88,10 +88,10 @@ const TABS = [
     id: "packages",
     label: "Packages",
     icon: Package,
-    color: "from-[#ee237c] to-[#c71d65]",
-    bg: "bg-pink-50",
-    border: "border-[#ee237c]",
-    text: "text-[#ee237c]",
+    color: "from-primary to-primary/80",
+    bg: "bg-primary/5",
+    border: "border-primary",
+    text: "text-primary",
     placeholder: { from: "Departing from", to: "Where to?" },
     comingSoon: true,
   },
@@ -158,30 +158,31 @@ export function HeroSearchBar() {
 
   return (
     <div className="w-full">
-      <div className="flex overflow-x-auto scrollbar-hide border-b border-slate-100 rounded-t-xl">
+      <div className="flex overflow-x-auto scrollbar-hide border-b border-border rounded-t-xl">
         {TABS.map((item) => (
-          <button
+          <Button
             key={item.id}
             type="button"
+            variant="ghost"
             onClick={() => setActiveTab(item.id)}
-            className={`flex-1 min-w-[90px] flex flex-col items-center gap-1.5 px-4 py-4 text-xs font-semibold transition-all duration-200 border-b-2 relative ${
+            className={`flex-1 min-w-[90px] h-auto flex flex-col items-center gap-1.5 px-4 py-4 text-xs font-semibold transition-all duration-200 border-b-2 rounded-none shadow-none ${
               activeTab === item.id
-                ? `${item.border} ${item.text} ${item.bg} h-full w-full first:rounded-tl-4xl last:rounded-tr-4xl`
-                : "border-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-50 h-full w-full first:hover:rounded-tl-4xl last:hover:rounded-tr-4xl"
+                ? `${item.border} ${item.text} ${item.bg} first:rounded-tl-4xl last:rounded-tr-4xl`
+                : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/40 first:hover:rounded-tl-4xl last:hover:rounded-tr-4xl"
             }`}
           >
             <item.icon
-              className={`w-5 h-5 ${activeTab === item.id ? item.text : "text-slate-400"}`}
+              className={`w-5 h-5 ${activeTab === item.id ? item.text : "text-muted-foreground/60"}`}
             />
             <span className="flex items-center gap-1">
               {t(`tabs.${item.id}`)}
               {item.comingSoon && (
-                <span className="text-[9px] font-bold px-1 py-0.5 rounded bg-amber-100 text-amber-600 leading-none">
+                <span className="text-[9px] font-bold px-1 py-0.5 rounded bg-warning/10 text-warning leading-none">
                   {t("soonBadge")}
                 </span>
               )}
             </span>
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -199,8 +200,8 @@ export function HeroSearchBar() {
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-[#ee237c]" />
+                  <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-primary" />
                     {t("from")}
                   </label>
                   <CityAutocompleteField
@@ -211,8 +212,8 @@ export function HeroSearchBar() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-[#ee237c]" />
+                  <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-primary" />
                     {t("to")}
                   </label>
                   <CityAutocompleteField
@@ -223,16 +224,17 @@ export function HeroSearchBar() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-[#ee237c]" />
+                  <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-primary" />
                     {t("date")}
                   </label>
                   <Popover>
                     <PopoverTrigger
                       render={
-                        <button
+                        <Button
                           type="button"
-                          className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-medium hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#ee237c]/20 transition-all text-left shadow-xs h-10"
+                          variant="outline"
+                          className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm font-medium hover:border-border/80 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-left shadow-xs h-10 font-normal"
                         />
                       }
                     >
@@ -241,10 +243,10 @@ export function HeroSearchBar() {
                           ? format(parseLocalDate(date)!, "d MMM yyyy")
                           : t("pickDate")}
                       </span>
-                      <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
+                      <ChevronDown className="w-4 h-4 text-muted-foreground/60 shrink-0" />
                     </PopoverTrigger>
                     <PopoverContent
-                      className="w-auto p-0 rounded-2xl shadow-xl border-slate-100"
+                      className="w-auto p-0 rounded-2xl shadow-xl border-border"
                       align="start"
                     >
                       <CalendarComponent
@@ -262,16 +264,17 @@ export function HeroSearchBar() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
-                    <Users className="w-3.5 h-3.5 text-[#ee237c]" />
+                  <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5 text-primary" />
                     {t("passengers")}
                   </label>
                   <Popover>
                     <PopoverTrigger
                       render={
-                        <button
+                        <Button
                           type="button"
-                          className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-medium hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#ee237c]/20 transition-all text-left shadow-xs h-10"
+                          variant="outline"
+                          className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm font-medium hover:border-border/80 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-left shadow-xs h-10 font-normal"
                         />
                       }
                     >
@@ -280,40 +283,44 @@ export function HeroSearchBar() {
                           ? t("guest", { count: 1 })
                           : t("guests", { count: travelers })}
                       </span>
-                      <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
+                      <ChevronDown className="w-4 h-4 text-muted-foreground/60 shrink-0" />
                     </PopoverTrigger>
                     <PopoverContent
-                      className="w-48 p-3 rounded-2xl shadow-xl border-slate-100"
+                      className="w-48 p-3 rounded-2xl shadow-xl border-border"
                       align="start"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-slate-700">
+                        <span className="text-sm font-medium text-foreground">
                           {t("passengers")}
                         </span>
                         <div className="flex items-center gap-2">
-                          <button
+                          <Button
                             type="button"
+                            variant="outline"
+                            size="icon"
                             onClick={() =>
                               setTravelers(Math.max(1, travelers - 1))
                             }
                             disabled={travelers <= 1}
-                            className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 disabled:opacity-30 hover:bg-slate-50 font-bold"
+                            className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-muted-foreground disabled:opacity-30 hover:bg-muted font-bold p-0"
                           >
                             -
-                          </button>
-                          <span className="w-4 text-center text-sm font-semibold text-slate-900">
+                          </Button>
+                          <span className="w-4 text-center text-sm font-semibold text-foreground">
                             {travelers}
                           </span>
-                          <button
+                          <Button
                             type="button"
+                            variant="outline"
+                            size="icon"
                             onClick={() =>
                               setTravelers(Math.min(9, travelers + 1))
                             }
                             disabled={travelers >= 9}
-                            className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 disabled:opacity-30 hover:bg-slate-50 font-bold"
+                            className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-muted-foreground disabled:opacity-30 hover:bg-muted font-bold p-0"
                           >
                             +
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     </PopoverContent>
@@ -321,25 +328,27 @@ export function HeroSearchBar() {
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t border-slate-100">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t border-border">
                 <div className="flex items-center gap-1.5 flex-wrap w-full sm:w-auto">
-                  <span className="text-xs text-slate-400 font-medium">
+                  <span className="text-xs text-muted-foreground/70 font-medium">
                     {t("popular")}
                   </span>
                   {POPULAR.map((city) => (
-                    <button
+                    <Button
                       key={city}
                       type="button"
+                      variant="ghost"
+                      size="sm"
                       onClick={() => setDestination({ id: city, text: city })}
-                      className="text-xs px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-[#ee237c]/10 hover:text-[#ee237c] font-medium transition-colors"
+                      className="text-xs px-2.5 py-1 h-auto rounded-lg bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary font-medium transition-colors shadow-none"
                     >
                       {city}
-                    </button>
+                    </Button>
                   ))}
                 </div>
                 <Button
                   type="submit"
-                  className="w-full sm:w-auto px-8 py-2.5 bg-[#ee237c] hover:bg-[#c71d65] text-white font-semibold text-sm rounded-xl shadow-lg shadow-pink-500/25 flex items-center justify-center gap-2 transition-all hover:shadow-xl hover:shadow-pink-500/30 shrink-0 h-10"
+                  className="w-full sm:w-auto px-8 py-2.5 font-semibold text-sm rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all shrink-0 h-10"
                 >
                   <Search className="w-4 h-4" />
                   {t("search")}
@@ -348,18 +357,18 @@ export function HeroSearchBar() {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-4 text-center min-h-[140px]">
-              <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-3">
-                <tab.icon className="w-6 h-6 text-slate-400" />
+              <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-3">
+                <tab.icon className="w-6 h-6 text-muted-foreground/60" />
               </div>
-              <h3 className="text-base font-bold text-slate-700 mb-1">
+              <h3 className="text-base font-bold text-foreground mb-1">
                 {t("comingSoonHeading", { service: t(`tabs.${tab.id}`) })}
               </h3>
-              <p className="text-sm text-slate-500 max-w-sm mx-auto mb-4">
+              <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-4">
                 {t("comingSoonDesc", {
                   service: t(`tabs.${tab.id}`).toLowerCase(),
                 })}
               </p>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 text-xs font-semibold">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-warning/10 border border-warning/30 text-warning text-xs font-semibold">
                 <span className="text-sm">✨</span>
                 {t("comingSoonBadge")}
               </div>

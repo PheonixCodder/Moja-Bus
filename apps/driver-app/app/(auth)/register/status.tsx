@@ -6,7 +6,6 @@ import {
 	ActivityIndicator,
 	RefreshControl,
 	Linking,
-	StyleSheet,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
@@ -83,25 +82,25 @@ export default function RegisterStatusScreen() {
 				/>
 			}
 		>
-			<View style={styles.container}>
+			<View className="gap-6 py-3">
 				{isLoading ? (
-					<View style={styles.loadingBox}>
+					<View className="items-center justify-center py-12 gap-3">
 						<ActivityIndicator size="large" color={colors.primary.rose} />
-						<Text style={styles.loadingText}>
+						<Text className="text-xs text-muted-foreground font-medium">
 							{t("statusLoading")}
 						</Text>
 					</View>
 				) : verificationStatus === "VERIFIED" ? (
 					/* VERIFIED STATE */
-					<View style={styles.statusBox}>
-						<View style={[styles.iconCircle, styles.iconCircleSuccess]}>
-							<HugeiconsIcon icon={CheckmarkCircle02Icon} size={40} color="#10b981" />
+					<View className="items-center gap-5">
+						<View className="w-20 h-20 rounded-3xl items-center justify-center bg-success/15 border-2 border-success/30">
+							<HugeiconsIcon icon={CheckmarkCircle02Icon} size={40} color={colors.semantic.success} />
 						</View>
 
-						<View style={styles.titleGroup}>
-							<Text style={styles.mainTitle}>{t("statusVerifiedTitle")}</Text>
-							<Text style={styles.successSub}>{t("statusVerifiedSub")}</Text>
-							<Text style={styles.descText}>
+						<View className="items-center gap-1.5">
+							<Text className="text-2xl font-extrabold text-foreground text-center tracking-tight">{t("statusVerifiedTitle")}</Text>
+							<Text className="text-xs font-bold text-success text-center">{t("statusVerifiedSub")}</Text>
+							<Text className="text-xs text-muted-foreground text-center leading-5 mt-1">
 								{t("statusVerifiedDesc")}
 							</Text>
 						</View>
@@ -111,21 +110,21 @@ export default function RegisterStatusScreen() {
 							variant="success"
 							size="lg"
 							onPress={handleEnterDashboard}
-							icon={<HugeiconsIcon icon={ArrowRight01Icon} size={20} color="#ffffff" />}
+							icon={<HugeiconsIcon icon={ArrowRight01Icon} size={20} color={colors.neutral.textPrimary} />}
 							iconPosition="right"
 						/>
 					</View>
 				) : verificationStatus === "SUSPENDED" ? (
 					/* SUSPENDED STATE */
-					<View style={styles.statusBox}>
-						<View style={[styles.iconCircle, styles.iconCircleError]}>
-							<HugeiconsIcon icon={Alert02Icon} size={40} color="#ef4444" />
+					<View className="items-center gap-5">
+						<View className="w-20 h-20 rounded-3xl items-center justify-center bg-destructive/15 border-2 border-destructive/30">
+							<HugeiconsIcon icon={Alert02Icon} size={40} color={colors.semantic.error} />
 						</View>
 
-						<View style={styles.titleGroup}>
-							<Text style={styles.mainTitle}>{t("statusSuspendedTitle")}</Text>
-							<Text style={styles.errorSub}>{t("statusSuspendedSub")}</Text>
-							<Text style={styles.descText}>
+						<View className="items-center gap-1.5">
+							<Text className="text-2xl font-extrabold text-foreground text-center tracking-tight">{t("statusSuspendedTitle")}</Text>
+							<Text className="text-xs font-bold text-destructive text-center">{t("statusSuspendedSub")}</Text>
+							<Text className="text-xs text-muted-foreground text-center leading-5 mt-1">
 								{t("statusSuspendedDesc")}
 							</Text>
 						</View>
@@ -135,7 +134,7 @@ export default function RegisterStatusScreen() {
 							variant="secondary"
 							size="lg"
 							onPress={handleContactSupport}
-							icon={<HugeiconsIcon icon={Call02Icon} size={20} color="#ffffff" />}
+							icon={<HugeiconsIcon icon={Call02Icon} size={20} color={colors.neutral.textPrimary} />}
 						/>
 
 						<Button
@@ -143,27 +142,27 @@ export default function RegisterStatusScreen() {
 							variant="outline"
 							size="md"
 							onPress={handleSignOut}
-							icon={<HugeiconsIcon icon={Logout01Icon} size={18} color="#a1a1aa" />}
+							icon={<HugeiconsIcon icon={Logout01Icon} size={18} color={colors.neutral.textSecondary} />}
 						/>
 					</View>
 				) : verificationStatus === "REJECTED" ? (
 					/* REJECTED STATE */
-					<View style={styles.statusBox}>
-						<View style={[styles.iconCircle, styles.iconCircleError]}>
-							<HugeiconsIcon icon={CancelCircleIcon} size={40} color="#ef4444" />
+					<View className="items-center gap-5">
+						<View className="w-20 h-20 rounded-3xl items-center justify-center bg-destructive/15 border-2 border-destructive/30">
+							<HugeiconsIcon icon={CancelCircleIcon} size={40} color={colors.semantic.error} />
 						</View>
 
-						<View style={styles.titleGroup}>
-							<Text style={styles.mainTitle}>{t("statusRejectedTitle")}</Text>
-							<Text style={styles.errorSub}>{t("statusRejectedSub")}</Text>
+						<View className="items-center gap-1.5">
+							<Text className="text-2xl font-extrabold text-foreground text-center tracking-tight">{t("statusRejectedTitle")}</Text>
+							<Text className="text-xs font-bold text-destructive text-center">{t("statusRejectedSub")}</Text>
 						</View>
 
 						{rejectionReason && (
-							<Card className="w-full gap-1 border-[#ef4444]/30">
-								<Text style={styles.rejectionHeader}>
+							<Card className="w-full gap-1 border-destructive/30">
+								<Text className="text-xs font-bold text-muted-foreground">
 									{t("rejectionHeader")}
 								</Text>
-								<Text style={styles.rejectionBody}>
+								<Text className="text-xs text-destructive leading-5">
 									{rejectionReason}
 								</Text>
 							</Card>
@@ -178,41 +177,41 @@ export default function RegisterStatusScreen() {
 					</View>
 				) : (
 					/* PENDING STATE */
-					<View style={styles.statusBox}>
-						<View style={[styles.iconCircle, styles.iconCirclePending]}>
-							<HugeiconsIcon icon={Time02Icon} size={40} color="#f59e0b" />
+					<View className="items-center gap-5">
+						<View className="w-20 h-20 rounded-3xl items-center justify-center bg-warning/15 border-2 border-warning/30">
+							<HugeiconsIcon icon={Time02Icon} size={40} color={colors.semantic.warning} />
 						</View>
 
-						<View style={styles.titleGroup}>
-							<Text style={styles.mainTitle}>{t("statusPendingTitle")}</Text>
-							<Text style={styles.pendingSub}>{t("statusPendingSub")}</Text>
-							<Text style={styles.descText}>
+						<View className="items-center gap-1.5">
+							<Text className="text-2xl font-extrabold text-foreground text-center tracking-tight">{t("statusPendingTitle")}</Text>
+							<Text className="text-xs font-bold text-warning text-center">{t("statusPendingSub")}</Text>
+							<Text className="text-xs text-muted-foreground text-center leading-5 max-w-[320px] mt-1">
 								{t("statusPendingDesc")}
 							</Text>
 						</View>
 
 						<Card className="w-full gap-2.5">
-							<View style={styles.rowBetween}>
-								<Text style={styles.labelMuted}>{t("applicationRef")}</Text>
-								<Text style={styles.valueMono}>
+							<View className="flex-row items-center justify-between">
+								<Text className="text-xs text-muted-foreground">{t("applicationRef")}</Text>
+								<Text className="text-xs font-mono font-bold text-foreground">
 									{statusData?.driver?.id?.slice(0, 12) ?? "EN_COURS"}
 								</Text>
 							</View>
-							<View style={styles.rowBetween}>
-								<Text style={styles.labelMuted}>{t("licenseCategory")}</Text>
-								<Text style={styles.valueBrand}>
+							<View className="flex-row items-center justify-between">
+								<Text className="text-xs text-muted-foreground">{t("licenseCategory")}</Text>
+								<Text className="text-xs font-bold text-primary">
 									{t("licenseClassPrefix", { category: statusData?.driver?.licenseCategory ?? "D" })}
 								</Text>
 							</View>
 						</Card>
 
-						<View style={styles.actionsColumn}>
+						<View className="w-full gap-2.5 pt-2">
 							<Button
 								title={t("refreshStatus")}
 								variant="secondary"
 								size="md"
 								onPress={() => refetch()}
-								icon={<HugeiconsIcon icon={RefreshIcon} size={18} color="#fafafa" />}
+								icon={<HugeiconsIcon icon={RefreshIcon} size={18} color={colors.neutral.textPrimary} />}
 							/>
 
 							<Button
@@ -220,151 +219,22 @@ export default function RegisterStatusScreen() {
 								variant="outline"
 								size="md"
 								onPress={handleContactSupport}
-								icon={<HugeiconsIcon icon={Call02Icon} size={20} color="#60a5fa" />}
+								icon={<HugeiconsIcon icon={Call02Icon} size={20} color={colors.primary.blue} />}
 							/>
 						</View>
 					</View>
 				)}
 
-				<TouchableOpacity
+				<Button
+					title={t("changeAccount")}
+					variant="ghost"
+					size="sm"
 					onPress={handleSignOut}
-					activeOpacity={0.8}
-					style={styles.signOutBtn}
-				>
-					<HugeiconsIcon icon={Logout01Icon} size={14} color="#71717a" />
-					<Text style={styles.signOutText}>
-						{t("changeAccount")}
-					</Text>
-				</TouchableOpacity>
+					icon={<HugeiconsIcon icon={Logout01Icon} size={14} color={colors.neutral.textMuted} />}
+					className="h-auto py-3 bg-transparent border-transparent"
+					textClassName="text-xs text-muted-foreground font-semibold"
+				/>
 			</View>
 		</ScreenShell>
 	);
 }
-
-const styles = StyleSheet.create({
-	container: {
-		gap: 24,
-		paddingVertical: 12,
-	},
-	loadingBox: {
-		alignItems: "center",
-		justifyContent: "center",
-		paddingVertical: 48,
-		gap: 12,
-	},
-	loadingText: {
-		fontSize: 12,
-		color: "#a1a1aa",
-		fontWeight: "500",
-	},
-	statusBox: {
-		alignItems: "center",
-		gap: 20,
-	},
-	iconCircle: {
-		width: 80,
-		height: 80,
-		borderRadius: 28,
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	iconCircleSuccess: {
-		backgroundColor: "rgba(16, 185, 129, 0.15)",
-		borderWidth: 2,
-		borderColor: "rgba(16, 185, 129, 0.3)",
-	},
-	iconCircleError: {
-		backgroundColor: "rgba(239, 68, 68, 0.15)",
-		borderWidth: 2,
-		borderColor: "rgba(239, 68, 68, 0.3)",
-	},
-	iconCirclePending: {
-		backgroundColor: "rgba(245, 158, 11, 0.15)",
-		borderWidth: 2,
-		borderColor: "rgba(245, 158, 11, 0.3)",
-	},
-	titleGroup: {
-		alignItems: "center",
-		gap: 6,
-	},
-	mainTitle: {
-		fontSize: 24,
-		fontWeight: "800",
-		color: "#fafafa",
-		textAlign: "center",
-		letterSpacing: -0.5,
-	},
-	successSub: {
-		fontSize: 13,
-		fontWeight: "700",
-		color: "#34d399",
-		textAlign: "center",
-	},
-	errorSub: {
-		fontSize: 13,
-		fontWeight: "700",
-		color: "#f87171",
-		textAlign: "center",
-	},
-	pendingSub: {
-		fontSize: 13,
-		fontWeight: "700",
-		color: "#fbbf24",
-		textAlign: "center",
-	},
-	descText: {
-		fontSize: 12,
-		color: "#a1a1aa",
-		textAlign: "center",
-		lineHeight: 18,
-		maxWidth: 320,
-		marginTop: 4,
-	},
-	rejectionHeader: {
-		fontSize: 12,
-		fontWeight: "700",
-		color: "#d4d4d8",
-	},
-	rejectionBody: {
-		fontSize: 12,
-		color: "#f87171",
-		lineHeight: 18,
-	},
-	rowBetween: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-	},
-	labelMuted: {
-		fontSize: 12,
-		color: "#a1a1aa",
-	},
-	valueMono: {
-		fontSize: 12,
-		fontFamily: "monospace",
-		fontWeight: "700",
-		color: "#fafafa",
-	},
-	valueBrand: {
-		fontSize: 12,
-		fontWeight: "700",
-		color: "#ee237c",
-	},
-	actionsColumn: {
-		width: "100%",
-		gap: 10,
-		paddingTop: 8,
-	},
-	signOutBtn: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "center",
-		gap: 6,
-		paddingVertical: 12,
-	},
-	signOutText: {
-		fontSize: 12,
-		color: "#71717a",
-		fontWeight: "600",
-	},
-});

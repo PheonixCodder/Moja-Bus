@@ -15,33 +15,33 @@ const STATUS_CONFIG: Record<
 	{ badgeClass: string; textClass: string; labelKey: string }
 > = {
 	CONFIRMED: {
-		badgeClass: "bg-emerald-50 border-emerald-300",
-		textClass: "text-emerald-700",
+		badgeClass: "bg-success/15 border-success/30",
+		textClass: "text-success",
 		labelKey: "confirmed",
 	},
 	PENDING_PAYMENT: {
-		badgeClass: "bg-amber-50 border-amber-300",
-		textClass: "text-amber-700",
+		badgeClass: "bg-warning/15 border-warning/30",
+		textClass: "text-warning",
 		labelKey: "pendingPayment",
 	},
 	COMPLETED: {
-		badgeClass: "bg-blue-50 border-blue-300",
-		textClass: "text-blue-700",
+		badgeClass: "bg-info/15 border-info/30",
+		textClass: "text-info",
 		labelKey: "completed",
 	},
 	CANCELLED: {
-		badgeClass: "bg-red-50 border-red-300",
-		textClass: "text-red-700",
+		badgeClass: "bg-destructive/15 border-destructive/30",
+		textClass: "text-destructive",
 		labelKey: "cancelled",
 	},
 	EXPIRED: {
-		badgeClass: "bg-slate-100 border-slate-300",
-		textClass: "text-slate-500",
+		badgeClass: "bg-muted border-border",
+		textClass: "text-muted-foreground",
 		labelKey: "expired",
 	},
 	REFUND_PENDING: {
-		badgeClass: "bg-amber-50 border-amber-300",
-		textClass: "text-amber-700",
+		badgeClass: "bg-warning/15 border-warning/30",
+		textClass: "text-warning",
 		labelKey: "refundPending",
 	},
 };

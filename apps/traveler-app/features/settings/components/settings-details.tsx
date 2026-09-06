@@ -4,6 +4,7 @@ import { Pressable, View, ActivityIndicator } from "react-native";
 import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 import { Text } from "@/components/ui/text";
+import { Palette } from "@/constants/theme";
 import { useWalletBalance } from "@/hooks/use-wallet";
 import { useSettingsPrefetch } from "../hooks/use-settings-prefetch";
 
@@ -26,50 +27,52 @@ export function SettingsDetails({ isAuthenticated }: SettingsDetailsProps) {
 					if (isAuthenticated) prefetchWallet();
 				}}
 				onPress={() => router.push("/wallet" as any)}
-				className="flex-row items-center bg-white rounded-2xl px-4 py-4 gap-4 border border-slate-100 active:opacity-70"
+				accessibilityRole="button"
+				className="flex-row items-center bg-card rounded-2xl px-4 py-4 gap-4 border border-border active:opacity-70 min-h-12"
 			>
-				<View className="size-10 rounded-full bg-pink-500/10 items-center justify-center">
-					<HugeiconsIcon icon={Wallet01Icon} size={18} color="#ee237c" />
+				<View className="size-10 rounded-full bg-primary/10 items-center justify-center">
+					<HugeiconsIcon icon={Wallet01Icon} size={18} color={Palette.rose[500]} />
 				</View>
 
 				<View className="flex-1">
-					<Text className="text-sm font-semibold text-slate-900">
+					<Text className="text-sm font-semibold text-foreground">
 						{t("wallet")}
 					</Text>
-					<Text className="text-xs font-normal text-slate-500 mt-0.5">
+					<Text className="text-xs font-normal text-muted-foreground mt-0.5">
 						{t("balanceLabel")}
 					</Text>
 				</View>
 
 				{showSpinner ? (
-					<ActivityIndicator size="small" color="#ee237c" />
+					<ActivityIndicator size="small" color={Palette.rose[500]} />
 				) : (
-					<Text className="text-sm font-bold text-pink-600">
+					<Text className="text-sm font-bold text-primary">
 						{`${new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(displayBalance)} XOF`}
 					</Text>
 				)}
 
-				<HugeiconsIcon icon={ArrowRight02Icon} size={16} color="#94a3b8" />
+				<HugeiconsIcon icon={ArrowRight02Icon} size={16} color={Palette.zinc[400]} />
 			</Pressable>
 
 			<Pressable
 				onPress={() => router.push("/passengers" as any)}
-				className="flex-row items-center bg-white rounded-2xl px-4 py-4 gap-4 border border-slate-100 active:opacity-70"
+				accessibilityRole="button"
+				className="flex-row items-center bg-card rounded-2xl px-4 py-4 gap-4 border border-border active:opacity-70 min-h-12"
 			>
-				<View className="size-10 rounded-full bg-pink-500/10 items-center justify-center">
-					<HugeiconsIcon icon={UserGroupIcon} size={18} color="#ee237c" />
+				<View className="size-10 rounded-full bg-primary/10 items-center justify-center">
+					<HugeiconsIcon icon={UserGroupIcon} size={18} color={Palette.rose[500]} />
 				</View>
 
 				<View className="flex-1">
-					<Text className="text-sm font-semibold text-slate-900">
+					<Text className="text-sm font-semibold text-foreground">
 						{t("passengersLabel")}
 					</Text>
-					<Text className="text-xs font-normal text-slate-500 mt-0.5">
+					<Text className="text-xs font-normal text-muted-foreground mt-0.5">
 						{t("passengers")}
 					</Text>
 				</View>
 
-				<HugeiconsIcon icon={ArrowRight02Icon} size={16} color="#94a3b8" />
+				<HugeiconsIcon icon={ArrowRight02Icon} size={16} color={Palette.zinc[400]} />
 			</Pressable>
 		</View>
 	);

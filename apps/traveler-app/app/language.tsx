@@ -36,13 +36,13 @@ export default function LanguageScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-white"
+      className="flex-1 bg-background"
       contentContainerStyle={{ paddingBottom: BottomTabInset + insets.bottom + 24 }}
     >
       <SubpageHeader title={t('language')} />
 
       <View className="px-4 pt-2 gap-3">
-        <Text className="text-sm font-semibold text-slate-400 tracking-[0.8px] uppercase mb-2 px-4">
+        <Text className="text-sm font-semibold text-muted-foreground tracking-[0.8px] uppercase mb-2 px-4">
           {t('currentLanguage')}
         </Text>
 
@@ -54,21 +54,21 @@ export default function LanguageScreen() {
               onPress={() => handleSwitchLocale(lang.code)}
               className={`flex-row items-center py-4 px-4 rounded-xl border ${
                 isActive
-                  ? 'bg-pink-50 border-[#ee237c]'
-                  : 'bg-white border-transparent'
+                  ? 'bg-primary/10 border-primary'
+                  : 'bg-card border-transparent'
               }`}
               style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
             >
               <Text
                 className={`flex-1 text-base ${
-                  isActive ? 'font-bold text-[#ee237c]' : 'font-medium text-slate-900'
+                  isActive ? 'font-bold text-primary' : 'font-medium text-foreground'
                 }`}
               >
                 {t(lang.labelKey as any)}
               </Text>
 
               {isActive ? (
-                <Text className="text-sm font-semibold text-[#ee237c]">
+                <Text className="text-sm font-semibold text-primary">
                   {t('active')}
                 </Text>
               ) : null}

@@ -31,10 +31,10 @@ function CaptureStatusBadge({
   const submitted = status === "PENDING_CONFIRMATION";
   const awaitingApproval = captureStatus === "CONFIRMED";
   const tone = awaitingApproval
-    ? "bg-violet-500/10 text-violet-600 dark:text-violet-400"
+    ? "bg-primary/10 text-primary"
     : submitted
-      ? "bg-sky-500/10 text-sky-600 dark:text-sky-400"
-      : "bg-amber-500/10 text-amber-600 dark:text-amber-400";
+      ? "bg-primary/10 text-primary"
+      : "bg-warning/10 text-warning";
   const label = awaitingApproval
     ? t("capture.statusPendingApproval")
     : submitted
@@ -152,7 +152,7 @@ export function TerminalsTable({
                   <span
                     className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
                       loc.isActive
-                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                        ? "bg-success/10 text-success"
                         : "bg-muted text-muted-foreground"
                     }`}
                   >

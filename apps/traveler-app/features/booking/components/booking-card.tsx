@@ -9,6 +9,7 @@ import { HugeiconsIcon } from '@hugeicons/react-native';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
+import { Colors, Palette } from '@/constants/theme';
 import { Text } from '@/components/ui/text';
 import { formatLocationLabel } from '@/lib/format-location-label';
 import { useHoldCountdown } from '../hooks/use-hold-countdown';
@@ -26,39 +27,39 @@ const STATUS_CONFIG: Record<
 > = {
   CONFIRMED: {
     labelKey: 'confirmed',
-    bg: 'bg-emerald-500/10',
-    text: 'text-emerald-600',
-    border: 'border-emerald-500/20',
+    bg: 'bg-success/10',
+    text: 'text-success',
+    border: 'border-success/20',
   },
   PENDING_PAYMENT: {
     labelKey: 'awaitingPayment',
-    bg: 'bg-amber-500/10',
-    text: 'text-amber-600',
-    border: 'border-amber-500/20',
+    bg: 'bg-warning/10',
+    text: 'text-warning',
+    border: 'border-warning/20',
   },
   COMPLETED: {
     labelKey: 'completed',
-    bg: 'bg-blue-500/10',
-    text: 'text-blue-600',
-    border: 'border-blue-500/20',
+    bg: 'bg-info/10',
+    text: 'text-info',
+    border: 'border-info/20',
   },
   CANCELLED: {
     labelKey: 'cancelled',
-    bg: 'bg-rose-500/10',
-    text: 'text-rose-600',
-    border: 'border-rose-500/20',
+    bg: 'bg-destructive/10',
+    text: 'text-destructive',
+    border: 'border-destructive/20',
   },
   EXPIRED: {
     labelKey: 'expired',
-    bg: 'bg-neutral-500/10',
-    text: 'text-neutral-500',
-    border: 'border-neutral-500/20',
+    bg: 'bg-muted/10',
+    text: 'text-muted-foreground',
+    border: 'border-muted/20',
   },
   REFUND_PENDING: {
     labelKey: 'refundPending',
-    bg: 'bg-amber-500/10',
-    text: 'text-amber-600',
-    border: 'border-amber-500/20',
+    bg: 'bg-warning/10',
+    text: 'text-warning',
+    border: 'border-warning/20',
   },
 };
 
@@ -133,9 +134,9 @@ export function BookingCard({ booking, onPress, onPressIn }: BookingCardProps) {
 
       {/* Hold Countdown Warning Banner if Pending */}
       {isPending && countdown && countdown !== 'Expired' ? (
-        <View className="mb-3 flex-row items-center gap-1.5 rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2">
-          <HugeiconsIcon icon={Clock01Icon} size={14} color="#d97706" />
-          <Text className="text-xs font-semibold text-amber-700">
+        <View className="mb-3 flex-row items-center gap-1.5 rounded-xl border border-warning/20 bg-warning/10 px-3 py-2">
+          <HugeiconsIcon icon={Clock01Icon} size={14} color={Palette.amber[600]} />
+          <Text className="text-xs font-semibold text-warning">
             {t('holdExpiresIn')} {countdown}
           </Text>
         </View>
@@ -161,7 +162,7 @@ export function BookingCard({ booking, onPress, onPressIn }: BookingCardProps) {
 
         {/* Arrow Divider */}
         <View className="items-center px-3">
-          <HugeiconsIcon icon={ArrowRight01Icon} size={18} color="#ee237c" />
+          <HugeiconsIcon icon={ArrowRight01Icon} size={18} color={Palette.rose[500]} />
         </View>
 
         {/* Destination */}
@@ -186,7 +187,7 @@ export function BookingCard({ booking, onPress, onPressIn }: BookingCardProps) {
       {/* Footer: Passenger / Seats + Total Price */}
       <View className="border-border/60 mt-3 flex-row items-center justify-between border-t pt-3">
         <View className="flex-row items-center gap-1.5">
-          <HugeiconsIcon icon={Ticket01Icon} size={14} color="#64748b" />
+          <HugeiconsIcon icon={Ticket01Icon} size={14} color={Colors.light.textMuted} />
           <Text className="text-muted-foreground text-xs font-medium">
             {seatCount === 1
               ? t('seatSingle', { label: seatLabels })

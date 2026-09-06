@@ -14,15 +14,15 @@ export function HoldCountdown({ holdExpiresAt }: HoldCountdownProps) {
 		<View
 			className={`flex-row items-center gap-2 px-4 py-2 rounded-xl border ${
 				isExpired
-					? "bg-red-50/80 border-red-200/60"
-					: "bg-amber-50/80 border-amber-200/60"
+					? "bg-destructive/10 border-destructive/20"
+					: "bg-warning/10 border-warning/20"
 			}`}
 		>
 			<View
-				className={`w-2 h-2 rounded-full ${isExpired ? "bg-red-500" : "bg-amber-500"}`}
+				className={`w-2 h-2 rounded-full ${isExpired ? "bg-destructive" : "bg-warning"}`}
 			/>
 			<Text
-				className={`text-xs font-semibold ${isExpired ? "text-red-500" : "text-amber-500"}`}
+				className={`text-xs font-semibold ${isExpired ? "text-destructive" : "text-warning"}`}
 			>
 				{isExpired ? "Hold expired" : `Pay within ${remaining}`}
 			</Text>

@@ -59,7 +59,7 @@ export function DateStrip({
   const minPrice = allPrices.length > 0 ? Math.min(...allPrices) : null;
 
   return (
-    <View className="bg-white pt-4 pb-3 border-b border-slate-100 overflow-visible">
+    <View className="bg-card pt-4 pb-3 border-b border-border overflow-visible">
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -81,15 +81,15 @@ export function DateStrip({
               disabled={!isSelectable}
               className={`min-w-[74px] px-3 py-2.5 rounded-2xl items-center justify-center relative border-[1.5px] ${
                 isSelected
-                  ? 'bg-[#ee237c] border-[#ee237c] shadow-md shadow-pink-500/30'
+                  ? 'bg-primary border-primary shadow-md shadow-primary/25'
                   : isSelectable
-                  ? 'bg-slate-50 border-slate-200'
-                  : 'bg-slate-100 border-slate-100 opacity-45'
+                  ? 'bg-muted/50 border-border'
+                  : 'bg-muted/20 border-border/40 opacity-45'
               }`}
               style={({ pressed }) => ({ opacity: !isSelectable ? 0.45 : pressed ? 0.7 : 1 })}
             >
               {isCheapest && !isSelected && (
-                <View className="absolute -top-2.5 bg-emerald-500 rounded-full px-2 py-0.5 z-20 shadow-xs shadow-emerald-500/50">
+                <View className="absolute -top-2.5 bg-success rounded-full px-2 py-0.5 z-20 shadow-xs shadow-success/50">
                   <Text className="text-white text-[8px] font-black uppercase tracking-wide">
                     {t('bestBadge')}
                   </Text>
@@ -98,7 +98,7 @@ export function DateStrip({
 
               <Text
                 className={`text-[10px] uppercase font-extrabold tracking-widest ${
-                  isSelected ? 'text-pink-200' : 'text-slate-400'
+                  isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground'
                 }`}
               >
                 {weekday}
@@ -106,7 +106,7 @@ export function DateStrip({
 
               <Text
                 className={`text-xl font-black my-0.5 ${
-                  isSelected ? 'text-white' : 'text-slate-900'
+                  isSelected ? 'text-primary-foreground' : 'text-foreground'
                 }`}
               >
                 {day}
@@ -114,22 +114,22 @@ export function DateStrip({
 
               <Text
                 className={`text-[10px] font-bold mb-1 ${
-                  isSelected ? 'text-pink-200' : 'text-slate-400'
+                  isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground'
                 }`}
               >
                 {month}
               </Text>
 
               {isLoading && !!from && !!to ? (
-                <View className="h-3 w-8 bg-slate-200 rounded" />
+                <View className="h-3 w-8 bg-muted rounded" />
               ) : hasTrips ? (
                 <Text
                   className={`text-[10px] font-black ${
                     isSelected
-                      ? 'text-white'
+                      ? 'text-primary-foreground'
                       : isCheapest
-                      ? 'text-emerald-600'
-                      : 'text-[#ee237c]'
+                      ? 'text-success'
+                      : 'text-primary'
                   }`}
                 >
                   {formatPriceXOF(priceXOF)}
@@ -137,7 +137,7 @@ export function DateStrip({
               ) : (
                 <Text
                   className={`text-[10px] font-bold ${
-                    isSelected ? 'text-pink-200' : 'text-slate-300'
+                    isSelected ? 'text-primary-foreground/60' : 'text-muted-foreground/60'
                   }`}
                 >
                   —

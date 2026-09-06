@@ -4,7 +4,6 @@ import {
 	Text,
 	TouchableOpacity,
 	Alert,
-	StyleSheet,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useMutation } from "@tanstack/react-query";
@@ -23,9 +22,11 @@ import { useWizardGuard } from "@/hooks/use-wizard-guard";
 import { useTRPC } from "@/lib/trpc";
 import { DriverFeedback } from "@/lib/haptics";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ScreenShell } from "@/components/ui/ScreenShell";
+import { colors } from "@/constants/theme";
 
 const EMPLOYMENT_TYPE_KEYS: Array<{
 	type: EmploymentType;
@@ -136,8 +137,8 @@ export default function RegisterStep4CarrierScreen() {
 						showBack
 						onBack={() => router.canGoBack() ? router.back() : router.replace("/(auth)/register/documents")}
 					/>
-					<View style={styles.progressTrack}>
-						<View style={[styles.progressBar, { width: "100%" }]} />
+					<View className="h-1 bg-card w-full">
+						<View className="h-full bg-primary w-full" />
 					</View>
 				</View>
 			}
@@ -148,172 +149,76 @@ export default function RegisterStep4CarrierScreen() {
 					size="lg"
 					loading={registerMutation.isPending}
 					onPress={handleSubmitRegistration}
-					icon={<HugeiconsIcon icon={SentIcon} size={18} color="#ffffff" />}
+					icon={<HugeiconsIcon icon={SentIcon} size={18} color={colors.neutral.textPrimary} />}
 					iconPosition="right"
 				/>
 			}
 		>
-			<View style={styles.formCard}>
-				<Text style={styles.sectionTitle}>{t("employmentModeTitle")}</Text>
-				<Text style={styles.sectionSubtitle}>
-					{t("employmentModeSubtitle")}
-				</Text>
+			<View className="gap-4">
+				<Card className="p-5 gap-3">
+					<Text className="text-base font-extrabold text-foreground tracking-tight">{t("employmentModeTitle")}</Text>
+					<Text className="text-xs text-muted-foreground leading-5">
+						{t("employmentModeSubtitle")}
+					</Text>
 
-				<View style={styles.typesList}>
-					{EMPLOYMENT_TYPE_KEYS.map((item) => {
-						const isSelected = employmentType === item.type;
-						return (
-							<TouchableOpacity
-								key={item.type}
-								onPress={() => {
-									DriverFeedback.tap();
-									setEmploymentType(item.type);
-								}}
-								activeOpacity={0.8}
-								style={[
-									styles.typeCard,
-									isSelected && styles.typeCardSelected,
-								]}
-							>
-								<View style={styles.typeHeader}>
-									<Text style={styles.typeTitle}>{t(item.titleKey)}</Text>
-									<View style={styles.typeRight}>
-										<View style={styles.typeBadge}>
-											<Text style={styles.typeBadgeText}>{t(item.badgeKey)}</Text>
+					<View className="gap-2.5 pt-1">
+						{EMPLOYMENT_TYPE_KEYS.map((item) => {
+							const isSelected = employmentType === item.type;
+							return (
+								<Button
+									key={item.type}
+									onPress={() => {
+										DriverFeedback.tap();
+										setEmploymentType(item.type);
+									}}
+									variant={isSelected ? "primary" : "outline"}
+									className={`p-3.5 h-auto rounded-2xl border-1.5 items-start justify-start gap-1.5 ${
+										isSelected
+											? "border-primary bg-primary/10"
+											: "border-border bg-background"
+									}`}
+								>
+									<View className="flex-row items-center justify-between w-full">
+										<Text className="text-sm font-bold text-foreground flex-1">{t(item.titleKey)}</Text>
+										<View className="flex-row items-center gap-2">
+											<View className="bg-border px-2 py-0.5 rounded">
+												<Text className="text-[10px] font-bold text-muted-foreground">{t(item.badgeKey)}</Text>
+											</View>
+											{isSelected ? (
+												<HugeiconsIcon icon={CheckmarkCircle02Icon} size={20} color={colors.primary.rose} />
+											) : null}
 										</View>
-										{isSelected ? (
-											<HugeiconsIcon icon={CheckmarkCircle02Icon} size={20} color="#ee237c" />
-										) : null}
 									</View>
-								</View>
-								<Text style={styles.typeDesc}>{t(item.descKey)}</Text>
-							</TouchableOpacity>
-						);
-					})}
-				</View>
-			</View>
-
-			<View style={styles.formCard}>
-				<View style={styles.carrierHeaderRow}>
-					<Text style={styles.sectionTitle}>{t("carrierCodeTitle")}</Text>
-					<View style={styles.optionalBadge}>
-						<Text style={styles.optionalText}>{t("carrierCodeOptional")}</Text>
+									<Text className="text-xs text-muted-foreground leading-4">{t(item.descKey)}</Text>
+								</Button>
+							);
+						})}
 					</View>
-				</View>
-				<Text style={styles.sectionSubtitle}>
-					{t("carrierCodeSubtitle")}
-				</Text>
+				</Card>
 
-				<View style={styles.inputWrapper}>
-					<Input
-						label={t("carrierCodeLabel")}
-						placeholder={t("carrierCodePlaceholder")}
-						value={code}
-						onChangeText={setCode}
-						autoCapitalize="characters"
-						leftIcon={<HugeiconsIcon icon={Building01Icon} size={18} color="#71717a" />}
-					/>
-				</View>
+				<Card className="p-5 gap-3">
+					<View className="flex-row items-center justify-between">
+						<Text className="text-base font-extrabold text-foreground tracking-tight">{t("carrierCodeTitle")}</Text>
+						<View className="bg-muted-foreground/20 px-2.5 py-1 rounded-full">
+							<Text className="text-[10px] font-bold text-muted-foreground uppercase">{t("carrierCodeOptional")}</Text>
+						</View>
+					</View>
+					<Text className="text-xs text-muted-foreground leading-5">
+						{t("carrierCodeSubtitle")}
+					</Text>
+
+					<View className="pt-1">
+						<Input
+							label={t("carrierCodeLabel")}
+							placeholder={t("carrierCodePlaceholder")}
+							value={code}
+							onChangeText={setCode}
+							autoCapitalize="characters"
+							leftIcon={<HugeiconsIcon icon={Building01Icon} size={18} color={colors.neutral.textMuted} />}
+						/>
+					</View>
+				</Card>
 			</View>
 		</ScreenShell>
 	);
 }
-
-const styles = StyleSheet.create({
-	progressTrack: {
-		height: 4,
-		backgroundColor: "#18181b",
-		width: "100%",
-	},
-	progressBar: {
-		height: "100%",
-		backgroundColor: "#ee237c",
-	},
-	formCard: {
-		backgroundColor: "#18181b",
-		borderWidth: 1,
-		borderColor: "#27272a",
-		borderRadius: 20,
-		padding: 20,
-		gap: 12,
-	},
-	carrierHeaderRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-	},
-	optionalBadge: {
-		backgroundColor: "rgba(113, 113, 122, 0.2)",
-		paddingHorizontal: 10,
-		paddingVertical: 4,
-		borderRadius: 999,
-	},
-	optionalText: {
-		fontSize: 10,
-		fontWeight: "700",
-		color: "#a1a1aa",
-		textTransform: "uppercase",
-	},
-	sectionTitle: {
-		fontSize: 16,
-		fontWeight: "800",
-		color: "#fafafa",
-		letterSpacing: -0.2,
-	},
-	sectionSubtitle: {
-		fontSize: 12,
-		color: "#a1a1aa",
-		lineHeight: 18,
-	},
-	typesList: {
-		gap: 10,
-		paddingTop: 4,
-	},
-	typeCard: {
-		padding: 14,
-		borderRadius: 16,
-		borderWidth: 1.5,
-		borderColor: "#27272a",
-		backgroundColor: "#09090b",
-		gap: 6,
-	},
-	typeCardSelected: {
-		borderColor: "#ee237c",
-		backgroundColor: "rgba(238, 35, 124, 0.06)",
-	},
-	typeHeader: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-	},
-	typeTitle: {
-		fontSize: 14,
-		fontWeight: "700",
-		color: "#fafafa",
-		flex: 1,
-	},
-	typeRight: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 8,
-	},
-	typeBadge: {
-		backgroundColor: "#27272a",
-		paddingHorizontal: 8,
-		paddingVertical: 3,
-		borderRadius: 6,
-	},
-	typeBadgeText: {
-		fontSize: 10,
-		fontWeight: "700",
-		color: "#a1a1aa",
-	},
-	typeDesc: {
-		fontSize: 11,
-		color: "#71717a",
-		lineHeight: 16,
-	},
-	inputWrapper: {
-		paddingTop: 4,
-	},
-});

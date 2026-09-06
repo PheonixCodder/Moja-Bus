@@ -9,6 +9,7 @@ import {
   Location01Icon,
 } from "@hugeicons/core-free-icons";
 import Toast from "react-native-toast-message";
+import { Colors, Palette } from "@/constants/theme";
 import { CitySearchField } from "@/features/search/components/city-search-field";
 import type { CityValue } from "@/features/search/types";
 import { toLocalISODate } from "@/features/search/lib/format";
@@ -64,15 +65,15 @@ function LocationRow({ label, placeholder, value, onPress }: LocationRowProps) {
       accessibilityLabel={label}
       className="flex-row items-center gap-2.5 py-1 active:opacity-70"
     >
-      <View className="size-7 rounded-full bg-rose-100 items-center justify-center">
-        <HugeiconsIcon icon={Location01Icon} size={14} color="#ee237c" />
+      <View className="size-7 rounded-full bg-primary/10 items-center justify-center">
+        <HugeiconsIcon icon={Location01Icon} size={14} color={Palette.rose[500]} />
       </View>
       <View className="flex-1">
-        <Text className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+        <Text className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
           {label}
         </Text>
         <Text
-          className={`text-sm font-extrabold ${value ? "text-slate-900" : "text-slate-400"}`}
+          className={`text-sm font-extrabold ${value ? "text-foreground" : "text-muted-foreground"}`}
           numberOfLines={1}
         >
           {value ? value.text : placeholder}
@@ -158,9 +159,9 @@ export function HomeSearchWidget() {
 
   return (
     <>
-      <View className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm gap-3">
+      <View className="bg-card rounded-2xl border border-border p-4 shadow-sm gap-3">
         {/* Origin / Swap / Destination */}
-        <View className="bg-slate-50 rounded-xl p-3 border border-slate-200/80 gap-2 relative">
+        <View className="bg-muted/50 rounded-xl p-3 border border-border gap-2 relative">
           {/* Origin Row */}
           <LocationRow
             label={t("homeSearch.departure")}
@@ -170,14 +171,14 @@ export function HomeSearchWidget() {
           />
 
           {/* Separator + Swap Button */}
-          <View className="h-px bg-slate-200/80 my-0.5 justify-center">
+          <View className="h-px bg-border my-0.5 justify-center">
             <Pressable
               onPress={handleSwap}
               accessibilityRole="button"
               accessibilityLabel={t("homeSearch.swap")}
-              className="absolute right-2 size-7 rounded-full bg-white border border-slate-300 items-center justify-center shadow-xs active:bg-slate-100"
+              className="absolute right-2 size-7 rounded-full bg-card border border-border items-center justify-center shadow-xs active:bg-muted"
             >
-              <HugeiconsIcon icon={ArrowUpDownIcon} size={13} color="#475569" />
+              <HugeiconsIcon icon={ArrowUpDownIcon} size={13} color={Colors.light.textMuted} />
             </Pressable>
           </View>
 
@@ -190,15 +191,15 @@ export function HomeSearchWidget() {
           />
         </View>
 
-        {/* Search Button — brand primary pink colour #ee237c */}
+        {/* Search Button */}
         <Pressable
           onPress={handleSearch}
           accessibilityRole="button"
           accessibilityLabel={t("homeSearch.searchButton")}
-          className="bg-[#ee237c] active:bg-[#d41b6d] py-3.5 rounded-xl flex-row items-center justify-center gap-2 shadow-sm"
+          className="bg-primary active:opacity-90 min-h-12 h-12 rounded-xl flex-row items-center justify-center gap-2 shadow-sm shadow-primary/25"
         >
-          <HugeiconsIcon icon={Search01Icon} size={16} color="#ffffff" />
-          <Text className="text-sm font-extrabold text-white">
+          <HugeiconsIcon icon={Search01Icon} size={16} color={Colors.light.primaryForeground} />
+          <Text className="text-sm font-extrabold text-primary-foreground">
             {t("homeSearch.searchButton")}
           </Text>
         </Pressable>

@@ -387,11 +387,11 @@ export function BookingCheckoutForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Route & Trip summary */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-2">
+      <div className="rounded-xl border border-border bg-card p-4 space-y-2">
         <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
           {tripDetails.companyName}
         </p>
-        <p className="text-base font-bold text-slate-900">
+        <p className="text-base font-bold text-foreground">
           {formatLocationLabel({
             cityName: tripDetails.originCityName,
             municipalityName: tripDetails.originMunicipalityName,
@@ -420,17 +420,17 @@ export function BookingCheckoutForm({
             day: "numeric",
           })}
         </p>
-        <p className="text-xs font-semibold text-slate-700">
+        <p className="text-xs font-semibold text-foreground">
           {tBooking("checkout.seatsLabel")} {selectedLabels.join(", ")} (
           {selectedSeatIds.length})
         </p>
-        <div className="space-y-1 pt-1 text-sm text-slate-700">
+        <div className="space-y-1 pt-1 text-sm text-foreground">
           <div className="flex justify-between">
             <span>{tBooking("checkout.fare")}</span>
             <span>{formatPriceXOF(preDiscountSubtotalXOF)}</span>
           </div>
           {ticketDiscountXOF > 0 ? (
-            <div className="flex justify-between text-emerald-700">
+            <div className="flex justify-between text-success">
               <span>
                 {pricing?.autoAppliedCampaignId && !appliedCode
                   ? t("discountAuto")
@@ -448,21 +448,21 @@ export function BookingCheckoutForm({
             </div>
           ) : null}
           {creditAppliedXOF > 0 ? (
-            <div className="flex justify-between text-emerald-700">
+            <div className="flex justify-between text-success">
               <span>{t("credits")}</span>
               <span>-{formatPriceXOF(creditAppliedXOF)}</span>
             </div>
           ) : null}
-          <div className="flex justify-between text-base font-black text-[#ee237c]">
+          <div className="flex justify-between text-base font-black text-primary">
             <span>{tBooking("checkout.total")}</span>
             <span>{formatPriceXOF(totalAmount)}</span>
           </div>
         </div>
 
-        <div className="space-y-2 border-t border-slate-200 pt-3">
+        <div className="space-y-2 border-t border-border pt-3">
           <Label
             htmlFor="promo-code"
-            className="text-xs font-semibold text-slate-700"
+            className="text-xs font-semibold text-foreground"
           >
             {t("promoCode")}
           </Label>
@@ -549,7 +549,7 @@ export function BookingCheckoutForm({
                 {tBooking("checkout.applyToAll")}
               </span>
               <select
-                className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs"
+                className="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground"
                 defaultValue=""
                 onChange={(e) => {
                   if (e.target.value) applySavedToAll(e.target.value);
@@ -574,7 +574,7 @@ export function BookingCheckoutForm({
           <p className="text-xs text-muted-foreground">
             <Link
               href="/login"
-              className="text-[#ee237c] font-semibold hover:underline"
+              className="text-primary font-semibold hover:underline"
             >
               {tBooking("checkout.signInToUseSaved")}
             </Link>{" "}
@@ -586,9 +586,9 @@ export function BookingCheckoutForm({
           {assignments.map((row) => (
             <div
               key={row.seatId}
-              className="rounded-xl border border-slate-200 bg-white p-4 space-y-3"
+              className="rounded-xl border border-border bg-card p-4 space-y-3"
             >
-              <p className="text-sm font-bold text-slate-800">
+              <p className="text-sm font-bold text-foreground">
                 {tBooking("checkout.seat")} {row.seatLabel}
               </p>
 
@@ -599,7 +599,7 @@ export function BookingCheckoutForm({
                   </Label>
                   <select
                     id={`passenger-select-${row.seatId}`}
-                    className="flex h-9 w-full rounded-md border border-slate-200 bg-white px-3 text-sm"
+                    className="flex h-9 w-full rounded-md border border-border bg-card px-3 text-sm text-foreground"
                     value={
                       row.mode === "manual" ? "manual" : row.savedPassengerId
                     }
@@ -623,26 +623,27 @@ export function BookingCheckoutForm({
               {row.mode === "manual" ||
               !isLoggedIn ||
               savedPassengers.length === 0 ? (
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label htmlFor={`name-${row.seatId}`}>
-                      {tBooking("checkout.fullName")}
+                      {tBooking("checkout.passengerName")}
                     </Label>
                     <Input
                       id={`name-${row.seatId}`}
+                      type="text"
+                      placeholder={tBooking("checkout.namePlaceholder")}
                       value={row.passengerName}
                       onChange={(e) =>
                         updateAssignment(row.seatId, {
                           passengerName: e.target.value,
                         })
                       }
-                      placeholder={tBooking("checkout.fullNamePlaceholder")}
                       required
                     />
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor={`phone-${row.seatId}`}>
-                      {tBooking("checkout.phoneNumber")}
+                      {tBooking("checkout.passengerPhone")}
                     </Label>
                     <PhoneInput
                       id={`phone-${row.seatId}`}
@@ -653,12 +654,12 @@ export function BookingCheckoutForm({
                         })
                       }
                       required
-                      className="h-10 w-full border-slate-200 bg-white text-sm focus-visible:ring-primary"
+                      className="h-10 w-full border-border bg-card text-sm focus-visible:ring-primary"
                     />
                   </div>
                 </div>
               ) : (
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   {row.passengerName} · {row.passengerPhone}
                 </p>
               )}
@@ -671,7 +672,7 @@ export function BookingCheckoutForm({
             {tBooking("checkout.manageSavedPassengersIn")}{" "}
             <Link
               href="/dashboard/passengers"
-              className="text-[#ee237c] font-semibold hover:underline"
+              className="text-primary font-semibold hover:underline"
             >
               {tBooking("checkout.yourDashboard")}
             </Link>
@@ -681,37 +682,38 @@ export function BookingCheckoutForm({
       </div>
 
       {/* Payment Selector Section */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-4">
+      <div className="rounded-xl border border-border bg-card p-4 space-y-4">
         {isZeroCash ? (
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50/80 p-4 space-y-2">
-            <div className="flex items-center gap-2 text-emerald-900 font-semibold text-sm">
-              <Sparkles className="size-4.5 text-emerald-600 shrink-0" />
+          <div className="rounded-xl border border-success/20 bg-success/10 p-4 space-y-2">
+            <div className="flex items-center gap-2 text-success font-semibold text-sm">
+              <Sparkles className="size-4.5 text-success shrink-0" />
               {tBooking("checkout.promoCoveredTitle")}
             </div>
-            <p className="text-xs text-emerald-700 leading-relaxed">
+            <p className="text-xs text-success leading-relaxed">
               {tBooking("checkout.promoCoveredDesc")}
             </p>
           </div>
         ) : (
           <>
             <div className="space-y-1">
-              <p className="text-sm font-semibold text-slate-800">
+              <p className="text-sm font-semibold text-foreground">
                 {tBooking("checkout.paymentOptions")}
               </p>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 {tBooking("checkout.paymentOptionsDesc")}
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {/* Card / Mobile Money */}
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={() => setPaymentMethod("PAYSTACK")}
-                className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all ${
+                className={`flex items-center justify-start gap-3 p-3.5 h-auto rounded-xl border text-left transition-all ${
                   paymentMethod === "PAYSTACK"
-                    ? "border-primary bg-primary/5 text-primary shadow-xs"
-                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50/50"
+                    ? "border-primary bg-primary/5 text-primary shadow-xs hover:bg-primary/10 hover:text-primary"
+                    : "border-border bg-card text-muted-foreground hover:bg-muted"
                 }`}
               >
                 <CreditCard className="size-5 shrink-0" />
@@ -719,53 +721,38 @@ export function BookingCheckoutForm({
                   <p className="text-xs font-bold font-sans">
                     {tBooking("checkout.cardMobileMoney")}
                   </p>
-                  <p className="text-[10px] text-slate-500 font-sans mt-0.5">
+                  <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
                     {tBooking("checkout.payViaPaystack")}
                   </p>
                 </div>
-              </button>
+              </Button>
 
               {/* Wallet Balance */}
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 disabled={!canPayWithWallet}
                 onClick={() => setPaymentMethod("WALLET")}
-                className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all relative ${
+                className={`flex items-center justify-start gap-3 p-3.5 h-auto rounded-xl border text-left transition-all relative ${
                   paymentMethod === "WALLET"
-                    ? "border-primary bg-primary/5 text-primary shadow-xs"
-                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50/50"
-                } ${!canPayWithWallet ? "opacity-50 cursor-not-allowed bg-slate-50/50" : ""}`}
+                    ? "border-primary bg-primary/5 text-primary shadow-xs hover:bg-primary/10 hover:text-primary"
+                    : "border-border bg-card text-muted-foreground hover:bg-muted"
+                } ${!canPayWithWallet ? "opacity-50 cursor-not-allowed bg-muted/40" : ""}`}
               >
                 <Wallet className="size-5 shrink-0" />
                 <div>
                   <p className="text-xs font-bold font-sans">
-                    {tBooking("checkout.mojaWalletBalance")}
+                    {tBooking("checkout.walletBalance")}
                   </p>
-                  <p className="text-[10px] text-slate-500 font-sans mt-0.5">
-                    {isLoggedIn
-                      ? `Available: ${formatPriceXOF(walletAvailable)} · Due: ${formatPriceXOF(totalAmount)}`
-                      : "Sign in to pay with wallet"}
+                  <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
+                    {formatPriceXOF(walletAvailable)} {tBooking("checkout.available")}
                   </p>
                 </div>
-              </button>
+              </Button>
             </div>
 
-            {/* Info alerts */}
-            {paymentMethod === "WALLET" ? (
-              <div className="rounded-lg bg-emerald-50 border border-emerald-100 p-3 text-xs text-emerald-800 leading-relaxed">
-                <strong>{tBooking("checkout.walletBenefitTitle")}</strong>:{" "}
-                {tBooking("checkout.walletBenefitDesc")}
-              </div>
-            ) : null}
-
-            {isLoggedIn && paymentMethod === "PAYSTACK" && canPayWithWallet ? (
-              <p className="text-[10px] text-slate-500 italic">
-                {tBooking("checkout.walletTip")}
-              </p>
-            ) : null}
-
-            {isLoggedIn && !canPayWithWallet ? (
-              <div className="rounded-lg bg-amber-50 border border-amber-100 p-3 text-xs text-amber-800 flex items-center justify-between gap-2">
+            {!canPayWithWallet && paymentMethod === "WALLET" ? (
+              <div className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-destructive/10 border border-destructive/20 text-xs text-destructive">
                 <span>
                   {tBooking("checkout.insufficientBalance", {
                     needed: formatPriceXOF(totalAmount),
@@ -774,12 +761,25 @@ export function BookingCheckoutForm({
                 </span>
                 <Link
                   href="/dashboard/wallet"
-                  className="text-[#ee237c] font-bold hover:underline shrink-0"
+                  className="text-primary font-bold hover:underline shrink-0"
                   target="_blank"
                 >
                   {tBooking("checkout.topUpWallet")}
                 </Link>
               </div>
+            ) : null}
+
+            {paymentMethod === "WALLET" && canPayWithWallet ? (
+              <div className="rounded-lg bg-success/10 border border-success/20 p-3 text-xs text-success leading-relaxed">
+                <strong>{tBooking("checkout.walletBenefitTitle")}</strong>:{" "}
+                {tBooking("checkout.walletBenefitDesc")}
+              </div>
+            ) : null}
+
+            {isLoggedIn && paymentMethod === "PAYSTACK" && canPayWithWallet ? (
+              <p className="text-[10px] text-muted-foreground italic">
+                {tBooking("checkout.walletTip")}
+              </p>
             ) : null}
           </>
         )}
@@ -797,7 +797,7 @@ export function BookingCheckoutForm({
         <Button
           type="submit"
           disabled={isSubmitting}
-          className="flex-1 bg-[#ee237c] hover:bg-[#d01867] text-white font-bold"
+          className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-sm"
         >
           {isSubmitting ? (
             <>

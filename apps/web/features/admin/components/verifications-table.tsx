@@ -19,15 +19,15 @@ interface VerificationsTableProps {
 export function VerificationsTable({ table }: VerificationsTableProps) {
   const t = useTranslations("adminDashboard.verificationsTable");
   return (
-    <div className="border border-border rounded-md bg-white overflow-hidden shadow-sm">
+    <div className="border border-border rounded-md bg-card overflow-hidden shadow-sm">
       <Table className="**:data-[slot='table-cell']:px-4 **:data-[slot='table-head']:px-4">
-        <TableHeader className="bg-slate-50 hover:bg-slate-50 border-b">
+        <TableHeader className="bg-muted/40 hover:bg-muted/40 border-b">
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
                 <TableHead
                   key={header.id}
-                  className="py-3 font-semibold text-slate-700 text-xs"
+                  className="py-3 font-semibold text-foreground text-xs"
                 >
                   {header.isPlaceholder
                     ? null
@@ -45,7 +45,7 @@ export function VerificationsTable({ table }: VerificationsTableProps) {
             table.getRowModel().rows.map((row) => (
               <TableRow
                 key={row.id}
-                className="border-border/60 hover:bg-slate-50/50"
+                className="border-border/60 hover:bg-muted/50"
                 data-state={row.getIsSelected() && "selected"}
               >
                 {row.getVisibleCells().map((cell) => (
@@ -59,7 +59,7 @@ export function VerificationsTable({ table }: VerificationsTableProps) {
             <TableRow>
               <TableCell
                 colSpan={table.getVisibleLeafColumns().length}
-                className="h-24 text-center text-slate-500 text-xs"
+                className="h-24 text-center text-muted-foreground text-xs"
               >
                 {t("empty")}
               </TableCell>

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Modal, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/text";
+import { Palette, Colors } from "@/constants/theme";
 import { formatPriceXOF } from "../lib/format-time";
 
 type CancelDialogProps = {
@@ -52,7 +53,7 @@ export function CancelDialog({
 					{/* Warning Icon & Title */}
 					<View className="items-center text-center space-y-2">
 						<View className="w-14 h-14 rounded-full bg-destructive/10 border border-destructive/20 items-center justify-center mb-1">
-							<HugeiconsIcon icon={Alert01Icon} size={28} color="#ef4444" />
+							<HugeiconsIcon icon={Alert01Icon} size={28} color={Palette.red[500]} />
 						</View>
 						<Text className="text-foreground text-xl font-black tracking-tight">
 							{t("cancelDialogTitle")}
@@ -115,9 +116,9 @@ export function CancelDialog({
 								className="flex-1 bg-destructive py-3.5 rounded-xl items-center justify-center flex-row gap-2 shadow-xs opacity-100 disabled:opacity-60"
 							>
 								{isPending ? (
-									<ActivityIndicator size="small" color="#ffffff" />
+									<ActivityIndicator size="small" color={Colors.light.card} />
 								) : (
-									<Text className="text-white font-black text-xs">
+									<Text className="text-destructive-foreground font-black text-xs">
 										{t("confirmCancel")}
 									</Text>
 								)}

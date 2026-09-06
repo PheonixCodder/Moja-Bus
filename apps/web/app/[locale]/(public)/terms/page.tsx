@@ -33,7 +33,7 @@ export default async function TermsPage({ params }: Props) {
           {/* Sticky sidebar TOC */}
           <aside className="hidden lg:block">
             <div className="sticky top-8">
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">
                 {t("tocTitle")}
               </p>
               <nav className="space-y-1">
@@ -41,19 +41,19 @@ export default async function TermsPage({ params }: Props) {
                   <a
                     key={s.id}
                     href={`#${s.id}`}
-                    className="block text-sm text-slate-500 hover:text-[#ee237c] py-1.5 px-3 rounded-lg hover:bg-pink-50 transition-all leading-snug"
+                    className="block text-sm text-muted-foreground hover:text-primary py-1.5 px-3 rounded-lg hover:bg-primary/10 transition-all leading-snug"
                   >
                     {s.title}
                   </a>
                 ))}
               </nav>
-              <div className="mt-8 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                <p className="text-xs font-semibold text-slate-600 mb-1">
+              <div className="mt-8 p-4 bg-muted/40 rounded-2xl border border-border">
+                <p className="text-xs font-semibold text-foreground mb-1">
                   {t("questions")}
                 </p>
                 <a
                   href={`mailto:${t("legalEmail")}`}
-                  className="text-xs text-[#ee237c] font-semibold hover:underline"
+                  className="text-xs text-primary font-semibold hover:underline"
                 >
                   {t("legalEmail")}
                 </a>
@@ -62,14 +62,14 @@ export default async function TermsPage({ params }: Props) {
           </aside>
 
           {/* Main content */}
-          <div className="space-y-14 text-slate-600 leading-relaxed text-sm min-w-0">
+          <div className="space-y-14 text-foreground/80 leading-relaxed text-sm min-w-0">
             {data.items.map((item) => (
               <section key={item.id} id={item.id} className="scroll-mt-8">
                 {/* Heading with optional number badge */}
                 {item.id !== "cancellation-policy" && item.id !== "contact" && (
-                  <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-3">
+                  <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-3">
                     {item.number && (
-                      <span className="flex-shrink-0 w-8 h-8 rounded-full bg-pink-50 text-[#ee237c] flex items-center justify-center text-xs font-extrabold">
+                      <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-extrabold">
                         {item.number}
                       </span>
                     )}
@@ -96,7 +96,7 @@ export default async function TermsPage({ params }: Props) {
                     {item.subsections.map((sub, si) => (
                       <div key={si}>
                         {sub.heading && (
-                          <p className="font-semibold text-slate-700 mb-2">
+                          <p className="font-semibold text-foreground mb-2">
                             {sub.heading}
                           </p>
                         )}
@@ -140,8 +140,8 @@ export default async function TermsPage({ params }: Props) {
                   <div
                     className={
                       item.id === "cancellation-policy"
-                        ? "bg-slate-50 border border-slate-200 rounded-2xl p-5 mb-6 text-slate-600 text-sm space-y-3"
-                        : "bg-pink-50 border border-pink-100 rounded-2xl p-5 mb-4"
+                        ? "bg-muted/40 border border-border rounded-2xl p-5 mb-6 text-foreground/80 text-sm space-y-3"
+                        : "bg-primary/10 border border-primary/20 rounded-2xl p-5 mb-4"
                     }
                   >
                     {item.noteBox.paragraphs.map((p, i) => (
@@ -167,7 +167,7 @@ export default async function TermsPage({ params }: Props) {
                     {item.subsections.map((sub, si) => (
                       <div key={si}>
                         {sub.body?.map((p, pi) => (
-                          <p key={pi} className="text-xs text-slate-400 mb-6">
+                          <p key={pi} className="text-xs text-muted-foreground mb-6">
                             {p}
                           </p>
                         ))}
@@ -179,10 +179,10 @@ export default async function TermsPage({ params }: Props) {
                 {/* Refund table */}
                 {item.table && (
                   <>
-                    <div className="rounded-2xl overflow-hidden border border-slate-200">
+                    <div className="rounded-2xl overflow-hidden border border-border">
                       <table className="w-full text-sm">
                         <thead>
-                          <tr className="bg-slate-900 text-white">
+                          <tr className="bg-foreground text-background">
                             <th className="text-left px-5 py-3 font-semibold">
                               {item.table.headers[0]}
                             </th>
@@ -191,19 +191,19 @@ export default async function TermsPage({ params }: Props) {
                             </th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody className="divide-y divide-border">
                           {item.table.rows.map((row, i) => (
                             <tr
                               key={row[0]}
                               className={
-                                i % 2 === 0 ? "bg-white" : "bg-slate-50"
+                                i % 2 === 0 ? "bg-card" : "bg-muted/40"
                               }
                             >
-                              <td className="px-5 py-3 text-slate-700">
+                              <td className="px-5 py-3 text-foreground">
                                 {row[0]}
                               </td>
                               <td
-                                className={`px-5 py-3 text-right font-bold ${item.table?.refundColor ?? "text-slate-600"}`}
+                                className={`px-5 py-3 text-right font-bold ${item.table?.refundColor ?? "text-muted-foreground"}`}
                               >
                                 {row[1]}
                               </td>
@@ -215,7 +215,7 @@ export default async function TermsPage({ params }: Props) {
 
                     {/* Extras */}
                     {item.extras && (
-                      <div className="mt-4 space-y-1 text-xs text-slate-500">
+                      <div className="mt-4 space-y-1 text-xs text-muted-foreground">
                         {item.extras.map((e, i) => (
                           <p key={i}>{e}</p>
                         ))}
@@ -225,13 +225,13 @@ export default async function TermsPage({ params }: Props) {
                     {/* Older policy */}
                     {item.olderPolicy && (
                       <div className="mt-10">
-                        <p className="text-sm font-semibold text-slate-700 mb-2">
+                        <p className="text-sm font-semibold text-foreground mb-2">
                           {item.olderPolicy.label}
                         </p>
-                        <div className="rounded-2xl overflow-hidden border border-slate-200">
+                        <div className="rounded-2xl overflow-hidden border border-border">
                           <table className="w-full text-sm">
                             <thead>
-                              <tr className="bg-slate-800 text-white">
+                              <tr className="bg-foreground/90 text-background">
                                 <th className="text-left px-5 py-3 font-semibold">
                                   {item.olderPolicy.table.headers[0]}
                                 </th>
@@ -240,18 +240,18 @@ export default async function TermsPage({ params }: Props) {
                                 </th>
                               </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100">
+                            <tbody className="divide-y divide-border">
                               {item.olderPolicy.table.rows.map((row, i) => (
                                 <tr
                                   key={row[0]}
                                   className={
-                                    i % 2 === 0 ? "bg-white" : "bg-slate-50"
+                                    i % 2 === 0 ? "bg-card" : "bg-muted/40"
                                   }
                                 >
-                                  <td className="px-5 py-3 text-slate-700">
+                                  <td className="px-5 py-3 text-foreground">
                                     {row[0]}
                                   </td>
-                                  <td className="px-5 py-3 text-right font-bold text-slate-600">
+                                  <td className="px-5 py-3 text-right font-bold text-muted-foreground">
                                     {row[1]}
                                   </td>
                                 </tr>
@@ -259,7 +259,7 @@ export default async function TermsPage({ params }: Props) {
                             </tbody>
                           </table>
                         </div>
-                        <p className="mt-3 text-xs text-slate-500">
+                        <p className="mt-3 text-xs text-muted-foreground">
                           {item.olderPolicy.extras}
                         </p>
                       </div>
@@ -269,16 +269,16 @@ export default async function TermsPage({ params }: Props) {
 
                 {/* Contact box */}
                 {item.contactBox && (
-                  <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
-                    <p className="font-semibold text-slate-800">
+                  <div className="bg-muted/40 rounded-2xl p-6 border border-border">
+                    <p className="font-semibold text-foreground">
                       {item.contactBox.name}
                     </p>
-                    <p className="text-slate-500 mt-1">
+                    <p className="text-muted-foreground mt-1">
                       {item.contactBox.address}
                     </p>
                     <a
                       href={`mailto:${item.contactBox.email}`}
-                      className="mt-2 inline-block text-[#ee237c] font-semibold hover:underline"
+                      className="mt-2 inline-block text-primary font-semibold hover:underline"
                     >
                       {item.contactBox.email}
                     </a>

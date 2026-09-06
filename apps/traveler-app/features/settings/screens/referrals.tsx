@@ -13,7 +13,7 @@ import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { SubpageHeader } from "@/components/subpage-header";
 import { Text } from "@/components/ui/text";
-import { BottomTabInset } from "@/constants/theme";
+import { BottomTabInset, Palette, Colors } from "@/constants/theme";
 import { useTRPC } from "@/lib/trpc";
 
 const WEB_ORIGIN =
@@ -26,11 +26,11 @@ function ProgressBar({ label, count, max }: { label: string; count: number; max:
   return (
     <View className="gap-1">
       <View className="flex-row items-center justify-between">
-        <Text className="text-xs font-medium text-slate-700">{label}</Text>
-        <Text className="text-xs tabular-nums text-slate-500">{count}</Text>
+        <Text className="text-xs font-medium text-foreground">{label}</Text>
+        <Text className="text-xs tabular-nums text-muted-foreground">{count}</Text>
       </View>
-      <View className="h-2 overflow-hidden rounded-full bg-slate-100">
-        <View className="h-full rounded-full bg-[#ee237c]" style={{ width: `${pct}%` }} />
+      <View className="h-2 overflow-hidden rounded-full bg-muted">
+        <View className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
       </View>
     </View>
   );
@@ -113,7 +113,7 @@ export function ReferralsView() {
   }
 
   return (
-    <View className="flex-1">
+    <View className="flex-1 bg-background">
       <SubpageHeader title={t("title")} />
       <ScrollView
         className="flex-1"
@@ -124,18 +124,18 @@ export function ReferralsView() {
           gap: 16,
         }}
       >
-        <Text className="text-sm text-white/70">{t("subtitle")}</Text>
+        <Text className="text-sm text-foreground/70">{t("subtitle")}</Text>
 
         {!programActive && !referralQuery.isLoading ? (
-          <View className="rounded-2xl bg-amber-50 px-4 py-3">
-            <Text className="text-sm text-amber-950">{t("disabled")}</Text>
+          <View className="rounded-2xl bg-warning/10 border border-warning/20 px-4 py-3">
+            <Text className="text-sm text-warning font-semibold">{t("disabled")}</Text>
           </View>
         ) : null}
 
         {programActive && program ? (
-          <View className="rounded-2xl bg-white p-4 gap-1">
-            <Text className="text-sm font-semibold text-slate-900">{t("howItWorks")}</Text>
-            <Text className="text-xs text-slate-500">
+          <View className="rounded-2xl bg-card border border-border p-4 gap-1">
+            <Text className="text-sm font-semibold text-foreground">{t("howItWorks")}</Text>
+            <Text className="text-xs text-muted-foreground">
               {t("howItWorksBody", {
                 amount: program.referrerCreditAmountXOF.toLocaleString(),
                 delay: program.rewardDelayHours,
@@ -146,20 +146,20 @@ export function ReferralsView() {
           </View>
         ) : null}
 
-        <View className="rounded-2xl bg-white p-4 gap-4">
+        <View className="rounded-2xl bg-card border border-border p-4 gap-4">
           <View className="gap-1">
-            <Text className="text-base font-semibold text-slate-900">{t("yourCode")}</Text>
-            <Text className="text-xs text-slate-500">{t("yourCodeHint")}</Text>
+            <Text className="text-base font-semibold text-foreground">{t("yourCode")}</Text>
+            <Text className="text-xs text-muted-foreground">{t("yourCodeHint")}</Text>
           </View>
 
           {referralQuery.isLoading ? (
-            <ActivityIndicator color="#ee237c" />
+            <ActivityIndicator color={Palette.rose[500]} />
           ) : referralQuery.isError ? (
-            <Text className="text-sm text-slate-500">{t("disabled")}</Text>
+            <Text className="text-sm text-muted-foreground">{t("disabled")}</Text>
           ) : (
             <>
-              <View className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <Text className="font-mono text-xl font-bold tracking-widest text-slate-900">
+              <View className="rounded-xl border border-border bg-background px-4 py-3">
+                <Text className="font-mono text-xl font-bold tracking-widest text-foreground">
                   {code}
                 </Text>
               </View>
@@ -167,25 +167,27 @@ export function ReferralsView() {
                 <Pressable
                   onPress={() => void copyCode()}
                   disabled={!programActive}
-                  className={`flex-1 items-center rounded-xl border border-slate-200 py-3 active:opacity-70 ${
+                  accessibilityRole="button"
+                  className={`flex-1 items-center rounded-xl border border-border py-3 active:opacity-70 min-h-12 justify-center ${
                     !programActive ? "opacity-40" : ""
                   }`}
                 >
-                  <Text className="text-sm font-semibold text-slate-800">{t("copyCode")}</Text>
+                  <Text className="text-sm font-semibold text-foreground">{t("copyCode")}</Text>
                 </Pressable>
                 <Pressable
                   onPress={() => void shareInvite()}
                   disabled={!programActive}
-                  className={`flex-1 items-center rounded-xl bg-[#ee237c] py-3 active:opacity-85 ${
+                  accessibilityRole="button"
+                  className={`flex-1 items-center rounded-xl bg-primary py-3 active:opacity-85 min-h-12 justify-center ${
                     !programActive ? "opacity-40" : ""
                   }`}
                 >
-                  <Text className="text-sm font-semibold text-white">{t("shareLink")}</Text>
+                  <Text className="text-sm font-semibold text-primary-foreground">{t("shareLink")}</Text>
                 </Pressable>
               </View>
 
-              <View className="gap-3 border-t border-slate-100 pt-4">
-                <Text className="text-sm font-semibold text-slate-900">{t("progress")}</Text>
+              <View className="gap-3 border-t border-border pt-4">
+                <Text className="text-sm font-semibold text-foreground">{t("progress")}</Text>
                 <ProgressBar label={t("attributed")} count={attributed} max={max} />
                 <ProgressBar label={t("qualified")} count={qualified} max={max} />
                 <ProgressBar label={t("rewarded")} count={rewarded} max={max} />
@@ -194,40 +196,40 @@ export function ReferralsView() {
           )}
         </View>
 
-        <View className="rounded-2xl bg-white p-4 gap-3">
+        <View className="rounded-2xl bg-card border border-border p-4 gap-3">
           <View className="flex-row items-center justify-between gap-2">
             <View className="flex-1 gap-1">
-              <Text className="text-base font-semibold text-slate-900">
+              <Text className="text-base font-semibold text-foreground">
                 {t("inviteesTitle")}
               </Text>
-              <Text className="text-xs text-slate-500">{t("inviteesHint")}</Text>
+              <Text className="text-xs text-muted-foreground">{t("inviteesHint")}</Text>
             </View>
-            <Text className="text-xs text-slate-500">
+            <Text className="text-xs text-muted-foreground">
               {inviteesQuery.data?.total ?? 0}
             </Text>
           </View>
 
           {inviteesQuery.isLoading ? (
-            <ActivityIndicator color="#ee237c" />
+            <ActivityIndicator color={Palette.rose[500]} />
           ) : invitees.length === 0 ? (
-            <Text className="text-sm text-slate-500">{t("inviteesEmpty")}</Text>
+            <Text className="text-sm text-muted-foreground">{t("inviteesEmpty")}</Text>
           ) : (
             <View className="gap-2">
               {invitees.map((row) => (
                 <View
                   key={row.id}
-                  className="flex-row items-center justify-between gap-3 rounded-xl border border-slate-100 px-3 py-3"
+                  className="flex-row items-center justify-between gap-3 rounded-xl border border-border px-3 py-3"
                 >
                   <View className="flex-1 gap-0.5">
-                    <Text className="text-sm font-medium text-slate-900">
+                    <Text className="text-sm font-medium text-foreground">
                       {row.refereeName}
                     </Text>
-                    <Text className="text-xs text-slate-500">
+                    <Text className="text-xs text-muted-foreground">
                       {formatJoinedAt(row.attributedAt)}
                     </Text>
                   </View>
-                  <View className="rounded-full bg-slate-100 px-2.5 py-1">
-                    <Text className="text-xs font-medium text-slate-700">
+                  <View className="rounded-full bg-muted px-2.5 py-1">
+                    <Text className="text-xs font-medium text-foreground">
                       {row.status}
                     </Text>
                   </View>
@@ -237,13 +239,13 @@ export function ReferralsView() {
           )}
         </View>
 
-        <View className="rounded-2xl bg-white p-4 gap-3">
-          <Text className="text-base font-semibold text-slate-900">{t("haveCode")}</Text>
-          <Text className="text-xs text-slate-500">{t("haveCodeHint")}</Text>
+        <View className="rounded-2xl bg-card border border-border p-4 gap-3">
+          <Text className="text-base font-semibold text-foreground">{t("haveCode")}</Text>
+          <Text className="text-xs text-muted-foreground">{t("haveCodeHint")}</Text>
           <TextInput
-            className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-base font-semibold uppercase text-slate-900"
+            className="rounded-xl border border-border bg-background px-4 py-3 text-base font-semibold uppercase text-foreground"
             placeholder={t("codePlaceholder")}
-            placeholderTextColor="#94a3b8"
+            placeholderTextColor={Colors.light.textMuted}
             autoCapitalize="characters"
             value={codeInput}
             onChangeText={(v) => setCodeInput(v.toUpperCase())}
@@ -261,16 +263,17 @@ export function ReferralsView() {
                 });
               })();
             }}
-            className={`items-center rounded-xl bg-[#ee237c] py-3 active:opacity-85 ${
+            accessibilityRole="button"
+            className={`items-center rounded-xl bg-primary py-3 active:opacity-85 min-h-12 justify-center ${
               !codeInput.trim() || applyMutation.isPending || !programActive
                 ? "opacity-40"
                 : ""
             }`}
           >
             {applyMutation.isPending ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={Palette.zinc[50]} />
             ) : (
-              <Text className="text-sm font-semibold text-white">{t("apply")}</Text>
+              <Text className="text-sm font-semibold text-primary-foreground">{t("apply")}</Text>
             )}
           </Pressable>
         </View>

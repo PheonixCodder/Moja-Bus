@@ -18,25 +18,25 @@ interface DashboardHeaderProps {
 export function DashboardHeader({ breadcrumbs }: DashboardHeaderProps) {
   const t = useTranslations("adminDashboard");
   return (
-    <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border bg-bg-base px-4">
-      <SidebarTrigger className="text-text-muted hover:text-text-primary" />
+    <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border bg-muted px-4">
+      <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
       <Separator orientation="vertical" className="h-4 bg-border" />
-      <nav className="flex items-center gap-1 text-xs text-text-muted">
+      <nav className="flex items-center gap-1 text-xs text-muted-foreground">
         {breadcrumbs.map((item, idx) => {
           const isLast = idx === breadcrumbs.length - 1;
           const label = item.tKey ? t(item.tKey as any) : item.label;
           return (
             <div key={item.tKey ?? item.label} className="flex items-center">
-              {idx > 0 && <span className="mx-1 text-text-muted/40">/</span>}
+              {idx > 0 && <span className="mx-1 text-muted-foreground/40">/</span>}
               {item.href && !isLast ? (
                 <Link
                   href={item.href}
-                  className="hover:text-text-primary transition-colors"
+                  className="hover:text-foreground transition-colors"
                 >
                   {label}
                 </Link>
               ) : (
-                <span className={isLast ? "text-text-primary font-medium" : ""}>
+                <span className={isLast ? "text-foreground font-medium" : ""}>
                   {label}
                 </span>
               )}

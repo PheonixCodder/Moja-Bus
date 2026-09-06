@@ -2,6 +2,7 @@
 
 import type { AdminPermissionKey } from "@moja/schemas";
 import { Avatar, AvatarFallback } from "@moja/ui/components/ui/avatar";
+import { UserAvatar } from "@moja/ui/components/ui/user-avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -424,11 +425,14 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
                 )}
                 title={user?.name ?? tFooter("account")}
               >
-                <Avatar className="size-6 shrink-0">
-                  <AvatarFallback className="bg-sidebar-primary/15 text-[10px] font-semibold text-sidebar-primary">
-                    {userInitials}
-                  </AvatarFallback>
-                </Avatar>
+                <UserAvatar
+                  name={user?.name}
+                  src={user?.image}
+                  seed={user?.id}
+                  size="sm"
+                  className="size-6 shrink-0"
+                  fallbackClassName="text-[10px]"
+                />
                 <span className="truncate text-[13px] font-medium text-sidebar-foreground group-data-[collapsible=icon]:hidden">
                   {user?.name ?? user?.email ?? tFooter("badge")}
                 </span>

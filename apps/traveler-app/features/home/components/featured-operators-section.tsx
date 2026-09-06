@@ -42,7 +42,7 @@ export function FeaturedOperatorsSection({ operators }: FeaturedOperatorsSection
     <View className="gap-3">
       {/* Section header with View All */}
       <View className="flex-row items-center justify-between px-0.5">
-        <Text className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+        <Text className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
           {t('sectionTitle')}
         </Text>
         <Pressable
@@ -50,7 +50,7 @@ export function FeaturedOperatorsSection({ operators }: FeaturedOperatorsSection
           onPress={() => router.push('/operators' as any)}
           className="will-change-pressable active:opacity-70"
         >
-          <Text className="text-xs font-bold text-[#ee237c]">{t('viewAll')}</Text>
+          <Text className="text-xs font-bold text-primary">{t('viewAll')}</Text>
         </Pressable>
       </View>
 

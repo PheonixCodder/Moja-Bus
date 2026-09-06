@@ -12,6 +12,7 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import { ArrowRight01Icon, Tag01Icon } from "@hugeicons/core-free-icons";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
+import { Colors, Palette } from "@/constants/theme";
 import type { PromoBanner } from "../types";
 import { H_PADDING } from "../constants";
 
@@ -41,7 +42,7 @@ export function PromoBannerCarousel({ banners }: PromoBannerCarouselProps) {
         to: "Yamoussoukro",
         toText: "Yamoussoukro",
       },
-      gradientColors: ["#ee237c", "#9333ea"],
+      gradientColors: [Palette.rose[500], Palette.blue[500]],
       isActive: true,
       sortOrder: 0,
     },
@@ -58,7 +59,7 @@ export function PromoBannerCarousel({ banners }: PromoBannerCarouselProps) {
         to: "San-Pédro",
         toText: "San-Pédro",
       },
-      gradientColors: ["#0f172a", "#ee237c"],
+      gradientColors: [Palette.zinc[900], Palette.rose[500]],
       isActive: true,
       sortOrder: 1,
     },
@@ -110,7 +111,7 @@ export function PromoBannerCarousel({ banners }: PromoBannerCarouselProps) {
   return (
     <View className="gap-3">
       {/* Section Label */}
-      <Text className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+      <Text className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
         {t("homeSearch.promotionsTitle", { ns: "search" })}
       </Text>
 
@@ -131,7 +132,7 @@ export function PromoBannerCarousel({ banners }: PromoBannerCarouselProps) {
           const colors =
             item.gradientColors && item.gradientColors.length >= 2
               ? (item.gradientColors as [string, string])
-              : (["#ee237c", "#9333ea"] as [string, string]);
+              : ([Palette.rose[500], Palette.blue[500]] as [string, string]);
 
           return (
             <Pressable
@@ -152,7 +153,7 @@ export function PromoBannerCarousel({ banners }: PromoBannerCarouselProps) {
                         <HugeiconsIcon
                           icon={Tag01Icon}
                           size={10}
-                          color="#ffffff"
+                          color={Colors.light.primaryForeground}
                         />
                         <Text className="text-[10px] font-black text-white uppercase tracking-wider">
                           {item.badge}
@@ -177,7 +178,7 @@ export function PromoBannerCarousel({ banners }: PromoBannerCarouselProps) {
                     <HugeiconsIcon
                       icon={ArrowRight01Icon}
                       size={18}
-                      color="#ffffff"
+                      color={Colors.light.primaryForeground}
                     />
                   </View>
                 </View>
@@ -195,7 +196,7 @@ export function PromoBannerCarousel({ banners }: PromoBannerCarouselProps) {
             <View
               key={i}
               className={`will-change-animation h-1.5 rounded-full ${
-                i === activeIndex ? "w-5 bg-rose-500" : "w-1.5 bg-slate-200"
+                i === activeIndex ? "w-5 bg-primary" : "w-1.5 bg-muted"
               }`}
             />
           ))}

@@ -36,87 +36,87 @@ export function AdminReferralsFunnelCard({
     qualified > 0 ? Math.round((rewarded / qualified) * 100) : 0;
 
   return (
-    <Card className="p-6 border-slate-200/80 shadow-xs bg-white space-y-6">
+    <Card className="p-6 border-border shadow-xs bg-card space-y-6">
       {/* Visual Pipeline Steps */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4 space-y-2">
+        <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-2">
           <div className="flex items-center justify-between">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-pink-100 text-[#ee237c]">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <UserPlus className="size-4" />
             </div>
-            <span className="text-[11px] font-medium text-slate-400">
+            <span className="text-[11px] font-medium text-muted-foreground">
               {t("step1")}
             </span>
           </div>
           <div>
-            <p className="text-xs font-medium text-slate-500">
+            <p className="text-xs font-medium text-muted-foreground">
               {t("attributedTitle")}
             </p>
-            <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-slate-900">
+            <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-foreground">
               {isLoading ? "—" : attributed.toLocaleString()}
             </p>
           </div>
-          <p className="text-[11px] text-slate-400">{t("attributedDesc")}</p>
+          <p className="text-[11px] text-muted-foreground">{t("attributedDesc")}</p>
         </div>
 
-        <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4 space-y-2">
+        <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-2">
           <div className="flex items-center justify-between">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-warning/10 text-warning">
               <CheckCircle2 className="size-4" />
             </div>
-            <span className="text-[11px] font-medium text-slate-400">
+            <span className="text-[11px] font-medium text-muted-foreground">
               {t("qualRate", { pct: qualRate })}
             </span>
           </div>
           <div>
-            <p className="text-xs font-medium text-slate-500">
+            <p className="text-xs font-medium text-muted-foreground">
               {t("qualifiedTitle")}
             </p>
-            <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-slate-900">
+            <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-foreground">
               {isLoading ? "—" : qualified.toLocaleString()}
             </p>
           </div>
-          <p className="text-[11px] text-slate-400">{t("qualifiedDesc")}</p>
+          <p className="text-[11px] text-muted-foreground">{t("qualifiedDesc")}</p>
         </div>
 
-        <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4 space-y-2">
+        <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-2">
           <div className="flex items-center justify-between">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-success/10 text-success">
               <Gift className="size-4" />
             </div>
-            <span className="text-[11px] font-medium text-slate-400">
+            <span className="text-[11px] font-medium text-muted-foreground">
               {t("rewardRate", { pct: rewardRate })}
             </span>
           </div>
           <div>
-            <p className="text-xs font-medium text-slate-500">
+            <p className="text-xs font-medium text-muted-foreground">
               {t("rewardedTitle")}
             </p>
-            <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-slate-900">
+            <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-foreground">
               {isLoading ? "—" : rewarded.toLocaleString()}
             </p>
           </div>
-          <p className="text-[11px] text-slate-400">{t("rewardedDesc")}</p>
+          <p className="text-[11px] text-muted-foreground">{t("rewardedDesc")}</p>
         </div>
 
-        <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4 space-y-2">
+        <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-2">
           <div className="flex items-center justify-between">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-rose-100 text-rose-700">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
               <ShieldAlert className="size-4" />
             </div>
-            <span className="text-[11px] font-medium text-rose-500">
+            <span className="text-[11px] font-medium text-destructive">
               {t("blockedTag")}
             </span>
           </div>
           <div>
-            <p className="text-xs font-medium text-slate-500">
+            <p className="text-xs font-medium text-muted-foreground">
               {t("fraudTitle")}
             </p>
-            <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-slate-900">
+            <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-foreground">
               {isLoading ? "—" : fraud.toLocaleString()}
             </p>
           </div>
-          <p className="text-[11px] text-slate-400">{t("fraudDesc")}</p>
+          <p className="text-[11px] text-muted-foreground">{t("fraudDesc")}</p>
         </div>
       </div>
     </Card>

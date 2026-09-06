@@ -443,7 +443,7 @@ export function PassengerAuthFlow({
           >
             {/* Header section based on step */}
             <div className="space-y-3 text-center mb-4">
-              <h1 className="font-medium text-4xl tracking-tight text-text-primary">
+              <h1 className="font-medium text-4xl tracking-tight text-foreground">
                 {step === "input" &&
                   (userType === "passenger"
                     ? t("passenger.inputHeading")
@@ -755,7 +755,7 @@ export function PassengerAuthFlow({
                     >
                       <SelectTrigger
                         id="preferredSeat"
-                        className="h-11 w-full rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-primary focus:ring-primary focus:border-primary"
+                        className="h-11 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus:ring-primary focus:border-primary"
                       >
                         <SelectValue
                           placeholder={t("passenger.profileSeatNone")}
@@ -788,7 +788,7 @@ export function PassengerAuthFlow({
                     >
                       <SelectTrigger
                         id="preferredClass"
-                        className="h-11 w-full rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-primary focus:ring-primary focus:border-primary"
+                        className="h-11 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus:ring-primary focus:border-primary"
                       >
                         <SelectValue
                           placeholder={t("passenger.profileClassPlaceholder")}

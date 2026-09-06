@@ -6,6 +6,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@moja/ui/components/ui/avatar";
+import { UserAvatar } from "@moja/ui/components/ui/user-avatar";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { Button } from "@moja/ui/components/ui/button";
 import { Checkbox } from "@moja/ui/components/ui/checkbox";
@@ -54,29 +55,21 @@ export const statusMeta: Record<
   { badgeClass: string; dotClass: string }
 > = {
   Verified: {
-    badgeClass:
-      "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-    dotClass: "bg-emerald-500",
+    badgeClass: "border-success/20 bg-success/10 text-success",
+    dotClass: "bg-success",
   },
   Unverified: {
-    badgeClass:
-      "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400",
-    dotClass: "bg-amber-500",
+    badgeClass: "border-warning/20 bg-warning/10 text-warning",
+    dotClass: "bg-warning",
   },
 };
 
 export function getAvatarTone(name: string) {
   const tones = [
-    "bg-amber-100 text-amber-700",
-    "bg-orange-100 text-orange-700",
-    "bg-rose-100 text-rose-700",
-    "bg-pink-100 text-pink-700",
-    "bg-fuchsia-100 text-fuchsia-700",
-    "bg-purple-100 text-purple-700",
-    "bg-violet-100 text-violet-700",
-    "bg-indigo-100 text-indigo-700",
-    "bg-sky-100 text-sky-700",
-    "bg-emerald-100 text-emerald-700",
+    "bg-primary/10 text-primary",
+    "bg-secondary text-secondary-foreground",
+    "bg-accent text-accent-foreground",
+    "bg-muted text-foreground",
   ];
   return tones[name.length % tones.length];
 }
@@ -121,17 +114,12 @@ export function getTravelerColumns(
       header: t("traveler"),
       cell: ({ row }: { row: any }) => (
         <div className="flex items-center gap-3">
-          <Avatar className="size-10 font-medium">
-            <AvatarImage
-              src={row.original.image ?? undefined}
-              alt={row.original.name}
-            />
-            <AvatarFallback
-              className={cn("text-xs", getAvatarTone(row.original.name))}
-            >
-              {getInitials(row.original.name)}
-            </AvatarFallback>
-          </Avatar>
+          <UserAvatar
+            name={row.original.name}
+            src={row.original.image}
+            seed={row.original.id}
+            size="md"
+          />
           <div className="min-w-0">
             <div className="truncate font-medium text-foreground text-sm">
               {row.original.name}

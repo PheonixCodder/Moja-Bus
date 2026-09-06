@@ -1,23 +1,19 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
 	View,
 	Text,
 	Modal,
-	TouchableOpacity,
-	StyleSheet,
-	ActivityIndicator,
 } from "react-native";
 import {
 	AlertTriangle,
 	Bus,
 	Clock,
-	MapPin,
 	Users,
-	CheckCircle,
-	XCircle,
 } from "lucide-react-native";
 import { DriverFeedback } from "@/lib/haptics";
 import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/Button";
+import { colors } from "@/constants/theme";
 
 /**
  * Phase 31 (F-DV-14) — locale-aware departure formatting. Falls back to the
@@ -109,33 +105,41 @@ export function UrgentDispatchModal({
 
 	return (
 		<Modal visible={visible} transparent animationType="fade">
-			<View style={styles.backdrop}>
-				<View style={styles.modalCard}>
+			<View className="flex-1 bg-black/85 items-center justify-center p-5">
+				<View className="w-full bg-card border border-border rounded-3xl p-5 shadow-2xl">
 					{/* Header with Urgent Badge & 30s Countdown */}
-					<View style={styles.header}>
-						<View style={styles.alertBadge}>
-							<AlertTriangle size={16} color="#f59e0b" />
-							<Text style={styles.alertText}>{t("urgentDispatch")}</Text>
+					<View className="flex-row items-center justify-between mb-4">
+						<View className="flex-row items-center gap-1.5 bg-warning/10 border border-warning/30 px-2.5 py-1.5 rounded-full">
+							<AlertTriangle size={16} color={colors.semantic.warning} />
+							<Text className="text-[11px] font-extrabold text-warning uppercase tracking-wider">{t("urgentDispatch")}</Text>
 						</View>
-						<View style={styles.countdownContainer}>
-							<Text style={styles.countdownText}>{timeLeft}s</Text>
+						<View className="w-8 h-8 rounded-full bg-primary items-center justify-center">
+							<Text className="text-xs font-black text-primary-foreground font-mono">{timeLeft}s</Text>
 						</View>
 					</View>
 
 					{/* Route Details Card */}
-					<View style={styles.routeCard}>
-						<View style={styles.carrierRow}>
-							<View style={styles.busIconContainer}>
-								<Bus size={18} color="#e11d48" />
+					<View className="bg-background border border-border rounded-2xl p-3.5 mb-4">
+						<View className="flex-row items-center gap-2.5 border-b border-border/60 pb-2.5 mb-2.5">
+							<View className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 items-center justify-center">
+								<Bus size={18} color={colors.primary.rose} />
 							</View>
-							<View style={{ flex: 1 }}>
-								<Text style={styles.carrierTitle}>{dispatch.carrierName}</Text>
-								<Text style={styles.busPlateText}>{t("busPlate", { plate: dispatch.busPlate })}</Text>
+							<View className="flex-1">
+								<Text className="text-sm font-extrabold text-foreground">{dispatch.carrierName}</Text>
+								<Text className="text-xs text-muted-foreground font-mono">{t("busPlate", { plate: dispatch.busPlate })}</Text>
 							</View>
 							{/* Departure Proximity Pill */}
-							<View style={[styles.proximityPill, isImminent ? styles.proximityPillImminent : styles.proximityPillNormal]}>
-								<Clock size={11} color={isImminent ? "#ef4444" : "#f59e0b"} />
-								<Text style={[styles.proximityPillText, isImminent ? styles.proximityPillTextImminent : styles.proximityPillTextNormal]}>
+							<View
+								className={`flex-row items-center gap-1 px-2 py-1 rounded-lg border ${
+									isImminent ? "bg-destructive/15 border-destructive/40" : "bg-warning/10 border-warning/30"
+								}`}
+							>
+								<Clock size={11} color={isImminent ? colors.semantic.error : colors.semantic.warning} />
+								<Text
+									className={`text-[11px] font-bold ${
+										isImminent ? "text-destructive" : "text-warning"
+									}`}
+								>
 									{minutesToDeparture <= 0
 										? t("departingNow")
 										: t("departsIn", { minutes: minutesToDeparture })}
@@ -144,33 +148,33 @@ export function UrgentDispatchModal({
 						</View>
 
 						{/* Route Sequence */}
-						<View style={styles.stopTimeline}>
-							<View style={styles.stopRow}>
-								<View style={styles.originDot} />
-								<Text style={styles.stopName} numberOfLines={1}>
+						<View className="py-1">
+							<View className="flex-row items-center gap-2">
+								<View className="w-2 h-2 rounded-full bg-success" />
+								<Text className="text-xs font-bold text-foreground flex-1" numberOfLines={1}>
 									{dispatch.originName}
 								</Text>
 							</View>
-							<View style={styles.timelineTrack} />
-							<View style={styles.stopRow}>
-								<View style={styles.destDot} />
-								<Text style={styles.stopName} numberOfLines={1}>
+							<View className="w-0.5 h-2.5 bg-border ml-[3px] my-0.5" />
+							<View className="flex-row items-center gap-2">
+								<View className="w-2 h-2 rounded-full bg-primary" />
+								<Text className="text-xs font-bold text-foreground flex-1" numberOfLines={1}>
 									{dispatch.destinationName}
 								</Text>
 							</View>
 						</View>
 
 						{/* Metadata */}
-						<View style={styles.metaRow}>
-							<View style={styles.metaItem}>
-								<Clock size={13} color="#71717a" />
-								<Text style={styles.metaText}>
+						<View className="flex-row items-center justify-between border-t border-border/60 pt-2.5 mt-2.5">
+							<View className="flex-row items-center gap-1">
+								<Clock size={13} color={colors.neutral.textMuted} />
+								<Text className="text-xs font-semibold text-muted-foreground">
 									{t("departs", { time: formatDeparture(dispatch.departureTimeIso) })}
 								</Text>
 							</View>
-							<View style={styles.metaItem}>
-								<Users size={13} color="#71717a" />
-								<Text style={styles.metaText}>
+							<View className="flex-row items-center gap-1">
+								<Users size={13} color={colors.neutral.textMuted} />
+								<Text className="text-xs font-semibold text-muted-foreground">
 									{t("passengersCount", {
 										booked: dispatch.bookedPassengers,
 										total: dispatch.totalSeats,
@@ -181,237 +185,25 @@ export function UrgentDispatchModal({
 					</View>
 
 					{/* Action Buttons */}
-					<View style={styles.buttonRow}>
-						<TouchableOpacity
+					<View className="flex-row gap-2.5">
+						<Button
+							title={t("decline")}
+							variant="secondary"
+							size="lg"
 							onPress={handleDecline}
-							style={styles.declineButton}
-							activeOpacity={0.8}
-						>
-							<Text style={styles.declineText}>{t("decline")}</Text>
-						</TouchableOpacity>
+							className="flex-1"
+						/>
 
-						<TouchableOpacity
+						<Button
+							title={t("accept")}
+							variant="primary"
+							size="lg"
 							onPress={handleAccept}
-							style={styles.acceptButton}
-							activeOpacity={0.8}
-						>
-							<Text style={styles.acceptText}>{t("accept")}</Text>
-						</TouchableOpacity>
+							className="flex-[2]"
+						/>
 					</View>
 				</View>
 			</View>
 		</Modal>
 	);
 }
-
-const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.85)",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 20,
-  },
-  modalCard: {
-    width: "100%",
-    backgroundColor: "#18181b",
-    borderWidth: 1,
-    borderColor: "#27272a",
-    borderRadius: 24,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.5,
-    shadowRadius: 20,
-    elevation: 20,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
-  alertBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: "rgba(245, 158, 11, 0.1)",
-    borderWidth: 1,
-    borderColor: "rgba(245, 158, 11, 0.3)",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 20,
-  },
-  alertText: {
-    fontSize: 11,
-    fontWeight: "800",
-    color: "#f59e0b",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  countdownContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#e11d48",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  countdownText: {
-    fontSize: 12,
-    fontWeight: "900",
-    color: "#ffffff",
-    fontFamily: "monospace",
-  },
-  routeCard: {
-    backgroundColor: "#09090b",
-    borderWidth: 1,
-    borderColor: "#27272a",
-    borderRadius: 16,
-    padding: 14,
-    marginBottom: 16,
-  },
-  carrierRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(39, 39, 42, 0.6)",
-    paddingBottom: 10,
-    marginBottom: 10,
-  },
-  busIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: "rgba(225, 29, 72, 0.1)",
-    borderWidth: 1,
-    borderColor: "rgba(225, 29, 72, 0.2)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  carrierTitle: {
-    fontSize: 13,
-    fontWeight: "800",
-    color: "#ffffff",
-  },
-  busPlateText: {
-    fontSize: 11,
-    color: "#a1a1aa",
-    fontFamily: "monospace",
-  },
-  stopTimeline: {
-    paddingVertical: 4,
-  },
-  stopRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  originDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#10b981",
-  },
-  destDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#e11d48",
-  },
-  timelineTrack: {
-    width: 2,
-    height: 10,
-    backgroundColor: "#27272a",
-    marginLeft: 3,
-    marginVertical: 2,
-  },
-  stopName: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#ffffff",
-    flex: 1,
-  },
-  metaRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderTopWidth: 1,
-    borderTopColor: "rgba(39, 39, 42, 0.6)",
-    paddingTop: 10,
-    marginTop: 10,
-  },
-  metaItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  metaText: {
-    fontSize: 11,
-    color: "#a1a1aa",
-    fontWeight: "600",
-  },
-  buttonRow: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  declineButton: {
-    flex: 1,
-    height: 48,
-    backgroundColor: "#27272a",
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  declineText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#a1a1aa",
-  },
-  acceptButton: {
-    flex: 2,
-    height: 48,
-    backgroundColor: "#e11d48",
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#e11d48",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  acceptText: {
-    fontSize: 13,
-    fontWeight: "800",
-    color: "#ffffff",
-  },
-  proximityPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    borderWidth: 1,
-  },
-  proximityPillNormal: {
-    backgroundColor: "rgba(245, 158, 11, 0.1)",
-    borderColor: "rgba(245, 158, 11, 0.3)",
-  },
-  proximityPillImminent: {
-    backgroundColor: "rgba(239, 68, 68, 0.15)",
-    borderColor: "rgba(239, 68, 68, 0.4)",
-  },
-  proximityPillText: {
-    fontSize: 11,
-    fontWeight: "700",
-  },
-  proximityPillTextNormal: {
-    color: "#f59e0b",
-  },
-  proximityPillTextImminent: {
-    color: "#ef4444",
-  },
-});

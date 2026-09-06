@@ -147,20 +147,20 @@ export function OperatorWithdrawView() {
   return (
     <div className="mx-auto max-w-4xl space-y-8">
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold font-display tracking-tight text-slate-900">
+        <h1 className="text-2xl font-bold font-display tracking-tight text-foreground">
           {t("title")}
         </h1>
-        <p className="text-sm text-slate-500 max-w-2xl leading-relaxed">
+        <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
           {t("description")}
         </p>
       </div>
 
       {!bankVerified ? (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 flex flex-col sm:flex-row sm:items-center gap-3">
-          <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
-          <div className="flex-1 text-sm text-amber-900">
+        <div className="rounded-lg border border-warning/20 bg-warning/10 p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+          <AlertCircle className="h-5 w-5 text-warning shrink-0" />
+          <div className="flex-1 text-sm text-warning">
             <p className="font-semibold">{t("bankNotVerifiedTitle")}</p>
-            <p className="text-amber-800 mt-0.5">{t("bankNotVerifiedDesc")}</p>
+            <p className="text-warning/90 mt-0.5">{t("bankNotVerifiedDesc")}</p>
           </div>
           <Button
             variant="outline"
@@ -175,32 +175,32 @@ export function OperatorWithdrawView() {
       ) : null}
 
       {balancesReconciling ? (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 flex flex-col sm:flex-row sm:items-center gap-3">
-          <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
-          <div className="flex-1 text-sm text-amber-900">
+        <div className="rounded-lg border border-warning/20 bg-warning/10 p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+          <AlertCircle className="h-5 w-5 text-warning shrink-0" />
+          <div className="flex-1 text-sm text-warning">
             <p className="font-semibold">{t("reconcilingTitle")}</p>
-            <p className="text-amber-800 mt-0.5">{t("reconcilingDesc")}</p>
+            <p className="text-warning/90 mt-0.5">{t("reconcilingDesc")}</p>
           </div>
         </div>
       ) : null}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-emerald-100">
+        <Card className="bg-success/5 border-success/20">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-emerald-800 flex items-center gap-2">
+            <CardTitle className="text-sm font-medium text-success flex items-center gap-2">
               <Wallet className="h-4 w-4" />
               {t("availableBalance")}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-emerald-950">
+            <div className="text-3xl font-bold text-foreground">
               {new Intl.NumberFormat("en-US", {
                 style: "currency",
                 currency: "XOF",
                 maximumFractionDigits: 0,
               }).format(availableBalance)}
             </div>
-            <p className="text-xs text-emerald-600/80 mt-1">
+            <p className="text-xs text-success mt-1">
               {t("readyForWithdrawal")}
             </p>
           </CardContent>
@@ -208,20 +208,20 @@ export function OperatorWithdrawView() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <Info className="h-4 w-4" />
               {t("inEscrow")}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-slate-900">
+            <div className="text-3xl font-bold text-foreground">
               {new Intl.NumberFormat("en-US", {
                 style: "currency",
                 currency: "XOF",
                 maximumFractionDigits: 0,
               }).format(escrowBalance)}
             </div>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               {t("escrowDescription")}
             </p>
           </CardContent>
@@ -250,7 +250,7 @@ export function OperatorWithdrawView() {
                     withdrawMutation.isPending || availableBalance <= 0n
                   }
                 />
-                <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-semibold">
+                <span className="absolute right-3 top-2.5 text-xs text-muted-foreground font-semibold">
                   XOF
                 </span>
               </div>
@@ -279,7 +279,7 @@ export function OperatorWithdrawView() {
                     value={twoFactorCode}
                     onChange={(e) => setTwoFactorCode(e.target.value)}
                     disabled={withdrawMutation.isPending}
-                    className="max-w-[200px]"
+                    className="max-w-48"
                   />
                   <Button
                     type="button"
@@ -323,12 +323,12 @@ export function OperatorWithdrawView() {
               )}
             </Button>
 
-            <div className="rounded-lg bg-amber-50 p-4 border border-amber-100 mt-4">
+            <div className="rounded-lg bg-warning/10 p-4 border border-warning/20 mt-4">
               <div className="flex gap-3">
-                <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
-                <div className="space-y-1 text-sm text-amber-800">
+                <AlertCircle className="h-5 w-5 text-warning shrink-0" />
+                <div className="space-y-1 text-sm text-foreground">
                   <p className="font-medium">{t("withdrawRules")}</p>
-                  <ul className="list-disc pl-4 space-y-1 text-amber-700/90 text-xs">
+                  <ul className="list-disc pl-4 space-y-1 text-muted-foreground text-xs">
                     <li>{t("minAmountRule")}</li>
                     {frequencyHours > 0 ? (
                       <li>{t("frequencyRule", { frequencyHours })}</li>
@@ -336,7 +336,7 @@ export function OperatorWithdrawView() {
                     {require2FA ? <li>{t("codeRequiredRule")}</li> : null}
                     <li>{t("feeRule")}</li>
                     <li>{t("settlementRule")}</li>
-                    <li className="font-semibold text-amber-900 mt-2">
+                    <li className="font-semibold text-warning mt-2">
                       {t("warningRule")}
                     </li>
                   </ul>
@@ -348,48 +348,48 @@ export function OperatorWithdrawView() {
       ) : null}
 
       {/* Withdrawal History Card */}
-      <Card className="border border-border bg-white rounded-lg shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 pb-4">
+      <Card className="border border-border bg-card rounded-lg shadow-xs">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-border pb-4">
           <div>
-            <CardTitle className="text-base font-bold text-slate-900">
+            <CardTitle className="text-base font-bold text-card-foreground">
               {t("history")}
             </CardTitle>
-            <CardDescription className="text-xs text-slate-500">
+            <CardDescription className="text-xs text-muted-foreground">
               {t("historyDescription")}
             </CardDescription>
           </div>
-          <History className="h-5 w-5 text-slate-400" />
+          <History className="h-5 w-5 text-muted-foreground" />
         </CardHeader>
         <CardContent className="p-0">
           {withdrawals && withdrawals.items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center text-sm text-slate-500 space-y-3">
-              <div className="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center text-slate-400">
+            <div className="flex flex-col items-center justify-center py-16 text-center text-sm text-muted-foreground space-y-3">
+              <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center text-muted-foreground">
                 <History className="h-5 w-5" />
               </div>
               <p>{t("noWithdrawals")}</p>
             </div>
           ) : withdrawals ? (
             <div className="space-y-4 p-4">
-              <div className="border border-border rounded-md bg-white overflow-hidden shadow-xs">
+              <div className="border border-border rounded-md bg-card overflow-hidden shadow-xs">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-slate-50 hover:bg-slate-50">
-                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                    <TableRow className="bg-muted hover:bg-muted">
+                      <TableHead className="text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4">
                         {t("columns.dateId")}
                       </TableHead>
-                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                      <TableHead className="text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4">
                         {t("columns.transferDetails")}
                       </TableHead>
-                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4">
+                      <TableHead className="text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4">
                         {t("columns.status")}
                       </TableHead>
-                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4 text-right">
+                      <TableHead className="text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4 text-right">
                         {t("columns.grossPayout")}
                       </TableHead>
-                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4 text-right">
+                      <TableHead className="text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4 text-right">
                         {t("columns.paystackFee")}
                       </TableHead>
-                      <TableHead className="text-xs font-bold text-slate-500 uppercase tracking-wider h-10 px-4 text-right">
+                      <TableHead className="text-xs font-bold text-muted-foreground uppercase tracking-wider h-10 px-4 text-right">
                         {t("columns.netSettled")}
                       </TableHead>
                     </TableRow>
@@ -406,13 +406,13 @@ export function OperatorWithdrawView() {
                       const netAmount = Math.max(0, grossAmount - fee);
 
                       let statusBadge = (
-                        <Badge className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                        <Badge className="bg-warning/10 text-warning border-warning/20">
                           {t("statusBadge.pending")}
                         </Badge>
                       );
                       if (tx.status === "SETTLED") {
                         statusBadge = (
-                          <Badge className="bg-green-50 text-green-700 border-green-200">
+                          <Badge className="bg-success/10 text-success border-success/20">
                             {t("statusBadge.settled")}
                           </Badge>
                         );
@@ -421,17 +421,17 @@ export function OperatorWithdrawView() {
                         tx.status === "REVERSED"
                       ) {
                         statusBadge = (
-                          <Badge className="bg-red-50 text-red-700 border-red-200">
+                          <Badge className="bg-destructive/10 text-destructive border-destructive/20">
                             {t("statusBadge.failed")}
                           </Badge>
                         );
                       }
 
                       return (
-                        <TableRow key={tx.id} className="hover:bg-slate-50/50">
+                        <TableRow key={tx.id} className="hover:bg-muted/50">
                           <TableCell className="px-4 py-3">
                             <div className="space-y-0.5">
-                              <div className="text-xs font-medium text-slate-900">
+                              <div className="text-xs font-medium text-foreground">
                                 {new Date(tx.createdAt).toLocaleDateString(
                                   "en-US",
                                   {
@@ -441,7 +441,7 @@ export function OperatorWithdrawView() {
                                   },
                                 )}
                               </div>
-                              <div className="text-[10px] font-mono text-slate-400">
+                              <div className="text-[10px] font-mono text-muted-foreground">
                                 {t("txLabel", {
                                   id: tx.id.slice(-8).toUpperCase(),
                                 })}
@@ -450,13 +450,13 @@ export function OperatorWithdrawView() {
                           </TableCell>
                           <TableCell className="px-4 py-3">
                             <div className="space-y-0.5">
-                              <div className="text-xs text-slate-700 font-medium">
+                              <div className="text-xs text-foreground font-medium">
                                 {t("paystackCode", {
                                   code: tx.externalPaymentId || t("na"),
                                 })}
                               </div>
                               {metadata.bankAccountId && (
-                                <div className="text-[10px] text-slate-500">
+                                <div className="text-[10px] text-muted-foreground">
                                   {t("settledToBank")}
                                 </div>
                               )}
@@ -465,13 +465,13 @@ export function OperatorWithdrawView() {
                           <TableCell className="px-4 py-3">
                             {statusBadge}
                           </TableCell>
-                          <TableCell className="px-4 py-3 text-right text-xs font-semibold text-slate-900">
+                          <TableCell className="px-4 py-3 text-right text-xs font-semibold text-foreground">
                             {grossAmount.toLocaleString()} XOF
                           </TableCell>
-                          <TableCell className="px-4 py-3 text-right text-xs text-slate-500">
+                          <TableCell className="px-4 py-3 text-right text-xs text-muted-foreground">
                             {fee.toLocaleString()} XOF
                           </TableCell>
-                          <TableCell className="px-4 py-3 text-right text-xs font-bold text-slate-900">
+                          <TableCell className="px-4 py-3 text-right text-xs font-bold text-foreground">
                             {netAmount.toLocaleString()} XOF
                           </TableCell>
                         </TableRow>
@@ -484,7 +484,7 @@ export function OperatorWithdrawView() {
               {/* Pagination */}
               {withdrawals.total > pageSize && (
                 <div className="flex justify-between items-center text-xs pt-2">
-                  <span className="text-slate-500 font-medium">
+                  <span className="text-muted-foreground font-medium">
                     {t("pagination", {
                       start: currentPage * pageSize + 1,
                       end: Math.min(

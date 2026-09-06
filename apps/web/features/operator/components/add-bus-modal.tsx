@@ -223,9 +223,9 @@ export function AddBusModal({
         open={open}
         onOpenChange={onOpenChange}
         modal={false}
-        direction="right"
+        swipeDirection="right"
       >
-        <DrawerContent className="bg-background border-l border-border w-full sm:max-w-lg flex flex-col">
+        <DrawerContent className="flex w-full flex-col border-l border-border bg-background data-[swipe-axis=x]:[--drawer-content-width:100%] sm:data-[swipe-axis=x]:[--drawer-content-width:32rem]">
           <DrawerHeader className="border-b border-border pb-4 shrink-0">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 border border-primary/20">
@@ -427,14 +427,16 @@ export function AddBusModal({
                       {t("seatLayoutLabel")}
                     </Label>
                     {busTypeId && (
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="sm"
                         onClick={() => setBuilderOpen(true)}
-                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors"
+                        className="h-auto p-0 inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors hover:bg-transparent"
                       >
                         <Plus className="size-3" />
                         {tLayouts("createCustomLayout")}
-                      </button>
+                      </Button>
                     )}
                   </div>
 
@@ -500,14 +502,16 @@ export function AddBusModal({
                             <p className="text-xs text-muted-foreground">
                               {t("noLayoutsAvailable")}
                             </p>
-                            <button
+                            <Button
                               type="button"
+                              variant="ghost"
+                              size="sm"
                               onClick={() => setBuilderOpen(true)}
-                              className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                              className="mt-2 h-auto p-0 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary/80 transition-colors hover:bg-transparent"
                             >
                               <Plus className="size-3.5" />
                               {tLayouts("createCustomLayout")}
-                            </button>
+                            </Button>
                           </div>
                         )}
                     </div>
@@ -592,14 +596,15 @@ export function AddBusModal({
               {isPending && <Spinner className="size-4 mr-2" />}
               {isEditing ? t("saveBtn") : t("addBtn")}
             </Button>
-            <DrawerClose asChild>
-              <Button
+            <DrawerClose
+              render={
+                <Button
                 variant="ghost"
-                className="h-9 text-muted-foreground hover:text-foreground"
-              >
+                className="h-9 text-muted-foreground hover:text-foreground" />
+              }
+            >
                 {t("cancelBtn")}
-              </Button>
-            </DrawerClose>
+              </DrawerClose>
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
@@ -646,13 +651,14 @@ function LayoutRadioCard({
 }: LayoutRadioCardProps) {
   const t = useTranslations("operatorDashboard.fleet.addBusDrawer");
   return (
-    <button
+    <Button
       type="button"
+      variant="ghost"
       onClick={onSelect}
       className={cn(
-        "flex items-center gap-3 rounded-lg border p-3 text-left transition-all duration-150",
+        "flex items-center gap-3 rounded-lg border p-3 text-left transition-all duration-150 h-auto justify-start font-normal whitespace-normal w-full",
         selected
-          ? "border-primary/50 bg-primary/5 shadow-sm"
+          ? "border-primary/50 bg-primary/5 shadow-sm hover:bg-primary/10"
           : "border-border bg-card hover:border-foreground/20 hover:bg-muted/50",
       )}
     >
@@ -689,6 +695,6 @@ function LayoutRadioCard({
           </strong>
         </p>
       </div>
-    </button>
+    </Button>
   );
 }

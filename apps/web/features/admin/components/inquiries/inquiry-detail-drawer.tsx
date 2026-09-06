@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@moja/ui/components/ui/badge";
+import { UserAvatar } from "@moja/ui/components/ui/user-avatar";
 import { Button } from "@moja/ui/components/ui/button";
 import {
   Sheet,
@@ -118,12 +119,12 @@ export function InquiryDetailDrawer({
               variant="secondary"
               className={
                 inquiry.status === "NEW"
-                  ? "bg-blue-500/10 text-blue-600 shrink-0"
+                  ? "bg-primary/10 text-primary shrink-0"
                   : inquiry.status === "IN_PROGRESS"
-                    ? "bg-amber-500/10 text-amber-600 shrink-0"
+                    ? "bg-warning/10 text-warning shrink-0"
                     : inquiry.status === "RESOLVED"
-                      ? "bg-emerald-500/10 text-emerald-600 shrink-0"
-                      : "bg-slate-500/10 text-slate-500 shrink-0"
+                      ? "bg-success/10 text-success shrink-0"
+                      : "bg-muted text-muted-foreground shrink-0"
               }
             >
               {t(
@@ -136,14 +137,12 @@ export function InquiryDetailDrawer({
         <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
           <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#ee237c]/10 text-[#ee237c] text-xs font-bold shrink-0">
-                {inquiry.name
-                  .split(" ")
-                  .map((part: string) => part[0])
-                  .join("")
-                  .toUpperCase()
-                  .slice(0, 2)}
-              </div>
+              <UserAvatar
+                name={inquiry.name}
+                seed={inquiry.userId || inquiry.id}
+                size="md"
+                className="size-9"
+              />
               <div className="min-w-0">
                 <p className="font-semibold text-foreground text-sm truncate">
                   {inquiry.name}
@@ -152,8 +151,8 @@ export function InquiryDetailDrawer({
                   variant="secondary"
                   className={
                     inquiry.userId
-                      ? "bg-emerald-500/10 text-emerald-600"
-                      : "bg-slate-500/10 text-slate-500"
+                      ? "bg-success/10 text-success"
+                      : "bg-muted text-muted-foreground"
                   }
                 >
                   {inquiry.userId ? t("badge.loggedIn") : t("badge.guest")}
@@ -166,7 +165,7 @@ export function InquiryDetailDrawer({
                 <Mail className="size-4 text-muted-foreground shrink-0" />
                 <a
                   href={`mailto:${inquiry.email}`}
-                  className="hover:text-[#ee237c] transition-colors truncate"
+                  className="hover:text-primary transition-colors truncate"
                 >
                   {inquiry.email}
                 </a>
@@ -254,7 +253,7 @@ export function InquiryDetailDrawer({
                   key={action.status}
                   variant={action.variant}
                   size="sm"
-                  className="flex-1 min-w-[120px]"
+                  className="flex-1 min-w-32"
                   disabled={
                     statusMutation.isPending || inquiry.status === action.status
                   }

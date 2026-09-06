@@ -32,11 +32,11 @@ export function AdminCampaignsFilterBar({
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex flex-1 flex-wrap items-center gap-3">
-        <div className="relative min-w-[240px] max-w-sm flex-1">
-          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+        <div className="relative min-w-60 max-w-sm flex-1">
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder={t("searchPlaceholder")}
-            className="pl-9 bg-white"
+            className="pl-9 bg-card"
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
           />
@@ -46,7 +46,7 @@ export function AdminCampaignsFilterBar({
           value={status}
           onValueChange={(val: string | null) => onStatusChange(val ?? status)}
         >
-          <SelectTrigger className="w-[150px] bg-white">
+          <SelectTrigger className="w-36 bg-card">
             <SelectValue placeholder={t("allStatuses")} />
           </SelectTrigger>
           <SelectContent>
@@ -63,7 +63,7 @@ export function AdminCampaignsFilterBar({
       <Button
         type="button"
         onClick={onOpenCreate}
-        className="gap-2 shadow-xs bg-slate-900 hover:bg-slate-800 text-white font-medium"
+        className="gap-2 shadow-xs font-medium"
       >
         <Plus className="size-4" />
         {t("newCampaign")}

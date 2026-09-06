@@ -93,7 +93,7 @@ export function AdminStaffMemberRow({
         </div>
       </div>
 
-      <div className="hidden md:flex flex-col items-end gap-1 min-w-[110px]">
+      <div className="hidden md:flex flex-col items-end gap-1 min-w-28">
         <div className="flex items-center gap-2">
           <AdminStatusBadge status={member.status} />
         </div>
@@ -108,7 +108,7 @@ export function AdminStaffMemberRow({
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+              className="size-8 p-0 text-muted-foreground hover:text-foreground"
             />
           }
         >
@@ -137,7 +137,7 @@ export function AdminStaffMemberRow({
           {canUpdate && !isSuperAdmin ? (
             member.status === "ACTIVE" ? (
               <DropdownMenuItem
-                className="text-[13px] cursor-pointer text-amber-600 focus:text-amber-600"
+                className="text-[13px] cursor-pointer text-warning focus:text-warning"
                 onClick={() => onStatusChange(member, "SUSPENDED")}
               >
                 <PauseCircle className="mr-2 h-3.5 w-3.5" />
@@ -145,7 +145,7 @@ export function AdminStaffMemberRow({
               </DropdownMenuItem>
             ) : (
               <DropdownMenuItem
-                className="text-[13px] cursor-pointer text-emerald-600 focus:text-emerald-600"
+                className="text-[13px] cursor-pointer text-success focus:text-success"
                 onClick={() => onStatusChange(member, "ACTIVE")}
               >
                 <PlayCircle className="mr-2 h-3.5 w-3.5" />
@@ -158,7 +158,7 @@ export function AdminStaffMemberRow({
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                className="text-[13px] cursor-pointer text-amber-600 focus:text-amber-600"
+                className="text-[13px] cursor-pointer text-warning focus:text-warning"
                 onClick={() => onTransfer(member)}
               >
                 <ArrowRightLeft className="mr-2 h-3.5 w-3.5" />
@@ -171,7 +171,7 @@ export function AdminStaffMemberRow({
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                className="text-[13px] cursor-pointer text-red-600 focus:text-red-600"
+                className="text-[13px] cursor-pointer text-destructive focus:text-destructive"
                 onClick={() => onRemove(member)}
               >
                 <Trash2 className="mr-2 h-3.5 w-3.5" />

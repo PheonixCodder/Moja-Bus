@@ -145,8 +145,8 @@ function TicketSheet({
   return (
     <>
       <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <SheetContent className="w-full sm:max-w-md p-0 flex flex-col border-l border-border bg-bg-surface overflow-hidden">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-bg-base">
+        <SheetContent className="w-full sm:max-w-md p-0 flex flex-col border-l border-border bg-surface overflow-hidden">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted">
             <SheetHeader className="text-left space-y-0 border-none p-0">
               <SheetTitle className="text-lg font-bold">
                 {t("sheetTitle")}
@@ -161,17 +161,16 @@ function TicketSheet({
                 size="sm"
                 className="h-8 gap-1.5 rounded-full text-xs font-medium"
               />
-              <button
+              <Button
                 type="button"
+                variant="outline"
+                size="sm"
                 onClick={() => setIsShareOpen(true)}
-                className={cn(
-                  buttonVariants({ variant: "outline", size: "sm" }),
-                  "h-8 gap-1.5 rounded-full text-xs font-medium",
-                )}
+                className="h-8 gap-1.5 rounded-full text-xs font-medium"
               >
                 <Share2 className="w-3 h-3" />
                 {t("share")}
-              </button>
+              </Button>
               <Link
                 href={`/tickets/${encodeURIComponent(ticketToken)}`}
                 target="_blank"
@@ -181,28 +180,26 @@ function TicketSheet({
                 )}
               >
                 <ExternalLink className="w-3 h-3" />
-                {t("openTicket")}
+                {t("openInTab")}
               </Link>
             </div>
           </div>
 
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             {isLoading ? (
-              <div className="flex justify-center py-20">
+              <div className="h-64 flex items-center justify-center">
                 <Spinner className="size-8 text-primary" />
               </div>
             ) : isError || !ticket ? (
-              <div className="py-12 text-center space-y-4">
-                <p className="text-sm text-error font-medium">
-                  {t("loadError")}
-                </p>
-                <Button variant="outline" size="sm" onClick={onClose}>
+              <div className="text-center py-12 space-y-3">
+                <p className="text-sm text-muted-foreground">{t("ticketNotFound")}</p>
+                <Button variant="outline" onClick={onClose}>
                   {t("close")}
                 </Button>
               </div>
             ) : (
               <div className="space-y-6">
-                <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-900 leading-relaxed shadow-sm">
+                <div className="rounded-xl border border-success/30 bg-success/10 px-4 py-3 text-xs text-success leading-relaxed shadow-sm">
                   {t("qrInstructions")}
                 </div>
 
@@ -211,7 +208,7 @@ function TicketSheet({
             )}
           </div>
 
-          <div className="p-6 border-t border-border bg-bg-base shrink-0">
+          <div className="p-6 border-t border-border bg-muted shrink-0">
             {isCancellable ? (
               <Button
                 variant="destructive"
@@ -223,7 +220,7 @@ function TicketSheet({
             ) : (
               <Button
                 variant="outline"
-                className="w-full h-11 font-medium rounded-xl border-border text-text-secondary"
+                className="w-full h-11 font-medium rounded-xl border-border text-muted-foreground"
                 disabled
               >
                 {t("cancelClosed")}
@@ -236,11 +233,11 @@ function TicketSheet({
       <Dialog open={isShareOpen} onOpenChange={setIsShareOpen}>
         <DialogContent className="max-w-md border border-border bg-white rounded-2xl p-6 shadow-xl">
           <DialogHeader className="space-y-2">
-            <DialogTitle className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
+            <DialogTitle className="text-xl font-extrabold text-foreground flex items-center gap-2">
               <Share2 className="size-5 text-primary" />
               {t("shareDialogTitle")}
             </DialogTitle>
-            <DialogDescription className="text-sm text-slate-500">
+            <DialogDescription className="text-sm text-muted-foreground">
               {t("shareDialogDesc")}
             </DialogDescription>
           </DialogHeader>
@@ -282,7 +279,7 @@ function TicketSheet({
               <Button
                 type="button"
                 variant="outline"
-                className="flex-1 h-11 rounded-xl border-slate-200 text-slate-700"
+                className="flex-1 h-11 rounded-xl"
                 onClick={() => setIsShareOpen(false)}
               >
                 {t("close")}
@@ -304,24 +301,24 @@ function TicketSheet({
       </Dialog>
 
       <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
-        <DialogContent className="max-w-md border border-border bg-white rounded-2xl p-6 shadow-xl">
+        <DialogContent className="max-w-md border border-border bg-card rounded-2xl p-6 shadow-xl">
           <DialogHeader className="space-y-2">
-            <DialogTitle className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
-              <AlertTriangle className="size-5 text-error" />
+            <DialogTitle className="text-xl font-extrabold text-foreground flex items-center gap-2">
+              <AlertTriangle className="size-5 text-destructive" />
               {t("cancelDialogTitle")}
             </DialogTitle>
-            <DialogDescription className="text-sm text-slate-500">
+            <DialogDescription className="text-sm text-muted-foreground">
               {t("cancelDialogDesc")}
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleCancelBooking} className="space-y-5 pt-2">
             {ticket && (
-              <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4 space-y-1.5">
-                <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold">
+              <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-1.5">
+                <div className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
                   {t("refundSummary")}
                 </div>
-                <div className="text-sm font-bold text-slate-900 flex justify-between items-center border-b border-slate-200 pb-2 mb-2">
+                <div className="text-sm font-bold text-foreground flex justify-between items-center border-b border-border pb-2 mb-2">
                   <span>{t("farePaid")}</span>
                   <span>{formatPriceXOF(ticket.farePaidXOF)}</span>
                 </div>
@@ -331,16 +328,16 @@ function TicketSheet({
                       <span>{t("refundAmount")}</span>
                       <span>{formatPriceXOF(quote.refundAmountXOF)}</span>
                     </div>
-                    <p className="text-[11px] text-slate-500 pt-2 leading-relaxed">
+                    <p className="text-[11px] text-muted-foreground pt-2 leading-relaxed">
                       {t("feeNote")}
                     </p>
-                    <p className="text-[10px] text-slate-400 leading-relaxed">
+                    <p className="text-[10px] text-muted-foreground/70 leading-relaxed">
                       {/* Phase 38 (F-PS-12) — was hardcoded French beside t() */}
                       {t("cancelEstimateNote")}
                     </p>
                   </>
                 ) : quote && !quote.cancellable ? (
-                  <p className="text-[11px] text-slate-500 pt-1">
+                  <p className="text-[11px] text-muted-foreground pt-1">
                     {t("notCancellable")}
                   </p>
                 ) : null}
@@ -351,7 +348,7 @@ function TicketSheet({
               <Button
                 type="button"
                 variant="outline"
-                className="flex-1 h-11 rounded-xl border-slate-200 text-slate-700"
+                className="flex-1 h-11 rounded-xl"
                 onClick={() => setIsCancelModalOpen(false)}
               >
                 {t("keepTicket")}
@@ -403,12 +400,12 @@ export function PassengerTicketsView() {
     return (
       <div className="rounded-2xl border border-error/20 bg-error/5 p-6 text-center max-w-lg">
         <p className="text-error font-medium">{t("errorTitle")}</p>
-        <p className="text-sm text-text-muted mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           {error instanceof Error ? error.message : t("errorFallback")}
         </p>
         <Button
           variant="outline"
-          className="mt-4 border-border text-text-primary"
+          className="mt-4 border-border text-foreground"
           onClick={() => refetch()}
         >
           {t("tryAgain")}
@@ -419,15 +416,15 @@ export function PassengerTicketsView() {
 
   if (confirmed.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-border bg-bg-surface p-12 text-center max-w-lg flex flex-col items-center justify-center space-y-4">
+      <div className="rounded-2xl border border-dashed border-border bg-surface p-12 text-center max-w-lg flex flex-col items-center justify-center space-y-4">
         <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-2">
           <Ticket className="size-8" />
         </div>
         <div className="space-y-1.5">
-          <p className="text-lg font-bold text-text-primary tracking-tight">
+          <p className="text-lg font-bold text-foreground tracking-tight">
             {t("emptyTitle")}
           </p>
-          <p className="text-sm text-text-secondary">{t("emptyDescription")}</p>
+          <p className="text-sm text-muted-foreground">{t("emptyDescription")}</p>
         </div>
         <Link
           href="/search"
@@ -447,7 +444,7 @@ export function PassengerTicketsView() {
   return (
     <div className="space-y-6 w-full max-w-6xl">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-bold text-text-secondary uppercase tracking-widest px-1">
+        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">
           {t(
             activeTicketsCount === 1
               ? "activeCountSingular"
@@ -469,24 +466,24 @@ export function PassengerTicketsView() {
                     ticketToken: seat.ticketToken,
                   })
                 }
-                className="group relative flex flex-col justify-between rounded-2xl bg-bg-surface hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden border border-border"
+                className="group relative flex flex-col justify-between rounded-2xl bg-surface hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden border border-border"
               >
-                <div className="absolute top-1/2 -left-3 w-6 h-6 bg-bg-base rounded-full border border-border group-hover:border-transparent transition-colors z-10" />
-                <div className="absolute top-1/2 -right-3 w-6 h-6 bg-bg-base rounded-full border border-border group-hover:border-transparent transition-colors z-10" />
+                <div className="absolute top-1/2 -left-3 w-6 h-6 bg-muted rounded-full border border-border group-hover:border-transparent transition-colors z-10" />
+                <div className="absolute top-1/2 -right-3 w-6 h-6 bg-muted rounded-full border border-border group-hover:border-transparent transition-colors z-10" />
 
                 <div className="p-6 space-y-5 relative">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full uppercase tracking-wider">
                       {booking.companyName}
                     </span>
-                    <span className="text-[10px] font-bold text-text-muted font-mono tracking-tight bg-bg-base px-2 py-1 rounded-md border border-border">
+                    <span className="text-[10px] font-bold text-muted-foreground font-mono tracking-tight bg-muted px-2 py-1 rounded-md border border-border">
                       {seat.bookingReference}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-3">
                     <div className="flex flex-col flex-1 truncate">
-                      <span className="text-xl font-extrabold text-text-primary tracking-tight truncate">
+                      <span className="text-xl font-extrabold text-foreground tracking-tight truncate">
                         {formatLocationLabel({
                           cityName: booking.originCityName,
                           municipalityName: booking.originMunicipalityName,
@@ -494,7 +491,7 @@ export function PassengerTicketsView() {
                           isUrban: booking.serviceType === "URBAN",
                         })}
                       </span>
-                      <span className="text-xs text-text-secondary truncate mt-0.5">
+                      <span className="text-xs text-muted-foreground truncate mt-0.5">
                         {booking.originTerminalName}
                         {booking.originQuarterName
                           ? ` · ${booking.originQuarterName}`
@@ -503,7 +500,7 @@ export function PassengerTicketsView() {
                     </div>
                     <ArrowRight className="size-4 text-primary shrink-0 opacity-50" />
                     <div className="flex flex-col flex-1 truncate text-right">
-                      <span className="text-xl font-extrabold text-text-primary tracking-tight truncate">
+                      <span className="text-xl font-extrabold text-foreground tracking-tight truncate">
                         {formatLocationLabel({
                           cityName: booking.destinationCityName,
                           municipalityName: booking.destinationMunicipalityName,
@@ -511,7 +508,7 @@ export function PassengerTicketsView() {
                           isUrban: booking.serviceType === "URBAN",
                         })}
                       </span>
-                      <span className="text-xs text-text-secondary truncate mt-0.5">
+                      <span className="text-xs text-muted-foreground truncate mt-0.5">
                         {booking.destinationTerminalName}
                         {booking.destinationQuarterName
                           ? ` · ${booking.destinationQuarterName}`
@@ -526,21 +523,21 @@ export function PassengerTicketsView() {
                 <div className="p-5 bg-primary/5 flex items-center justify-between group-hover:bg-primary/10 transition-colors">
                   <div className="flex gap-4">
                     <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider flex items-center gap-1">
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
                         {t("cardDeparture")}
                       </p>
-                      <p className="font-semibold text-sm text-text-primary">
+                      <p className="font-semibold text-sm text-foreground">
                         {formatDepartureTime(booking.departureTime)}
                       </p>
-                      <p className="text-[10px] text-text-muted">
+                      <p className="text-[10px] text-muted-foreground">
                         {formatDateWithWeekday(booking.departureTime)}
                       </p>
                     </div>
                     <div className="space-y-1 border-l border-border/50 pl-4">
-                      <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider flex items-center gap-1">
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
                         <Armchair className="size-3" /> {t("cardSeat")}
                       </p>
-                      <p className="font-semibold text-sm text-text-primary">
+                      <p className="font-semibold text-sm text-foreground">
                         {seat.seatLabel}
                       </p>
                     </div>

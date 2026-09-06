@@ -2,6 +2,7 @@ import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { DriverLocationPingInput } from "@moja/schemas";
+import { Palette } from "@moja/theme/tokens";
 import {
 	FLUSH_SWEEP_INTERVAL_MS,
 	OFFLINE_FLUSH_CHUNK_SIZE,
@@ -498,7 +499,7 @@ export async function startBackgroundLocationTracking(
 			foregroundService: {
 				notificationTitle: "Moja Driver — Live Telemetry Active",
 				notificationBody: "Streaming live GPS vehicle coordinates to passengers & fleet controllers.",
-				notificationColor: "#e11d48",
+				notificationColor: Palette.rose[600],
 			},
 		});
 	}

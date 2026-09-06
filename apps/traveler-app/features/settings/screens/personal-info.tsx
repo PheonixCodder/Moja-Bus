@@ -6,7 +6,7 @@ import { SubpageHeader } from "@/components/subpage-header";
 import { CustomAlert } from "@/components/custom-alert";
 import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
-import { BottomTabInset } from "@/constants/theme";
+import { BottomTabInset, Palette } from "@/constants/theme";
 import { authClient } from "@/lib/auth-client";
 import {
 	usePersonalInfo,
@@ -117,16 +117,16 @@ export function PersonalInfoView() {
 
 	if (sessionPending || isLoading) {
 		return (
-			<View className="flex-1 items-center justify-center bg-white">
-				<ActivityIndicator size="large" color="#ee237c" />
+			<View className="flex-1 items-center justify-center bg-background">
+				<ActivityIndicator size="large" color={Palette.rose[500]} />
 			</View>
 		);
 	}
 
 	if (!isAuth) {
 		return (
-			<View className="flex-1 items-center justify-center bg-white">
-				<Text className="text-slate-500 text-base">
+			<View className="flex-1 items-center justify-center bg-background">
+				<Text className="text-muted-foreground text-base">
 					{t("signInToManage") ?? "Please sign in to manage your account."}
 				</Text>
 			</View>
@@ -142,7 +142,7 @@ export function PersonalInfoView() {
 		form.marketingOptIn !== (info?.marketingOptIn ?? false);
 
 	return (
-		<View className="flex-1 bg-white">
+		<View className="flex-1 bg-background">
 			<SubpageHeader title={t("personalInformation") ?? "Personal Information"} />
 
 			<ScrollView
@@ -155,14 +155,14 @@ export function PersonalInfoView() {
 				}}
 				keyboardShouldPersistTaps="handled"
 			>
-				<View className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
+				<View className="bg-card rounded-2xl border border-border p-4 shadow-sm">
 					<PersonalInfoAvatar
 						image={currentAvatar}
 						name={info?.fullName ?? "User"}
 						onAvatarUpdated={handleAvatarUpdated}
 					/>
 
-					<View className="h-[1px] bg-slate-100 my-4" />
+					<View className="h-[1px] bg-border my-4" />
 
 					<PersonalInfoForm
 						initialData={form}
@@ -174,12 +174,13 @@ export function PersonalInfoView() {
 				<Pressable
 					onPress={handleSave}
 					disabled={updateMutation.isPending || !hasChanges}
-					className="py-3.5 rounded-2xl bg-pink-600 items-center shadow-lg shadow-pink-500/30 active:opacity-85 disabled:opacity-50"
+					accessibilityRole="button"
+					className="py-3.5 rounded-2xl bg-primary items-center shadow-lg shadow-primary/30 active:opacity-85 disabled:opacity-50 min-h-12 justify-center"
 				>
 					{updateMutation.isPending ? (
-						<ActivityIndicator size="small" color="#ffffff" />
+						<ActivityIndicator size="small" color={Palette.zinc[50]} />
 					) : (
-						<Text className="text-sm font-bold text-white">
+						<Text className="text-sm font-bold text-primary-foreground">
 							{t("saveProfilePreferences")}
 						</Text>
 					)}

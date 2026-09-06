@@ -20,27 +20,27 @@ export function BookingRouteMap({
   const { t } = useTranslation("booking");
 
   return (
-    <View className="bg-white rounded-2xl p-4 border border-slate-200 gap-3">
+    <View className="bg-card rounded-2xl p-4 border border-border gap-3">
       <Text className="text-sm font-bold text-muted-foreground tracking-wider uppercase">
         {t("route")}
       </Text>
 
       <View className="flex-row items-start gap-3">
         <View className="items-center w-8">
-          <View className="w-4 h-4 rounded-full bg-emerald-500 items-center justify-center">
-            <View className="w-1.5 h-1.5 rounded-full bg-white" />
+          <View className="w-4 h-4 rounded-full bg-success items-center justify-center">
+            <View className="w-1.5 h-1.5 rounded-full bg-card" />
           </View>
-          <View className="w-0.5 flex-1 bg-slate-200 mt-1" />
+          <View className="w-0.5 flex-1 bg-border mt-1" />
           {stops && stops.length > 0 ? (
             stops.slice(0, -1).map((_, i) => (
               <View
                 key={`stop-dot-${i}`}
-                className="w-1.5 h-1.5 rounded-full bg-slate-300 mt-1 ml-1"
+                className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40 mt-1 ml-1"
               />
             ))
           ) : null}
-          <View className="w-4 h-4 rounded-full bg-red-500 items-center justify-center mt-1">
-            <View className="w-1.5 h-1.5 rounded-full bg-white" />
+          <View className="w-4 h-4 rounded-full bg-destructive items-center justify-center mt-1">
+            <View className="w-1.5 h-1.5 rounded-full bg-card" />
           </View>
         </View>
 
@@ -58,7 +58,7 @@ export function BookingRouteMap({
             stops.map((stop) => (
               <View
                 key={`stop-${stop.stopOrder}`}
-                className="pl-2 border-l-2 border-slate-200"
+                className="pl-2 border-l-2 border-border"
               >
                 <Text className="text-xs font-medium text-foreground">
                   {stop.terminalName}

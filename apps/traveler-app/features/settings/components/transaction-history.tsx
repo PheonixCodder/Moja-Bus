@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ArrowDownLeft, ArrowUpRight, History } from "lucide-react-native";
 import { View, FlatList, ActivityIndicator, Pressable } from "react-native";
 import { Text } from "@/components/ui/text";
+import { Palette } from "@/constants/theme";
 
 interface LedgerEntry {
   id: string;
@@ -59,19 +60,19 @@ export function TransactionHistory({
   if (isLoading) {
     return (
       <View className="items-center py-5">
-        <ActivityIndicator size="small" color="#ee237c" />
+        <ActivityIndicator size="small" color={Palette.rose[500]} />
       </View>
     );
   }
 
   if (isEmpty) {
     return (
-      <View className="bg-white rounded-2xl border border-slate-100 py-5 items-center gap-2">
-        <View className="w-12 h-12 rounded-full bg-slate-100 items-center justify-center">
-          <History size={24} color="#94a3b8" />
+      <View className="bg-card rounded-2xl border border-border py-5 items-center gap-2">
+        <View className="w-12 h-12 rounded-full bg-muted items-center justify-center">
+          <History size={24} color={Palette.zinc[400]} />
         </View>
-        <Text className="text-sm font-medium text-slate-500">No transactions yet</Text>
-        <Text className="text-xs text-slate-400 max-w-[280px] text-center leading-4">
+        <Text className="text-sm font-medium text-muted-foreground">No transactions yet</Text>
+        <Text className="text-xs text-muted-foreground max-w-[280px] text-center leading-4">
           Your transaction history will appear here after your first top-up or booking.
         </Text>
       </View>
@@ -79,11 +80,11 @@ export function TransactionHistory({
   }
 
   return (
-    <View className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+    <View className="bg-card rounded-2xl border border-border overflow-hidden">
       {/* Header */}
-      <View className="flex-row items-center justify-between px-4 py-3 border-b border-slate-100">
-        <Text className="text-sm font-extrabold text-slate-900">Transaction History</Text>
-        <Text className="text-sm text-slate-500">{total} total</Text>
+      <View className="flex-row items-center justify-between px-4 py-3 border-b border-border">
+        <Text className="text-sm font-extrabold text-foreground">Transaction History</Text>
+        <Text className="text-sm text-muted-foreground">{total} total</Text>
       </View>
 
       <FlatList
@@ -93,36 +94,36 @@ export function TransactionHistory({
         renderItem={({ item }) => {
           const isCredit = item.side === "CREDIT";
           return (
-            <View className="flex-row items-center gap-3 px-4 py-3 border-b border-slate-50">
+            <View className="flex-row items-center gap-3 px-4 py-3 border-b border-border/50">
               <View
                 className={`w-9 h-9 rounded-full items-center justify-center border ${
                   isCredit
-                    ? "bg-emerald-500/10 border-emerald-500/20"
-                    : "bg-red-500/10 border-red-500/20"
+                    ? "bg-success/10 border-success/20"
+                    : "bg-destructive/10 border-destructive/20"
                 }`}
               >
                 {isCredit ? (
-                  <ArrowDownLeft size={16} color="#10b981" />
+                  <ArrowDownLeft size={16} color={Palette.emerald[500]} />
                 ) : (
-                  <ArrowUpRight size={16} color="#ef4444" />
+                  <ArrowUpRight size={16} color={Palette.red[500]} />
                 )}
               </View>
 
               <View className="flex-1">
-                <Text className="text-sm font-semibold text-slate-800">
+                <Text className="text-sm font-semibold text-foreground">
                   {item.description ?? "Transaction"}
                 </Text>
                 <View className="flex-row items-center gap-1 mt-0.5">
-                  <View className="px-1.5 py-[1px] rounded bg-slate-100">
-                    <Text className="text-xs font-bold text-slate-400 tracking-wide uppercase">
+                  <View className="px-1.5 py-[1px] rounded bg-muted">
+                    <Text className="text-xs font-bold text-muted-foreground tracking-wide uppercase">
                       {isCredit ? "Paystack" : "Wallet"}
                     </Text>
                   </View>
-                  <Text className="text-sm text-slate-400">{formatDate(item.effectiveAt)}</Text>
+                  <Text className="text-sm text-muted-foreground">{formatDate(item.effectiveAt)}</Text>
                 </View>
               </View>
 
-              <Text className={`text-sm font-bold ${isCredit ? "text-emerald-600" : "text-slate-800"}`}>
+              <Text className={`text-sm font-bold ${isCredit ? "text-success" : "text-foreground"}`}>
                 {isCredit ? "+" : "-"}{item.amount.toLocaleString()} XOF
               </Text>
             </View>
@@ -131,24 +132,26 @@ export function TransactionHistory({
       />
 
       {totalPages > 1 ? (
-        <View className="flex-row items-center justify-between px-4 py-3 border-t border-slate-100">
-          <Text className="text-sm text-slate-500">
+        <View className="flex-row items-center justify-between px-4 py-3 border-t border-border">
+          <Text className="text-sm text-muted-foreground">
             Showing {currentPage * pageSize + 1}–{Math.min((currentPage + 1) * pageSize, total)} of {total}
           </Text>
           <View className="flex-row gap-1">
             <Pressable
               onPress={() => onPageChange(currentPage - 1)}
               disabled={currentPage === 0}
-              className={`px-2 py-1 rounded-lg border border-slate-200 ${currentPage === 0 ? "opacity-40" : ""}`}
+              accessibilityRole="button"
+              className={`px-2 py-1 rounded-lg border border-border min-h-8 justify-center ${currentPage === 0 ? "opacity-40" : ""}`}
             >
-              <Text className="text-sm font-semibold text-slate-700">Previous</Text>
+              <Text className="text-sm font-semibold text-foreground">Previous</Text>
             </Pressable>
             <Pressable
               onPress={() => onPageChange(currentPage + 1)}
               disabled={currentPage >= totalPages - 1}
-              className={`px-2 py-1 rounded-lg border border-slate-200 ${currentPage >= totalPages - 1 ? "opacity-40" : ""}`}
+              accessibilityRole="button"
+              className={`px-2 py-1 rounded-lg border border-border min-h-8 justify-center ${currentPage >= totalPages - 1 ? "opacity-40" : ""}`}
             >
-              <Text className="text-sm font-semibold text-slate-700">Next</Text>
+              <Text className="text-sm font-semibold text-foreground">Next</Text>
             </Pressable>
           </View>
         </View>

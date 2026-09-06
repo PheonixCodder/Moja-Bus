@@ -7,7 +7,6 @@ import {
 	RefreshControl,
 	ActivityIndicator,
 	Alert,
-	StyleSheet,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -30,6 +29,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { colors } from "@/constants/theme";
 import { prefetchTripRouteDirections } from "@/lib/mapbox";
+import { cn } from "@/lib/utils";
 import { ModeSwitcher, type ServiceMode } from "../components/mode-switcher";
 import { TripCard } from "../components/trip-card";
 
@@ -100,42 +100,48 @@ export function TripsView() {
 	const handleStartTrip = async (tripId: string) => {
 		DriverFeedback.tap();
 		try {
-			const res = await startTripMutation.mutateAsync({ tripId });
-			setTelemetryAuthToken(res.telemetryToken);
-			setTelemetryReauthHandler(async () => {
-				try {
-					const minted = await queryClient.fetchQuery(
-						trpc.drivers.getTelemetryToken.queryOptions({ tripId }),
-					);
-					setTelemetryAuthToken(minted.telemetryToken);
-					return minted.telemetryToken;
-				} catch {
-					return null;
-				}
-			});
-			await startBackgroundLocationTracking(res.driverProfileId, tripId);
+			const result = await startTripMutation.mutateAsync({ tripId });
+			if (result.telemetryToken) {
+				setTelemetryAuthToken(result.telemetryToken);
+				setTelemetryReauthHandler(async () => {
+					try {
+						const minted = await queryClient.fetchQuery(
+							trpc.drivers.getTelemetryToken.queryOptions({ tripId }),
+						);
+						setTelemetryAuthToken(minted.telemetryToken);
+						return minted.telemetryToken;
+					} catch (e) {
+						console.warn("[Telemetry] Background token refresh failed:", e);
+						return null;
+					}
+				});
+				await startBackgroundLocationTracking(result.driverProfileId, tripId);
+			}
+			DriverFeedback.successScan();
 			router.push("/(tabs)/live");
 		} catch (err: any) {
-			console.warn("[StartTrip] Error starting run:", err?.message);
-			Alert.alert(t("errorStartTripTitle"), err?.message ?? t("errorStartTripMsg"));
+			DriverFeedback.invalidScan();
+			Alert.alert(t("errorStartingTrip"), err.message || t("errorStartingTripMsg"));
 		}
 	};
 
-	const handleTakeOverTrip = (tripId: string) => {
+	const handleTakeOverTrip = async (tripId: string) => {
 		DriverFeedback.tap();
 		Alert.alert(
-			t("takeoverConfirmTitle"),
-			t("takeoverConfirmMsg"),
+			t("takeOverTripTitle"),
+			t("takeOverTripMsg"),
 			[
-				{ text: t("cancel", { ns: "live" }) || "Annuler", style: "cancel" },
+				{ text: t("cancel"), style: "cancel" },
 				{
 					text: t("btnTakeOver"),
-					style: "default",
+					style: "destructive",
 					onPress: async () => {
 						try {
-							const res = await takeOverTripMutation.mutateAsync({ tripId });
-							if (res.telemetryToken) {
-								setTelemetryAuthToken(res.telemetryToken);
+							const result = await takeOverTripMutation.mutateAsync({
+								tripId,
+							});
+							if (result.telemetryToken) {
+								setTelemetryAuthToken(result.telemetryToken);
 								setTelemetryReauthHandler(async () => {
 									try {
 										const minted = await queryClient.fetchQuery(
@@ -143,33 +149,44 @@ export function TripsView() {
 										);
 										setTelemetryAuthToken(minted.telemetryToken);
 										return minted.telemetryToken;
-									} catch {
+									} catch (e) {
+										console.warn(
+											"[Telemetry] Handover token refresh failed:",
+											e,
+										);
 										return null;
 									}
 								});
-								await startBackgroundLocationTracking(res.activeDriverProfileId, tripId);
+								await startBackgroundLocationTracking(result.activeDriverProfileId, tripId);
 							}
+							DriverFeedback.successScan();
 							router.push("/(tabs)/live");
 						} catch (err: any) {
-							console.warn("[TakeOverTrip] Error taking over run:", err?.message);
-							Alert.alert(t("errorStartTripTitle"), err?.message ?? t("errorStartTripMsg"));
+							DriverFeedback.invalidScan();
+							Alert.alert(
+								t("errorHandover"),
+								err.message || t("errorHandoverMsg"),
+							);
 						}
 					},
 				},
-			]
+			],
 		);
 	};
 
 	const trips = tripsData?.items ?? [];
 
 	return (
-		<View style={styles.root}>
+		<View className="flex-1 bg-background">
 			{/* Top Header & Dual Mode Switcher */}
-			<View style={[styles.headerContainer, { paddingTop: insets.top + 12 }]}>
-				<View style={styles.headerRow}>
-					<View style={styles.headerTitleWrap}>
-						<Text style={styles.headerTitle}>{t("title")}</Text>
-						<Text style={styles.headerSubtitle}>
+			<View
+				className="px-5 pb-3.5 border-b border-border bg-background gap-3.5"
+				style={{ paddingTop: insets.top + 12 }}
+			>
+				<View className="flex-row items-center justify-between">
+					<View className="gap-0.5 flex-1">
+						<Text className="text-2xl font-extrabold text-foreground tracking-tight">{t("title")}</Text>
+						<Text className="text-[11px] text-muted-foreground">
 							{serviceMode === "ALL"
 								? t("subtitleAll")
 								: serviceMode === "INTERCITY"
@@ -182,7 +199,7 @@ export function TripsView() {
 				</View>
 
 				{/* Filter Tabs */}
-				<View style={styles.tabsRow}>
+				<View className="flex-row gap-2">
 					{(["TODAY", "UPCOMING", "COMPLETED"] as const).map((tab) => (
 						<TouchableOpacity
 							key={tab}
@@ -191,16 +208,18 @@ export function TripsView() {
 								setActiveTab(tab);
 							}}
 							activeOpacity={0.8}
-							style={[
-								styles.tabButton,
-								activeTab === tab && styles.tabButtonActive,
-							]}
+							accessibilityRole="button"
+							accessibilityLabel={tab === "TODAY" ? t("tabToday") : tab === "UPCOMING" ? t("tabUpcoming") : t("tabCompleted")}
+							className={cn(
+								"flex-1 py-2.5 rounded-xl items-center border",
+								activeTab === tab ? "bg-card-elevated border-border" : "border-transparent",
+							)}
 						>
 							<Text
-								style={[
-									styles.tabButtonText,
-									activeTab === tab && styles.tabButtonTextActive,
-								]}
+								className={cn(
+									"text-xs font-bold",
+									activeTab === tab ? "text-foreground" : "text-muted-foreground",
+								)}
 							>
 								{tab === "TODAY" ? t("tabToday") : tab === "UPCOMING" ? t("tabUpcoming") : t("tabCompleted")}
 							</Text>
@@ -211,11 +230,9 @@ export function TripsView() {
 
 			{/* Content Feed */}
 			<ScrollView
-				style={styles.scroll}
-				contentContainerStyle={[
-					styles.scrollContent,
-					{ paddingBottom: Math.max(insets.bottom, 24) + 80 },
-				]}
+				className="flex-1"
+				contentContainerClassName="px-4 pt-4 gap-4"
+				contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 24) + 80 }}
 				showsVerticalScrollIndicator={false}
 				refreshControl={
 					<RefreshControl
@@ -226,19 +243,19 @@ export function TripsView() {
 				}
 			>
 				{isLoading ? (
-					<View style={styles.loadingBox}>
+					<View className="items-center justify-center py-20 gap-3">
 						<ActivityIndicator size="large" color={colors.primary.rose} />
-						<Text style={styles.loadingText}>
+						<Text className="text-xs text-muted-foreground font-medium">
 							{t("loadingDispatches")}
 						</Text>
 					</View>
 				) : error ? (
 					<Card className="py-16 items-center justify-center px-6 text-center gap-3 my-4">
-						<HugeiconsIcon icon={Alert02Icon} size={40} color="#ef4444" />
-						<Text className="text-base font-bold text-[#fafafa] text-center">
+						<HugeiconsIcon icon={Alert02Icon} size={40} color={colors.semantic.error} />
+						<Text className="text-base font-bold text-foreground text-center">
 							{t("errorLoadingTitle")}
 						</Text>
-						<Text className="text-xs text-[#a1a1aa] text-center leading-relaxed">
+						<Text className="text-xs text-muted-foreground text-center leading-relaxed">
 							{error.message || t("errorLoadingMsg")}
 						</Text>
 						<Button
@@ -246,16 +263,16 @@ export function TripsView() {
 							variant="secondary"
 							size="sm"
 							onPress={() => refetch()}
-							icon={<HugeiconsIcon icon={RefreshIcon} size={16} color="#fafafa" />}
+							icon={<HugeiconsIcon icon={RefreshIcon} size={16} color={colors.neutral.textPrimary} />}
 						/>
 					</Card>
 				) : trips.length === 0 ? (
 					<Card className="py-20 items-center justify-center px-6 text-center gap-3 my-4">
-						<HugeiconsIcon icon={Bus01Icon} size={44} color="#71717a" />
-						<Text className="text-base font-bold text-[#fafafa] text-center">
+						<HugeiconsIcon icon={Bus01Icon} size={44} color={colors.neutral.textMuted} />
+						<Text className="text-base font-bold text-foreground text-center">
 							{t("emptyTitle")}
 						</Text>
-						<Text className="text-xs text-[#a1a1aa] text-center leading-relaxed max-w-xs">
+						<Text className="text-xs text-muted-foreground text-center leading-relaxed max-w-xs">
 							{activeTab === "TODAY"
 								? t("emptyToday")
 								: t("emptyTabMsg", { tab: activeTab.toLowerCase() })}
@@ -280,80 +297,3 @@ export function TripsView() {
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	root: {
-		flex: 1,
-		backgroundColor: "#09090b",
-	},
-	headerContainer: {
-		paddingHorizontal: 20,
-		paddingBottom: 14,
-		borderBottomWidth: 1,
-		borderBottomColor: "#27272a",
-		backgroundColor: "#09090b",
-		gap: 14,
-	},
-	headerRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-	},
-	headerTitleWrap: {
-		gap: 2,
-		flex: 1,
-	},
-	headerTitle: {
-		fontSize: 22,
-		fontWeight: "800",
-		color: "#fafafa",
-		letterSpacing: -0.4,
-	},
-	headerSubtitle: {
-		fontSize: 11,
-		color: "#a1a1aa",
-	},
-	tabsRow: {
-		flexDirection: "row",
-		gap: 8,
-	},
-	tabButton: {
-		flex: 1,
-		paddingVertical: 10,
-		borderRadius: 12,
-		alignItems: "center",
-		borderWidth: 1,
-		borderColor: "transparent",
-	},
-	tabButtonActive: {
-		backgroundColor: "#18181b",
-		borderColor: "#3f3f46",
-	},
-	tabButtonText: {
-		fontSize: 12,
-		fontWeight: "700",
-		color: "#71717a",
-	},
-	tabButtonTextActive: {
-		color: "#fafafa",
-	},
-	scroll: {
-		flex: 1,
-	},
-	scrollContent: {
-		paddingHorizontal: 16,
-		paddingTop: 16,
-		gap: 16,
-	},
-	loadingBox: {
-		alignItems: "center",
-		justifyContent: "center",
-		paddingVertical: 80,
-		gap: 12,
-	},
-	loadingText: {
-		fontSize: 12,
-		color: "#a1a1aa",
-		fontWeight: "500",
-	},
-});

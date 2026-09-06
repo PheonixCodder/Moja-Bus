@@ -11,7 +11,7 @@ export default async function OperatorAuthLayout({
   const t = await getTranslations("auth.operator.cover");
 
   return (
-    <main className="min-h-screen bg-bg-surface">
+    <main className="min-h-screen bg-surface">
       <div className="absolute top-4 right-4 z-50">
         <LocaleSwitcher />
       </div>

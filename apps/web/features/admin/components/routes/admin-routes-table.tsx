@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@moja/ui/components/ui/avatar";
+import { CarrierAvatar } from "@moja/ui/components/ui/carrier-avatar";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { Button } from "@moja/ui/components/ui/button";
 import {
@@ -81,12 +77,11 @@ export function AdminRoutesTable({ onViewRoute }: AdminRoutesTableProps) {
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
-                  <Avatar className="size-6 border border-border">
-                    <AvatarImage src={route.company.logoUrl ?? undefined} />
-                    <AvatarFallback className="text-[9px]">
-                      {route.company.name.slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                  <CarrierAvatar
+                    name={route.company.name}
+                    logoUrl={route.company.logoUrl}
+                    size="sm"
+                  />
                   <span className="text-sm">{route.company.name}</span>
                 </div>
               </TableCell>

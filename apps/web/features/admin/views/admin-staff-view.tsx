@@ -336,7 +336,7 @@ export function AdminStaffView() {
   const hasActiveFilters = q !== "" || role !== "ALL" || status !== "ALL";
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 bg-bg-base">
+    <div className="flex flex-col flex-1 min-h-0 bg-muted">
       <AdminStaffPageHeader
         canInvite={can("admin-staff:invite")}
         onInvite={() => void setParams({ invite: true })}

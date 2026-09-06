@@ -20,37 +20,37 @@ export function VerificationDetailsTimeline({
 }: VerificationDetailsTimelineProps) {
   const t = useTranslations("adminDashboard.verificationDetailsTimeline");
   return (
-    <Card className="bg-white border-border shadow-sm">
+    <Card className="bg-card border-border shadow-sm">
       <CardHeader>
-        <CardTitle className="text-base font-bold text-slate-900">
+        <CardTitle className="text-base font-bold text-foreground">
           {t("verificationActivityHistory")}
         </CardTitle>
-        <CardDescription className="text-xs text-slate-400">
+        <CardDescription className="text-xs text-muted-foreground">
           {t("auditTrailsDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent className="p-6 pt-0">
         {activityLogs && activityLogs.length > 0 ? (
-          <div className="relative pl-6 space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100">
+          <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-border">
             {activityLogs.map((log) => (
               <div key={log.id} className="relative group">
                 {/* Bullet Node */}
-                <div className="absolute -left-[20px] top-1.5 size-[10px] rounded-full border-2 border-white bg-slate-400 group-hover:bg-primary transition-colors ring-4 ring-slate-50" />
+                <div className="absolute -left-5 top-1.5 size-2.5 rounded-full border-2 border-background bg-muted-foreground group-hover:bg-primary transition-colors ring-4 ring-muted/50" />
                 <div className="space-y-1">
                   <div className="flex items-center justify-between gap-4">
-                    <span className="text-xs font-bold text-slate-800 uppercase tracking-wide">
+                    <span className="text-xs font-bold text-foreground uppercase tracking-wide">
                       {log.action.replace(/_/g, " ")}
                     </span>
-                    <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1">
+                    <span className="text-xs text-muted-foreground font-semibold flex items-center gap-1">
                       <Clock className="size-3" />
                       {formatAdminDateTime(log.createdAt)}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 leading-relaxed font-medium">
+                  <p className="text-xs text-muted-foreground leading-relaxed font-medium">
                     {log.description}
                   </p>
                   {log.user && (
-                    <div className="text-[10px] text-slate-400 font-bold flex items-center gap-1 pt-0.5">
+                    <div className="text-xs text-muted-foreground font-bold flex items-center gap-1 pt-0.5">
                       <Shield className="size-3" />
                       <span>
                         {t("triggeredBy")} {log.user.fullName || log.user.email}
@@ -62,7 +62,7 @@ export function VerificationDetailsTimeline({
             ))}
           </div>
         ) : (
-          <div className="text-center py-6 text-xs text-slate-400 border border-dashed border-slate-200 rounded-lg bg-slate-50/50">
+          <div className="text-center py-6 text-xs text-muted-foreground border border-dashed border-border rounded-lg bg-muted/30">
             {t("noActivityLogs")}
           </div>
         )}

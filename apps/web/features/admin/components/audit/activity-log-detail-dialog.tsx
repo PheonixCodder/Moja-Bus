@@ -97,10 +97,10 @@ export function ActivityLogDetailDialog({
                         variant="outline"
                         className={
                           job.status === "completed"
-                            ? "border-green-200 bg-green-50 text-green-700 text-[10px]"
+                            ? "border-success/20 bg-success/10 text-success text-[10px]"
                             : job.status === "failed"
-                              ? "border-red-200 bg-red-50 text-red-700 text-[10px]"
-                              : "border-yellow-200 bg-yellow-50 text-yellow-700 text-[10px]"
+                              ? "border-destructive/20 bg-destructive/10 text-destructive text-[10px]"
+                              : "border-warning/20 bg-warning/10 text-warning text-[10px]"
                         }
                       >
                         {job.status}
@@ -119,7 +119,7 @@ export function ActivityLogDetailDialog({
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
               {t("payload")}
             </p>
-            <ScrollArea className="h-[160px] rounded-md border bg-muted/30">
+            <ScrollArea className="h-40 rounded-md border bg-muted/30">
               <pre className="p-3 text-[11px] font-mono leading-relaxed text-foreground whitespace-pre-wrap break-all">
                 {JSON.stringify(log.payload ?? {}, null, 2)}
               </pre>

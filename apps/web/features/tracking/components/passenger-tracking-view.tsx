@@ -3,6 +3,7 @@
 import { buttonVariants } from "@moja/ui/components/ui/button";
 import { Spinner } from "@moja/ui/components/ui/spinner";
 import { cn } from "@moja/ui/lib/utils";
+import { Palette } from "@moja/theme/tokens";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import L from "leaflet";
 import {
@@ -39,11 +40,11 @@ L.Icon.Default.mergeOptions({
 });
 
 function busIcon(freshness: "fresh" | "stale"): L.DivIcon {
-  const color = freshness === "stale" ? "#71717a" : "#e11d48";
+  const color = freshness === "stale" ? Palette.zinc[500] : Palette.rose[600];
   const size = freshness === "fresh" ? 20 : 16;
   return L.divIcon({
     className: "",
-    html: `<div style="width:${size}px;height:${size}px;background:${color};border:2.5px solid #fff;border-radius:50%;box-shadow:0 1px 6px rgba(0,0,0,0.3);opacity:${freshness === "stale" ? 0.45 : 1};"></div>`,
+    html: `<div style="width:${size}px;height:${size}px;background:${color};border:2.5px solid white;border-radius:50%;box-shadow:0 1px 6px rgba(0,0,0,0.3);opacity:${freshness === "stale" ? 0.45 : 1};"></div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
   });
@@ -55,8 +56,8 @@ function stopIcon(isEndpoint: boolean): L.DivIcon {
     html: `<div style="
       width:${isEndpoint ? 14 : 10}px;
       height:${isEndpoint ? 14 : 10}px;
-      background:${isEndpoint ? "#ee237c" : "#9333ea"};
-      border:2.5px solid #fff;border-radius:50%;
+      background:${isEndpoint ? Palette.rose[500] : Palette.blue[600]};
+      border:2.5px solid white;border-radius:50%;
       box-shadow:0 1px 4px rgba(0,0,0,0.25);
     "></div>`,
     iconSize: [isEndpoint ? 14 : 10, isEndpoint ? 14 : 10],
@@ -123,7 +124,7 @@ function TrackingLiveMap({
         <Polyline
           positions={polyline}
           pathOptions={{
-            color: "#ee237c",
+            color: Palette.rose[500],
             weight: 2.5,
             opacity: 0.75,
             dashArray: "6 4",
@@ -141,12 +142,12 @@ function TrackingLiveMap({
             <Popup className="text-xs">
               <strong>{s.terminalName}</strong>
               {s.stopOrder === boardingStopOrder && (
-                <span className="ml-1 text-xs text-emerald-600">
+                <span className="ml-1 text-xs text-success">
                   (Boarding)
                 </span>
               )}
               {s.stopOrder === dropoffStopOrder && (
-                <span className="ml-1 text-xs text-pink-600">(Drop-off)</span>
+                <span className="ml-1 text-xs text-primary">(Drop-off)</span>
               )}
             </Popup>
           </Marker>
@@ -399,7 +400,7 @@ export function PassengerTrackingView({
           </span>
         </div>
         <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6">
-          <SignalLow className="size-10 text-amber-500/60" />
+          <SignalLow className="size-10 text-warning/60" />
           <p className="text-sm font-medium text-center">{t("signalLost")}</p>
           <p className="text-xs text-muted-foreground text-center max-w-xs">
             {t("signalLostBody")}
@@ -430,7 +431,7 @@ export function PassengerTrackingView({
         </Link>
         <div className="flex items-center gap-2">
           {isConnected && (
-            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded-full">
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-success bg-success/10 border border-success/20 px-1.5 py-0.5 rounded-full">
               <Wifi className="size-2.5" />
               Live
             </span>
@@ -440,8 +441,8 @@ export function PassengerTrackingView({
               className={cn(
                 "size-3",
                 data.freshness === "fresh"
-                  ? "text-emerald-500"
-                  : "text-amber-500",
+                  ? "text-success"
+                  : "text-warning",
               )}
             />
             <span className="text-[10px] text-muted-foreground tabular-nums">
@@ -463,8 +464,8 @@ export function PassengerTrackingView({
 
       {/* Stale warning */}
       {data.freshness === "stale" && (
-        <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2">
-          <span className="text-[11px] text-amber-700 font-medium">
+        <div className="bg-warning/10 border-b border-warning/20 px-4 py-2">
+          <span className="text-[11px] text-warning font-medium">
             {t("staleWarning")}
           </span>
         </div>
@@ -500,9 +501,9 @@ export function PassengerTrackingView({
                   className={cn(
                     "flex items-center gap-1.5 px-2 py-1 rounded-md text-xs border transition-colors",
                     isDeparted
-                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300"
+                      ? "bg-success/10 border-success/30 text-success"
                       : isArrived
-                      ? "bg-amber-500/15 border-amber-500/40 text-amber-800 dark:text-amber-300 font-medium"
+                      ? "bg-warning/15 border-warning/40 text-warning font-medium"
                       : "bg-muted/40 border-border/50 text-muted-foreground",
                   )}
                 >
@@ -510,15 +511,15 @@ export function PassengerTrackingView({
                     className={cn(
                       "size-1.5 rounded-full",
                       isDeparted
-                        ? "bg-emerald-500"
+                        ? "bg-success"
                         : isArrived
-                        ? "bg-amber-500 animate-pulse"
+                        ? "bg-warning animate-pulse"
                         : "bg-muted-foreground/50",
                     )}
                   />
                   <span>{stop.name || `Stop #${idx + 1}`}</span>
                   {isBoarding && (
-                    <span className="text-[9px] bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-bold px-1 rounded">
+                    <span className="text-[9px] bg-success/20 text-success font-bold px-1 rounded">
                       Board
                     </span>
                   )}
@@ -527,9 +528,9 @@ export function PassengerTrackingView({
                       Alight
                     </span>
                   )}
-                  {isDeparted && <Check className="size-3 text-emerald-600 dark:text-emerald-400" />}
+                  {isDeparted && <Check className="size-3 text-success" />}
                   {isArrived && (
-                    <span className="text-[9px] text-amber-600 dark:text-amber-400 font-bold">
+                    <span className="text-[9px] text-warning font-bold">
                       At Station
                     </span>
                   )}
@@ -552,7 +553,7 @@ export function PassengerTrackingView({
         <div className="flex items-center gap-2">
           {data.boardingStopOrder != null && (
             <div className="flex items-center gap-1">
-              <div className="size-2 rounded-full bg-emerald-500" />
+              <div className="size-2 rounded-full bg-success" />
               <span>
                 {t("boarding")} #{data.boardingStopOrder}
               </span>

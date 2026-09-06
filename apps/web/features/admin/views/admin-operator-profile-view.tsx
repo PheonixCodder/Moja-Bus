@@ -33,37 +33,37 @@ const companyStatusMeta: Record<
     label: "Active",
     icon: CheckCircle2,
     className:
-      "bg-emerald-100/60 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+      "bg-success/15 text-success",
   },
   PENDING_VERIFICATION: {
     label: "Pending Verification",
     icon: AlertCircle,
     className:
-      "bg-amber-100/60 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+      "bg-warning/15 text-warning",
   },
   DRAFT: {
     label: "Draft",
     icon: Clock,
     className:
-      "bg-zinc-100/60 text-zinc-500 dark:bg-zinc-800/40 dark:text-zinc-400",
+      "bg-muted text-muted-foreground",
   },
   SUSPENDED: {
     label: "Suspended",
     icon: XCircle,
     className:
-      "bg-red-100/60 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+      "bg-destructive/15 text-destructive",
   },
   REJECTED: {
     label: "Rejected",
     icon: XCircle,
     className:
-      "bg-red-100/60 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+      "bg-destructive/15 text-destructive",
   },
   VERIFIED: {
     label: "Verified",
     icon: CheckCircle2,
     className:
-      "bg-blue-100/60 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+      "bg-primary/15 text-primary",
   },
 };
 
@@ -91,6 +91,7 @@ export function AdminOperatorProfileView({ userId }: { userId: string }) {
         id={user.id}
         fullName={user.fullName}
         email={user.email}
+        image={primaryOperator?.profilePhotoUrl || user.image}
         phone={user.phoneNumber}
         role={user.role as "OPERATOR"}
         emailVerified={user.emailVerified}
@@ -249,7 +250,7 @@ export function AdminOperatorProfileView({ userId }: { userId: string }) {
                             <span
                               key={step}
                               className={cn(
-                                "text-[10px]",
+                                "text-xs",
                                 i < progress.completedStepCount
                                   ? "text-primary font-medium"
                                   : "text-muted-foreground",

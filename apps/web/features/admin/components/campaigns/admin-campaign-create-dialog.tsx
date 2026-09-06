@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@moja/ui/components/ui/button";
+import { Checkbox } from "@moja/ui/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -175,7 +176,7 @@ export function AdminCampaignCreateDialog({
                         value={percentOff}
                         onChange={(e) => setPercentOff(e.target.value)}
                       />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
                         %
                       </span>
                     </div>
@@ -234,21 +235,17 @@ export function AdminCampaignCreateDialog({
 
               <div className="space-y-3 pt-2">
                 <label className="flex items-center gap-2.5 text-sm cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    className="size-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
+                  <Checkbox
                     checked={firstBookingOnly}
-                    onChange={(e) => setFirstBookingOnly(e.target.checked)}
+                    onCheckedChange={(checked) => setFirstBookingOnly(Boolean(checked))}
                   />
                   <span>{t("firstBookingOnly")}</span>
                 </label>
 
                 <label className="flex items-center gap-2.5 text-sm cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    className="size-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
+                  <Checkbox
                     checked={isAutoApply}
-                    onChange={(e) => setIsAutoApply(e.target.checked)}
+                    onCheckedChange={(checked) => setIsAutoApply(Boolean(checked))}
                   />
                   <span>{t("autoApply")}</span>
                 </label>

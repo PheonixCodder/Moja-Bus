@@ -79,14 +79,14 @@ export function PromoIncentivesPanel() {
     <Card className="space-y-4 p-4">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <h3 className="text-sm font-semibold text-slate-900">
+          <h3 className="text-sm font-semibold text-foreground">
             {t("promoTitle")}
           </h3>
-          <p className="text-xs text-slate-500">{t("promoHint")}</p>
-          <p className="mt-1 text-xs text-slate-500">{t("promoHowToEarn")}</p>
+          <p className="text-xs text-muted-foreground">{t("promoHint")}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{t("promoHowToEarn")}</p>
           {programQuery.data?.isActive &&
           programQuery.data.referrerCreditAmountXOF > 0 ? (
-            <p className="mt-1 text-xs text-slate-600">
+            <p className="mt-1 text-xs text-muted-foreground">
               {programQuery.data.referrerCreditAmountXOF.toLocaleString()} XOF{" "}
               {t("promoSourceReferral").toLowerCase()}
             </p>
@@ -100,7 +100,7 @@ export function PromoIncentivesPanel() {
         </Link>
       </div>
 
-      <div className="space-y-2 rounded-lg border border-slate-100 bg-white p-3">
+      <div className="space-y-2 rounded-lg border border-border bg-card p-3">
         <Labelish>{t("promoClaimLabel")}</Labelish>
         <div className="flex gap-2">
           <Input
@@ -129,16 +129,16 @@ export function PromoIncentivesPanel() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-slate-100 bg-slate-50/80 p-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-slate-900">
-          <Gift className="size-4 text-[#00875A]" />
+      <div className="rounded-lg border border-border bg-muted/50 p-3">
+        <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+          <Gift className="size-4 text-success" />
           {t("promoCreditsTitle")}
         </div>
-        <p className="mt-1 text-xl font-bold tabular-nums text-slate-900">
+        <p className="mt-1 text-xl font-bold tabular-nums text-foreground">
           {creditTotal.toLocaleString()} XOF
         </p>
         {available.length === 0 ? (
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-muted-foreground">
             {t("promoCreditsEmpty")}
           </p>
         ) : (
@@ -146,7 +146,7 @@ export function PromoIncentivesPanel() {
             {available.slice(0, 5).map((lot) => (
               <li
                 key={lot.id}
-                className="flex items-center justify-between gap-2 text-xs text-slate-600"
+                className="flex items-center justify-between gap-2 text-xs text-muted-foreground"
               >
                 <span>
                   {Math.max(
@@ -168,15 +168,15 @@ export function PromoIncentivesPanel() {
       </div>
 
       {pending.length > 0 ? (
-        <div className="rounded-lg border border-amber-100 bg-amber-50/60 p-3">
-          <p className="text-sm font-medium text-slate-900">
+        <div className="rounded-lg border border-warning/20 bg-warning/10 p-3">
+          <p className="text-sm font-medium text-foreground">
             {t("promoCreditsPending")}
           </p>
           <ul className="mt-2 space-y-1.5">
             {pending.slice(0, 5).map((lot) => (
               <li
                 key={lot.id}
-                className="flex items-center justify-between gap-2 text-xs text-slate-600"
+                className="flex items-center justify-between gap-2 text-xs text-muted-foreground"
               >
                 <span>
                   {lot.amountXOF.toLocaleString()} XOF ·{" "}
@@ -198,5 +198,5 @@ export function PromoIncentivesPanel() {
 }
 
 function Labelish({ children }: { children: React.ReactNode }) {
-  return <p className="text-xs font-medium text-slate-700">{children}</p>;
+  return <p className="text-xs font-medium text-muted-foreground">{children}</p>;
 }

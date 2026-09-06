@@ -11,7 +11,7 @@ import {
   Sorting01Icon,
   CheckmarkCircle01Icon,
 } from '@hugeicons/core-free-icons';
-import { Colors } from '@moja/theme/tokens';
+import { Colors, Palette } from '@/constants/theme';
 import type { SortKey } from '../types';
 
 interface SortSheetProps {
@@ -45,16 +45,16 @@ export function SortSheet({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-white" style={{ paddingTop: Math.max(insets.top, 12) }}>
+      <View className="flex-1 bg-background" style={{ paddingTop: Math.max(insets.top, 12) }}>
         {/* Header */}
-        <View className="flex-row items-center justify-between p-4 border-b border-slate-100">
+        <View className="flex-row items-center justify-between p-4 border-b border-border bg-card">
           <View className="flex-row items-center gap-2">
-            <View className="w-8 h-8 rounded-full bg-pink-50 border border-pink-200 items-center justify-center">
-              <HugeiconsIcon icon={Sorting01Icon} size={16} color="#ee237c" />
+            <View className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 items-center justify-center">
+              <HugeiconsIcon icon={Sorting01Icon} size={16} color={Palette.rose[500]} />
             </View>
-            <Text className="text-lg font-extrabold text-slate-900">{t('sortLabel')}</Text>
+            <Text className="text-lg font-extrabold text-foreground">{t('sortLabel')}</Text>
           </View>
-          <Pressable onPress={onClose} className="p-2 bg-slate-100 rounded-full">
+          <Pressable onPress={onClose} className="p-2 bg-muted rounded-full">
             <HugeiconsIcon icon={Cancel01Icon} size={18} color={Colors.light.textSecondary} />
           </Pressable>
         </View>
@@ -68,32 +68,32 @@ export function SortSheet({
                 onPress={() => onSelectSort(option.value)}
                 className={`flex-row items-center p-4 rounded-2xl border ${
                   isSelected
-                    ? 'border-[#ee237c] bg-pink-50/60 shadow-xs'
-                    : 'border-slate-200 bg-slate-50/60 active:bg-slate-100'
+                    ? 'border-primary bg-primary/10 shadow-xs'
+                    : 'border-border bg-muted/40 active:bg-muted'
                 }`}
               >
                 <View
                   className={`w-9 h-9 rounded-2xl items-center justify-center mr-3 ${
-                    isSelected ? 'bg-pink-100' : 'bg-slate-200'
+                    isSelected ? 'bg-primary/20' : 'bg-muted'
                   }`}
                 >
                   <HugeiconsIcon
                     icon={option.icon}
                     size={20}
-                    color={isSelected ? '#ee237c' : Colors.light.textSecondary}
+                    color={isSelected ? Palette.rose[500] : Colors.light.textSecondary}
                   />
                 </View>
 
                 <Text
                   className={`text-base flex-1 ${
-                    isSelected ? 'font-black text-slate-900' : 'text-slate-700 font-bold'
+                    isSelected ? 'font-black text-foreground' : 'text-muted-foreground font-bold'
                   }`}
                 >
                   {option.label}
                 </Text>
 
                 {isSelected ? (
-                  <HugeiconsIcon icon={CheckmarkCircle01Icon} size={20} color="#ee237c" />
+                  <HugeiconsIcon icon={CheckmarkCircle01Icon} size={20} color={Palette.rose[500]} />
                 ) : null}
               </Pressable>
             );
@@ -102,25 +102,17 @@ export function SortSheet({
 
         {/* Bottom Done Button */}
         <View
-          className="left-4 right-4 absolute bg-white p-3 border-t border-slate-100 rounded-t-2xl shadow-lg"
+          className="left-4 right-4 absolute bg-card p-3 border-t border-border rounded-t-2xl shadow-lg"
           style={{ bottom: Math.max(insets.bottom, 16) }}
         >
           <Pressable
             onPress={onClose}
+            className="bg-primary min-h-12 h-12 rounded-xl items-center justify-center shadow-md shadow-primary/25"
             style={({ pressed }) => ({
-              backgroundColor: pressed ? '#d01867' : '#ee237c',
-              padding: 16,
-              borderRadius: 16,
-              alignItems: 'center',
-              justifyContent: 'center',
-              shadowColor: '#ee237c',
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.2,
-              shadowRadius: 8,
-              elevation: 4,
+              opacity: pressed ? 0.85 : 1,
             })}
           >
-            <Text className="text-white font-black text-base uppercase tracking-wider">
+            <Text className="text-primary-foreground font-black text-base uppercase tracking-wider">
               {t('done')}
             </Text>
           </Pressable>

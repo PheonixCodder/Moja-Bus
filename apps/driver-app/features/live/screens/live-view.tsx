@@ -5,8 +5,8 @@ import {
 	ScrollView,
 	ActivityIndicator,
 	Alert,
-	StyleSheet,
 } from "react-native";
+import { cn } from "@/lib/utils";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as Location from "expo-location";
@@ -536,21 +536,21 @@ export function LiveView() {
 
 	if (isProfileLoading) {
 		return (
-			<View style={styles.loadingContainer}>
+			<View className="flex-1 bg-background items-center justify-center gap-3">
 				<ActivityIndicator size="large" color={colors.primary.rose} />
-				<Text style={styles.loadingText}>{t("loading")}</Text>
+				<Text className="text-xs text-muted-foreground font-medium">{t("loading")}</Text>
 			</View>
 		);
 	}
 
 	if (!activeTrip) {
 		return (
-			<View style={[styles.root, { paddingTop: insets.top + 20 }]}>
-				<View style={styles.emptyContainer}>
+			<View className="flex-1 bg-background" style={{ paddingTop: insets.top + 20 }}>
+				<View className="flex-1 items-center justify-center px-6">
 					<Card className="p-8 items-center gap-3 w-full">
-						<HugeiconsIcon icon={Bus01Icon} size={44} color="#71717a" />
-						<Text style={styles.emptyTitle}>{t("noActiveRunTitle")}</Text>
-						<Text style={styles.emptySubtitle}>
+						<HugeiconsIcon icon={Bus01Icon} size={44} color={colors.neutral.textMuted} />
+						<Text className="text-lg font-extrabold text-foreground text-center">{t("noActiveRunTitle")}</Text>
+						<Text className="text-xs text-muted-foreground text-center leading-5 max-w-[280px]">
 							{t("noActiveRunDesc")}
 						</Text>
 						<Button
@@ -567,12 +567,15 @@ export function LiveView() {
 	}
 
 	return (
-		<View style={styles.root}>
+		<View className="flex-1 bg-background">
 			{/* Top Live Bar */}
-			<View style={[styles.topLiveBar, { paddingTop: insets.top + 10 }]}>
-				<View style={styles.liveIndicator}>
-					<View style={styles.liveDot} />
-					<Text style={styles.liveTitle}>{t("liveTelemetry")}</Text>
+			<View
+				className="px-5 pb-3 border-b border-border bg-background flex-row items-center justify-between"
+				style={{ paddingTop: insets.top + 10 }}
+			>
+				<View className="flex-row items-center gap-2">
+					<View className="size-2.5 rounded-full bg-success" />
+					<Text className="text-xs font-extrabold text-foreground uppercase tracking-wider">{t("liveTelemetry")}</Text>
 				</View>
 				<Badge
 					variant="default"
@@ -581,7 +584,7 @@ export function LiveView() {
 			</View>
 
 			{/* Mapbox Live Vector Map Navigation Canvas */}
-			<View style={styles.mapCanvas}>
+			<View className="h-[250px] border-b border-border relative">
 				<DriverNavigationMap
 					currentLocation={currentLocation ?? undefined}
 					routeGeoJson={routeGeoJson}
@@ -591,23 +594,21 @@ export function LiveView() {
 			</View>
 
 			<ScrollView
-				style={styles.scroll}
-				contentContainerStyle={[
-					styles.scrollContent,
-					{ paddingBottom: Math.max(insets.bottom, 24) + 80 },
-				]}
+				className="flex-1"
+				contentContainerClassName="px-4 pt-4 gap-4"
+				contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 24) + 80 }}
 				showsVerticalScrollIndicator={false}
 			>
 				{/* Emergency Breakdown Active Banner */}
 				{isBreakdownReported && (
-					<View style={styles.breakdownBanner}>
-						<View style={styles.breakdownBannerLeft}>
-							<View style={styles.breakdownIconWrap}>
-								<HugeiconsIcon icon={Alert02Icon} size={22} color="#ef4444" />
+					<View className="flex-row items-center justify-between bg-destructive/10 border border-destructive/35 p-3.5 rounded-2xl gap-3">
+						<View className="flex-row items-center gap-2.5 flex-1">
+							<View className="p-2 rounded-xl bg-destructive/20">
+								<HugeiconsIcon icon={Alert02Icon} size={22} color={colors.semantic.error} />
 							</View>
-							<View style={styles.breakdownTextWrap}>
-								<Text style={styles.breakdownBannerTitle}>{t("breakdownBannerTitle")}</Text>
-								<Text style={styles.breakdownBannerDesc}>{t("breakdownBannerDesc")}</Text>
+							<View className="flex-1 gap-0.5">
+								<Text className="text-[13px] font-extrabold text-destructive">{t("breakdownBannerTitle")}</Text>
+								<Text className="text-xs text-foreground/80 leading-4">{t("breakdownBannerDesc")}</Text>
 							</View>
 						</View>
 					</View>
@@ -615,14 +616,14 @@ export function LiveView() {
 
 				{/* Mandated Safety Rest Break Banner */}
 				{isResting && (
-					<View style={styles.restBanner}>
-						<View style={styles.restBannerLeft}>
-							<View style={styles.restIconWrap}>
-								<HugeiconsIcon icon={Time02Icon} size={22} color="#38bdf8" />
+					<View className="flex-row items-center justify-between bg-info/10 border border-info/30 p-3.5 rounded-2xl gap-3">
+						<View className="flex-row items-center gap-2.5 flex-1">
+							<View className="p-2 rounded-xl bg-info/15">
+								<HugeiconsIcon icon={Time02Icon} size={22} color={colors.semantic.info} />
 							</View>
-							<View style={styles.restBannerTextWrap}>
-								<Text style={styles.restBannerTitle}>{t("restBreakBannerTitle")}</Text>
-								<Text style={styles.restBannerCountdown}>
+							<View className="flex-1 gap-0.5">
+								<Text className="text-[13px] font-bold text-foreground">{t("restBreakBannerTitle")}</Text>
+								<Text className="text-xs font-semibold text-info">
 									{restMinutesRemaining > 0
 										? t("restBreakRemaining", { minutes: restMinutesRemaining })
 										: t("restBreakOver")}
@@ -635,7 +636,7 @@ export function LiveView() {
 							size="sm"
 							loading={resumeDutyMutation.isPending}
 							onPress={handleResumeDuty}
-							icon={<HugeiconsIcon icon={PlayIcon} size={16} color="#ffffff" />}
+							icon={<HugeiconsIcon icon={PlayIcon} size={16} color={colors.neutral.textPrimary} />}
 						/>
 					</View>
 				)}
@@ -649,15 +650,15 @@ export function LiveView() {
 
 				{/* Waypoint Progression & Stop Checklist */}
 				<Card className="p-4 gap-4">
-					<View style={styles.stopsHeader}>
-						<View style={styles.stopsTitleRow}>
+					<View className="flex-row items-center justify-between">
+						<View className="flex-row items-center gap-1.5">
 							<HugeiconsIcon icon={Navigation01Icon} size={16} color={colors.primary.rose} />
-							<Text style={styles.stopsTitle}>{t("stopProgress")}</Text>
+							<Text className="text-[11px] font-bold text-foreground/80 uppercase tracking-wider">{t("stopProgress")}</Text>
 						</View>
 						{routeIsApproximate ? (
-							<Text style={styles.approxBadge}>{t("approximateRoute")}</Text>
+							<Text className="text-[10px] font-bold text-warning">{t("approximateRoute")}</Text>
 						) : (
-							<Text style={styles.etaText}>
+							<Text className="text-xs font-bold text-primary font-mono">
 								{routeDurationSecs
 									? t("etaLabel", { minutes: Math.max(1, Math.round(routeDurationSecs / 60)) })
 									: t("etaNone")}
@@ -668,30 +669,24 @@ export function LiveView() {
 					{/* Active Stop Action Card */}
 					{currentWaypoint && (
 						<View
-							style={[
-								styles.waypointBox,
+							className={cn(
+								"p-4 rounded-2xl border gap-2.5",
 								isAtWaypoint
-									? styles.waypointAt
+									? "bg-warning/10 border-warning/30"
 									: isNearWaypoint
-										? styles.waypointNear
-										: styles.waypointDefault,
-							]}
+										? "bg-success/10 border-success/30"
+										: "bg-card border-border",
+							)}
 						>
-							<View style={styles.waypointHeader}>
-								<View style={styles.waypointStatusRow}>
+							<View className="flex-row items-center justify-between">
+								<View className="flex-row items-center gap-2">
 									<View
-										style={[
-											styles.waypointDot,
-											{
-												backgroundColor: isAtWaypoint
-													? "#fbbf24"
-													: isNearWaypoint
-														? "#34d399"
-														: "#ee237c",
-											},
-										]}
+										className={cn(
+											"size-2.5 rounded-full",
+											isAtWaypoint ? "bg-warning" : isNearWaypoint ? "bg-success" : "bg-primary",
+										)}
 									/>
-									<Text style={styles.waypointLabel}>
+									<Text className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
 										{isAtWaypoint
 											? t("atTerminal")
 											: t("stopLabel", { current: currentWaypointIndex + 1, total: tripStops.length })}
@@ -709,10 +704,10 @@ export function LiveView() {
 								)}
 							</View>
 
-							<Text style={styles.waypointTerminalName}>
+							<Text className="text-base font-extrabold text-foreground">
 								{currentWaypoint.terminal?.name ?? t("stopDefaultName", { index: currentWaypointIndex + 1 })}
 							</Text>
-							<Text style={styles.waypointHint}>
+							<Text className="text-xs text-muted-foreground leading-4">
 								{isAtWaypoint
 									? t("boardingHint")
 									: t("nextStopHint")}
@@ -732,7 +727,7 @@ export function LiveView() {
 											tripStopId: currentWaypoint.id,
 										});
 									}}
-									icon={<HugeiconsIcon icon={ArrowRight01Icon} size={16} color="#000000" />}
+									icon={<HugeiconsIcon icon={ArrowRight01Icon} size={16} color={colors.neutral.background} />}
 									textClassName="text-black"
 								/>
 							) : !currentWaypoint.actualArrival ? (
@@ -748,15 +743,15 @@ export function LiveView() {
 											tripStopId: currentWaypoint.id,
 										});
 									}}
-									icon={<HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} color="#ffffff" />}
+									icon={<HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} color={colors.neutral.textPrimary} />}
 								/>
 							) : null}
 						</View>
 					)}
 
 					{/* Waypoints Sequence List */}
-					<View style={styles.stopsList}>
-						<Text style={styles.stopsListTitle}>{t("stopSheetTitle")}</Text>
+					<View className="gap-2 pt-2 border-t border-border">
+						<Text className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{t("stopSheetTitle")}</Text>
 						{tripStops.map((stop, idx) => {
 							const isPassed = stop.actualDeparture != null;
 							const isCurrent = stop.id === currentWaypoint?.id;
@@ -765,38 +760,38 @@ export function LiveView() {
 							return (
 								<View
 									key={stop.id}
-									style={[
-										styles.stopRow,
-										isCurrent ? styles.stopRowCurrent : styles.stopRowDefault,
-									]}
+									className={cn(
+										"flex-row items-center justify-between p-3 rounded-xl border",
+										isCurrent ? "bg-card-elevated border-border-strong" : "bg-card border-border",
+									)}
 								>
-									<View style={styles.stopInfo}>
+									<View className="flex-row items-center gap-3 flex-1">
 										<View
-											style={[
-												styles.stopBadge,
+											className={cn(
+												"size-6 rounded-full items-center justify-center",
 												isPassed
-													? styles.stopBadgePassed
+													? "bg-success/20"
 													: isCurrent && isArrived
-														? styles.stopBadgeArrived
-														: styles.stopBadgePending,
-											]}
+														? "bg-warning/20"
+														: "bg-secondary",
+											)}
 										>
 											{isPassed ? (
-												<HugeiconsIcon icon={CheckmarkCircle02Icon} size={14} color="#10b981" />
+												<HugeiconsIcon icon={CheckmarkCircle02Icon} size={14} color={colors.semantic.success} />
 											) : (
-												<Text style={styles.stopBadgeText}>{idx + 1}</Text>
+												<Text className="text-[10px] font-extrabold text-muted-foreground">{idx + 1}</Text>
 											)}
 										</View>
-										<View style={styles.stopTextWrap}>
+										<View className="flex-1 gap-0.5">
 											<Text
-												style={[
-													styles.stopName,
-													isPassed ? styles.stopNamePassed : isCurrent ? styles.stopNameCurrent : styles.stopNameDefault,
-												]}
+												className={cn(
+													"text-[13px] font-bold",
+													isPassed ? "text-muted-foreground line-through" : isCurrent ? "text-foreground" : "text-foreground/80",
+												)}
 											>
 												{stop.terminal?.name ?? t("stopDefaultName", { index: idx + 1 })}
 											</Text>
-											<Text style={styles.stopTime}>
+											<Text className="text-[10px] text-muted-foreground">
 												{stop.actualDeparture
 													? t("stopTimeDeparted", { time: new Date(stop.actualDeparture).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) })
 													: stop.actualArrival
@@ -820,7 +815,7 @@ export function LiveView() {
 				</Card>
 
 				{/* In-Trip Operations / Handover / Break / Delay Actions */}
-				<View style={styles.actionButtonsRow}>
+				<View className="flex-row gap-3 pb-6">
 					{!isResting ? (
 						<Button
 							title={t("btnTakeBreak")}
@@ -828,7 +823,7 @@ export function LiveView() {
 							size="md"
 							loading={logRestBreakMutation.isPending}
 							onPress={handleTakeBreak}
-							icon={<HugeiconsIcon icon={Time02Icon} size={18} color="#38bdf8" />}
+							icon={<HugeiconsIcon icon={Time02Icon} size={18} color={colors.semantic.info} />}
 							className="flex-1"
 						/>
 					) : (
@@ -838,7 +833,7 @@ export function LiveView() {
 							size="md"
 							loading={resumeDutyMutation.isPending}
 							onPress={handleResumeDuty}
-							icon={<HugeiconsIcon icon={PlayIcon} size={18} color="#ffffff" />}
+							icon={<HugeiconsIcon icon={PlayIcon} size={18} color={colors.neutral.textPrimary} />}
 							className="flex-1"
 						/>
 					)}
@@ -851,7 +846,7 @@ export function LiveView() {
 							DriverFeedback.tap();
 							setDelayModalOpen(true);
 						}}
-						icon={<HugeiconsIcon icon={Alert02Icon} size={18} color="#f59e0b" />}
+						icon={<HugeiconsIcon icon={Alert02Icon} size={18} color={colors.semantic.warning} />}
 						className="flex-1"
 					/>
 
@@ -863,7 +858,7 @@ export function LiveView() {
 							DriverFeedback.tap();
 							setBreakdownModalOpen(true);
 						}}
-						icon={<HugeiconsIcon icon={Alert02Icon} size={18} color="#ffffff" />}
+						icon={<HugeiconsIcon icon={Alert02Icon} size={18} color={colors.neutral.textPrimary} />}
 						className="flex-1"
 					/>
 
@@ -874,7 +869,7 @@ export function LiveView() {
 							size="md"
 							loading={handoverMutation.isPending}
 							onPress={handleHandoverControl}
-							icon={<HugeiconsIcon icon={Navigation01Icon} size={18} color="#38bdf8" />}
+							icon={<HugeiconsIcon icon={Navigation01Icon} size={18} color={colors.semantic.info} />}
 							className="flex-1"
 						/>
 					)}
@@ -885,7 +880,7 @@ export function LiveView() {
 						size="md"
 						loading={completeMutation.isPending}
 						onPress={handleEndTrip}
-						icon={<HugeiconsIcon icon={StopIcon} size={18} color="#ffffff" />}
+						icon={<HugeiconsIcon icon={StopIcon} size={18} color={colors.neutral.textPrimary} />}
 						className="flex-1"
 					/>
 				</View>
@@ -920,316 +915,3 @@ export function LiveView() {
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	root: {
-		flex: 1,
-		backgroundColor: "#09090b",
-	},
-	loadingContainer: {
-		flex: 1,
-		backgroundColor: "#09090b",
-		alignItems: "center",
-		justifyContent: "center",
-		gap: 12,
-	},
-	loadingText: {
-		fontSize: 12,
-		color: "#a1a1aa",
-		fontWeight: "500",
-	},
-	emptyContainer: {
-		flex: 1,
-		alignItems: "center",
-		justifyContent: "center",
-		paddingHorizontal: 24,
-	},
-	emptyTitle: {
-		fontSize: 18,
-		fontWeight: "800",
-		color: "#fafafa",
-		textAlign: "center",
-	},
-	emptySubtitle: {
-		fontSize: 12,
-		color: "#a1a1aa",
-		textAlign: "center",
-		lineHeight: 18,
-		maxWidth: 280,
-	},
-	topLiveBar: {
-		paddingHorizontal: 20,
-		paddingBottom: 12,
-		borderBottomWidth: 1,
-		borderBottomColor: "#27272a",
-		backgroundColor: "#09090b",
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-	},
-	liveIndicator: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 8,
-	},
-	liveDot: {
-		width: 10,
-		height: 10,
-		borderRadius: 5,
-		backgroundColor: "#10b981",
-	},
-	liveTitle: {
-		fontSize: 12,
-		fontWeight: "800",
-		color: "#fafafa",
-		textTransform: "uppercase",
-		letterSpacing: 0.5,
-	},
-	mapCanvas: {
-		height: 250,
-		borderBottomWidth: 1,
-		borderBottomColor: "#27272a",
-		position: "relative",
-	},
-	scroll: {
-		flex: 1,
-	},
-	scrollContent: {
-		paddingHorizontal: 16,
-		paddingTop: 16,
-		gap: 16,
-	},
-	stopsHeader: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-	},
-	stopsTitleRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 6,
-	},
-	stopsTitle: {
-		fontSize: 11,
-		fontWeight: "700",
-		color: "#d4d4d8",
-		textTransform: "uppercase",
-		letterSpacing: 0.5,
-	},
-	approxBadge: {
-		fontSize: 10,
-		fontWeight: "700",
-		color: "#fbbf24",
-	},
-	etaText: {
-		fontSize: 12,
-		fontWeight: "700",
-		color: "#ee237c",
-		fontFamily: "monospace",
-	},
-	waypointBox: {
-		padding: 16,
-		borderRadius: 16,
-		borderWidth: 1,
-		gap: 10,
-	},
-	waypointAt: {
-		backgroundColor: "rgba(245, 158, 11, 0.08)",
-		borderColor: "rgba(245, 158, 11, 0.3)",
-	},
-	waypointNear: {
-		backgroundColor: "rgba(16, 185, 129, 0.08)",
-		borderColor: "rgba(16, 185, 129, 0.3)",
-	},
-	waypointDefault: {
-		backgroundColor: "#09090b",
-		borderColor: "#27272a",
-	},
-	waypointHeader: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-	},
-	waypointStatusRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 8,
-	},
-	waypointDot: {
-		width: 10,
-		height: 10,
-		borderRadius: 5,
-	},
-	waypointLabel: {
-		fontSize: 10,
-		fontWeight: "700",
-		textTransform: "uppercase",
-		letterSpacing: 0.5,
-		color: "#a1a1aa",
-	},
-	waypointTerminalName: {
-		fontSize: 16,
-		fontWeight: "800",
-		color: "#fafafa",
-	},
-	waypointHint: {
-		fontSize: 12,
-		color: "#a1a1aa",
-		lineHeight: 16,
-	},
-	stopsList: {
-		gap: 8,
-		paddingTop: 8,
-		borderTopWidth: 1,
-		borderTopColor: "#27272a",
-	},
-	stopsListTitle: {
-		fontSize: 10,
-		fontWeight: "700",
-		color: "#71717a",
-		textTransform: "uppercase",
-		letterSpacing: 0.5,
-	},
-	stopRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-		padding: 12,
-		borderRadius: 12,
-		borderWidth: 1,
-	},
-	stopRowCurrent: {
-		backgroundColor: "#18181b",
-		borderColor: "#3f3f46",
-	},
-	stopRowDefault: {
-		backgroundColor: "#09090b",
-		borderColor: "#27272a",
-	},
-	stopInfo: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 12,
-		flex: 1,
-	},
-	stopBadge: {
-		width: 24,
-		height: 24,
-		borderRadius: 12,
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	stopBadgePassed: {
-		backgroundColor: "rgba(16, 185, 129, 0.2)",
-	},
-	stopBadgeArrived: {
-		backgroundColor: "rgba(245, 158, 11, 0.2)",
-	},
-	stopBadgePending: {
-		backgroundColor: "#27272a",
-	},
-	stopBadgeText: {
-		fontSize: 10,
-		fontWeight: "800",
-		color: "#a1a1aa",
-	},
-	stopTextWrap: {
-		flex: 1,
-		gap: 2,
-	},
-	stopName: {
-		fontSize: 13,
-		fontWeight: "700",
-	},
-	stopNamePassed: {
-		color: "#71717a",
-		textDecorationLine: "line-through",
-	},
-	stopNameCurrent: {
-		color: "#ffffff",
-	},
-	stopNameDefault: {
-		color: "#d4d4d8",
-	},
-	stopTime: {
-		fontSize: 10,
-		color: "#71717a",
-	},
-	actionButtonsRow: {
-		flexDirection: "row",
-		gap: 12,
-		paddingBottom: 24,
-	},
-	restBanner: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-		backgroundColor: "rgba(56, 189, 248, 0.12)",
-		borderWidth: 1,
-		borderColor: "rgba(56, 189, 248, 0.3)",
-		padding: 14,
-		borderRadius: 16,
-		gap: 12,
-	},
-	restBannerLeft: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 10,
-		flex: 1,
-	},
-	restIconWrap: {
-		padding: 8,
-		borderRadius: 12,
-		backgroundColor: "rgba(56, 189, 248, 0.15)",
-	},
-	restBannerTextWrap: {
-		flex: 1,
-		gap: 2,
-	},
-	restBannerTitle: {
-		fontSize: 13,
-		fontWeight: "700",
-		color: "#fafafa",
-	},
-	restBannerCountdown: {
-		fontSize: 12,
-		fontWeight: "600",
-		color: "#38bdf8",
-	},
-	breakdownBanner: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-		backgroundColor: "rgba(239, 68, 68, 0.12)",
-		borderWidth: 1,
-		borderColor: "rgba(239, 68, 68, 0.35)",
-		padding: 14,
-		borderRadius: 16,
-		gap: 12,
-	},
-	breakdownBannerLeft: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 10,
-		flex: 1,
-	},
-	breakdownIconWrap: {
-		padding: 8,
-		borderRadius: 12,
-		backgroundColor: "rgba(239, 68, 68, 0.2)",
-	},
-	breakdownTextWrap: {
-		flex: 1,
-		gap: 2,
-	},
-	breakdownBannerTitle: {
-		fontSize: 13,
-		fontWeight: "800",
-		color: "#ef4444",
-	},
-	breakdownBannerDesc: {
-		fontSize: 12,
-		color: "#d4d4d8",
-		lineHeight: 16,
-	},
-});

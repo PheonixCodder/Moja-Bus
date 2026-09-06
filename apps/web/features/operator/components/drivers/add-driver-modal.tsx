@@ -246,11 +246,11 @@ export function AddDriverModal({ open, onOpenChange }: AddDriverModalProps) {
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="rounded-xl border border-border bg-slate-50/70 p-4 text-sm leading-relaxed whitespace-pre-line text-slate-700">
+              <div className="rounded-xl border border-border bg-muted/50 p-4 text-sm leading-relaxed whitespace-pre-line text-foreground">
                 {handoffText}
               </div>
 
-              <div className="grid grid-cols-2 gap-2 rounded-xl border border-border bg-white p-3 text-xs text-slate-600">
+              <div className="grid grid-cols-2 gap-2 rounded-xl border border-border bg-card p-3 text-xs text-muted-foreground">
                 <span className="font-semibold">Phone</span>
                 <span className="font-mono">{handoff.phone}</span>
               </div>
@@ -460,7 +460,7 @@ export function AddDriverModal({ open, onOpenChange }: AddDriverModalProps) {
                             Licence Photo ({side === "front" ? "Front" : "Back"}
                             )
                           </Label>
-                          <input
+                          <Input
                             id={`license-${side}-input`}
                             type="file"
                             accept="image/*,.pdf"
@@ -539,7 +539,7 @@ export function AddDriverModal({ open, onOpenChange }: AddDriverModalProps) {
       >
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-slate-900">
+            <DialogTitle className="text-lg font-bold text-foreground">
               {bindingConflict?.hasDriverProfile
                 ? "This person is already a driver on Moja"
                 : "This contact matches an existing account"}
@@ -552,7 +552,7 @@ export function AddDriverModal({ open, onOpenChange }: AddDriverModalProps) {
           </DialogHeader>
 
           {bindingConflict && (
-            <div className="rounded-xl border border-border bg-slate-50/70 p-3 text-xs space-y-1 text-slate-600">
+            <div className="rounded-xl border border-border bg-muted/50 p-3 text-xs space-y-1 text-muted-foreground">
               <div className="flex justify-between">
                 <span className="font-semibold">Account name</span>
                 <span>{bindingConflict.maskedName}</span>
@@ -593,7 +593,7 @@ export function AddDriverModal({ open, onOpenChange }: AddDriverModalProps) {
       >
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-slate-900">
+            <DialogTitle className="text-lg font-bold text-foreground">
               Two different accounts match these details
             </DialogTitle>
             <DialogDescription className="text-sm leading-relaxed">
@@ -604,7 +604,7 @@ export function AddDriverModal({ open, onOpenChange }: AddDriverModalProps) {
           </DialogHeader>
 
           {ambiguousBinding && (
-            <div className="rounded-xl border border-border bg-slate-50/70 p-3 text-xs space-y-1 text-slate-600">
+            <div className="rounded-xl border border-border bg-muted/50 p-3 text-xs space-y-1 text-muted-foreground">
               <div className="flex justify-between">
                 <span className="font-semibold">Email matches account</span>
                 <span>{ambiguousBinding.maskedEmail}</span>

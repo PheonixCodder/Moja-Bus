@@ -27,7 +27,7 @@ export function StaffPageHeader({ canInvite, onInvite }: StaffPageHeaderProps) {
           {canInvite ? (
             <Button
               size="sm"
-              className="h-8.5 text-xs font-semibold bg-[#ee237c] hover:bg-[#d11f6e] text-white"
+              className="h-8.5 text-xs font-semibold"
               onClick={onInvite}
             >
               <UserPlus className="size-4 mr-1.5" />

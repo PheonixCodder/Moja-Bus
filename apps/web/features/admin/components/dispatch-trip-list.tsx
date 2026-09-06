@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@moja/ui/components/ui/avatar";
+import { CarrierAvatar } from "@moja/ui/components/ui/carrier-avatar";
 import {
   Empty,
   EmptyDescription,
@@ -41,27 +37,27 @@ const STATUS_CONFIG: Record<
   { color: string; icon: React.ElementType }
 > = {
   SCHEDULED: {
-    color: "bg-blue-100 text-blue-700 border-blue-200",
+    color: "bg-primary/10 text-primary border-primary/20",
     icon: Clock,
   },
   BOARDING: {
-    color: "bg-green-100 text-green-700 border-green-200",
+    color: "bg-success/10 text-success border-success/20",
     icon: Navigation,
   },
   DEPARTED: {
-    color: "bg-purple-100 text-purple-700 border-purple-200",
+    color: "bg-primary/15 text-primary border-primary/25",
     icon: BusIcon,
   },
   DELAYED: {
-    color: "bg-amber-100 text-amber-700 border-amber-200",
+    color: "bg-warning/10 text-warning border-warning/20",
     icon: AlertCircle,
   },
   ARRIVED: {
-    color: "bg-slate-100 text-slate-700 border-slate-200",
+    color: "bg-muted text-muted-foreground border-border",
     icon: CheckCircle2,
   },
   CANCELLED: {
-    color: "bg-red-100 text-red-700 border-red-200",
+    color: "bg-destructive/10 text-destructive border-destructive/20",
     icon: XCircle,
   },
 };
@@ -74,7 +70,7 @@ function TripStatusBadge({ status }: { status: string }) {
     <span
       className={cn(
         "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[11px] font-bold",
-        cfg?.color ?? "bg-slate-100 text-slate-700",
+        cfg?.color ?? "bg-muted text-muted-foreground",
       )}
     >
       <Icon className="size-3" />
@@ -87,7 +83,7 @@ function SeatFillBar({ booked, total }: { booked: number; total: number }) {
   const t = useTranslations("adminDashboard.dispatchTripList");
   const pct = total > 0 ? Math.min((booked / total) * 100, 100) : 0;
   const color =
-    pct >= 90 ? "bg-red-500" : pct >= 60 ? "bg-amber-500" : "bg-primary";
+    pct >= 90 ? "bg-destructive" : pct >= 60 ? "bg-warning" : "bg-primary";
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between">
@@ -142,7 +138,7 @@ function TripCard({
           <p className="text-xs text-muted-foreground">
             {format(new Date(departureDate), "MMM d, yyyy • h:mm a")}
             {trip.delayMinutes && trip.delayMinutes > 0 && (
-              <span className="ml-2 font-medium text-amber-600">
+              <span className="ml-2 font-medium text-warning">
                 {t("delayMinutes", { minutes: trip.delayMinutes })}
               </span>
             )}
@@ -251,16 +247,15 @@ export function DispatchTripList({
       {grouped.map((group) => (
         <div key={group.companyName} className="space-y-4">
           <div className="flex items-center gap-3 border-b border-border pb-2">
-            <Avatar className="size-8 border bg-bg-base">
-              <AvatarImage src={group.logoUrl ?? undefined} />
-              <AvatarFallback className="text-[10px]">
-                {group.companyName.substring(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <CarrierAvatar
+              name={group.companyName}
+              logoUrl={group.logoUrl}
+              size="md"
+            />
             <h3 className="text-sm font-bold text-foreground">
               {group.companyName}
             </h3>
-            <span className="text-xs text-muted-foreground bg-bg-base px-2 py-0.5 rounded-full border">
+            <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full border">
               {group.trips.length} {t("trip", { count: group.trips.length })}
             </span>
           </div>

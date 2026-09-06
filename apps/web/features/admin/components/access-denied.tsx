@@ -13,7 +13,7 @@ export function AccessDenied({ reason }: AccessDeniedProps) {
   const isSuspended = reason === "suspended";
 
   return (
-    <div className="flex min-h-svh items-center justify-center bg-bg-base px-4">
+    <div className="flex min-h-svh items-center justify-center bg-muted px-4">
       <div className="w-full max-w-md space-y-6 text-center">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10 text-destructive">
           <ShieldAlert className="h-8 w-8" />

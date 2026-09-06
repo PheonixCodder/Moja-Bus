@@ -1,5 +1,6 @@
 import { ActivityIndicator, Modal, Pressable, View } from "react-native";
 import { Text } from "@/components/ui/text";
+import { Colors, Palette } from "@/constants/theme";
 
 type CustomAlertProps = {
 	visible: boolean;
@@ -27,7 +28,7 @@ export function CustomAlert({
 	variant = "default",
 }: CustomAlertProps) {
 	const confirmBgClass =
-		variant === "destructive" ? "bg-rose-600" : "bg-[#ee237c]";
+		variant === "destructive" ? "bg-destructive" : "bg-primary";
 
 	return (
 		<Modal
@@ -42,17 +43,17 @@ export function CustomAlert({
 			>
 				<Pressable
 					onPress={() => {}}
-					className="bg-white rounded-3xl w-full max-w-[320px] py-5 px-5 items-center shadow-lg shadow-black/15"
+					className="bg-card rounded-3xl w-full max-w-[320px] py-5 px-5 items-center shadow-lg shadow-black/15 border border-border"
 				>
 					{icon ? (
 						<View className="mb-3">{icon}</View>
 					) : null}
 
-					<Text className="text-[17px] font-extrabold text-slate-900 text-center mb-1">
+					<Text className="text-[17px] font-extrabold text-foreground text-center mb-1">
 						{title}
 					</Text>
 
-					<Text className="text-sm font-normal text-slate-500 text-center leading-[18px] mb-4">
+					<Text className="text-sm font-normal text-muted-foreground text-center leading-[18px] mb-4">
 						{description}
 					</Text>
 
@@ -60,9 +61,9 @@ export function CustomAlert({
 						<Pressable
 							onPress={onCancel}
 							disabled={isPending}
-							className="flex-1 py-2 rounded-xl border border-slate-200 items-center"
+							className="flex-1 py-2 rounded-xl border border-border items-center"
 						>
-							<Text className="text-sm font-semibold text-slate-500">
+							<Text className="text-sm font-semibold text-muted-foreground">
 								{cancelLabel}
 							</Text>
 						</Pressable>
@@ -73,9 +74,9 @@ export function CustomAlert({
 							className={`flex-1 py-2 rounded-xl items-center ${confirmBgClass} ${isPending ? 'opacity-60' : 'opacity-100'}`}
 						>
 							{isPending ? (
-								<ActivityIndicator size="small" color="#ffffff" />
+								<ActivityIndicator size="small" color={Colors.light.primaryForeground} />
 							) : (
-								<Text className="text-sm font-bold text-white">
+								<Text className="text-sm font-bold text-primary-foreground">
 									{confirmLabel}
 								</Text>
 							)}

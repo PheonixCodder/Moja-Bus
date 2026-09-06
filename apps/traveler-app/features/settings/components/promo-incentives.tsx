@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Alert, Pressable, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
+import { Palette, Colors } from "@/constants/theme";
 import { useTRPC } from "@/lib/trpc";
 
 function sourceLabel(source: string, t: (k: any) => string): string {
@@ -61,15 +62,15 @@ export function PromoIncentives() {
   );
 
   return (
-    <View className="rounded-2xl border border-slate-100 bg-white p-4 gap-3">
+    <View className="rounded-2xl border border-border bg-card p-4 gap-3">
       <View>
-        <Text className="text-sm font-bold text-slate-800">{t("promoTitle")}</Text>
-        <Text className="text-xs text-slate-500 mt-0.5">{t("promoHint")}</Text>
-        <Text className="text-xs text-slate-500 mt-1">{t("promoHowToEarn")}</Text>
+        <Text className="text-sm font-bold text-foreground">{t("promoTitle")}</Text>
+        <Text className="text-xs text-muted-foreground mt-0.5">{t("promoHint")}</Text>
+        <Text className="text-xs text-muted-foreground mt-1">{t("promoHowToEarn")}</Text>
       </View>
 
       <View className="gap-2">
-        <Text className="text-xs font-semibold text-slate-700">
+        <Text className="text-xs font-semibold text-foreground">
           {t("promoClaimLabel")}
         </Text>
         <View className="flex-row gap-2">
@@ -78,8 +79,8 @@ export function PromoIncentives() {
             onChangeText={setClaimCode}
             placeholder={t("promoClaimPlaceholder")}
             autoCapitalize="characters"
-            className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-900"
-            placeholderTextColor="#94a3b8"
+            className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground"
+            placeholderTextColor={Colors.light.textMuted}
           />
           <Pressable
             disabled={!claimCode.trim() || claimMutation.isPending}
@@ -91,30 +92,31 @@ export function PromoIncentives() {
                 ...(deviceHash ? { deviceHash } : {}),
               });
             }}
-            className="rounded-xl bg-[#ee237c] px-3 py-2 items-center justify-center"
+            accessibilityRole="button"
+            className="rounded-xl bg-primary px-3 py-2 items-center justify-center min-h-10"
           >
-            <Text className="text-xs font-semibold text-white">
+            <Text className="text-xs font-semibold text-primary-foreground">
               {t("promoClaimCta")}
             </Text>
           </Pressable>
         </View>
       </View>
 
-      <View className="rounded-xl bg-slate-50 p-3 gap-1">
+      <View className="rounded-xl bg-muted/40 p-3 gap-1">
         <View className="flex-row items-center gap-2">
-          <Gift size={16} color="#ee237c" />
-          <Text className="text-sm font-semibold text-slate-800">
+          <Gift size={16} color={Palette.rose[500]} />
+          <Text className="text-sm font-semibold text-foreground">
             {t("promoCreditsTitle")}
           </Text>
         </View>
-        <Text className="text-xl font-bold tabular-nums text-slate-900">
+        <Text className="text-xl font-bold tabular-nums text-foreground">
           {creditTotal.toLocaleString()} XOF
         </Text>
         {available.length === 0 ? (
-          <Text className="text-xs text-slate-500">{t("promoCreditsEmpty")}</Text>
+          <Text className="text-xs text-muted-foreground">{t("promoCreditsEmpty")}</Text>
         ) : (
           available.slice(0, 5).map((lot) => (
-            <Text key={lot.id} className="text-xs text-slate-600">
+            <Text key={lot.id} className="text-xs text-muted-foreground">
               {Math.max(0, lot.remainingXOF - lot.reservedXOF).toLocaleString()}{" "}
               XOF · {sourceLabel(lot.source, t)} · {lot.status}
             </Text>
@@ -123,12 +125,12 @@ export function PromoIncentives() {
       </View>
 
       {pending.length > 0 ? (
-        <View className="rounded-xl bg-amber-50 p-3 gap-1">
-          <Text className="text-sm font-semibold text-slate-800">
+        <View className="rounded-xl bg-warning/10 p-3 gap-1 border border-warning/20">
+          <Text className="text-sm font-semibold text-foreground">
             {t("promoCreditsPending")}
           </Text>
           {pending.slice(0, 5).map((lot) => (
-            <Text key={lot.id} className="text-xs text-slate-600">
+            <Text key={lot.id} className="text-xs text-muted-foreground">
               {lot.amountXOF.toLocaleString()} XOF ·{" "}
               {sourceLabel(lot.source, t)}
             </Text>

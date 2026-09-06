@@ -3,8 +3,10 @@
 import type { PassengerBookingSummary } from "@moja/types";
 import { Alert, AlertDescription } from "@moja/ui/components/ui/alert";
 import { Avatar, AvatarFallback } from "@moja/ui/components/ui/avatar";
+import { CarrierAvatar } from "@moja/ui/components/ui/carrier-avatar";
 import { Badge } from "@moja/ui/components/ui/badge";
 import { Button, buttonVariants } from "@moja/ui/components/ui/button";
+import { Input } from "@moja/ui/components/ui/input";
 import { Label } from "@moja/ui/components/ui/label";
 import { ScrollArea } from "@moja/ui/components/ui/scroll-area";
 import { Separator } from "@moja/ui/components/ui/separator";
@@ -71,8 +73,8 @@ function StatusBadge({
 }) {
   const t = useTranslations("passengerDashboard.bookingDetails");
   const map: Record<string, string> = {
-    CONFIRMED: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
-    PENDING_PAYMENT: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+    CONFIRMED: "bg-success/10 text-success border-success/30",
+    PENDING_PAYMENT: "bg-warning/10 text-warning border-warning/30",
     COMPLETED: "bg-muted text-muted-foreground border-muted",
     CANCELLED: "bg-destructive/10 text-destructive border-destructive/20",
     EXPIRED: "bg-muted text-muted-foreground border-muted",
@@ -94,18 +96,20 @@ function CopyButton({ text }: { text: string }) {
     setTimeout(() => setCopied(false), 2000);
   }
   return (
-    <button
+    <Button
       type="button"
+      variant="ghost"
+      size="sm"
       aria-label={t("copyAria")}
       onClick={handleCopy}
-      className="rounded-md p-1 transition-colors hover:bg-muted"
+      className="size-7 p-0 rounded-md transition-colors hover:bg-muted"
     >
       {copied ? (
-        <Check className="size-3.5 text-emerald-600" />
+        <Check className="size-3.5 text-success" />
       ) : (
         <Copy className="size-3.5 text-muted-foreground" />
       )}
-    </button>
+    </Button>
   );
 }
 
@@ -158,7 +162,7 @@ function OverviewTab({ booking }: { booking: PassengerBookingSummary }) {
         <Separator />
 
         {booking.status === "PENDING_PAYMENT" && (
-          <Alert className="border-amber-500/20 bg-amber-500/10 text-amber-800 dark:text-amber-300">
+          <Alert className="border-warning/30 bg-warning/10 text-warning">
             <AlertDescription>
               {countdown?.expired
                 ? t("holdExpired")
@@ -171,11 +175,13 @@ function OverviewTab({ booking }: { booking: PassengerBookingSummary }) {
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Avatar className="size-9 after:rounded-sm">
-              <AvatarFallback className="rounded-sm bg-primary/10 font-bold text-primary">
-                {booking.companyName.slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <CarrierAvatar
+              name={booking.companyName}
+              size="sm"
+              shape="square"
+              className="size-9 rounded-sm after:rounded-sm"
+              fallbackClassName="rounded-sm"
+            />
             <div className="flex flex-col gap-1">
               <div className="font-medium text-sm leading-none">
                 {booking.companyName}
@@ -503,7 +509,7 @@ function PaymentTab({
             </span>
           </div>
           {ticketDiscountXOF > 0 ? (
-            <div className="flex justify-between text-sm text-emerald-700">
+            <div className="flex justify-between text-sm text-success">
               <span>{td("discount")}</span>
               <span className="tabular-nums">
                 -{formatPriceXOF(ticketDiscountXOF)}
@@ -519,7 +525,7 @@ function PaymentTab({
             </div>
           ) : null}
           {creditAppliedXOF > 0 ? (
-            <div className="flex justify-between text-sm text-emerald-700">
+            <div className="flex justify-between text-sm text-success">
               <span>{td("credits")}</span>
               <span className="tabular-nums">
                 -{formatPriceXOF(creditAppliedXOF)}
@@ -533,14 +539,14 @@ function PaymentTab({
           </div>
         </div>
 
-        <div className="space-y-2 rounded-xl border p-3">
+        <div className="space-y-2 rounded-xl border border-border p-3">
           <Label className="text-xs font-semibold">{td("promoCode")}</Label>
           <div className="flex gap-2">
-            <input
+            <Input
               value={promoCode}
               onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
               placeholder={td("promoPlaceholder")}
-              className="h-9 flex-1 rounded-md border border-border bg-background px-2 text-sm uppercase"
+              className="h-9 flex-1 uppercase"
               disabled={Boolean(appliedCode) || isPaying}
             />
             {appliedCode ? (
@@ -574,12 +580,12 @@ function PaymentTab({
 
         <div className="space-y-2">
           {isZeroCash ? (
-            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4 space-y-1.5">
-              <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-semibold text-xs">
-                <Sparkles className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <div className="rounded-xl border border-success/30 bg-success/10 p-4 space-y-1.5">
+              <div className="flex items-center gap-2 text-success font-semibold text-xs">
+                <Sparkles className="size-4 text-success shrink-0" />
                 {t("promoCoveredTitle")}
               </div>
-              <p className="text-[11px] text-emerald-700 dark:text-emerald-400 leading-relaxed">
+              <p className="text-[11px] text-success/90 leading-relaxed">
                 {t("promoCoveredDesc")}
               </p>
             </div>
@@ -589,11 +595,12 @@ function PaymentTab({
                 {t("paymentMethod")}
               </Label>
               <div className="grid grid-cols-1 gap-2">
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   onClick={() => setPaymentMethod("PAYSTACK")}
                   className={cn(
-                    "flex items-center gap-3 rounded-xl border p-3.5 text-left transition-all",
+                    "flex h-auto w-full items-center justify-start gap-3 rounded-xl border p-3.5 text-left transition-all",
                     paymentMethod === "PAYSTACK"
                       ? "border-primary bg-primary/5 shadow-xs"
                       : "border-border hover:bg-muted/40",
@@ -601,19 +608,20 @@ function PaymentTab({
                 >
                   <CreditCard className="size-4 shrink-0" />
                   <div>
-                    <p className="text-xs font-bold">{t("cardMobileMoney")}</p>
+                    <p className="text-xs font-bold text-foreground">{t("cardMobileMoney")}</p>
                     <p className="text-[10px] text-muted-foreground mt-0.5">
                       {t("payViaPaystack")}
                     </p>
                   </div>
-                </button>
+                </Button>
 
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   disabled={!canPayWithWallet}
                   onClick={() => canPayWithWallet && setPaymentMethod("WALLET")}
                   className={cn(
-                    "flex items-center gap-3 rounded-xl border p-3.5 text-left transition-all",
+                    "flex h-auto w-full items-center justify-start gap-3 rounded-xl border p-3.5 text-left transition-all",
                     paymentMethod === "WALLET"
                       ? "border-primary bg-primary/5 shadow-xs"
                       : "border-border hover:bg-muted/40",
@@ -622,24 +630,24 @@ function PaymentTab({
                 >
                   <Wallet className="size-4 shrink-0" />
                   <div>
-                    <p className="text-xs font-bold">{t("mojaWallet")}</p>
+                    <p className="text-xs font-bold text-foreground">{t("mojaWallet")}</p>
                     <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">
                       {t("available", {
                         balance: formatPriceXOF(Number(walletBalance)),
                       })}
                     </p>
                   </div>
-                </button>
+                </Button>
               </div>
 
               {paymentMethod === "WALLET" ? (
-                <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs text-emerald-700 dark:text-emerald-300">
+                <div className="rounded-lg border border-success/30 bg-success/10 p-3 text-xs text-success">
                   <strong>{t("convenienceFee", { fee: "0 XOF" })}</strong>
                 </div>
               ) : null}
 
               {!canPayWithWallet ? (
-                <div className="flex items-center justify-between rounded-lg border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-700">
+                <div className="flex items-center justify-between rounded-lg border border-warning/30 bg-warning/10 p-3 text-xs text-warning">
                   <span>{t("walletInsufficient")}</span>
                   <Link
                     href="/dashboard/wallet"
@@ -784,40 +792,42 @@ function ActivityTab({
         {isPastOrCompleted && (
           <div className="flex gap-3 mt-2">
             <div className="flex flex-col items-center">
-              <div className="grid size-5 shrink-0 place-items-center rounded-full border-2 border-amber-500/60 bg-amber-500/10 mt-0.5">
-                <Star className="size-2.5 fill-amber-500 text-amber-500" />
+              <div className="grid size-5 shrink-0 place-items-center rounded-full border-2 border-warning/60 bg-warning/10 mt-0.5">
+                <Star className="size-2.5 fill-warning text-warning" />
               </div>
             </div>
             <div className="flex-1 pb-4">
               {isReviewed ? (
-                <div className="flex items-center gap-2 text-sm font-medium text-emerald-600">
+                <div className="flex items-center gap-2 text-sm font-medium text-success">
                   <Check className="size-4" />
                   {t("reviewSubmitted")}
                 </div>
               ) : (
-                <div className="space-y-3 rounded-xl border bg-muted/30 p-3">
+                <div className="space-y-3 rounded-xl border border-border bg-muted/30 p-3">
                   <p className="text-sm font-semibold">{t("rateYourTrip")}</p>
                   <div className="flex gap-1">
                     {[1, 2, 3, 4, 5].map((star) => {
                       const filled = (hoverRating ?? rating) >= star;
                       return (
-                        <button
+                        <Button
                           key={star}
                           type="button"
+                          variant="ghost"
+                          size="sm"
                           onClick={() => setRating(star)}
                           onMouseEnter={() => setHoverRating(star)}
                           onMouseLeave={() => setHoverRating(null)}
-                          className="focus:outline-none"
+                          className="h-auto p-0 focus:outline-none hover:bg-transparent"
                         >
                           <Star
                             className={cn(
                               "size-6 transition-colors",
                               filled
-                                ? "fill-amber-500 text-amber-500"
+                                ? "fill-warning text-warning"
                                 : "text-muted-foreground",
                             )}
                           />
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>
@@ -833,9 +843,11 @@ function ActivityTab({
                         const filled =
                           (hoverDriverRating ?? driverRating ?? 0) >= star;
                         return (
-                          <button
+                          <Button
                             key={star}
                             type="button"
+                            variant="ghost"
+                            size="sm"
                             onClick={() =>
                               setDriverRating(
                                 driverRating === star ? null : star,
@@ -843,26 +855,29 @@ function ActivityTab({
                             }
                             onMouseEnter={() => setHoverDriverRating(star)}
                             onMouseLeave={() => setHoverDriverRating(null)}
-                            className="focus:outline-none"
+                            className="h-auto p-0 focus:outline-none hover:bg-transparent"
                           >
                             <Star
                               className={cn(
                                 "size-5 transition-colors",
                                 filled
-                                  ? "fill-indigo-500 text-indigo-500"
+                                  ? "fill-primary text-primary"
                                   : "text-muted-foreground",
                               )}
                             />
-                          </button>
+                          </Button>
                         );
                       })}
                       {driverRating !== null && (
-                        <span
-                          className="text-[11px] text-muted-foreground self-center ml-1.5 cursor-pointer underline"
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-auto p-0 text-[11px] text-muted-foreground self-center ml-1.5 underline hover:bg-transparent hover:text-foreground"
                           onClick={() => setDriverRating(null)}
                         >
                           {t("clear")}
-                        </span>
+                        </Button>
                       )}
                     </div>
                   </div>

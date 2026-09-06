@@ -40,29 +40,29 @@ export function BookingSuccessView({
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4">
+    <div className="min-h-screen bg-background py-8 px-4">
       <div className="max-w-lg mx-auto space-y-6">
-        <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm text-center space-y-3">
-          <CheckCircle2 className="size-12 text-emerald-500 mx-auto" />
-          <h1 className="text-2xl font-bold text-slate-900">{t("title")}</h1>
-          <p className="text-sm text-slate-600">{t("subtitle")}</p>
+        <div className="rounded-2xl border border-border bg-card p-8 shadow-sm text-center space-y-3">
+          <CheckCircle2 className="size-12 text-success mx-auto" />
+          <h1 className="text-2xl font-bold text-foreground">{t("title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
           {total > 0 && (
-            <p className="text-sm font-bold text-[#ee237c]">
+            <p className="text-sm font-bold text-primary">
               {t("totalPaid", { amount: formatPriceXOF(total) })}
             </p>
           )}
         </div>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
           <TripSummaryCard trip={tripDetails} showStops={false} />
         </section>
 
         {references.length > 0 && (
-          <div className="rounded-lg bg-slate-50 border border-slate-200 p-4 text-left space-y-2">
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+          <div className="rounded-lg bg-muted/30 border border-border p-4 text-left space-y-2">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               {t("bookingReferences")}
             </p>
-            <ul className="text-sm font-mono text-slate-800 space-y-1">
+            <ul className="text-sm font-mono text-foreground space-y-1">
               {references.map((ref) => (
                 <li key={ref}>{ref}</li>
               ))}
@@ -83,7 +83,7 @@ export function BookingSuccessView({
             href="/"
             className={cn(
               buttonVariants(),
-              "bg-[#ee237c] hover:bg-[#d01867] justify-center",
+              "bg-primary hover:bg-primary/90 text-primary-foreground font-bold justify-center shadow-sm",
             )}
           >
             {t("searchTrips")}
@@ -101,17 +101,17 @@ export function BookingSuccessView({
 
         <Link
           href="/contact"
-          className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-colors hover:bg-slate-50"
+          className="flex items-start gap-3 rounded-2xl border border-border bg-card p-5 shadow-sm transition-colors hover:bg-muted/40"
         >
-          <div className="w-10 h-10 bg-[#ee237c]/10 text-[#ee237c] rounded-xl flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center shrink-0">
             <HelpCircle className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-slate-800">
+            <p className="text-sm font-semibold text-foreground">
               {t("helpTitle")}
             </p>
-            <p className="text-xs text-slate-500 mt-0.5">{t("helpBody")}</p>
-            <p className="text-xs font-bold text-[#ee237c] mt-1.5">
+            <p className="text-xs text-muted-foreground mt-0.5">{t("helpBody")}</p>
+            <p className="text-xs font-bold text-primary mt-1.5">
               {t("helpContact")} →
             </p>
           </div>

@@ -155,17 +155,17 @@ export function PassengerSettingsView({
       defaultValue="profile"
       className="w-full flex flex-col md:flex-row gap-6 items-start"
     >
-      <TabsList className="flex md:flex-col items-start gap-1 p-1 bg-bg-surface border border-border rounded-lg w-full md:w-60 shrink-0">
+      <TabsList className="flex md:flex-col items-start gap-1 p-1 bg-surface border border-border rounded-lg w-full md:w-60 shrink-0">
         <TabsTrigger
           value="profile"
-          className="w-full justify-start text-xs font-semibold px-4 py-2.5 rounded-md text-left gap-2 text-text-secondary data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
+          className="w-full justify-start text-xs font-semibold px-4 py-2.5 rounded-md text-left gap-2 text-muted-foreground data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
         >
           <User className="w-4 h-4" />
           {t("tabProfile")}
         </TabsTrigger>
         <TabsTrigger
           value="preferences"
-          className="w-full justify-start text-xs font-semibold px-4 py-2.5 rounded-md text-left gap-2 text-text-secondary data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
+          className="w-full justify-start text-xs font-semibold px-4 py-2.5 rounded-md text-left gap-2 text-muted-foreground data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
         >
           <Settings2 className="w-4 h-4" />
           {t("tabPreferences")}
@@ -175,9 +175,9 @@ export function PassengerSettingsView({
       <div className="flex-1 w-full space-y-6">
         <TabsContent value="profile" className="m-0 focus-visible:outline-none">
           <form onSubmit={handleSaveProfile}>
-            <Card className="border-border bg-bg-surface shadow-sm">
+            <Card className="border-border bg-surface shadow-sm">
               <CardHeader className="border-b border-border/50 pb-4">
-                <CardTitle className="text-base font-bold text-text-primary">
+                <CardTitle className="text-base font-bold text-foreground">
                   {t("tabProfile")}
                 </CardTitle>
                 <CardDescription>{t("profileDescription")}</CardDescription>
@@ -196,7 +196,7 @@ export function PassengerSettingsView({
                     shape="circle"
                     previewClassName="h-20 w-20"
                   />
-                  <p className="text-xs text-text-muted">
+                  <p className="text-xs text-muted-foreground">
                     {t("photoDescription")}
                   </p>
                 </div>
@@ -204,7 +204,7 @@ export function PassengerSettingsView({
                 <div className="flex flex-col gap-2">
                   <Label
                     htmlFor="fullName"
-                    className="text-xs font-bold text-text-secondary uppercase tracking-wider"
+                    className="text-xs font-bold text-muted-foreground uppercase tracking-wider"
                   >
                     {t("fullName")}
                   </Label>
@@ -220,16 +220,16 @@ export function PassengerSettingsView({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex flex-col gap-2">
-                    <Label className="text-xs font-bold text-text-secondary uppercase tracking-wider flex items-center gap-1">
-                      <Mail className="w-3.5 h-3.5 text-text-muted" />{" "}
+                    <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                      <Mail className="w-3.5 h-3.5 text-muted-foreground" />{" "}
                       {t("emailLabel")}
                     </Label>
                     <Input
                       value={profile?.user?.email || ""}
                       disabled
-                      className="h-10 rounded-lg border-border bg-bg-elevated/50 text-text-muted cursor-not-allowed"
+                      className="h-10 rounded-lg border-border bg-card-elevated/50 text-muted-foreground cursor-not-allowed"
                     />
-                    <p className="text-[10px] text-text-muted">
+                    <p className="text-[10px] text-muted-foreground">
                       {t("emailDisabledHint")}
                     </p>
                   </div>
@@ -237,9 +237,9 @@ export function PassengerSettingsView({
                   <div className="flex flex-col gap-2">
                     <Label
                       htmlFor="phone"
-                      className="text-xs font-bold text-text-secondary uppercase tracking-wider flex items-center gap-1"
+                      className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1"
                     >
-                      <Smartphone className="w-3.5 h-3.5 text-text-muted" />{" "}
+                      <Smartphone className="w-3.5 h-3.5 text-muted-foreground" />{" "}
                       {t("phoneLabel")}
                     </Label>
                     <PhoneInput
@@ -281,9 +281,9 @@ export function PassengerSettingsView({
           className="m-0 focus-visible:outline-none"
         >
           <form onSubmit={handleSavePreferences}>
-            <Card className="border-border bg-bg-surface shadow-sm">
+            <Card className="border-border bg-surface shadow-sm">
               <CardHeader className="border-b border-border/50 pb-4">
-                <CardTitle className="text-base font-bold text-text-primary">
+                <CardTitle className="text-base font-bold text-foreground">
                   {t("tabPreferences")}
                 </CardTitle>
                 <CardDescription>{t("preferencesDescription")}</CardDescription>
@@ -293,7 +293,7 @@ export function PassengerSettingsView({
                   <div className="flex flex-col gap-2">
                     <Label
                       htmlFor="preferredSeat"
-                      className="text-xs font-bold text-text-secondary uppercase tracking-wider"
+                      className="text-xs font-bold text-muted-foreground uppercase tracking-wider"
                     >
                       {t("seatingPreference")}
                     </Label>
@@ -301,7 +301,7 @@ export function PassengerSettingsView({
                       value={preferredSeat}
                       onValueChange={setPreferredSeat}
                     >
-                      <SelectTrigger className="h-10 rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-primary focus:ring-primary focus:border-primary">
+                      <SelectTrigger className="h-10 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus:ring-primary focus:border-primary">
                         <SelectValue placeholder={t("seatingNone")} />
                       </SelectTrigger>
                       <SelectContent>
@@ -319,7 +319,7 @@ export function PassengerSettingsView({
                   <div className="flex flex-col gap-2">
                     <Label
                       htmlFor="preferredClass"
-                      className="text-xs font-bold text-text-secondary uppercase tracking-wider"
+                      className="text-xs font-bold text-muted-foreground uppercase tracking-wider"
                     >
                       {t("seatingClass")}
                     </Label>
@@ -327,7 +327,7 @@ export function PassengerSettingsView({
                       value={preferredClass}
                       onValueChange={setPreferredClass}
                     >
-                      <SelectTrigger className="h-10 rounded-lg border border-border bg-bg-surface px-3 py-2 text-sm text-text-primary focus:ring-primary focus:border-primary">
+                      <SelectTrigger className="h-10 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus:ring-primary focus:border-primary">
                         <SelectValue placeholder={t("classEconomy")} />
                       </SelectTrigger>
                       <SelectContent>
@@ -344,7 +344,7 @@ export function PassengerSettingsView({
                 </div>
 
                 <div className="border-t border-border pt-5 space-y-4">
-                  <h4 className="text-xs font-bold text-text-secondary uppercase tracking-wider flex items-center gap-1.5">
+                  <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-primary" />{" "}
                     {t("notificationTitle")}
                   </h4>
@@ -353,11 +353,11 @@ export function PassengerSettingsView({
                     <div className="space-y-0.5 max-w-md">
                       <Label
                         htmlFor="marketing"
-                        className="text-sm font-semibold text-text-primary"
+                        className="text-sm font-semibold text-foreground"
                       >
                         {t("marketingLabel")}
                       </Label>
-                      <p className="text-xs text-text-muted">
+                      <p className="text-xs text-muted-foreground">
                         {t("marketingDescription")}
                       </p>
                     </div>

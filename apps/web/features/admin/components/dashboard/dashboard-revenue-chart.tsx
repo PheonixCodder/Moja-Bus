@@ -6,16 +6,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@moja/ui/components/ui/card";
+import { type ChartConfig, ChartContainer } from "@moja/ui/components/ui/chart";
 import { format } from "date-fns";
 import { useTranslations } from "next-intl";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-} from "recharts";
+import { Bar, BarChart, CartesianGrid, Tooltip, XAxis } from "recharts";
 import { DashboardDatePicker } from "./dashboard-date-picker";
 
 interface RevenueTrendPoint {
@@ -28,6 +22,13 @@ interface DashboardRevenueChartProps {
   totalGmv: number;
   bookingsCurrent: number;
 }
+
+const chartConfig = {
+  gmv: {
+    label: "GMV",
+    color: "var(--primary)",
+  },
+} satisfies ChartConfig;
 
 function CustomTooltip({
   active,
@@ -76,7 +77,7 @@ export function DashboardRevenueChart({
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           {/* Bar Chart */}
           <div className="lg:col-span-8">
-            <ResponsiveContainer width="100%" height={280}>
+            <ChartContainer config={chartConfig} className="h-[280px] w-full">
               <BarChart
                 data={revenueTrend}
                 margin={{ left: 0, right: 0, top: 4, bottom: 0 }}
@@ -113,12 +114,12 @@ export function DashboardRevenueChart({
                 />
                 <Bar
                   dataKey="gmv"
-                  fill="var(--primary)"
+                  fill="var(--color-gmv)"
                   fillOpacity={0.85}
                   radius={[6, 6, 0, 0]}
                 />
               </BarChart>
-            </ResponsiveContainer>
+            </ChartContainer>
           </div>
 
           {/* Summary Panel */}

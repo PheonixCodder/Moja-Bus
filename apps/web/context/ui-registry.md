@@ -40,6 +40,25 @@ Living document. Updated after every component is built or refactored. Read this
 
 ---
 
+## Shared `@moja/ui` Moja extensions (KEEP)
+
+Canonical primitives live in `packages/ui`. Prefer these over inventing local variants.
+
+| Component | Import | Notes |
+| :--- | :--- | :--- |
+| `Field` / `FieldGroup` / `FieldLabel` / `FieldError` | `@moja/ui/components/ui/field` | Standard for web forms; prefer `flex flex-col gap-*` over `space-y-*`. |
+| `ChartContainer` + `ChartConfig` | `@moja/ui/components/ui/chart` | Wrap all Recharts; series colors via `var(--color-*)` from config. |
+| `PhoneInput` | `@moja/ui/components/ui/phone-input` | CI-default; optional `country` lock (Moja); no `as any`. |
+| `Drawer` / `ActionDrawer` | `@moja/ui/components/ui/drawer` / `action-drawer` | Base UI (not Vaul); default `modal={false}`; always show overlay; `swipeDirection`. |
+| `CarrierAvatar` | `@moja/ui/components/ui/carrier-avatar` | Company logo → initials; never DiceBear. |
+| `UserAvatar` | `@moja/ui/components/ui/user-avatar` | Photo → DiceBear Glass → initials. |
+| `DatePicker` / `TimePicker` / `DateTimePicker` | `@moja/ui/components/ui/date-picker` (etc.) | Moja KEEP pickers on day-picker v10 Calendar. |
+| `Toaster` | `@moja/ui/components/ui/sonner` | Light-only (no `next-themes`). Prefer over raw `sonner` when adopting shared toast chrome. |
+
+Root `<html>` uses `style-maia` for adopt-tokens `cn-*` classes (preset `b20te54eby`: maia + taupe; Moja KEEP primary `#ee237c`). Fonts: Outfit (`font-sans`) + Raleway (`font-heading`). No Montserrat on web.
+
+---
+
 ## Notifications
 
 | Component | File | Notes |

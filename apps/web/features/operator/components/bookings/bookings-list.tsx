@@ -50,8 +50,8 @@ export function BookingsList({
 
   if (data.items.length === 0) {
     return (
-      <div className="text-center py-16 text-text-secondary text-sm">
-        <CalendarDays className="size-10 mx-auto mb-3 text-text-muted" />
+      <div className="text-center py-16 text-muted-foreground text-sm">
+        <CalendarDays className="size-10 mx-auto mb-3 text-muted-foreground" />
         <p>{t("emptyText")}</p>
       </div>
     );
@@ -59,7 +59,7 @@ export function BookingsList({
 
   return (
     <div className="space-y-3">
-      <p className="text-xs text-text-muted">
+      <p className="text-xs text-muted-foreground">
         {t("results", { total: data.total })}
         {pageCount > 1
           ? ` · ${t("pagination.pageOf", { page, total: pageCount })}`

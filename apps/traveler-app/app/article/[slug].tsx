@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { ArrowLeft01Icon, Clock01Icon, User02Icon } from "@hugeicons/core-free-icons";
+import { Colors, Palette } from "@/constants/theme";
 
 export default function ArticleDetailScreen() {
   const { t } = useTranslation(["home", "common"]);
@@ -23,20 +24,20 @@ export default function ArticleDetailScreen() {
   return (
     <>
       <Stack.Screen options={{ headerShown: false, presentation: "modal" }} />
-      <View className="flex-1 bg-white">
+      <View className="flex-1 bg-background">
         {/* Navigation Header Bar */}
         <View
           style={{ paddingTop: insets.top + 8 }}
-          className="flex-row items-center justify-between px-4 pb-3 border-b border-slate-100 bg-white"
+          className="flex-row items-center justify-between px-4 pb-3 border-b border-border bg-card"
         >
           <Pressable
             onPress={() => router.back()}
-            className="size-9 rounded-full bg-slate-100 items-center justify-center"
+            className="size-9 rounded-full bg-muted items-center justify-center"
           >
-            <HugeiconsIcon icon={ArrowLeft01Icon} size={20} color="#0f172a" />
+            <HugeiconsIcon icon={ArrowLeft01Icon} size={20} color={Colors.light.textPrimary} />
           </Pressable>
 
-          <Text className="text-xs font-extrabold text-slate-500 uppercase tracking-widest">
+          <Text className="text-xs font-extrabold text-muted-foreground uppercase tracking-widest">
             {t("home:travelNewsHeader")}
           </Text>
 
@@ -45,24 +46,24 @@ export default function ArticleDetailScreen() {
 
         {isLoading ? (
           <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color="#ee237c" />
-            <Text className="text-xs text-slate-500 mt-2 font-medium">
+            <ActivityIndicator size="large" color={Palette.rose[500]} />
+            <Text className="text-xs text-muted-foreground mt-2 font-medium">
               {t("home:loadingArticle")}
             </Text>
           </View>
         ) : error || !post ? (
           <View className="flex-1 items-center justify-center p-6 text-center">
-            <Text className="text-base font-bold text-slate-900 mb-1">
+            <Text className="text-base font-bold text-foreground mb-1">
               {t("home:articleNotFound")}
             </Text>
-            <Text className="text-xs text-slate-500 mb-4">
+            <Text className="text-xs text-muted-foreground mb-4">
               {t("home:articleRemoved")}
             </Text>
             <Pressable
               onPress={() => router.back()}
-              className="bg-slate-900 px-4 py-2 rounded-full"
+              className="bg-primary px-4 py-2 rounded-full"
             >
-              <Text className="text-xs font-bold text-white">{t("common:goBack")}</Text>
+              <Text className="text-xs font-bold text-primary-foreground">{t("common:goBack")}</Text>
             </Pressable>
           </View>
         ) : (
@@ -73,7 +74,7 @@ export default function ArticleDetailScreen() {
           >
             {/* Hero Cover Image */}
             {post.coverImage && (
-              <View className="h-56 w-full bg-slate-100 relative">
+              <View className="h-56 w-full bg-muted relative">
                 <Image
                   source={{ uri: post.coverImage }}
                   className="w-full h-full object-cover"
@@ -85,43 +86,43 @@ export default function ArticleDetailScreen() {
               {/* Category & Reading Time Meta */}
               <View className="flex-row items-center justify-between">
                 {post.category ? (
-                  <View className="bg-rose-50 border border-rose-100 px-2.5 py-0.5 rounded-full">
-                    <Text className="text-[10px] font-black text-rose-700 uppercase">
+                  <View className="bg-primary/10 border border-primary/20 px-2.5 py-0.5 rounded-full">
+                    <Text className="text-[10px] font-black text-primary uppercase">
                       {post.category.name}
                     </Text>
                   </View>
                 ) : <View />}
 
                 <View className="flex-row items-center gap-1">
-                  <HugeiconsIcon icon={Clock01Icon} size={12} color="#94a3b8" />
-                  <Text className="text-xs text-slate-400 font-medium">
+                  <HugeiconsIcon icon={Clock01Icon} size={12} color={Colors.light.textMuted} />
+                  <Text className="text-xs text-muted-foreground font-medium">
                     {t("home:minRead", { count: post.readingTime || 3 })}
                   </Text>
                 </View>
               </View>
 
               {/* Title */}
-              <Text className="text-2xl font-black text-slate-900 tracking-tight leading-tight">
+              <Text className="text-2xl font-black text-foreground tracking-tight leading-tight">
                 {post.title}
               </Text>
 
               {/* Author Meta */}
-              <View className="flex-row items-center gap-2.5 py-2 border-y border-slate-100">
-                <View className="size-8 rounded-full bg-slate-200 overflow-hidden items-center justify-center">
+              <View className="flex-row items-center gap-2.5 py-2 border-y border-border">
+                <View className="size-8 rounded-full bg-muted overflow-hidden items-center justify-center">
                   {post.displayAuthorAvatar || post.author?.image ? (
                     <Image
                       source={{ uri: post.displayAuthorAvatar || post.author?.image }}
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <HugeiconsIcon icon={User02Icon} size={16} color="#64748b" />
+                    <HugeiconsIcon icon={User02Icon} size={16} color={Colors.light.textMuted} />
                   )}
                 </View>
                 <View>
-                  <Text className="text-xs font-bold text-slate-800">
+                  <Text className="text-xs font-bold text-foreground">
                     {post.displayAuthorName || post.author?.fullName || "Moja Editorial"}
                   </Text>
-                  <Text className="text-[10px] text-slate-400">
+                  <Text className="text-[10px] text-muted-foreground">
                     {t("home:publishedBy")}
                   </Text>
                 </View>
@@ -129,14 +130,14 @@ export default function ArticleDetailScreen() {
 
               {/* Excerpt */}
               {post.excerpt && (
-                <Text className="text-sm font-semibold text-slate-700 italic bg-rose-50/50 p-3.5 rounded-xl border border-rose-100/60 leading-relaxed">
+                <Text className="text-sm font-semibold text-muted-foreground italic bg-muted/40 p-3.5 rounded-xl border border-border leading-relaxed">
                   "{post.excerpt}"
                 </Text>
               )}
 
               {/* Body Text */}
               <View className="pt-2">
-                <Text className="text-sm text-slate-800 leading-relaxed font-normal">
+                <Text className="text-sm text-foreground leading-relaxed font-normal">
                   {post.content}
                 </Text>
               </View>

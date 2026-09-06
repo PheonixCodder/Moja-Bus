@@ -49,7 +49,7 @@ export default async function OperatorLayout({
           >
             <OperatorSidebar user={fullUser} />
           </Suspense>
-          <SidebarInset className="min-h-0 min-w-0 bg-bg-base relative">
+          <SidebarInset className="min-h-0 min-w-0 bg-muted relative">
             <OperatorDashboardHeader />
             <main className="flex min-h-0 flex-1 flex-col">
               <OperatorRouteGuard>{children}</OperatorRouteGuard>

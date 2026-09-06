@@ -46,8 +46,8 @@ export function AdminPromoCreditsCard() {
   return (
     <Card className="space-y-4 p-4">
       <div>
-        <h2 className="text-sm font-semibold text-slate-900">{t("title")}</h2>
-        <p className="text-xs text-slate-500">{t("description")}</p>
+        <h2 className="text-sm font-semibold text-foreground">{t("title")}</h2>
+        <p className="text-xs text-muted-foreground">{t("description")}</p>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -97,15 +97,15 @@ export function AdminPromoCreditsCard() {
 
       {lookupUserId ? (
         <div className="space-y-1.5">
-          <p className="text-xs font-medium text-slate-700">
+          <p className="text-xs font-medium text-foreground">
             {t("lotsFor", { userId: lookupUserId })}
           </p>
           {lotsQuery.isLoading ? (
-            <p className="text-xs text-slate-500">{t("loading")}</p>
+            <p className="text-xs text-muted-foreground">{t("loading")}</p>
           ) : (lotsQuery.data ?? []).length === 0 ? (
-            <p className="text-xs text-slate-500">{t("noLots")}</p>
+            <p className="text-xs text-muted-foreground">{t("noLots")}</p>
           ) : (
-            <ul className="max-h-40 space-y-1 overflow-y-auto text-xs text-slate-600">
+            <ul className="max-h-40 space-y-1 overflow-y-auto text-xs text-muted-foreground">
               {(lotsQuery.data ?? []).map((lot) => (
                 <li key={lot.id} className="flex justify-between gap-2">
                   <span>

@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@moja/ui/components/ui/button";
 import { cn } from "@moja/ui/lib/utils";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Building, Clock } from "lucide-react";
@@ -53,31 +54,35 @@ export function AdminVerificationDetailsView({
   return (
     <div className="space-y-6">
       {/* Sub-tab Navigation */}
-      <div className="flex border-b border-border">
-        <button
+      <div className="flex gap-2 border-b border-border">
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setActiveTab("overview")}
           className={cn(
-            "px-4 py-2 text-xs font-bold uppercase tracking-wider border-b-2 -mb-px transition-colors flex items-center gap-1.5",
+            "px-4 py-2 text-xs font-bold uppercase tracking-wider border-b-2 -mb-px rounded-none transition-colors flex items-center gap-1.5 h-auto hover:bg-transparent",
             activeTab === "overview"
               ? "border-primary text-primary"
-              : "border-transparent text-slate-400 hover:text-slate-600",
+              : "border-transparent text-muted-foreground hover:text-foreground",
           )}
         >
           <Building className="size-4" />
           {t("overview")}
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setActiveTab("history")}
           className={cn(
-            "px-4 py-2 text-xs font-bold uppercase tracking-wider border-b-2 -mb-px transition-colors flex items-center gap-1.5",
+            "px-4 py-2 text-xs font-bold uppercase tracking-wider border-b-2 -mb-px rounded-none transition-colors flex items-center gap-1.5 h-auto hover:bg-transparent",
             activeTab === "history"
               ? "border-primary text-primary"
-              : "border-transparent text-slate-400 hover:text-slate-600",
+              : "border-transparent text-muted-foreground hover:text-foreground",
           )}
         >
           <Clock className="size-4" />
           {t("activityLogs")}
-        </button>
+        </Button>
       </div>
 
       {activeTab === "overview" ? (

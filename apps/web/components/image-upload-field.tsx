@@ -3,6 +3,7 @@
 import { useRef, type ReactNode } from "react";
 import { Loader2, UploadCloud, CheckCircle2, X } from "lucide-react";
 import { Button } from "@moja/ui/components/ui/button";
+import { Input } from "@moja/ui/components/ui/input";
 import { cn } from "@moja/ui/lib/utils";
 import { useStorageUpload, type UploadResult } from "@/lib/storage-client";
 import type { StoragePurposeId } from "@/lib/storage/purposes";
@@ -52,7 +53,7 @@ export function ImageUploadField({
     <div className="flex items-center gap-4">
       <div
         className={cn(
-          "relative flex items-center justify-center overflow-hidden border border-border bg-bg-elevated text-muted-foreground",
+          "relative flex items-center justify-center overflow-hidden border border-border bg-card-elevated text-muted-foreground",
           radius,
           previewClassName ?? "h-20 w-20",
           uploading && "opacity-70",
@@ -100,7 +101,7 @@ export function ImageUploadField({
         {error && (
           <p className="text-[10px] text-destructive">{error.message}</p>
         )}
-        <input
+        <Input
           ref={inputRef}
           type="file"
           accept="image/png, image/jpeg, image/webp"

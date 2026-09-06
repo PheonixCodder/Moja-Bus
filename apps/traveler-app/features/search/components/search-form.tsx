@@ -24,6 +24,7 @@ import {
   Navigation01Icon,
 } from '@hugeicons/core-free-icons';
 import * as Haptics from 'expo-haptics';
+import { Colors, Palette } from '@/constants/theme';
 import type { CityValue } from '../types';
 
 interface SearchFormProps {
@@ -105,24 +106,23 @@ export function SearchForm({
   return (
     <View className="px-4 pb-4">
       {/* ── Box 1: Route Inputs Container ── */}
-      <View className="rounded-[20px] bg-white border border-slate-100 mb-2.5 relative">
+      <View className="rounded-[20px] bg-card border border-border mb-2.5 relative">
         {/* Origin */}
         <Pressable
           onPress={onOriginPress}
-          className="flex-row items-center px-4 py-3.5 border-b border-slate-50 rounded-t-[20px] bg-white"
-          style={({ pressed }) => ({ backgroundColor: pressed ? '#f8fafc' : '#ffffff' })}
+          className="flex-row items-center px-4 py-3.5 border-b border-border/50 rounded-t-[20px] bg-card active:bg-muted/50"
         >
-          <View className="w-[34px] h-[34px] rounded-full bg-pink-50 items-center justify-center mr-3">
-            <HugeiconsIcon icon={Navigation01Icon} size={15} color="#ee237c" />
+          <View className="w-[34px] h-[34px] rounded-full bg-primary/10 items-center justify-center mr-3">
+            <HugeiconsIcon icon={Navigation01Icon} size={15} color={Palette.rose[500]} />
           </View>
           <View className="flex-1 pr-9">
-            <Text className="text-[9px] font-black text-slate-400 tracking-[1.5px] uppercase mb-0.5">
+            <Text className="text-[9px] font-black text-muted-foreground tracking-[1.5px] uppercase mb-0.5">
               {t('leavingFrom')}
             </Text>
             <Text
               numberOfLines={1}
               className={`text-sm ${
-                origin ? 'font-bold text-slate-900' : 'font-normal text-slate-400'
+                origin ? 'font-bold text-foreground' : 'font-normal text-muted-foreground'
               }`}
             >
               {origin ? origin.text : t('fromPlaceholder')}
@@ -133,31 +133,29 @@ export function SearchForm({
         {/* Floating Swap Button */}
         <Pressable
           onPress={handleSwap}
-          className="absolute right-4 top-1/2 -mt-4 w-8 h-8 rounded-full border border-pink-100 items-center justify-center z-50 elevation-2 bg-white"
-          style={({ pressed }) => ({ backgroundColor: pressed ? '#fce7f3' : '#ffffff', shadowColor: '#ee237c', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 })}
+          className="absolute right-4 top-1/2 -mt-4 w-8 h-8 rounded-full border border-primary/20 items-center justify-center z-50 bg-card active:bg-primary/10"
         >
           <Animated.View style={animatedSwapStyle}>
-            <HugeiconsIcon icon={ArrowUpDownIcon} size={13} color="#ee237c" />
+            <HugeiconsIcon icon={ArrowUpDownIcon} size={13} color={Palette.rose[500]} />
           </Animated.View>
         </Pressable>
 
         {/* Destination */}
         <Pressable
           onPress={onDestinationPress}
-          className="flex-row items-center px-4 py-3.5 rounded-b-[20px] bg-white"
-          style={({ pressed }) => ({ backgroundColor: pressed ? '#f8fafc' : '#ffffff' })}
+          className="flex-row items-center px-4 py-3.5 rounded-b-[20px] bg-card active:bg-muted/50"
         >
-          <View className="w-[34px] h-[34px] rounded-full bg-slate-100 items-center justify-center mr-3">
-            <HugeiconsIcon icon={Location01Icon} size={15} color="#64748b" />
+          <View className="w-[34px] h-[34px] rounded-full bg-muted items-center justify-center mr-3">
+            <HugeiconsIcon icon={Location01Icon} size={15} color={Colors.light.textSecondary} />
           </View>
           <View className="flex-1 pr-9">
-            <Text className="text-[9px] font-black text-slate-400 tracking-[1.5px] uppercase mb-0.5">
+            <Text className="text-[9px] font-black text-muted-foreground tracking-[1.5px] uppercase mb-0.5">
               {t('goingTo')}
             </Text>
             <Text
               numberOfLines={1}
               className={`text-sm ${
-                destination ? 'font-bold text-slate-900' : 'font-normal text-slate-400'
+                destination ? 'font-bold text-foreground' : 'font-normal text-muted-foreground'
               }`}
             >
               {destination ? destination.text : t('toPlaceholder')}
@@ -171,44 +169,42 @@ export function SearchForm({
         {/* Box 2: Calendar Box */}
         <Pressable
           onPress={() => setShowDatePicker(true)}
-          className="flex-1 flex-row items-center border border-slate-100 rounded-[20px] px-3.5 py-3 bg-white"
-          style={({ pressed }) => ({ backgroundColor: pressed ? '#f8fafc' : '#ffffff' })}
+          className="flex-1 flex-row items-center border border-border rounded-[20px] px-3.5 py-3 bg-card active:bg-muted/50"
         >
-          <View className="w-8 h-8 rounded-xl bg-pink-50 items-center justify-center mr-2.5">
-            <HugeiconsIcon icon={Calendar01Icon} size={15} color="#ee237c" />
+          <View className="w-8 h-8 rounded-xl bg-primary/10 items-center justify-center mr-2.5">
+            <HugeiconsIcon icon={Calendar01Icon} size={15} color={Palette.rose[500]} />
           </View>
           <View className="flex-1">
-            <Text className="text-[9px] font-black text-slate-400 tracking-[1.5px] uppercase">
+            <Text className="text-[9px] font-black text-muted-foreground tracking-[1.5px] uppercase">
               {t('datePlaceholder')}
             </Text>
-            <Text className="text-xs font-bold text-slate-900" numberOfLines={1}>
+            <Text className="text-xs font-bold text-foreground" numberOfLines={1}>
               {formattedDate}
             </Text>
           </View>
         </Pressable>
 
         {/* Box 3: Passenger Box */}
-        <View className="flex-row items-center bg-white border border-slate-100 rounded-[20px] px-2.5 py-2.5 gap-2">
+        <View className="flex-row items-center bg-card border border-border rounded-[20px] px-2.5 py-2.5 gap-2">
           <Pressable
             onPress={handleDecrease}
             disabled={passengers <= 1}
-            className="w-7 h-7 rounded-lg border border-slate-100 items-center justify-center bg-slate-50"
-            style={({ pressed }) => ({ backgroundColor: pressed ? '#e2e8f0' : '#f8fafc' })}
+            className="w-7 h-7 rounded-lg border border-border items-center justify-center bg-muted/50 active:bg-muted"
           >
             <HugeiconsIcon
               icon={Remove01Icon}
               size={11}
-              color={passengers > 1 ? '#0f172a' : '#cbd5e1'}
+              color={passengers > 1 ? Colors.light.textPrimary : Colors.light.borderStrong}
             />
           </Pressable>
 
           <View className="items-center">
-            <Text className="text-[8px] font-black text-slate-400 tracking-widest uppercase mb-0.5">
+            <Text className="text-[8px] font-black text-muted-foreground tracking-widest uppercase mb-0.5">
               {t('paxPlaceholder')}
             </Text>
             <View className="flex-row items-center gap-1">
-              <HugeiconsIcon icon={UserGroupIcon} size={12} color="#ee237c" />
-              <Text className="text-sm font-black text-slate-900 min-w-[14px] text-center">
+              <HugeiconsIcon icon={UserGroupIcon} size={12} color={Palette.rose[500]} />
+              <Text className="text-sm font-black text-foreground min-w-[14px] text-center">
                 {passengers}
               </Text>
             </View>
@@ -217,13 +213,12 @@ export function SearchForm({
           <Pressable
             onPress={handleIncrease}
             disabled={passengers >= 6}
-            className="w-7 h-7 rounded-lg border border-slate-100 items-center justify-center bg-slate-50"
-            style={({ pressed }) => ({ backgroundColor: pressed ? '#e2e8f0' : '#f8fafc' })}
+            className="w-7 h-7 rounded-lg border border-border items-center justify-center bg-muted/50 active:bg-muted"
           >
             <HugeiconsIcon
               icon={Add01Icon}
               size={11}
-              color={passengers < 6 ? '#0f172a' : '#cbd5e1'}
+              color={passengers < 6 ? Colors.light.textPrimary : Colors.light.borderStrong}
             />
           </Pressable>
         </View>

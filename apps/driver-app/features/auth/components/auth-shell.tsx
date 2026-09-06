@@ -5,7 +5,6 @@ import {
 	KeyboardAvoidingView,
 	Platform,
 	ScrollView,
-	StyleSheet,
 	Text,
 	TouchableOpacity,
 	View,
@@ -15,6 +14,7 @@ import { useRouter } from "expo-router";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Globe02Icon } from "@hugeicons/core-free-icons";
 import { DriverFeedback } from "@/lib/haptics";
+import { colors } from "@/constants/theme";
 
 type AuthShellProps = {
 	badge?: string;
@@ -45,7 +45,7 @@ export function AuthShell({
 
 	return (
 		<KeyboardAvoidingView
-			style={styles.root}
+			className="flex-1 bg-background"
 			behavior={Platform.OS === "ios" ? "padding" : "height"}
 			keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 0}
 		>
@@ -53,166 +53,58 @@ export function AuthShell({
 				<TouchableOpacity
 					onPress={handleLanguagePress}
 					activeOpacity={0.8}
-					style={[styles.languageBtn, { top: insets.top + 16 }]}
+					className="absolute right-5 z-20 w-11 h-11 rounded-2xl bg-card border border-border items-center justify-center"
+					style={{ top: insets.top + 16 }}
 				>
-					<HugeiconsIcon icon={Globe02Icon} size={20} color="#a1a1aa" />
+					<HugeiconsIcon icon={Globe02Icon} size={20} color={colors.neutral.textMuted} />
 				</TouchableOpacity>
 			) : null}
 
 			<ScrollView
-				style={styles.scroll}
-				contentContainerStyle={[
-					styles.scrollContent,
-					{
-						paddingTop: insets.top + 40,
-						paddingBottom: Math.max(insets.bottom, 24) + 24,
-					},
-				]}
+				className="flex-1"
+				contentContainerStyle={{
+					flexGrow: 1,
+					justifyContent: "space-between",
+					paddingHorizontal: 24,
+					paddingTop: insets.top + 40,
+					paddingBottom: Math.max(insets.bottom, 24) + 24,
+				}}
 				showsVerticalScrollIndicator={false}
 				keyboardShouldPersistTaps="handled"
 				keyboardDismissMode="on-drag"
 			>
-				<View style={styles.content}>
+				<View className="w-full max-w-[440px] self-center gap-6">
 					{logoSource ? (
-						<View style={styles.logoWrap}>
+						<View className="w-16 h-16 rounded-2xl bg-white p-2 items-center justify-center shadow-lg">
 							<Image
 								source={logoSource}
-								style={styles.logo}
+								className="w-full h-full"
 								resizeMode="contain"
 							/>
 						</View>
 					) : (
-						<View style={styles.brandRow}>
-							<View style={styles.brandDot} />
-							<Text style={styles.brandText}>Moja Driver</Text>
+						<View className="flex-row items-center gap-2.5">
+							<View className="w-3 h-3 rounded-full bg-primary" />
+							<Text className="text-base font-extrabold text-foreground tracking-tight">Moja Driver</Text>
 						</View>
 					)}
 
 					{badge ? (
-						<View style={styles.badge}>
-							<Text style={styles.badgeText}>{badge}</Text>
+						<View className="self-start bg-primary/10 border border-primary/30 rounded-full px-3 py-1">
+							<Text className="text-[11px] font-extrabold text-primary tracking-wider uppercase">{badge}</Text>
 						</View>
 					) : null}
 
-					<View style={styles.heading}>
-						<Text style={styles.title}>{title}</Text>
-						<Text style={styles.description}>{description}</Text>
+					<View className="gap-2">
+						<Text className="text-3xl font-extrabold text-foreground tracking-tight leading-9">{title}</Text>
+						<Text className="text-sm text-muted-foreground leading-5">{description}</Text>
 					</View>
 
-					<View style={styles.body}>{children}</View>
+					<View className="gap-5">{children}</View>
 				</View>
 
-				{footer ? <View style={styles.footer}>{footer}</View> : null}
+				{footer ? <View className="w-full max-w-[440px] self-center pt-8">{footer}</View> : null}
 			</ScrollView>
 		</KeyboardAvoidingView>
 	);
 }
-
-const styles = StyleSheet.create({
-	root: {
-		flex: 1,
-		backgroundColor: "#09090b",
-	},
-	languageBtn: {
-		position: "absolute",
-		right: 20,
-		zIndex: 20,
-		width: 42,
-		height: 42,
-		borderRadius: 14,
-		backgroundColor: "#18181b",
-		borderWidth: 1,
-		borderColor: "#27272a",
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	scroll: {
-		flex: 1,
-	},
-	scrollContent: {
-		flexGrow: 1,
-		justifyContent: "space-between",
-		paddingHorizontal: 24,
-	},
-	content: {
-		width: "100%",
-		maxWidth: 440,
-		alignSelf: "center",
-		gap: 24,
-	},
-	logoWrap: {
-		width: 64,
-		height: 64,
-		borderRadius: 18,
-		backgroundColor: "#ffffff",
-		padding: 8,
-		alignItems: "center",
-		justifyContent: "center",
-		shadowColor: "#000",
-		shadowOffset: { width: 0, height: 8 },
-		shadowOpacity: 0.35,
-		shadowRadius: 16,
-		elevation: 8,
-	},
-	logo: {
-		width: "100%",
-		height: "100%",
-	},
-	brandRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 10,
-	},
-	brandDot: {
-		width: 12,
-		height: 12,
-		borderRadius: 6,
-		backgroundColor: "#ee237c",
-	},
-	brandText: {
-		fontSize: 16,
-		fontWeight: "800",
-		color: "#fafafa",
-		letterSpacing: -0.3,
-	},
-	badge: {
-		alignSelf: "flex-start",
-		backgroundColor: "rgba(238, 35, 124, 0.12)",
-		borderColor: "rgba(238, 35, 124, 0.3)",
-		borderWidth: 1,
-		borderRadius: 999,
-		paddingHorizontal: 12,
-		paddingVertical: 5,
-	},
-	badgeText: {
-		fontSize: 11,
-		fontWeight: "800",
-		color: "#ee237c",
-		letterSpacing: 0.6,
-		textTransform: "uppercase",
-	},
-	heading: {
-		gap: 8,
-	},
-	title: {
-		fontSize: 32,
-		fontWeight: "800",
-		color: "#fafafa",
-		letterSpacing: -0.8,
-		lineHeight: 38,
-	},
-	description: {
-		fontSize: 14,
-		color: "#a1a1aa",
-		lineHeight: 22,
-	},
-	body: {
-		gap: 20,
-	},
-	footer: {
-		width: "100%",
-		maxWidth: 440,
-		alignSelf: "center",
-		paddingTop: 32,
-	},
-});

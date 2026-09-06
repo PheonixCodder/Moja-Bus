@@ -17,6 +17,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
+import { Button } from "@moja/ui/components/ui/button";
 import { type OnboardingStep } from "@moja/schemas";
 
 export function OperatorOnboardingView() {
@@ -44,7 +45,7 @@ export function OperatorOnboardingView() {
   return (
     <div className="space-y-8">
       {/* Step progress component */}
-      <div className="w-full bg-slate-50 border border-border rounded-md p-6">
+      <div className="w-full bg-muted/40 border border-border rounded-md p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-base font-bold text-foreground">
@@ -61,7 +62,7 @@ export function OperatorOnboardingView() {
 
         {/* Road Map Tracker */}
         <div className="relative pt-2 pb-2">
-          <div className="absolute top-1/2 left-4 right-4 h-1.5 bg-slate-200 -translate-y-1/2 rounded" />
+          <div className="absolute top-1/2 left-4 right-4 h-1.5 bg-muted -translate-y-1/2 rounded" />
 
           <div className="flex justify-between items-center relative z-10">
             {steps.map((step) => {
@@ -71,31 +72,32 @@ export function OperatorOnboardingView() {
               const isUpcoming = !isCompleted && !isCurrent;
 
               return (
-                <button
+                <Button
                   key={step.id}
                   type="button"
+                  variant="ghost"
                   onClick={() => goToStep(step.id as OnboardingStep)}
                   disabled={isUpcoming}
                   title={isUpcoming ? t("pleaseCompleteFirst") : undefined}
-                  className="flex flex-col items-center gap-2 focus:outline-none disabled:cursor-not-allowed group"
+                  className="flex flex-col items-center gap-2 h-auto p-0 hover:bg-transparent focus:outline-none disabled:cursor-not-allowed group"
                 >
                   <div
                     className={cn(
-                      "w-10 h-10 rounded-full flex items-center justify-center border-4 border-slate-50 shadow transition-all duration-300",
+                      "w-10 h-10 rounded-full flex items-center justify-center border-4 border-card shadow transition-all duration-300",
                       isCompleted &&
-                        "bg-green-600 border-green-600 group-hover:scale-105",
+                        "bg-success border-success group-hover:scale-105",
                       isCurrent &&
                         "bg-primary border-primary ring-4 ring-primary/15 group-hover:scale-105",
-                      isUpcoming && "bg-slate-100 border-slate-200",
+                      isUpcoming && "bg-muted border-border",
                     )}
                   >
                     {isCompleted ? (
-                      <CheckCircle2 className="w-5 h-5 text-white" />
+                      <CheckCircle2 className="w-5 h-5 text-success-foreground" />
                     ) : (
                       <step.icon
                         className={cn(
                           "w-4 h-4",
-                          isCurrent ? "text-white" : "text-muted-foreground",
+                          isCurrent ? "text-primary-foreground" : "text-muted-foreground",
                         )}
                       />
                     )}
@@ -104,14 +106,14 @@ export function OperatorOnboardingView() {
                   <span
                     className={cn(
                       "text-[10px] font-bold uppercase tracking-wider hidden sm:block",
-                      isCompleted && "text-green-600",
+                      isCompleted && "text-success",
                       isCurrent && "text-primary",
                       isUpcoming && "text-muted-foreground",
                     )}
                   >
                     {step.name}
                   </span>
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -119,7 +121,7 @@ export function OperatorOnboardingView() {
 
         {/* Progress bar — server-calculated percentage */}
         <div className="mt-6">
-          <div className="h-1.5 bg-slate-200 rounded overflow-hidden">
+          <div className="h-1.5 bg-muted rounded overflow-hidden">
             <div
               className="h-full bg-primary transition-all duration-500 ease-in-out"
               style={{ width: `${percentage}%` }}

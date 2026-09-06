@@ -31,11 +31,11 @@ type Step = "welcome" | "create-account" | "sign-in" | "otp" | "done";
 function BrandHeader() {
   return (
     <div className="mb-8 flex items-center gap-2">
-      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#ee237c]/10">
-        <BusFront className="h-5 w-5 text-[#ee237c]" />
+      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+        <BusFront className="h-5 w-5 text-primary" />
       </div>
       <span className="text-[18px] font-bold tracking-tight text-foreground">
-        Moja<span className="text-[#ee237c]">Ride</span>
+        Moja<span className="text-primary">Ride</span>
       </span>
     </div>
   );
@@ -205,7 +205,7 @@ export function AdminInvitationView() {
         {/* ── LOADING ── */}
         {!!token && isLoading && (
           <div className="flex flex-col items-center gap-4 py-16">
-            <Loader2 className="h-8 w-8 animate-spin text-[#ee237c]" />
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p className="text-[14px] text-muted-foreground">
               {t("validating")}
             </p>
@@ -215,7 +215,7 @@ export function AdminInvitationView() {
         {/* ── ERROR / INVALID ── */}
         {!!token && !isLoading && error && (
           <div className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
-            <AlertCircle className="h-10 w-10 text-red-500 mx-auto mb-4" />
+            <AlertCircle className="h-10 w-10 text-destructive mx-auto mb-4" />
             <h1 className="text-[18px] font-semibold text-foreground mb-2">
               {t("invitationInvalid")}
             </h1>
@@ -259,8 +259,8 @@ export function AdminInvitationView() {
                   ),
                 })}
               </p>
-              <div className="flex items-center gap-2">
-                <AdminRoleBadge role={invitation.role} />
+              <div className="flex items-center gap-2 pt-1">
+                <AdminRoleBadge role={invitation.role as AdminStaffRole} />
                 {invitation.jobTitle && (
                   <span className="text-[12px] text-muted-foreground">
                     · {invitation.jobTitle}
@@ -268,7 +268,7 @@ export function AdminInvitationView() {
                 )}
               </div>
               {invitation.message && (
-                <p className="text-[13px] text-muted-foreground italic border-l-2 border-[#ee237c]/40 pl-3 mt-2">
+                <p className="text-[13px] text-muted-foreground italic border-l-2 border-primary/40 pl-3 mt-2">
                   "{invitation.message}"
                 </p>
               )}
@@ -276,7 +276,7 @@ export function AdminInvitationView() {
 
             <div className="grid gap-2 sm:grid-cols-2">
               <Button
-                className="h-10 text-[13px] bg-[#ee237c] hover:bg-[#d11f6e] text-white"
+                className="h-10 text-[13px]"
                 onClick={() => setStep("create-account")}
               >
                 {t("createAccountJoin")}
@@ -334,7 +334,7 @@ export function AdminInvitationView() {
               </div>
 
               <Button
-                className="w-full h-10 text-[13px] bg-[#ee237c] hover:bg-[#d11f6e] text-white mt-2"
+                className="w-full h-10 text-[13px] mt-2"
                 onClick={handleSendOtpNewUser}
                 disabled={submitting}
               >
@@ -347,13 +347,14 @@ export function AdminInvitationView() {
                 )}
               </Button>
 
-              <button
+              <Button
                 type="button"
-                className="w-full text-center text-[12px] text-muted-foreground hover:text-foreground transition-colors"
+                variant="ghost"
+                className="w-full text-center text-[12px] text-muted-foreground hover:text-foreground h-auto p-0 font-normal"
                 onClick={() => setStep("welcome")}
               >
                 {t("back")}
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -385,7 +386,7 @@ export function AdminInvitationView() {
               </div>
 
               <Button
-                className="w-full h-10 text-[13px] bg-[#ee237c] hover:bg-[#d11f6e] text-white mt-2"
+                className="w-full h-10 text-[13px] mt-2"
                 onClick={handleSendOtpExistingUser}
                 disabled={submitting}
               >
@@ -398,13 +399,14 @@ export function AdminInvitationView() {
                 )}
               </Button>
 
-              <button
+              <Button
                 type="button"
-                className="w-full text-center text-[12px] text-muted-foreground hover:text-foreground transition-colors"
+                variant="ghost"
+                className="w-full text-center text-[12px] text-muted-foreground hover:text-foreground h-auto p-0 font-normal"
                 onClick={() => setStep("welcome")}
               >
                 {t("back")}
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -412,14 +414,15 @@ export function AdminInvitationView() {
         {/* ── OTP ── */}
         {!!token && !isLoading && invitation && step === "otp" && (
           <div className="rounded-2xl border border-border bg-card p-8 shadow-sm">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#ee237c]/10 mb-5">
-              <Mail className="h-5 w-5 text-[#ee237c]" />
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 mb-5">
+              <Mail className="h-5 w-5 text-primary" />
             </div>
+
             <h1 className="text-[17px] font-bold text-foreground mb-1">
-              {t("checkInbox")}
+              {t("checkYourEmail")}
             </h1>
             <p className="text-[13px] text-muted-foreground mb-6">
-              {t.rich("checkInboxDesc", {
+              {t.rich("sentCodeTo", {
                 email: invitation.email,
                 strong: (chunks) => (
                   <strong className="text-foreground">{chunks}</strong>
@@ -429,27 +432,23 @@ export function AdminInvitationView() {
 
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <Label htmlFor="otp-code" className="text-[12px] font-medium">
+                <Label htmlFor="otp" className="text-[12px] font-medium">
                   {t("verificationCode")}
                 </Label>
                 <Input
-                  id="otp-code"
-                  placeholder={t("codePlaceholder")}
-                  maxLength={6}
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
+                  id="otp"
+                  placeholder="123456"
+                  maxLength={8}
+                  className="h-10 text-center tracking-widest text-[16px] font-mono border-border"
                   value={otpCode}
-                  onChange={(e) =>
-                    setOtpCode(e.target.value.replace(/\D/g, ""))
-                  }
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
                   onKeyDown={(e) => e.key === "Enter" && handleVerifyOtp()}
-                  className="h-11 text-[16px] tracking-[0.3em] text-center border-border font-mono"
                   disabled={submitting}
                 />
               </div>
 
               <Button
-                className="w-full h-10 text-[13px] bg-[#ee237c] hover:bg-[#d11f6e] text-white"
+                className="w-full h-10 text-[13px]"
                 onClick={handleVerifyOtp}
                 disabled={submitting || otpCode.length < 6}
               >
@@ -464,9 +463,11 @@ export function AdminInvitationView() {
               </Button>
 
               <div className="flex items-center justify-center gap-1.5">
-                <button
+                <Button
                   type="button"
-                  className="flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  variant="ghost"
+                  size="sm"
+                  className="flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground h-auto p-1 font-normal"
                   onClick={handleResendOtp}
                   disabled={resendCooldown > 0 || submitting}
                 >
@@ -474,19 +475,20 @@ export function AdminInvitationView() {
                   {resendCooldown > 0
                     ? t("resendIn", { count: resendCooldown })
                     : t("resendCode")}
-                </button>
+                </Button>
               </div>
 
-              <button
+              <Button
                 type="button"
-                className="w-full text-center text-[12px] text-muted-foreground hover:text-foreground transition-colors"
+                variant="ghost"
+                className="w-full text-center text-[12px] text-muted-foreground hover:text-foreground h-auto p-0 font-normal"
                 onClick={() => {
                   setOtpCode("");
                   setStep(isNewUser ? "create-account" : "sign-in");
                 }}
               >
                 {t("back")}
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -507,7 +509,7 @@ export function AdminInvitationView() {
               })}
             </p>
             <div className="mt-6 flex justify-center">
-              <Loader2 className="h-5 w-5 animate-spin text-[#ee237c]" />
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
             </div>
           </div>
         )}

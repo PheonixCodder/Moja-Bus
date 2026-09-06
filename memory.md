@@ -1,12 +1,113 @@
 > **Canonical Session Memory** — Updated by `/remember save` at end of every session. Restored by `/remember restore` at start of every session. This is the ONLY memory file in the repo. See [CONTEXT_SYSTEM.md](./CONTEXT_SYSTEM.md) for protocol.
 
-# Memory — Driver System Release Remediation + CDD Ecosystem Restructure
+# Memory — shadcn/ui Audit Complete (Web / UI / Theme)
 
-Last updated: 2026-08-25 (ALL 39 phases complete — remediation track closed; staging & release next)
+Last updated: 2026-09-06 (Phase 9 preset b20te54eby — maia + taupe, Moja pink KEEP)
 
 ## State
 
-- **🏁 UNIFIED DRIVER & STAFF CONDUCTOR ARCHITECTURE COMPLETE ✅ (2026-09-03)**:
+- **🏁 PRESET `b20te54eby` → Maia/taupe ADOPTED ✅ (2026-09-06)**:
+  - Decoded: maia style, taupe base, rose charts, Outfit/Raleway, radius medium (`0.625rem`).
+  - `style-maia.css` + `<html class="style-maia">`; `components.json` → `base-maia` / taupe.
+  - Theme: taupe neutrals + rose `--chart-*`; **KEEP** Moja `--primary` / ring / sidebar-primary / selection `#ee237c`.
+  - Fonts: Outfit (sans) + Raleway (heading); Montserrat fully removed from web + theme CSS (RN apps still load Montserrat separately).
+  - `@moja/ui` `noImplicitAny: true` (matches Vercel/Next production typecheck); phone-input `onChange` typed.
+  - Moja patches on maia CSS: `cn-drawer-content-base`, `cn-font-heading`. Drawer KEEP (`modal={false}`, overlay) unchanged in TSX.
+  - `style-nova.css` retained on disk but unused (rollback).
+  - **Next:** Phase 7 manual visual QA under `.style-maia`; optional Toaster adoption.
+
+- **🏁 SHADCN PHASE 7 + 8 COMPLETE ✅ (2026-09-06)**:
+  - Phase 7 automated: `@moja/ui` + `web` typecheck green; Biome format/imports on remedia­tion files.
+  - Phase 7 **manual** checklist remains in `14-migration-plan.md` (keyboard + visual under `.style-maia`) — not a code blocker.
+  - Phase 8: removed `next-themes` from `@moja/ui`; Sonner Toaster is light-only; Moja KEEP extensions documented in `apps/web/context/ui-registry.md`.
+  - **Next:** Optional — run the Phase 7 manual QA checklist in browser; switch dashboard layouts from raw `sonner` → `@moja/ui` Toaster.
+
+- **🏁 SHADCN PHASE 5 COMPLETE ✅ (2026-09-06)**:
+  - SHADCN-019: phone-input — zero `as any`; typed via `RPNInput.Props`; Flag `title` prop; lock via Moja `country` + FixedCountrySelect (not undocumented library `country`).
+  - SHADCN-024: calendar verified on day-picker v10; `cn-calendar-*` / `cn-rtl-flip` aligned with pinned base calendar.
+  - SHADCN-020: sidebar already typed (no cast) — confirmed.
+  - Typecheck: `@moja/ui` + `web` exit 0.
+  - **Next:** Phase 7 visual/keyboard QA, or Phase 8 cleanup.
+
+- **🏁 SHADCN PHASE 4 + 4b COMPLETE ✅ (2026-09-06)**:
+  - **Forms:** `Field`/`FieldGroup`/`FieldLabel`/`FieldError` on contact, saved passengers, operator onboarding (company/profile/bank). SHADCN-033: blog `FieldLabel` → `BlogFormLabel`. Standards note in `context/code-standards.md`.
+  - **Charts:** SHADCN-031 — `ChartContainer` on admin dashboard revenue, operator revenue analytics, driver analytics. SHADCN-032 — no `hsl(var(--` left in web; configs use `var(--color-*)`.
+  - Typecheck: `@moja/ui` + `web` exit 0.
+  - **Next:** Phase 5 (phone/calendar/sidebar polish) or Phase 7 visual/keyboard QA. Opportunistic: remaining admin dialogs, `terms-step`.
+
+- **🏁 SHADCN PHASE 3 ADOPT-TOKENS COMPLETE ✅ (2026-09-05)**:
+  - Chose **Adopt-tokens** (not Stay-inline).
+  - Imported `style-nova.css` into `@moja/ui`; web root has `style-nova` class.
+  - `shadcn migrate cn` → `cn` package; `utils.ts` re-exports.
+  - Synced 54 primitives to pinned base registry `cn-*` classes (lucide for icons).
+  - KEEP: action-drawer, avatars, phone-input, date/time pickers; drawer Moja defaults retained.
+  - Typecheck: `@moja/ui` + `web` exit 0.
+  - **Next:** Phase 4 forms / 4b charts, or Phase 7 visual QA.
+
+- **🏁 SHADCN PHASE 2 COMPLETE ✅ (2026-09-05)**:
+  - DropdownMenu + Tooltip retargeted to Base UI types (no `as any` / asChild shim).
+  - Web DropdownMenu `asChild` → `render={...}` (5 consumer files).
+  - **Drawer: migrated Vaul → `@base-ui/react/drawer`**; removed `vaul`; `direction` → `swipeDirection`; `DrawerClose asChild` → `render`; default `modal={false}` kept.
+  - Typecheck: `@moja/ui` + `web` exit 0.
+  - **Next:** Phase 3 styling strategy (Stay-inline vs Adopt `cn-*`) or Phase 4 forms/charts.
+
+- **🏁 SHADCN PHASE 1 + 1b COMPLETE ✅ (2026-09-05)**:
+  - **Phase 1**: `components.json` → `base-nova` + `aliases.components: #components`; installed `shadcn@4.21.0` + `tw-animate-css`; UI globals import both; removed dead `radix-ui` / `@radix-ui/react-slot` / `@shadcn/react` (kept `next-themes` for Sonner); `shadcn info` reports `base: base`.
+  - **Phase 1b**: theme added `--surface*`, `--selection*`, `--code*`, `--font-heading`, radius 2xl–4xl (additive Moja KEEP); replaced ghost `bg-bg-*` / `text-text-*` across web; fixed `hsl(var(--hex))` → `var(--*)` in charts/maps.
+  - **Verified**: `pnpm --filter @moja/ui typecheck` + `pnpm --filter web typecheck` exit 0.
+  - **Next**: Phase 2 — dropdown asChild shim removal, tooltip types, drawer decision, migrate web asChild call sites. Still freeze reckless `shadcn add` until styling strategy (Phase 3) is chosen, but config is now truthful.
+
+- **🏁 SHADCN/UI EXHAUSTIVE AUDIT + INCREMENTAL REAUDIT COMPLETE ✅ (2026-09-05)**:
+  - **Scope**: Audit-only of `apps/web`, `packages/ui`, `packages/theme` vs pinned `context/services/shadcn` @ `7c9eaba…`. RN excluded. Dark mode absence intentional (do not flag).
+  - **Output**: `context/audits/shadcn-ui-audit/` — docs `00`–`17` + **`18-reaudit-css-packages-charts.md`**.
+  - **Verdict**: Classification **C — Hybrid**. Not foundation-ready for CLI upgrades.
+  - **CRITICAL**: SHADCN-001 (`radix-nova` config vs Base UI code); **SHADCN-027** (`shadcn@4.21.0` not installed — only in reference).
+  - **HIGH new from reaudit**: SHADCN-028 missing `tw-animate-css` + `shadcn/tailwind.css` imports; SHADCN-032 `hsl(var(--hex))` chart/map colors; SHADCN-034 ghost `bg-bg-*` / `text-text-*` classes.
+  - **Also**: drawer Vaul, asChild shims, Field ~7 files only, 3/6 charts bypass ChartContainer, missing surface/selection/font-heading tokens, incomplete animate utilities, accordion radix-only keyframes.
+  - **KEEP**: Moja brand tokens (primary pink, success/warning/info), package boundary web→ui→theme, no web components.json.
+  - **Next (when user asks to fix)**: Phase 1 from `14-migration-plan.md` — `base-nova` + install `shadcn@4.21.0` + `tw-animate-css` + CSS imports; Phase 1b theme ghosts + hsl fix. **Do not run `shadcn add` until then.**
+
+- **🏁 DICEBEAR GLASS AVATAR & CARRIER LOGO HARMONIZATION COMPLETE ACROSS ALL SURFACES (WEB, TRAVELER-APP, DRIVER-APP, @MOJA/UI) ✅ (2026-09-05)**:
+  - **Scope**: End-to-end audit, architectural standardization, and full implementation of canonical avatar primitives across web, traveler mobile app, and driver mobile app based on `context/audits/avatar-system-audit/` and user directives.
+  - **Entity Boundaries & Invariants Strictly Enforced**:
+    1. *Human Users (Passengers, Drivers, Operator Staff, Platform Admins)*: 3-tier cascade: (1) Custom profile photo URL, (2) DiceBear Glass HTTP PNG (`https://api.dicebear.com/10.x/glass/png?seed=${seed}&size=128`), (3) User 2-letter initials fallback.
+    2. *Bus Companies / Carriers*: Canonical `<CarrierAvatar>` component displaying corporate logo if present, falling back to uppercase initials for the first 2 words (e.g. "Moja Ride" -> "MR"), never glassy DiceBear.
+  - **Primitives Created & Harmonized**:
+    - `packages/ui/src/lib/initials.ts`: `getCompanyInitials` (2-word rule), `getUserInitials`, `getDicebearGlassUrl`.
+    - `packages/ui/src/components/ui/carrier-avatar.tsx`: Canonical `<CarrierAvatar>` component for web.
+    - `packages/ui/src/components/ui/user-avatar.tsx`: Canonical `<UserAvatar>` component for web with error fallback cascade.
+    - `apps/traveler-app/components/ui/avatar.tsx`: React Native `<UserAvatar>` with DiceBear Glass PNG + initials fallback.
+    - `apps/driver-app/components/ui/avatar.tsx`: React Native `<UserAvatar>` with DiceBear Glass PNG + initials fallback.
+  - **Surfaces Standardized (Zero raw/ad-hoc badges remaining)**:
+    - *Web Public & Search*: `offer-card.tsx` (fixed ignored `companyLogoUrl`), `home-operators-client.tsx`, `home-header.tsx`, `booking-details.tsx`.
+    - *Web Dashboards & Directories*: `dashboard-sidebar.tsx`, `operator-sidebar.tsx`, `admin-sidebar.tsx`, `member-avatar.tsx` (admin & operator), `travelers-columns.tsx`, `travelers-grid.tsx`, `operators-columns.tsx`, `operators-grid.tsx`, `user-profile-header.tsx`, `admin-traveler-profile-view.tsx`, `admin-operator-profile-view.tsx`.
+    - *Driver Rosters & Operations*: `operator-drivers-view.tsx`, `driver-detail-view.tsx`, `marketplace-driver-card.tsx`, `driver-public-profile-sheet.tsx`, `operator-sent-offers-view.tsx`, `operator-fleet-map-view.tsx`, `admin-marketplace-view.tsx` (both OfferAuditRow & driver table row), `driver-assignment-rows.tsx` (micro-avatar).
+    - *Governance & Ad-hoc Remediation*: `dispatch-trip-list.tsx`, `admin-routes-table.tsx`, `withdrawals-columns.tsx`, `verifications-columns.tsx`, `settlements-history-table.tsx`, `admin-inquiries-view.tsx`, `inquiry-detail-drawer.tsx`, `saved-passengers-view.tsx`, `bank-access-logs-table.tsx`, `personal-profile-section.tsx`, `profile-section.tsx`.
+    - *Mobile Apps*: `traveler-app/profile-hero.tsx`, `traveler-app/personal-info-avatar.tsx`, `traveler-app/passenger-card.tsx`, `driver-app/profile-view.tsx`.
+  - **Verification Proof (Zero Errors Across All Surfaces)**:
+    - `pnpm --filter @moja/ui typecheck`: **Exit 0**
+    - `pnpm --filter traveler-app typecheck`: **Exit 0**
+    - `pnpm --filter driver-app typecheck`: **Exit 0**
+    - `pnpm --filter web typecheck`: **Exit 0**
+
+- **🏁 COMPREHENSIVE MONOREPO DESIGN SYSTEM AUDIT & 100% COMPLIANCE REACHED ACROSS ALL ACTIVE SURFACES (01–07) ✅ (2026-09-05)**:
+  - **Scope**: Rigorous design system audit and 100% remediation across all 7 active monorepo surfaces (1,329 active files) with full canonical design tokens implementation (`@moja/theme`, `@moja/ui`, `packages/theme/tokens.ts`, `global.css`).
+  - **100% Compliance Achieved (🟢 100%, 0 Minor Drift, 0 Critical Violations)**:
+    1. `01-tracker-driver-app.md`: **80/80 files (100% 🟢 Fully Compliant, 0 Minor Drift, 0 Critical)**.
+    2. `02-tracker-traveler-app.md`: **216/216 files (100% 🟢 Fully Compliant, 0 Minor Drift, 0 Critical)**.
+    3. `03-tracker-web-passenger.md`: **247/247 files (100% 🟢 Fully Compliant, 0 Minor Drift, 0 Critical)**.
+    4. `04-tracker-web-operator.md`: **194/194 files (100% 🟢 Fully Compliant, 0 Minor Drift, 0 Critical)**.
+    5. `05-tracker-web-admin.md`: **239/239 files (100% 🟢 Fully Compliant, 0 Minor Drift, 0 Critical)**.
+    6. `06-tracker-shared-ui-theme.md`: **68/68 files (100% 🟢 Fully Compliant, 0 Minor Drift, 0 Critical)**.
+    7. `07-tracker-backend-infrastructure.md`: **285/285 files (100% 🟢 Fully Compliant, 0 Minor Drift, 0 Critical)**.
+  - **TypeScript Verification Proof (Zero Errors Across Entire Monorepo)**:
+    - `pnpm -r typecheck`: **Exit 0 across all 12 workspace projects**
+  - **Tooling & Infrastructure Cleanups**:
+    - Standardized callback HTML styling in `apps/web/app/api/payments/mobile-callback/route.ts` to canonical design tokens.
+    - Configured `@moja/theme` package exports with proper TypeScript types declarations.
+    - Added `@moja/theme` dependency and path mapping to `apps/web`.
+    - Fixed candidate trips selection and seat map integration in operator `booking-detail-drawer.tsx`.
+    - Harmonized Leaflet marker token palettes in `passenger-tracking-view.tsx`.
   - **Scope**: Replaced duplicate relief marketplaces with a clean 2-driver system (Primary & optional Relief) and integrated Conductors into the existing Operator Staff system (`Operator.role === "CONDUCTOR"`).
   - **Key Implementations Shipped**:
     1. *Prisma Migration*: Added `Trip.conductorStaffId` referencing `Operator.id`, created standard migration `20260903063849_add_trip_conductor_staff/migration.sql`.

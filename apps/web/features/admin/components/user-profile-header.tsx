@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { UserAvatar } from "@moja/ui/components/ui/user-avatar";
 
 type UserRole = "TRAVELER" | "OPERATOR" | "ADMIN";
 
@@ -21,6 +22,7 @@ interface UserProfileHeaderProps {
   id: string;
   fullName: string;
   email: string;
+  image?: string | null;
   phone?: string | null;
   role: UserRole;
   emailVerified: boolean;
@@ -33,47 +35,24 @@ interface UserProfileHeaderProps {
 const roleMeta: Record<UserRole, { label: string; className: string }> = {
   TRAVELER: {
     label: "Traveler",
-    className:
-      "bg-blue-100/60 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+    className: "bg-primary/10 text-primary",
   },
   OPERATOR: {
     label: "Operator",
-    className:
-      "bg-violet-100/60 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400",
+    className: "bg-secondary text-secondary-foreground",
   },
   ADMIN: {
     label: "Admin",
-    className:
-      "bg-rose-100/60 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400",
+    className: "bg-destructive/10 text-destructive",
   },
 };
 
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-}
-
-function getAvatarTone(name: string) {
-  const tones = [
-    "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-    "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400",
-    "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400",
-    "bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900/30 dark:text-fuchsia-400",
-    "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400",
-  ];
-  let hash = 0;
-  for (let i = 0; i < name.length; i++)
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  return tones[Math.abs(hash) % tones.length]!;
-}
 
 export function UserProfileHeader({
+  id,
   fullName,
   email,
+  image,
   phone,
   role,
   emailVerified,
@@ -83,8 +62,6 @@ export function UserProfileHeader({
   actions,
 }: UserProfileHeaderProps) {
   const t = useTranslations("adminDashboard.userProfileHeader");
-  const initials = getInitials(fullName);
-  const toneClass = getAvatarTone(fullName);
   const roleBadge = roleMeta[role];
 
   return (
@@ -96,14 +73,13 @@ export function UserProfileHeader({
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           {/* Avatar + name */}
           <div className="flex items-end gap-4">
-            <div
-              className={cn(
-                "h-20 w-20 rounded-xl flex items-center justify-center text-2xl font-bold border-4 border-card shadow-md shrink-0",
-                toneClass,
-              )}
-            >
-              {initials}
-            </div>
+            <UserAvatar
+              name={fullName}
+              src={image}
+              seed={id || fullName}
+              size="xl"
+              className="h-20 w-20 rounded-xl border-4 border-card shadow-md shrink-0 text-2xl"
+            />
             <div className="pb-1 space-y-1">
               <h1 className="text-2xl font-bold tracking-tight">{fullName}</h1>
               <div className="flex flex-wrap items-center gap-2">
@@ -117,7 +93,7 @@ export function UserProfileHeader({
                 {emailVerified ? (
                   <Badge
                     variant="outline"
-                    className="border-0 text-xs bg-emerald-100/60 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                    className="border-0 text-xs bg-success/10 text-success"
                   >
                     <CheckCircle2 className="h-3 w-3 mr-1" />
                     {t("verified")}
@@ -125,7 +101,7 @@ export function UserProfileHeader({
                 ) : (
                   <Badge
                     variant="outline"
-                    className="border-0 text-xs bg-amber-100/60 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                    className="border-0 text-xs bg-warning/10 text-warning"
                   >
                     <XCircle className="h-3 w-3 mr-1" />
                     {t("unverified")}

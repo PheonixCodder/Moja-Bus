@@ -1,0 +1,760 @@
+[
+  {
+    "file": "apps/web/features/admin/components/admin-sidebar.tsx",
+    "hasAvatarTag": true,
+    "hasInitialsCircle": false,
+    "hits": [
+      {
+        "line": 427,
+        "text": "<Avatar className=\"size-6 shrink-0\">"
+      },
+      {
+        "line": 428,
+        "text": "<AvatarFallback className=\"bg-sidebar-primary/15 text-[10px] font-semibold text-sidebar-primary\">"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/admin/components/audit/bank-access/bank-access-logs-table.tsx",
+    "hasAvatarTag": true,
+    "hasInitialsCircle": false,
+    "hits": [
+      {
+        "line": 119,
+        "text": "<Avatar className=\"h-6 w-6\">"
+      },
+      {
+        "line": 120,
+        "text": "<AvatarFallback className=\"text-[10px]\">"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/admin/components/dispatch-trip-list.tsx",
+    "hasAvatarTag": true,
+    "hasInitialsCircle": false,
+    "hits": [
+      {
+        "line": 254,
+        "text": "<Avatar className=\"size-8 border bg-bg-base\">"
+      },
+      {
+        "line": 255,
+        "text": "<AvatarImage src={group.logoUrl ?? undefined} />"
+      },
+      {
+        "line": 256,
+        "text": "<AvatarFallback className=\"text-[10px]\">"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/admin/components/drivers/driver-verification-dialog.tsx",
+    "hasAvatarTag": false,
+    "hasInitialsCircle": false,
+    "hits": []
+  },
+  {
+    "file": "apps/web/features/admin/components/inquiries/inquiry-detail-drawer.tsx",
+    "hasAvatarTag": false,
+    "hasInitialsCircle": true,
+    "hits": [
+      {
+        "line": 145,
+        "text": ".slice(0, 2)}"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/admin/components/operators-columns.tsx",
+    "hasAvatarTag": true,
+    "hasInitialsCircle": false,
+    "hits": [
+      {
+        "line": 135,
+        "text": "<Avatar className={cn(\"h-9 w-9 shrink-0 font-medium\", toneClass)}>"
+      },
+      {
+        "line": 136,
+        "text": "<AvatarImage"
+      },
+      {
+        "line": 140,
+        "text": "<AvatarFallback className={cn(\"text-xs\", toneClass)}>"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/admin/components/operators-grid.tsx",
+    "hasAvatarTag": true,
+    "hasInitialsCircle": false,
+    "hits": [
+      {
+        "line": 147,
+        "text": "<Avatar"
+      },
+      {
+        "line": 153,
+        "text": "<AvatarImage"
+      },
+      {
+        "line": 157,
+        "text": "<AvatarFallback className={cn(\"text-xl\", toneClass)}>"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/admin/components/operators.tsx",
+    "hasAvatarTag": false,
+    "hasInitialsCircle": false,
+    "hits": []
+  },
+  {
+    "file": "apps/web/features/admin/components/routes/admin-routes-table.tsx",
+    "hasAvatarTag": true,
+    "hasInitialsCircle": false,
+    "hits": [
+      {
+        "line": 84,
+        "text": "<Avatar className=\"size-6 border border-border\">"
+      },
+      {
+        "line": 85,
+        "text": "<AvatarImage src={route.company.logoUrl ?? undefined} />"
+      },
+      {
+        "line": 86,
+        "text": "<AvatarFallback className=\"text-[9px]\">"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/admin/components/settlements-history-table.tsx",
+    "hasAvatarTag": false,
+    "hasInitialsCircle": true,
+    "hits": [
+      {
+        "line": 168,
+        "text": "{item.operatorName.slice(0, 2).toUpperCase()}"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/admin/components/staff/member-avatar.tsx",
+    "hasAvatarTag": true,
+    "hasInitialsCircle": false,
+    "hits": [
+      {
+        "line": 33,
+        "text": "<Avatar"
+      },
+      {
+        "line": 36,
+        "text": "<AvatarImage src={src ?? undefined} alt={name ?? t(\"memberAvatarAlt\")} />"
+      },
+      {
+        "line": 37,
+        "text": "<AvatarFallback>{initials}</AvatarFallback>"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/admin/components/travelers-columns.tsx",
+    "hasAvatarTag": true,
+    "hasInitialsCircle": false,
+    "hits": [
+      {
+        "line": 116,
+        "text": "<Avatar className=\"size-10 font-medium\">"
+      },
+      {
+        "line": 117,
+        "text": "<AvatarImage"
+      },
+      {
+        "line": 121,
+        "text": "<AvatarFallback"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/admin/components/travelers-grid.tsx",
+    "hasAvatarTag": true,
+    "hasInitialsCircle": false,
+    "hits": [
+      {
+        "line": 146,
+        "text": "<Avatar className=\"size-16 font-medium ring-2 ring-background mt-2\">"
+      },
+      {
+        "line": 147,
+        "text": "<AvatarImage"
+      },
+      {
+        "line": 151,
+        "text": "<AvatarFallback"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/admin/components/verifications-columns.tsx",
+    "hasAvatarTag": false,
+    "hasInitialsCircle": true,
+    "hits": [
+      {
+        "line": 117,
+        "text": "{company.name.slice(0, 2).toUpperCase()}"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/admin/components/withdrawals-columns.tsx",
+    "hasAvatarTag": true,
+    "hasInitialsCircle": false,
+    "hits": [
+      {
+        "line": 45,
+        "text": "<Avatar className=\"size-8 border border-border\">"
+      },
+      {
+        "line": 46,
+        "text": "<AvatarFallback className=\"bg-muted text-xs font-medium\">"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/admin/views/admin-driver-verifications-view.tsx",
+    "hasAvatarTag": false,
+    "hasInitialsCircle": false,
+    "hits": []
+  },
+  {
+    "file": "apps/web/features/admin/views/admin-inquiries-view.tsx",
+    "hasAvatarTag": false,
+    "hasInitialsCircle": true,
+    "hits": [
+      {
+        "line": 232,
+        "text": ".slice(0, 2)}"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/admin/views/admin-marketplace-view.tsx",
+    "hasAvatarTag": true,
+    "hasInitialsCircle": true,
+    "hits": [
+      {
+        "line": 201,
+        "text": "<Avatar className=\"size-7 border border-border\">"
+      },
+      {
+        "line": 202,
+        "text": "<AvatarImage src={offer.driverProfile.user.image ?? undefined} />"
+      },
+      {
+        "line": 203,
+        "text": "<AvatarFallback className=\"text-xs\">"
+      },
+      {
+        "line": 205,
+        "text": ".slice(0, 2)"
+      },
+      {
+        "line": 564,
+        "text": "<Avatar className=\"size-8 border border-border\">"
+      },
+      {
+        "line": 565,
+        "text": "<AvatarImage src={d.image ?? undefined} />"
+      },
+      {
+        "line": 566,
+        "text": "<AvatarFallback className=\"text-xs\">"
+      },
+      {
+        "line": 567,
+        "text": "{(d.fullName ?? \"DR\").slice(0, 2).toUpperCase()}"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/booking/components/booking-details.tsx",
+    "hasAvatarTag": true,
+    "hasInitialsCircle": true,
+    "hits": [
+      {
+        "line": 177,
+        "text": "<Avatar className=\"size-9 after:rounded-sm\">"
+      },
+      {
+        "line": 178,
+        "text": "<AvatarFallback className=\"rounded-sm bg-primary/10 font-bold text-primary\">"
+      },
+      {
+        "line": 179,
+        "text": "{booking.companyName.slice(0, 2).toUpperCase()}"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/booking/components/passenger-trip-card.tsx",
+    "hasAvatarTag": false,
+    "hasInitialsCircle": true,
+    "hits": [
+      {
+        "line": 96,
+        "text": "{booking.companyName.slice(0, 2).toUpperCase()}"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/booking/components/trip-summary-card.tsx",
+    "hasAvatarTag": false,
+    "hasInitialsCircle": true,
+    "hits": [
+      {
+        "line": 301,
+        "text": "{trip.companyName.slice(0, 2).toUpperCase()}"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/dashboard/components/dashboard-sidebar.tsx",
+    "hasAvatarTag": true,
+    "hasInitialsCircle": false,
+    "hits": [
+      {
+        "line": 215,
+        "text": "<Avatar className=\"h-8 w-8 rounded-lg grayscale shrink-0\">"
+      },
+      {
+        "line": 216,
+        "text": "<AvatarFallback className=\"rounded-lg bg-primary/10 text-xs font-semibold text-primary\">"
+      },
+      {
+        "line": 244,
+        "text": "<Avatar className=\"h-8 w-8 rounded-lg\">"
+      },
+      {
+        "line": 245,
+        "text": "<AvatarFallback className=\"rounded-lg bg-primary/10 text-xs font-semibold text-primary\">"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/home/components/home-header.tsx",
+    "hasAvatarTag": true,
+    "hasInitialsCircle": false,
+    "hits": [
+      {
+        "line": 237,
+        "text": "<Avatar"
+      },
+      {
+        "line": 243,
+        "text": "<AvatarImage"
+      },
+      {
+        "line": 247,
+        "text": "<AvatarFallback className=\"bg-muted text-muted-foreground font-semibold text-xs\">"
+      },
+      {
+        "line": 258,
+        "text": "<Avatar className=\"h-10 w-10 rounded-full\">"
+      },
+      {
+        "line": 259,
+        "text": "<AvatarImage"
+      },
+      {
+        "line": 263,
+        "text": "<AvatarFallback className=\"bg-primary/10 text-primary font-semibold text-sm\">"
+      },
+      {
+        "line": 382,
+        "text": "<Avatar"
+      },
+      {
+        "line": 388,
+        "text": "<AvatarImage"
+      },
+      {
+        "line": 392,
+        "text": "<AvatarFallback className=\"bg-muted text-muted-foreground font-semibold text-[10px]\">"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/operator/components/drivers/driver-public-profile-sheet.tsx",
+    "hasAvatarTag": true,
+    "hasInitialsCircle": true,
+    "hits": [
+      {
+        "line": 141,
+        "text": ".slice(0, 2);"
+      },
+      {
+        "line": 183,
+        "text": "<Avatar className=\"size-16 border-2 border-border shadow shrink-0\">"
+      },
+      {
+        "line": 184,
+        "text": "<AvatarImage src={driver.user.image ?? undefined} />"
+      },
+      {
+        "line": 185,
+        "text": "<AvatarFallback className=\"bg-primary/10 text-primary font-black text-xl\">"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/operator/components/drivers/marketplace-driver-card.tsx",
+    "hasAvatarTag": true,
+    "hasInitialsCircle": true,
+    "hits": [
+      {
+        "line": 160,
+        "text": ".slice(0, 2);"
+      },
+      {
+        "line": 162,
+        "text": "const topRoutes = pref?.routeExperience?.slice(0, 2) ?? [];"
+      },
+      {
+        "line": 188,
+        "text": "<Avatar className=\"size-14 shrink-0 border-2 border-border shadow-sm\">"
+      },
+      {
+        "line": 189,
+        "text": "<AvatarImage src={driver.user.image ?? undefined} />"
+      },
+      {
+        "line": 190,
+        "text": "<AvatarFallback className=\"bg-primary/10 text-primary font-black text-lg\">"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/operator/components/operator-sidebar.tsx",
+    "hasAvatarTag": true,
+    "hasInitialsCircle": false,
+    "hits": [
+      {
+        "line": 421,
+        "text": "<Avatar className=\"size-6 shrink-0\">"
+      },
+      {
+        "line": 422,
+        "text": "<AvatarImage"
+      },
+      {
+        "line": 429,
+        "text": "<AvatarFallback className=\"bg-sidebar-primary/15 text-[10px] font-semibold text-sidebar-primary\">"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/operator/components/staff/member-avatar.tsx",
+    "hasAvatarTag": true,
+    "hasInitialsCircle": false,
+    "hits": [
+      {
+        "line": 29,
+        "text": "<Avatar"
+      },
+      {
+        "line": 32,
+        "text": "<AvatarImage src={src ?? undefined} alt={name ?? t(\"alt\")} />"
+      },
+      {
+        "line": 33,
+        "text": "<AvatarFallback>{initials}</AvatarFallback>"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/operator/components/trips/driver-assignment-rows.tsx",
+    "hasAvatarTag": true,
+    "hasInitialsCircle": true,
+    "hits": [
+      {
+        "line": 209,
+        "text": "<Avatar className=\"size-4\">"
+      },
+      {
+        "line": 210,
+        "text": "<AvatarFallback className=\"text-[7px]\">"
+      },
+      {
+        "line": 211,
+        "text": "{holder.name.slice(0, 2).toUpperCase()}"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/operator/settings/components/personal-profile-section.tsx",
+    "hasAvatarTag": true,
+    "hasInitialsCircle": false,
+    "hits": [
+      {
+        "line": 48,
+        "text": "<Avatar className=\"w-16 h-16 border\">"
+      },
+      {
+        "line": 49,
+        "text": "<AvatarImage"
+      },
+      {
+        "line": 55,
+        "text": "<AvatarFallback className=\"bg-muted text-muted-foreground text-lg\">"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/operator/settings/components/profile-section.tsx",
+    "hasAvatarTag": true,
+    "hasInitialsCircle": false,
+    "hits": [
+      {
+        "line": 51,
+        "text": "<Avatar className=\"w-16 h-16 border\">"
+      },
+      {
+        "line": 52,
+        "text": "<AvatarImage"
+      },
+      {
+        "line": 56,
+        "text": "<AvatarFallback className=\"bg-muted text-muted-foreground text-lg\">"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/operator/views/driver-detail-view.tsx",
+    "hasAvatarTag": true,
+    "hasInitialsCircle": true,
+    "hits": [
+      {
+        "line": 104,
+        "text": "<Avatar className=\"size-20 border-2 border-primary/20 shadow-sm\">"
+      },
+      {
+        "line": 105,
+        "text": "<AvatarImage src={driver.user.image ?? undefined} />"
+      },
+      {
+        "line": 106,
+        "text": "<AvatarFallback className=\"text-2xl font-black bg-primary/10 text-primary\">"
+      },
+      {
+        "line": 111,
+        "text": ".slice(0, 2)"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/operator/views/operator-drivers-view.tsx",
+    "hasAvatarTag": true,
+    "hasInitialsCircle": true,
+    "hits": [
+      {
+        "line": 331,
+        "text": "<Avatar className=\"size-11 border border-border\">"
+      },
+      {
+        "line": 332,
+        "text": "<AvatarImage src={driver.user.image ?? undefined} />"
+      },
+      {
+        "line": 333,
+        "text": "<AvatarFallback className=\"font-bold text-sm bg-primary/10 text-primary\">"
+      },
+      {
+        "line": 338,
+        "text": ".slice(0, 2)"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/operator/views/operator-fleet-map-view.tsx",
+    "hasAvatarTag": true,
+    "hasInitialsCircle": true,
+    "hits": [
+      {
+        "line": 202,
+        "text": "<Avatar className=\"size-10 shrink-0 border border-border\">"
+      },
+      {
+        "line": 203,
+        "text": "<AvatarImage src={driver.user.image ?? undefined} />"
+      },
+      {
+        "line": 204,
+        "text": "<AvatarFallback className=\"text-xs font-bold bg-primary/10 text-primary\">"
+      },
+      {
+        "line": 209,
+        "text": ".slice(0, 2)"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/operator/views/operator-sent-offers-view.tsx",
+    "hasAvatarTag": true,
+    "hasInitialsCircle": true,
+    "hits": [
+      {
+        "line": 404,
+        "text": "<Avatar className=\"size-12 border-2 border-border\">"
+      },
+      {
+        "line": 405,
+        "text": "<AvatarImage"
+      },
+      {
+        "line": 408,
+        "text": "<AvatarFallback className=\"bg-primary/10 text-primary font-bold\">"
+      },
+      {
+        "line": 414,
+        "text": ".slice(0, 2)}"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/passenger/views/saved-passengers-view.tsx",
+    "hasAvatarTag": false,
+    "hasInitialsCircle": true,
+    "hits": [
+      {
+        "line": 179,
+        "text": "return name.slice(0, 2).toUpperCase();"
+      }
+    ]
+  },
+  {
+    "file": "apps/web/features/search/components/offer-card.tsx",
+    "hasAvatarTag": false,
+    "hasInitialsCircle": true,
+    "hits": [
+      {
+        "line": 69,
+        "text": "{offer.companyName.slice(0, 2).toUpperCase()}"
+      }
+    ]
+  },
+  {
+    "file": "apps/traveler-app/features/booking/components/booking-card.tsx",
+    "hasAvatarTag": false,
+    "hasInitialsCircle": true,
+    "hits": [
+      {
+        "line": 98,
+        "text": "const initials = (booking.companyName || 'MB').slice(0, 2).toUpperCase();"
+      }
+    ]
+  },
+  {
+    "file": "apps/traveler-app/features/booking/components/trip-summary-card.tsx",
+    "hasAvatarTag": false,
+    "hasInitialsCircle": true,
+    "hits": [
+      {
+        "line": 47,
+        "text": "{(companyName || 'MB').slice(0, 2).toUpperCase()}"
+      }
+    ]
+  },
+  {
+    "file": "apps/traveler-app/features/operators/components/operator-card.tsx",
+    "hasAvatarTag": false,
+    "hasInitialsCircle": true,
+    "hits": [
+      {
+        "line": 95,
+        "text": "{operator.cityNames.slice(0, 2).join(', ')}"
+      }
+    ]
+  },
+  {
+    "file": "apps/traveler-app/features/settings/components/passenger-card.tsx",
+    "hasAvatarTag": false,
+    "hasInitialsCircle": true,
+    "hits": [
+      {
+        "line": 36,
+        "text": "return name.slice(0, 2).toUpperCase();"
+      }
+    ]
+  },
+  {
+    "file": "apps/traveler-app/features/settings/components/personal-info-avatar.tsx",
+    "hasAvatarTag": true,
+    "hasInitialsCircle": true,
+    "hits": [
+      {
+        "line": 47,
+        "text": "return name.slice(0, 2).toUpperCase();"
+      },
+      {
+        "line": 172,
+        "text": "<Avatar className=\"size-20\" alt={name}>"
+      },
+      {
+        "line": 173,
+        "text": "{image ? <AvatarImage source={{ uri: image }} /> : null}"
+      },
+      {
+        "line": 174,
+        "text": "<AvatarFallback className=\"bg-primary/10\">"
+      }
+    ]
+  },
+  {
+    "file": "apps/traveler-app/features/settings/components/profile-hero.tsx",
+    "hasAvatarTag": true,
+    "hasInitialsCircle": false,
+    "hits": [
+      {
+        "line": 28,
+        "text": "<Avatar className=\"size-20\" alt={name}>"
+      },
+      {
+        "line": 29,
+        "text": "{image ? <AvatarImage source={{ uri: image }} /> : null}"
+      },
+      {
+        "line": 30,
+        "text": "<AvatarFallback className=\"bg-primary/20\">"
+      }
+    ]
+  },
+  {
+    "file": "apps/traveler-app/features/settings/screens/personal-info.tsx",
+    "hasAvatarTag": false,
+    "hasInitialsCircle": false,
+    "hits": [
+      {
+        "line": 32,
+        "text": "const [avatarUrl, setAvatarUrl] = useState<string | null>(null);"
+      },
+      {
+        "line": 53,
+        "text": "const currentAvatar = avatarUrl ?? info?.image ?? null;"
+      }
+    ]
+  },
+  {
+    "file": "packages/ui/src/components/ui/avatar.tsx",
+    "hasAvatarTag": false,
+    "hasInitialsCircle": false,
+    "hits": []
+  },
+  {
+    "file": "packages/ui/src/shims.d.ts",
+    "hasAvatarTag": false,
+    "hasInitialsCircle": false,
+    "hits": []
+  }
+]

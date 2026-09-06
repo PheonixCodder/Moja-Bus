@@ -66,7 +66,7 @@ export async function BlogDetailView({
     : "";
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-24">
+    <div className="min-h-screen bg-background pb-24">
       {/* Client-side View Telemetry tracking trigger */}
       <BlogTelemetry postId={post.id} />
 
@@ -74,7 +74,7 @@ export async function BlogDetailView({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 md:pt-28">
         <Link
           href="/blog"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="size-3.5" />
           {t("backToArticles")}
@@ -85,30 +85,30 @@ export async function BlogDetailView({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* ─ Left side: Post body (lg:col-span-8) ─ */}
-          <article className="lg:col-span-8 bg-white border border-slate-200 rounded-2xl p-6 md:p-10 shadow-3xs overflow-hidden">
+          <article className="lg:col-span-8 bg-card border border-border rounded-2xl p-6 md:p-10 shadow-3xs overflow-hidden">
             {/* Category badge */}
             {post.category && (
-              <span className="inline-flex text-[10px] font-extrabold uppercase tracking-wider text-rose-600 mb-4 bg-rose-50 border border-rose-100/50 px-2.5 py-0.5 rounded-full">
+              <span className="inline-flex text-[10px] font-extrabold uppercase tracking-wider text-primary mb-4 bg-primary/10 border border-primary/20 px-2.5 py-0.5 rounded-full">
                 {post.category.name}
               </span>
             )}
 
             {/* Post Title */}
-            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight tracking-tight mb-4">
+            <h1 className="text-3xl md:text-4xl font-extrabold text-foreground leading-tight tracking-tight mb-4">
               {post.title}
             </h1>
 
             {/* Excerpt */}
             {post.excerpt && (
-              <p className="text-base text-slate-600 leading-relaxed font-normal mb-6 pb-6 border-b border-slate-100">
+              <p className="text-base text-muted-foreground leading-relaxed font-normal mb-6 pb-6 border-b border-border">
                 {post.excerpt}
               </p>
             )}
 
             {/* Author info & Metadata */}
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-8 text-xs text-slate-400">
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-8 text-xs text-muted-foreground">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-muted border border-border overflow-hidden flex-shrink-0">
                   {post.displayAuthorAvatar || post.author?.image ? (
                     <Image
                       unoptimized
@@ -119,18 +119,18 @@ export async function BlogDetailView({
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-rose-50 text-rose-300 font-bold">
+                    <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary font-bold">
                       M
                     </div>
                   )}
                 </div>
                 <div>
-                  <p className="font-bold text-slate-800 text-sm">
+                  <p className="font-bold text-foreground text-sm">
                     {post.displayAuthorName ||
                       post.author?.fullName ||
                       "Moja Ride Editorial"}
                   </p>
-                  <div className="flex items-center gap-2 mt-0.5 text-slate-400 text-[11px] font-medium">
+                  <div className="flex items-center gap-2 mt-0.5 text-muted-foreground text-[11px] font-medium">
                     <span className="flex items-center gap-1">
                       <Calendar className="size-3" />
                       {formattedDate}
@@ -150,8 +150,8 @@ export async function BlogDetailView({
 
             {/* Cover Hero Banner */}
             {post.coverImage && (
-              <div className="mb-8 rounded-xl overflow-hidden border border-slate-200 shadow-3xs">
-                <div className="aspect-[21/9] w-full relative bg-slate-100">
+              <div className="mb-8 rounded-xl overflow-hidden border border-border shadow-3xs">
+                <div className="aspect-[21/9] w-full relative bg-muted">
                   <Image
                     unoptimized
                     src={post.coverImage}
@@ -163,7 +163,7 @@ export async function BlogDetailView({
                   />
                 </div>
                 {post.coverImageCredit && (
-                  <p className="px-4 py-2 bg-slate-50 border-t border-slate-200 text-center text-[10px] text-slate-400 font-medium">
+                  <p className="px-4 py-2 bg-muted/40 border-t border-border text-center text-[10px] text-muted-foreground font-medium">
                     {post.coverImageCredit}
                   </p>
                 )}
@@ -171,7 +171,7 @@ export async function BlogDetailView({
             )}
 
             {/* Markdown Rendered Content */}
-            <div className="prose prose-sm prose-slate max-w-none text-slate-700 leading-relaxed space-y-4">
+            <div className="prose prose-sm prose-slate max-w-none text-foreground/80 leading-relaxed space-y-4">
               <MDXRemote
                 source={unescapeMarkdown(post.content)}
                 components={components}
@@ -186,11 +186,11 @@ export async function BlogDetailView({
 
             {/* Tags Cloud bottom */}
             {post.tags && post.tags.length > 0 && (
-              <div className="mt-10 pt-6 border-t border-slate-100 flex flex-wrap gap-1.5">
+              <div className="mt-10 pt-6 border-t border-border flex flex-wrap gap-1.5">
                 {post.tags.map((tag) => (
                   <span
                     key={tag.id}
-                    className="inline-flex px-2.5 py-0.5 rounded-full bg-slate-50 border border-slate-200 text-[10px] font-bold uppercase tracking-wider text-slate-500"
+                    className="inline-flex px-2.5 py-0.5 rounded-full bg-muted/40 border border-border text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
                   >
                     #{tag.name}
                   </span>
@@ -200,8 +200,8 @@ export async function BlogDetailView({
 
             {/* Display Author Bio override */}
             {post.displayAuthorBio && (
-              <div className="mt-8 p-5 bg-slate-50/50 border border-slate-200 rounded-xl flex gap-3 text-xs leading-relaxed">
-                <div className="shrink-0 w-8 h-8 rounded-full bg-slate-200 overflow-hidden">
+              <div className="mt-8 p-5 bg-muted/40 border border-border rounded-xl flex gap-3 text-xs leading-relaxed">
+                <div className="shrink-0 w-8 h-8 rounded-full bg-muted overflow-hidden">
                   {post.displayAuthorAvatar || post.author?.image ? (
                     <Image
                       unoptimized
@@ -214,10 +214,10 @@ export async function BlogDetailView({
                   ) : null}
                 </div>
                 <div>
-                  <p className="font-bold text-slate-900 mb-0.5">
+                  <p className="font-bold text-foreground mb-0.5">
                     {t("aboutAuthor")}
                   </p>
-                  <p className="text-slate-500">{post.displayAuthorBio}</p>
+                  <p className="text-muted-foreground">{post.displayAuthorBio}</p>
                 </div>
               </div>
             )}
@@ -226,15 +226,15 @@ export async function BlogDetailView({
           {/* ─ Right side: Recommendations (lg:col-span-4) ─ */}
           <div className="lg:col-span-4 space-y-6">
             {/* Recommended reading */}
-            <Card className="bg-white border-slate-200 shadow-3xs p-4 rounded-xl space-y-4">
-              <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest flex items-center gap-2">
-                <BookOpen className="size-3.5 text-rose-500" />
+            <Card className="bg-card border-border shadow-3xs p-4 rounded-xl space-y-4">
+              <h3 className="text-xs font-extrabold text-foreground uppercase tracking-widest flex items-center gap-2">
+                <BookOpen className="size-3.5 text-primary" />
                 {t("recommendedReading")}
               </h3>
 
               <div className="space-y-4">
                 {recommendedPosts.length === 0 ? (
-                  <p className="text-xs text-slate-400 italic">
+                  <p className="text-xs text-muted-foreground italic">
                     {t("noRecommendations")}
                   </p>
                 ) : (
@@ -242,10 +242,10 @@ export async function BlogDetailView({
                     <Link
                       key={rp.id}
                       href={`/blog/${rp.slug}`}
-                      className="group block space-y-1.5 text-xs transition-colors hover:text-rose-600"
+                      className="group block space-y-1.5 text-xs transition-colors hover:text-primary"
                     >
                       {rp.coverImage && (
-                        <div className="aspect-[16/9] w-full rounded-lg overflow-hidden border border-slate-200 mb-2 relative">
+                        <div className="aspect-[16/9] w-full rounded-lg overflow-hidden border border-border mb-2 relative">
                           <Image
                             unoptimized
                             src={rp.coverImage}
@@ -256,10 +256,10 @@ export async function BlogDetailView({
                           />
                         </div>
                       )}
-                      <p className="font-bold text-slate-800 group-hover:text-rose-600 transition-colors line-clamp-2 leading-snug">
+                      <p className="font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-snug">
                         {rp.title}
                       </p>
-                      <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
+                      <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">
                         {rp.category?.name || t("uncategorized")}
                       </p>
                     </Link>
@@ -269,16 +269,16 @@ export async function BlogDetailView({
             </Card>
 
             {/* Quick search CTA */}
-            <Card className="bg-gradient-to-br from-rose-500 to-rose-600 text-white p-5 rounded-xl space-y-3 shadow-sm border-none">
+            <Card className="bg-primary text-primary-foreground p-5 rounded-xl space-y-3 shadow-sm border-none">
               <h4 className="font-extrabold text-sm leading-tight">
                 {t("ctaTitle")}
               </h4>
-              <p className="text-[11px] text-rose-100 leading-relaxed">
+              <p className="text-[11px] text-primary-foreground/80 leading-relaxed">
                 {t("ctaDesc")}
               </p>
               <Link
                 href="/search"
-                className="w-full inline-flex items-center justify-center bg-white text-rose-600 font-bold px-4 py-2 rounded-lg hover:bg-rose-50 transition-colors text-xs"
+                className="w-full inline-flex items-center justify-center bg-background text-primary font-bold px-4 py-2 rounded-lg hover:bg-muted transition-colors text-xs"
               >
                 {t("ctaButton")}
               </Link>

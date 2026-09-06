@@ -92,11 +92,11 @@ export function StaffMemberRow({
       <div className="hidden md:flex flex-col items-end gap-1 min-w-[110px]">
         <div className="flex items-center gap-2">
           {member.isVerified ? (
-            <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-medium text-emerald-600 border border-emerald-500/20">
+            <span className="inline-flex items-center rounded-full bg-success/10 px-1.5 py-0.5 text-[9px] font-medium text-success border border-success/20">
               {t("verified")}
             </span>
           ) : (
-            <span className="inline-flex items-center rounded-full bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-medium text-amber-600 border border-amber-500/20">
+            <span className="inline-flex items-center rounded-full bg-warning/10 px-1.5 py-0.5 text-[9px] font-medium text-warning border border-warning/20">
               {t("unverified")}
             </span>
           )}
@@ -142,7 +142,7 @@ export function StaffMemberRow({
           {canUpdate ? (
             member.status === "ACTIVE" ? (
               <DropdownMenuItem
-                className="text-[13px] cursor-pointer text-amber-600 focus:text-amber-600"
+                className="text-[13px] cursor-pointer text-warning focus:text-warning"
                 onClick={() => onStatusChange(member, "SUSPENDED")}
               >
                 <PauseCircle className="mr-2 h-3.5 w-3.5" />
@@ -150,7 +150,7 @@ export function StaffMemberRow({
               </DropdownMenuItem>
             ) : member.status === "INACTIVE" ? (
               <DropdownMenuItem
-                className="text-[13px] cursor-pointer text-emerald-600 focus:text-emerald-600"
+                className="text-[13px] cursor-pointer text-success focus:text-success"
                 onClick={() => onStatusChange(member, "ACTIVE")}
               >
                 <PlayCircle className="mr-2 h-3.5 w-3.5" />
@@ -158,7 +158,7 @@ export function StaffMemberRow({
               </DropdownMenuItem>
             ) : (
               <DropdownMenuItem
-                className="text-[13px] cursor-pointer text-emerald-600 focus:text-emerald-600"
+                className="text-[13px] cursor-pointer text-success focus:text-success"
                 onClick={() => onStatusChange(member, "ACTIVE")}
               >
                 <PlayCircle className="mr-2 h-3.5 w-3.5" />
@@ -171,7 +171,7 @@ export function StaffMemberRow({
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                className="text-[13px] cursor-pointer text-amber-600 focus:text-amber-600"
+                className="text-[13px] cursor-pointer text-warning focus:text-warning"
                 onClick={() => onTransfer(member)}
               >
                 <ArrowRightLeft className="mr-2 h-3.5 w-3.5" />
@@ -184,7 +184,7 @@ export function StaffMemberRow({
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                className="text-[13px] cursor-pointer text-red-600 focus:text-red-600"
+                className="text-[13px] cursor-pointer text-destructive focus:text-destructive"
                 onClick={() => onRemove(member)}
               >
                 <Trash2 className="mr-2 h-3.5 w-3.5" />

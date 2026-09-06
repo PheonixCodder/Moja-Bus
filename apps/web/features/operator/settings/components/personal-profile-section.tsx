@@ -11,11 +11,7 @@ import {
 } from "@moja/ui/components/ui/card";
 import { Button } from "@moja/ui/components/ui/button";
 import { UserCircle, Pencil } from "lucide-react";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@moja/ui/components/ui/avatar";
+import { UserAvatar } from "@moja/ui/components/ui/user-avatar";
 
 interface PersonalProfileSectionProps {
   onManage: () => void;
@@ -45,17 +41,13 @@ export function PersonalProfileSection({
       </CardHeader>
       <CardContent className="flex-1 mt-4">
         <div className="flex items-start gap-4">
-          <Avatar className="w-16 h-16 border">
-            <AvatarImage
-              src={
-                operator?.profilePhotoUrl || operator?.user?.image || undefined
-              }
-              alt={operator?.user?.fullName || ""}
-            />
-            <AvatarFallback className="bg-muted text-muted-foreground text-lg">
-              {operator?.user?.fullName?.charAt(0).toUpperCase() || "U"}
-            </AvatarFallback>
-          </Avatar>
+          <UserAvatar
+            name={operator?.user?.fullName}
+            src={operator?.profilePhotoUrl || operator?.user?.image}
+            seed={operator?.user?.id || operator?.id}
+            size="xl"
+            className="w-16 h-16 border"
+          />
           <div className="space-y-1 overflow-hidden">
             <h3 className="font-semibold text-lg truncate">
               {operator?.user?.fullName || t("noName")}

@@ -30,16 +30,16 @@ export default async function OperatorsPage() {
 
         {/* Become partner CTA */}
         <div className="max-w-7xl mx-auto px-6 md:px-8 pb-24">
-          <div className="bg-slate-50 rounded-3xl p-12 flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="bg-muted/40 border border-border rounded-3xl p-12 flex flex-col md:flex-row items-center justify-between gap-8">
             <div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">
+              <h2 className="text-2xl font-bold text-foreground mb-2">
                 {t("ctaTitle")}
               </h2>
-              <p className="text-slate-500">{t("ctaDesc")}</p>
+              <p className="text-muted-foreground">{t("ctaDesc")}</p>
             </div>
             <Link
               href="/become-a-partner"
-              className="shrink-0 flex items-center gap-2 bg-[#ee237c] text-white px-8 py-4 rounded-2xl font-bold hover:bg-[#d01867] transition-all hover:gap-4"
+              className="shrink-0 flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-2xl font-bold hover:bg-primary/90 transition-all hover:gap-4 shadow-sm"
             >
               <span>{t("ctaButton")}</span>
               <ArrowRight className="h-4 w-4" />

@@ -14,8 +14,9 @@ import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { File } from "expo-file-system";
 import { useMutation } from "@tanstack/react-query";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/ui/avatar";
 import { Text } from "@/components/ui/text";
+import { Palette } from "@/constants/theme";
 import { useTRPC } from "@/lib/trpc";
 import { useUpdateAvatar } from "@/hooks/use-personal-info";
 
@@ -38,13 +39,6 @@ type PersonalInfoAvatarProps = {
 	onAvatarUpdated: (imageUrl: string) => void;
 };
 
-function getInitials(name: string) {
-	const parts = name.trim().split(" ").filter(Boolean);
-	if (parts.length >= 2) {
-		return `${(parts[0]?.[0] ?? "").toUpperCase()}${(parts[1]?.[0] ?? "").toUpperCase()}`;
-	}
-	return name.slice(0, 2).toUpperCase();
-}
 
 export function PersonalInfoAvatar({ image, name, onAvatarUpdated }: PersonalInfoAvatarProps) {
 	const insets = useSafeAreaInsets();
@@ -157,35 +151,35 @@ export function PersonalInfoAvatar({ image, name, onAvatarUpdated }: PersonalInf
 		openEditOptions();
 	};
 
-	const initials = getInitials(name);
-
 	return (
 		<>
 			<Pressable
 				onPress={handlePress}
 				disabled={uploading}
+				accessibilityRole="button"
 				className="items-center gap-2 py-3"
 			>
 				<View className="relative">
-					<Avatar className="size-20" alt={name}>
-						{image ? <AvatarImage source={{ uri: image }} /> : null}
-						<AvatarFallback className="bg-pink-100">
-							<Text className="text-[22px] font-bold text-pink-600">{initials}</Text>
-						</AvatarFallback>
-					</Avatar>
+					<UserAvatar
+						name={name}
+						src={image}
+						seed={name}
+						size="xl"
+						className="size-20"
+					/>
 
 					{uploading ? (
 						<View className="absolute inset-0 rounded-full bg-black/40 items-center justify-center">
-							<ActivityIndicator size="small" color="#fff" />
+							<ActivityIndicator size="small" color={Palette.zinc[50]} />
 						</View>
 					) : (
-						<View className="absolute -bottom-0.5 -right-0.5 w-[26px] h-[26px] rounded-full bg-pink-600 items-center justify-center border-[3px] border-white">
-							<HugeiconsIcon icon={Camera03Icon} size={12} color="#ffffff" />
+						<View className="absolute -bottom-0.5 -right-0.5 w-[26px] h-[26px] rounded-full bg-primary items-center justify-center border-[3px] border-card">
+							<HugeiconsIcon icon={Camera03Icon} size={12} color={Palette.zinc[50]} />
 						</View>
 					)}
 				</View>
 
-				<Text className="text-xs font-medium text-slate-500">
+				<Text className="text-xs font-medium text-muted-foreground">
 					{uploading ? "Uploading..." : image ? "Tap to view photo" : "Tap to add photo"}
 				</Text>
 			</Pressable>
@@ -203,17 +197,19 @@ export function PersonalInfoAvatar({ image, name, onAvatarUpdated }: PersonalInf
 					>
 						<Pressable
 							onPress={() => setPreviewOpen(false)}
-							className="h-10 w-10 items-center justify-center rounded-full bg-white/15"
+							accessibilityRole="button"
+							className="h-10 w-10 items-center justify-center rounded-full bg-white/15 min-h-10"
 							hitSlop={8}
 						>
-							<HugeiconsIcon icon={Cancel01Icon} size={18} color="#ffffff" />
+							<HugeiconsIcon icon={Cancel01Icon} size={18} color={Palette.zinc[50]} />
 						</Pressable>
 						<Pressable
 							onPress={openEditOptions}
 							disabled={uploading}
-							className="h-10 flex-row items-center gap-2 rounded-full bg-white/15 px-4"
+							accessibilityRole="button"
+							className="h-10 flex-row items-center gap-2 rounded-full bg-white/15 px-4 min-h-10"
 						>
-							<HugeiconsIcon icon={PencilEdit02Icon} size={16} color="#ffffff" />
+							<HugeiconsIcon icon={PencilEdit02Icon} size={16} color={Palette.zinc[50]} />
 							<Text className="text-sm font-semibold text-white">Edit</Text>
 						</Pressable>
 					</View>
@@ -228,7 +224,7 @@ export function PersonalInfoAvatar({ image, name, onAvatarUpdated }: PersonalInf
 						) : null}
 						{uploading ? (
 							<View className="absolute inset-0 items-center justify-center bg-black/40">
-								<ActivityIndicator size="large" color="#ee237c" />
+								<ActivityIndicator size="large" color={Palette.rose[500]} />
 							</View>
 						) : null}
 					</View>

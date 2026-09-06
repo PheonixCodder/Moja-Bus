@@ -20,6 +20,7 @@ import { authClient } from "@/lib/auth-client";
 import { storePendingReferralCode } from "@/lib/pending-referral";
 import { posthog } from "@/lib/posthog";
 import { TRPCReactProvider, useTRPC } from "@/lib/trpc";
+import { Colors } from "@/constants/theme";
 
 const isExpoGo = Constants.appOwnership === "expo";
 
@@ -27,7 +28,7 @@ const LightTheme = {
 	...DefaultTheme,
 	colors: {
 		...DefaultTheme.colors,
-		background: "#ffffff",
+		background: Colors.light.background,
 	},
 };
 
@@ -218,7 +219,7 @@ export default function RootLayout() {
 						screenOptions={{
 							headerShown: false,
 							animation: "slide_from_right",
-							contentStyle: { flex: 1, backgroundColor: "#ffffff" },
+							contentStyle: { flex: 1, backgroundColor: Colors.light.background },
 						}}
 					>
 						<Stack.Screen name="(tabs)" />

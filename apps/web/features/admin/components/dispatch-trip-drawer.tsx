@@ -34,7 +34,7 @@ function SeatFillBar({ booked, total }: { booked: number; total: number }) {
   const t = useTranslations("adminDashboard.dispatchTripDrawer");
   const pct = total > 0 ? Math.min((booked / total) * 100, 100) : 0;
   const color =
-    pct >= 90 ? "bg-red-500" : pct >= 60 ? "bg-amber-500" : "bg-primary";
+    pct >= 90 ? "bg-destructive" : pct >= 60 ? "bg-warning" : "bg-primary";
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between">
@@ -110,9 +110,9 @@ function SegmentSeatGrid({
                 return (
                   <div
                     key={col}
-                    className="w-7 h-7 rounded bg-slate-200 flex items-center justify-center"
+                    className="w-7 h-7 rounded bg-muted flex items-center justify-center"
                   >
-                    <User className="size-3 text-slate-500" />
+                    <User className="size-3 text-muted-foreground" />
                   </div>
                 );
               }
@@ -140,11 +140,11 @@ function SegmentSeatGrid({
                   className={cn(
                     "w-7 h-7 rounded border text-[9px] font-bold flex items-center justify-center transition-colors",
                     seatStatus === "booked" &&
-                      "bg-primary text-white border-primary",
+                      "bg-primary text-primary-foreground border-primary",
                     seatStatus === "held" &&
-                      "bg-amber-400 text-amber-950 border-amber-500",
+                      "bg-warning/20 text-warning border-warning/30",
                     seatStatus === "blocked" &&
-                      "bg-slate-200 text-slate-400 border-slate-300",
+                      "bg-muted text-muted-foreground border-border",
                     seatStatus === "available" &&
                       "bg-background border-border text-muted-foreground hover:border-primary/30",
                   )}
@@ -164,7 +164,7 @@ function SegmentSeatGrid({
             </span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-4 h-4 rounded bg-amber-400 border border-amber-500" />
+            <div className="w-4 h-4 rounded bg-warning/20 border border-warning/30" />
             <span className="text-[11px] text-muted-foreground">
               {t("held")}
             </span>
@@ -176,7 +176,7 @@ function SegmentSeatGrid({
             </span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-4 h-4 rounded bg-slate-200 border border-slate-300" />
+            <div className="w-4 h-4 rounded bg-muted border border-border" />
             <span className="text-[11px] text-muted-foreground">
               {t("blocked")}
             </span>
@@ -207,7 +207,7 @@ function SegmentOccupancySection({ trip }: { trip: TripDetail }) {
         return (
           <div
             key={segmentKey}
-            className="space-y-2 rounded-md border border-border p-3 bg-slate-50/30"
+            className="space-y-2 rounded-md border border-border p-3 bg-muted/20"
           >
             <div className="flex items-center justify-between gap-2">
               <h5 className="text-xs font-bold text-foreground">
@@ -266,7 +266,7 @@ function PassengerManifestList({ trip }: { trip: TripDetail }) {
           className="flex items-center justify-between p-3 border border-border rounded-lg bg-card"
         >
           <div className="flex items-center gap-3">
-            <div className="flex size-8 items-center justify-center rounded-md bg-slate-100 text-xs font-bold text-slate-700">
+            <div className="flex size-8 items-center justify-center rounded-md bg-muted text-xs font-bold text-foreground">
               {booking.seat?.label ?? "?"}
             </div>
             <div>
@@ -291,12 +291,12 @@ function PassengerManifestList({ trip }: { trip: TripDetail }) {
             </div>
           </div>
           {booking.checkedInAt ? (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-success/15 text-success">
               <CheckCircle2 className="size-3" />
               {t("checkedIn")}
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-warning/15 text-warning">
               <AlertTriangle className="size-3" />
               {t("pending")}
             </span>
@@ -329,9 +329,9 @@ export function DispatchTripDrawer({
       onOpenChange={(isOpen) => {
         if (!isOpen) onClose();
       }}
-      direction="right"
+      swipeDirection="right"
     >
-      <DrawerContent className="h-screen top-0 right-0 left-auto mt-0 w-full sm:w-[450px] rounded-none">
+      <DrawerContent className="mt-0 h-screen rounded-none data-[swipe-axis=x]:[--drawer-content-width:100%] sm:data-[swipe-axis=x]:[--drawer-content-width:28rem]">
         {isLoading || !trip ? (
           <div className="flex h-full flex-col items-center justify-center space-y-4">
             <Spinner className="size-8" />
@@ -341,14 +341,14 @@ export function DispatchTripDrawer({
           </div>
         ) : (
           <div className="flex h-full flex-col">
-            <DrawerHeader className="border-b border-border bg-slate-50/50 pb-4 text-left">
+            <DrawerHeader className="border-b border-border bg-muted/20 pb-4 text-left">
               <DrawerTitle className="text-base font-bold flex items-center justify-between">
                 <span className="flex items-center gap-2">
                   {trip.schedule?.route.originTerminal.cityRelation?.name}
                   <ArrowRight className="size-4 text-muted-foreground" />
                   {trip.schedule?.route.destTerminal.cityRelation?.name}
                 </span>
-                <span className="text-[10px] px-2 py-0.5 bg-slate-200 text-slate-700 rounded-full font-semibold tracking-wider">
+                <span className="text-[10px] px-2 py-0.5 bg-muted text-muted-foreground rounded-full font-semibold tracking-wider">
                   {trip.company.name}
                 </span>
               </DrawerTitle>
@@ -364,18 +364,18 @@ export function DispatchTripDrawer({
               <div className="p-4 space-y-6">
                 {/* Trip Stats */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="p-3 bg-bg-base border rounded-md">
+                  <div className="p-3 bg-card border border-border rounded-md">
                     <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">
                       {t("status")}
                     </p>
                     <p className="text-sm font-semibold">{trip.status}</p>
                     {trip.delayMinutes && trip.delayMinutes > 0 && (
-                      <p className="text-xs text-amber-600 font-medium mt-1">
+                      <p className="text-xs text-warning font-medium mt-1">
                         {t("minDelay", { minutes: trip.delayMinutes })}
                       </p>
                     )}
                   </div>
-                  <div className="p-3 bg-bg-base border rounded-md">
+                  <div className="p-3 bg-card border border-border rounded-md">
                     <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">
                       {t("busDetails")}
                     </p>
@@ -391,12 +391,12 @@ export function DispatchTripDrawer({
                 </div>
 
                 {trip.status === "CANCELLED" && trip.cancelReason && (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                    <p className="text-xs font-bold text-red-700 flex items-center gap-1.5 mb-1">
+                  <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+                    <p className="text-xs font-bold text-destructive flex items-center gap-1.5 mb-1">
                       <AlertCircle className="size-3.5" />
                       {t("tripCancelled")}
                     </p>
-                    <p className="text-sm text-red-900">{trip.cancelReason}</p>
+                    <p className="text-sm text-destructive">{trip.cancelReason}</p>
                   </div>
                 )}
 

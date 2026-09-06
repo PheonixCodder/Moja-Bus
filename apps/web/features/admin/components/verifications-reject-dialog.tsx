@@ -76,19 +76,19 @@ export function VerificationsRejectDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md border border-border bg-white rounded-lg p-6">
+      <DialogContent className="max-w-md border border-border bg-card rounded-lg p-6">
         <DialogHeader>
-          <DialogTitle className="text-lg font-bold text-slate-900">
+          <DialogTitle className="text-lg font-bold text-foreground">
             {t("rejectVerificationRequest")}
           </DialogTitle>
-          <DialogDescription className="text-xs text-slate-500">
+          <DialogDescription className="text-xs text-muted-foreground">
             {t("dialogDescription")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="py-4 space-y-2">
           <textarea
-            className="w-full min-h-[100px] rounded-md border border-border bg-white p-3 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-y"
+            className="w-full min-h-24 rounded-md border border-input bg-background p-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-y"
             placeholder={t("rejectionReasonPlaceholder")}
             value={rejectionReason}
             onChange={(e) => {
@@ -112,13 +112,14 @@ export function VerificationsRejectDialog({
             {t("cancel")}
           </Button>
           <Button
-            className="bg-red-600 hover:bg-red-700 text-white h-9"
+            variant="destructive"
+            className="h-9"
             disabled={rejectMutation.isPending}
             onClick={handleConfirm}
           >
             {rejectMutation.isPending ? (
               <>
-                <Spinner className="mr-2 size-3.5 text-white" />
+                <Spinner className="mr-2 size-3.5" />
                 {t("submitting")}
               </>
             ) : (

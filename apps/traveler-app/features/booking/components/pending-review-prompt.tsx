@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/lib/trpc";
 import { ReviewSheet } from "@/features/booking/components/review-sheet";
+import { Palette, Colors } from "@/constants/theme";
 
 type PendingReviewBooking = {
 	id: string;
@@ -82,38 +83,38 @@ export function PendingReviewPrompt() {
 			<Modal transparent animationType="slide" visible onRequestClose={handleDismiss}>
 				<Pressable className="flex-1 bg-black/70 justify-end" onPress={handleDismiss}>
 					<Pressable
-						className="bg-[#0c0c0f] border-t border-[#27272a] rounded-t-3xl p-6 gap-4"
+						className="bg-card border-t border-border rounded-t-3xl p-6 gap-4"
 						onPress={(e) => e.stopPropagation()}
 					>
 						<View className="flex-row items-center justify-between">
 							<View className="flex-row items-center gap-2">
-								<Star size={18} color="#f59e0b" />
-								<Text className="text-lg font-extrabold text-zinc-50">
+								<Star size={18} color={Palette.amber[500]} />
+								<Text className="text-lg font-extrabold text-foreground">
 									{t("promptTitle")}
 								</Text>
 							</View>
-							<Pressable onPress={handleDismiss} className="p-1.5 rounded-full bg-[#18181b]">
-								<X size={16} color="#a1a1aa" />
+							<Pressable onPress={handleDismiss} className="p-1.5 rounded-full bg-muted">
+								<X size={16} color={Colors.light.textMuted} />
 							</Pressable>
 						</View>
 
-						<Text className="text-sm text-zinc-400 leading-relaxed">
+						<Text className="text-sm text-muted-foreground leading-relaxed">
 							{t("promptBody", { route: routeLabel })}
 						</Text>
 
 						<View className="flex-row gap-3 pt-1">
 							<Pressable
 								onPress={handleDismiss}
-								className="flex-1 h-12 rounded-xl bg-[#18181b] border border-[#27272a] items-center justify-center"
+								className="flex-1 h-12 rounded-xl bg-secondary border border-border items-center justify-center"
 							>
-								<Text className="text-sm font-bold text-zinc-300">{t("later")}</Text>
+								<Text className="text-sm font-bold text-secondary-foreground">{t("later")}</Text>
 							</Pressable>
 							<Pressable
 								onPress={() => setActiveRef(target.bookingReference)}
-								className="flex-1 h-12 rounded-xl bg-[#ee237c] items-center justify-center flex-row gap-1.5"
+								className="flex-1 h-12 rounded-xl bg-primary items-center justify-center flex-row gap-1.5"
 							>
-								<Text className="text-sm font-bold text-white">{t("rateNow")}</Text>
-								<ChevronRight size={16} color="#ffffff" />
+								<Text className="text-sm font-bold text-primary-foreground">{t("rateNow")}</Text>
+								<ChevronRight size={16} color={Colors.light.card} />
 							</Pressable>
 						</View>
 					</Pressable>

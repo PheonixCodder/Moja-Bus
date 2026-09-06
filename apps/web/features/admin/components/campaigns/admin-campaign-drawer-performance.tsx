@@ -41,7 +41,7 @@ export function AdminCampaignDrawerPerformance({
 
   if (isLoading) {
     return (
-      <div className="py-12 text-center text-sm text-slate-500">
+      <div className="py-12 text-center text-sm text-muted-foreground">
         {t("loading")}
       </div>
     );
@@ -49,7 +49,7 @@ export function AdminCampaignDrawerPerformance({
 
   if (!performance) {
     return (
-      <div className="py-12 text-center text-sm text-slate-500">
+      <div className="py-12 text-center text-sm text-muted-foreground">
         {t("empty")}
       </div>
     );
@@ -68,78 +68,78 @@ export function AdminCampaignDrawerPerformance({
     <div className="space-y-6">
       <div>
         <div className="flex items-center gap-1.5">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             {t("financialsTitle")}
           </p>
           <InfoTooltip content={t("financialsTooltip")} />
         </div>
 
         <div className="mt-3 grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
-          <Card className="p-4 bg-slate-50/70 border-slate-200/80 shadow-none">
-            <p className="text-xs font-medium text-slate-500">
+          <Card className="p-4 bg-muted/30 border-border shadow-none">
+            <p className="text-xs font-medium text-muted-foreground">
               {t("confirmedRedemptions")}
             </p>
-            <p className="mt-1 font-display text-2xl font-bold tabular-nums text-slate-900">
+            <p className="mt-1 font-display text-2xl font-bold tabular-nums text-foreground">
               {performance.confirmedRedemptions.toLocaleString()}
             </p>
           </Card>
 
-          <Card className="p-4 bg-slate-50/70 border-slate-200/80 shadow-none">
-            <p className="text-xs font-medium text-slate-500">
+          <Card className="p-4 bg-muted/30 border-border shadow-none">
+            <p className="text-xs font-medium text-muted-foreground">
               {t("ticketDiscountTotal")}
             </p>
-            <p className="mt-1 font-display text-2xl font-bold tabular-nums text-slate-900">
+            <p className="mt-1 font-display text-2xl font-bold tabular-nums text-foreground">
               {performance.ticketDiscountXOF.toLocaleString()}{" "}
-              <span className="text-xs font-medium text-slate-400">XOF</span>
+              <span className="text-xs font-medium text-muted-foreground">XOF</span>
             </p>
           </Card>
 
-          <Card className="p-4 bg-slate-50/70 border-slate-200/80 shadow-none">
-            <p className="text-xs font-medium text-slate-500">
+          <Card className="p-4 bg-muted/30 border-border shadow-none">
+            <p className="text-xs font-medium text-muted-foreground">
               {t("platformFunded")}
             </p>
-            <p className="mt-1 font-display text-2xl font-bold tabular-nums text-slate-900">
+            <p className="mt-1 font-display text-2xl font-bold tabular-nums text-foreground">
               {performance.platformFundedXOF.toLocaleString()}{" "}
-              <span className="text-xs font-medium text-slate-400">XOF</span>
+              <span className="text-xs font-medium text-muted-foreground">XOF</span>
             </p>
           </Card>
 
-          <Card className="p-4 bg-slate-50/70 border-slate-200/80 shadow-none">
-            <p className="text-xs font-medium text-slate-500">
+          <Card className="p-4 bg-muted/30 border-border shadow-none">
+            <p className="text-xs font-medium text-muted-foreground">
               {t("operatorFunded")}
             </p>
-            <p className="mt-1 font-display text-2xl font-bold tabular-nums text-slate-900">
+            <p className="mt-1 font-display text-2xl font-bold tabular-nums text-foreground">
               {performance.operatorFundedXOF.toLocaleString()}{" "}
-              <span className="text-xs font-medium text-slate-400">XOF</span>
+              <span className="text-xs font-medium text-muted-foreground">XOF</span>
             </p>
           </Card>
         </div>
       </div>
 
       {hasBudget && (
-        <Card className="p-4 border-slate-200/80 bg-white">
+        <Card className="p-4 border-border bg-card">
           <div className="flex items-center justify-between text-sm">
-            <span className="font-semibold text-slate-800">
+            <span className="font-semibold text-foreground">
               {t("budgetUtilization")}
             </span>
-            <span className="text-xs font-medium text-slate-500">
+            <span className="text-xs font-medium text-muted-foreground">
               {totalSpend.toLocaleString()} / {budget.toLocaleString()} XOF (
               {pct}%)
             </span>
           </div>
-          <div className="mt-2 h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
+          <div className="mt-2 h-2.5 w-full rounded-full bg-muted overflow-hidden">
             <div
               className={`h-full transition-all ${
                 pct >= 90
-                  ? "bg-rose-500"
+                  ? "bg-destructive"
                   : pct >= 70
-                    ? "bg-amber-500"
-                    : "bg-emerald-500"
+                    ? "bg-warning"
+                    : "bg-success"
               }`}
               style={{ width: `${pct}%` }}
             />
           </div>
-          <div className="mt-2 flex gap-4 text-xs text-slate-500">
+          <div className="mt-2 flex gap-4 text-xs text-muted-foreground">
             <span>{t("consumed", { amount: consumed.toLocaleString() })}</span>
             <span>{t("reserved", { amount: reserved.toLocaleString() })}</span>
           </div>
@@ -148,23 +148,23 @@ export function AdminCampaignDrawerPerformance({
 
       {performance.byCompany.length > 0 && (
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
             {t("topOperators")}
           </p>
-          <div className="divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white">
+          <div className="divide-y divide-border rounded-lg border border-border bg-card">
             {performance.byCompany.map((c) => (
               <div
                 key={c.companyId}
                 className="flex items-center justify-between p-3 text-sm"
               >
-                <span className="font-mono text-xs text-slate-700">
+                <span className="font-mono text-xs text-foreground">
                   {c.companyId}
                 </span>
                 <div className="flex items-center gap-4 text-xs">
-                  <span className="text-slate-500">
+                  <span className="text-muted-foreground">
                     {t("operatorRedemptions", { count: c.redemptions })}
                   </span>
-                  <span className="font-semibold text-slate-900">
+                  <span className="font-semibold text-foreground">
                     {c.ticketDiscountXOF.toLocaleString()} XOF
                   </span>
                 </div>

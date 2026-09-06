@@ -7,7 +7,6 @@ import {
 	Text,
 	TouchableOpacity,
 	View,
-	StyleSheet,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -19,6 +18,7 @@ import { useTRPC } from "@/lib/trpc";
 import { DriverFeedback } from "@/lib/haptics";
 import { NotificationBell } from "@/components/notification-bell";
 import { colors } from "@/constants/theme";
+import { cn } from "@/lib/utils";
 import { CounterSheet } from "../components/counter-sheet";
 import { OfferCard } from "../components/offer-card";
 
@@ -106,7 +106,7 @@ export function OffersView() {
 
 	const handleDecline = (offerId: string) => {
 		DriverFeedback.tap();
-		Alert.alert(t("decline.confirmTitle"), t("decline.confirmBody"), [
+		Alert.alert(t("decline.title"), t("decline.body"), [
 			{ text: t("decline.cancel"), style: "cancel" },
 			{
 				text: t("decline.confirm"),
@@ -122,9 +122,9 @@ export function OffersView() {
 	};
 
 	const handleCounterSubmit = (data: {
-		counterSalaryCFA: number;
+		counterSalaryCFA?: number;
 		counterStartDate?: string;
-		note?: string;
+		counterMessage?: string;
 	}) => {
 		if (!counterTarget) return;
 		respondMutation.mutate({
@@ -139,13 +139,16 @@ export function OffersView() {
 	const pendingCount = items.filter((o) => o.status === "PENDING" || o.status === "COUNTERED").length;
 
 	return (
-		<View style={styles.root}>
+		<View className="flex-1 bg-background">
 			{/* Header */}
-			<View style={[styles.headerContainer, { paddingTop: insets.top + 12 }]}>
-				<View style={styles.headerRow}>
-					<View style={styles.headerTitleWrap}>
-						<Text style={styles.headerTitle}>{t("title")}</Text>
-						<Text style={styles.headerSubtitle}>
+			<View
+				className="px-5 pb-3.5 border-b border-border bg-background gap-3.5"
+				style={{ paddingTop: insets.top + 12 }}
+			>
+				<View className="flex-row items-center justify-between">
+					<View className="gap-0.5 flex-1">
+						<Text className="text-2xl font-extrabold text-foreground tracking-tight">{t("title")}</Text>
+						<Text className="text-[11px] text-muted-foreground">
 							{t("subtitle", { count: pendingCount })}
 						</Text>
 					</View>
@@ -153,7 +156,7 @@ export function OffersView() {
 				</View>
 
 				{/* Segmented control */}
-				<View style={styles.tabBar}>
+				<View className="flex-row rounded-2xl border border-border bg-card p-1">
 					{(["OFFERS", "HISTORY"] as const).map((seg) => (
 						<TouchableOpacity
 							key={seg}
@@ -162,10 +165,15 @@ export function OffersView() {
 								setTab(seg);
 							}}
 							activeOpacity={0.8}
-							style={[styles.tabChip, tab === seg && styles.tabChipSelected]}
+							accessibilityRole="button"
+							accessibilityLabel={seg === "OFFERS" ? t("tab.offers") : t("tab.history")}
+							className={cn("flex-1 items-center rounded-xl py-2.5", tab === seg && "bg-primary")}
 						>
 							<Text
-								style={[styles.tabChipText, tab === seg && styles.tabChipTextSelected]}
+								className={cn(
+									"text-xs font-bold",
+									tab === seg ? "text-primary-foreground" : "text-muted-foreground",
+								)}
 							>
 								{seg === "OFFERS" ? t("tab.offers") : t("tab.history")}
 							</Text>
@@ -176,18 +184,18 @@ export function OffersView() {
 
 			{/* List */}
 			{offersQuery.isLoading ? (
-				<View style={styles.loadingBox}>
+				<View className="flex-1 items-center justify-center">
 					<ActivityIndicator size="large" color={colors.primary.rose} />
 				</View>
 			) : items.length === 0 ? (
-				<View style={styles.emptyBox}>
-					<View style={styles.emptyIconWrap}>
-						<HugeiconsIcon icon={Briefcase01Icon} size={28} color="#71717a" />
+				<View className="flex-1 items-center justify-center px-8 gap-2.5">
+					<View className="size-16 rounded-2xl bg-card border border-border items-center justify-center">
+						<HugeiconsIcon icon={Briefcase01Icon} size={28} color={colors.neutral.textMuted} />
 					</View>
-					<Text style={styles.emptyTitle}>
+					<Text className="text-base font-bold text-foreground">
 						{tab === "OFFERS" ? t("empty.active") : t("empty.history")}
 					</Text>
-					<Text style={styles.emptySubtitle}>
+					<Text className="text-center text-xs text-muted-foreground max-w-[280px] leading-5">
 						{tab === "OFFERS" ? t("empty.activeHint") : null}
 					</Text>
 				</View>
@@ -195,10 +203,8 @@ export function OffersView() {
 				<FlatList
 					data={items}
 					keyExtractor={(item) => item.id}
-					contentContainerStyle={[
-						styles.listContent,
-						{ paddingBottom: Math.max(insets.bottom, 24) + 80 },
-					]}
+					contentContainerClassName="px-4 pt-4 gap-4"
+					contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 24) + 80 }}
 					showsVerticalScrollIndicator={false}
 					refreshControl={
 						<RefreshControl
@@ -228,101 +234,3 @@ export function OffersView() {
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	root: {
-		flex: 1,
-		backgroundColor: "#09090b",
-	},
-	headerContainer: {
-		paddingHorizontal: 20,
-		paddingBottom: 14,
-		borderBottomWidth: 1,
-		borderBottomColor: "#27272a",
-		backgroundColor: "#09090b",
-		gap: 14,
-	},
-	headerRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-	},
-	headerTitleWrap: {
-		gap: 2,
-		flex: 1,
-	},
-	headerTitle: {
-		fontSize: 22,
-		fontWeight: "800",
-		color: "#fafafa",
-		letterSpacing: -0.4,
-	},
-	headerSubtitle: {
-		fontSize: 11,
-		color: "#a1a1aa",
-	},
-	tabBar: {
-		flexDirection: "row",
-		borderRadius: 14,
-		borderWidth: 1,
-		borderColor: "#27272a",
-		backgroundColor: "#18181b",
-		padding: 3,
-	},
-	tabChip: {
-		flex: 1,
-		alignItems: "center",
-		borderRadius: 10,
-		paddingVertical: 9,
-	},
-	tabChipSelected: {
-		backgroundColor: "#ee237c",
-	},
-	tabChipText: {
-		fontSize: 12,
-		fontWeight: "700",
-		color: "#a1a1aa",
-	},
-	tabChipTextSelected: {
-		color: "#ffffff",
-	},
-	loadingBox: {
-		flex: 1,
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	emptyBox: {
-		flex: 1,
-		alignItems: "center",
-		justifyContent: "center",
-		paddingHorizontal: 32,
-		gap: 10,
-	},
-	emptyIconWrap: {
-		width: 64,
-		height: 64,
-		borderRadius: 20,
-		backgroundColor: "#18181b",
-		borderWidth: 1,
-		borderColor: "#27272a",
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	emptyTitle: {
-		fontSize: 16,
-		fontWeight: "700",
-		color: "#fafafa",
-	},
-	emptySubtitle: {
-		textAlign: "center",
-		fontSize: 12,
-		color: "#a1a1aa",
-		maxWidth: 280,
-		lineHeight: 18,
-	},
-	listContent: {
-		paddingHorizontal: 16,
-		paddingTop: 16,
-		gap: 16,
-	},
-});

@@ -119,14 +119,16 @@ export function SortableWaypoint({
         <div className="flex items-start gap-2 bg-card border border-border/80 rounded-lg p-2.5 shadow-2xs hover:border-border transition-colors">
           {/* Drag handle — only on intermediary stops */}
           {!isOrigin && !isDest && (
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               {...attributes}
               {...listeners}
-              className="mt-0.5 text-muted-foreground/40 hover:text-muted-foreground cursor-grab active:cursor-grabbing shrink-0"
+              className="mt-0.5 h-auto w-auto p-0 text-muted-foreground/40 hover:text-muted-foreground cursor-grab active:cursor-grabbing shrink-0 hover:bg-transparent"
               aria-label={t("reorderStop")}
             >
               <GripVertical className="size-4" />
-            </button>
+            </Button>
           )}
 
           <div className="flex-1 min-w-0 space-y-2">
@@ -149,7 +151,7 @@ export function SortableWaypoint({
                     className={cn(
                       "text-[10px] cursor-pointer select-none font-medium px-1.5 py-0.5 gap-0.5 transition-colors",
                       waypoint.allowPickup
-                        ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                        ? "bg-success hover:bg-success/90 text-success-foreground"
                         : "text-muted-foreground/60 border-border hover:bg-muted",
                     )}
                     onClick={togglePickup}
@@ -164,7 +166,7 @@ export function SortableWaypoint({
                     className={cn(
                       "text-[10px] cursor-pointer select-none font-medium px-1.5 py-0.5 gap-0.5 transition-colors",
                       waypoint.allowDropoff
-                        ? "bg-blue-600 hover:bg-blue-700 text-white"
+                        ? "bg-primary hover:bg-primary/90 text-primary-foreground"
                         : "text-muted-foreground/60 border-border hover:bg-muted",
                     )}
                     onClick={toggleDropoff}
@@ -210,15 +212,17 @@ export function SortableWaypoint({
                     </Button>
                   </div>
                 ) : (
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="sm"
                     onClick={() => {
                       setDistanceInput(
                         waypoint.distanceFromOriginKm?.toString() ?? "",
                       );
                       setEditingDistance(true);
                     }}
-                    className="inline-flex items-center gap-1 font-medium text-muted-foreground hover:text-foreground transition-colors group/dist"
+                    className="inline-flex items-center gap-1 font-medium text-muted-foreground hover:text-foreground transition-colors group/dist h-auto p-0 hover:bg-transparent text-[11px]"
                   >
                     <MapPin className="size-3" />
                     <span>
@@ -226,7 +230,7 @@ export function SortableWaypoint({
                         ? `${waypoint.distanceFromOriginKm} km`
                         : t("addDistance")}
                     </span>
-                  </button>
+                  </Button>
                 ))}
             </div>
           </div>

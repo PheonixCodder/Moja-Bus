@@ -1,22 +1,22 @@
-﻿"use client";
+"use client";
 
-import { useTheme } from "next-themes";
-import { Toaster as Sonner, type ToasterProps } from "sonner";
 import {
   CircleCheckIcon,
   InfoIcon,
-  TriangleAlertIcon,
-  OctagonXIcon,
   Loader2Icon,
+  OctagonXIcon,
+  TriangleAlertIcon,
 } from "lucide-react";
+import { Toaster as Sonner, type ToasterProps } from "sonner";
 
-const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme: currentTheme } = useTheme();
-  const theme = currentTheme ?? "system";
-
+/**
+ * Moja is light-only — no ThemeProvider / next-themes.
+ * Theme is fixed to "light"; callers may still override via props.
+ */
+const Toaster = ({ theme = "light", ...props }: ToasterProps) => {
   return (
     <Sonner
-      theme={theme as NonNullable<ToasterProps["theme"]>}
+      theme={theme}
       className="toaster group"
       icons={{
         success: <CircleCheckIcon className="size-4" />,

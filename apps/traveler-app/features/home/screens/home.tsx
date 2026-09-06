@@ -1,5 +1,6 @@
 import { RefreshControl, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Colors, Palette } from "@/constants/theme";
 import { HomeHeader } from "../components/home-header";
 import { HomeSearchWidget } from "../components/home-search-widget";
 import { ActiveTripCard } from "../components/active-trip-card";
@@ -27,7 +28,7 @@ export function HomeView() {
 
 	return (
 		<ScrollView
-			className="flex-1 bg-slate-50"
+			className="flex-1 bg-background"
 			contentContainerStyle={{
 				paddingTop: insets.top + 16,
 				paddingBottom: 130,
@@ -39,8 +40,8 @@ export function HomeView() {
 				<RefreshControl
 					refreshing={refreshing}
 					onRefresh={onRefresh}
-					tintColor="#ee237c"
-					colors={["#ee237c"]}
+					tintColor={Palette.rose[500]}
+					colors={[Palette.rose[500]]}
 				/>
 			}
 		>

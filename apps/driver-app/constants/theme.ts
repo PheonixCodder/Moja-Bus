@@ -1,123 +1,117 @@
-// Design tokens — mirrors the Moja Driver design system in global.css.
-// Inspired by Lingua design tokens with Moja theme specifications.
+// ==============================================================================
+// Moja Driver Design Tokens (apps/driver-app/constants/theme.ts)
+// Directly binds and re-exports from the canonical @moja/theme/tokens system.
+// ==============================================================================
 
+import {
+	Palette,
+	Colors,
+	FontFamily,
+	FontSize,
+	LineHeight,
+	FontWeight,
+	TextStyles,
+	Spacing,
+	Radii,
+	ControlHeights,
+} from "@moja/theme/tokens";
+
+export {
+	Palette,
+	Colors,
+	FontFamily,
+	FontSize,
+	LineHeight,
+	FontWeight,
+	TextStyles,
+	Spacing,
+	Radii,
+	ControlHeights,
+};
+
+// Re-export driver-specific semantic tokens mapping to canonical dark theme
 export const colors = {
 	primary: {
-		rose: "#ee237c",
-		deepRose: "#be123c",
-		emerald: "#10b981",
-		blue: "#3b82f6",
+		rose: Palette.rose[500],
+		deepRose: Palette.rose[600],
+		emerald: Palette.emerald[500],
+		blue: Palette.blue[500],
 	},
 	semantic: {
-		success: "#10b981",
-		warning: "#f59e0b",
+		success: Palette.emerald[500],
+		warning: Palette.amber[500],
 		streak: "#f97316",
-		error: "#ef4444",
-		info: "#3b82f6",
+		error: Palette.red[500],
+		info: Palette.blue[500],
 	},
 	neutral: {
-		background: "#09090b",
-		surface: "#18181b",
-		elevated: "#27272a",
-		border: "#27272a",
-		borderStrong: "#3f3f46",
-		textPrimary: "#fafafa",
-		textSecondary: "#a1a1aa",
-		textMuted: "#71717a",
+		background: Colors.dark.background,
+		surface: Colors.dark.surface,
+		elevated: Colors.dark.cardElevated,
+		border: Colors.dark.border,
+		borderStrong: Colors.dark.borderStrong,
+		textPrimary: Colors.dark.textPrimary,
+		textSecondary: Colors.dark.textSecondary,
+		textMuted: Colors.dark.textMuted,
 	},
 } as const;
 
-export const fontFamily = {
-	regular: "Montserrat",
-	medium: "Montserrat-Medium",
-	semiBold: "Montserrat-SemiBold",
-	bold: "Montserrat-Bold",
-} as const;
-
+export const fontFamily = FontFamily;
 export const fontSize = {
-	h1: 28,
-	h2: 22,
-	h3: 18,
-	h4: 15,
-	bodyLg: 16,
-	bodyMd: 14,
-	bodySm: 12,
-	caption: 11,
+	h1: FontSize.h1,
+	h2: FontSize.h2,
+	h3: FontSize.h3,
+	h4: FontSize.h4,
+	bodyLg: FontSize.bodyLg,
+	bodyMd: FontSize.bodyMd,
+	bodySm: FontSize.bodySm,
+	caption: FontSize.caption,
 } as const;
 
 export const lineHeight = {
-	h1: 34,
-	h2: 28,
-	h3: 24,
-	h4: 20,
-	bodyLg: 24,
-	bodyMd: 20,
-	bodySm: 18,
-	caption: 15,
+	h1: LineHeight.h1,
+	h2: LineHeight.h2,
+	h3: LineHeight.h3,
+	h4: LineHeight.h4,
+	bodyLg: LineHeight.bodyLg,
+	bodyMd: LineHeight.bodyMd,
+	bodySm: LineHeight.bodySm,
+	caption: LineHeight.caption,
 } as const;
 
-export const fontWeight = {
-	regular: "400",
-	medium: "500",
-	semiBold: "600",
-	bold: "700",
-} as const;
+export const fontWeight = FontWeight;
 
 export const textStyles = {
 	h1: {
-		fontFamily: fontFamily.bold,
-		fontSize: fontSize.h1,
-		fontWeight: fontWeight.bold,
-		lineHeight: lineHeight.h1,
+		...TextStyles.h1,
 		color: colors.neutral.textPrimary,
 	},
 	h2: {
-		fontFamily: fontFamily.bold,
-		fontSize: fontSize.h2,
-		fontWeight: fontWeight.bold,
-		lineHeight: lineHeight.h2,
+		...TextStyles.h2,
 		color: colors.neutral.textPrimary,
 	},
 	h3: {
-		fontFamily: fontFamily.semiBold,
-		fontSize: fontSize.h3,
-		fontWeight: fontWeight.semiBold,
-		lineHeight: lineHeight.h3,
+		...TextStyles.h3,
 		color: colors.neutral.textPrimary,
 	},
 	h4: {
-		fontFamily: fontFamily.medium,
-		fontSize: fontSize.h4,
-		fontWeight: fontWeight.medium,
-		lineHeight: lineHeight.h4,
+		...TextStyles.h4,
 		color: colors.neutral.textPrimary,
 	},
 	bodyLg: {
-		fontFamily: fontFamily.regular,
-		fontSize: fontSize.bodyLg,
-		fontWeight: fontWeight.regular,
-		lineHeight: lineHeight.bodyLg,
+		...TextStyles.bodyLg,
 		color: colors.neutral.textPrimary,
 	},
 	bodyMd: {
-		fontFamily: fontFamily.regular,
-		fontSize: fontSize.bodyMd,
-		fontWeight: fontWeight.regular,
-		lineHeight: lineHeight.bodyMd,
+		...TextStyles.bodyMd,
 		color: colors.neutral.textPrimary,
 	},
 	bodySm: {
-		fontFamily: fontFamily.regular,
-		fontSize: fontSize.bodySm,
-		fontWeight: fontWeight.regular,
-		lineHeight: lineHeight.bodySm,
+		...TextStyles.bodySm,
 		color: colors.neutral.textSecondary,
 	},
 	caption: {
-		fontFamily: fontFamily.regular,
-		fontSize: fontSize.caption,
-		fontWeight: fontWeight.regular,
-		lineHeight: lineHeight.caption,
+		...TextStyles.caption,
 		color: colors.neutral.textMuted,
 	},
 } as const;

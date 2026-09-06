@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { View, ActivityIndicator } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
+import { Colors, Palette } from "@/constants/theme";
 import { authClient } from "@/lib/auth-client";
 import { storePendingReferralCode } from "@/lib/pending-referral";
 
@@ -42,8 +43,8 @@ export default function ReferralLandingScreen() {
 
   // Show a brief loading spinner while session resolves / redirect executes
   return (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#fff" }}>
-      <ActivityIndicator size="large" color="#ee237c" />
+    <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: Colors.light.background }}>
+      <ActivityIndicator size="large" color={Palette.rose[500]} />
     </View>
   );
 }

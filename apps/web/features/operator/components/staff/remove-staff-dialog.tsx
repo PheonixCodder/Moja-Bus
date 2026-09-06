@@ -33,7 +33,7 @@ export function RemoveStaffDialog({
     <AlertDialog open={!!member} onOpenChange={(open) => !open && onClose()}>
       <AlertDialogContent className="border-border bg-card max-w-md">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-base font-semibold text-red-600">
+          <AlertDialogTitle className="text-base font-semibold text-destructive">
             {t("title")}
           </AlertDialogTitle>
           <AlertDialogDescription className="text-[13px] text-muted-foreground">
@@ -45,7 +45,7 @@ export function RemoveStaffDialog({
             {tp("cancel")}
           </AlertDialogCancel>
           <AlertDialogAction
-            className="h-9 text-[13px] bg-red-600 hover:bg-red-700 text-white border-0"
+            className="h-9 text-[13px] bg-destructive hover:bg-destructive/90 text-destructive-foreground border-0"
             onClick={onConfirm}
             disabled={pending}
           >

@@ -19,12 +19,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 function FAQItem({ q, a }: { q: string; a: string }) {
   return (
-    <details className="group border-b border-slate-100 last:border-0">
+    <details className="group border-b border-border last:border-0">
       <summary className="flex justify-between items-center py-5 cursor-pointer list-none gap-4">
-        <span className="font-semibold text-slate-800 text-base">{q}</span>
-        <ChevronDown className="h-5 w-5 text-slate-400 group-open:rotate-180 transition-transform shrink-0" />
+        <span className="font-semibold text-foreground text-base">{q}</span>
+        <ChevronDown className="h-5 w-5 text-muted-foreground group-open:rotate-180 transition-transform shrink-0" />
       </summary>
-      <div className="pb-5 text-slate-500 leading-relaxed text-sm pr-8">
+      <div className="pb-5 text-muted-foreground leading-relaxed text-sm pr-8">
         {a}
       </div>
     </details>
@@ -43,12 +43,12 @@ export default async function HelpPage({ params }: Props) {
     >
       {/* Quick links menu */}
       <div className="max-w-3xl mx-auto px-6 md:px-8 pt-12 text-center">
-        <div className="flex flex-wrap gap-3 justify-center bg-slate-50 border border-slate-100 p-4 rounded-3xl">
+        <div className="flex flex-wrap gap-3 justify-center bg-muted/40 border border-border p-4 rounded-3xl">
           {faqs.map((cat) => (
             <a
               key={cat.category}
               href={`#${cat.id}`}
-              className={`px-4 py-2 rounded-full text-xs font-extrabold tracking-wider uppercase transition-all hover:scale-105 border border-slate-200/40 shadow-sm ${cat.color}`}
+              className={`px-4 py-2 rounded-full text-xs font-extrabold tracking-wider uppercase transition-all hover:scale-105 border border-border/40 shadow-sm ${cat.color}`}
             >
               {cat.category}
             </a>
@@ -67,7 +67,7 @@ export default async function HelpPage({ params }: Props) {
                 {cat.category}
               </span>
             </div>
-            <div className="bg-white border border-slate-100 rounded-3xl px-6 divide-y divide-slate-100">
+            <div className="bg-card border border-border rounded-3xl px-6 divide-y divide-border">
               {cat.items.map((item) => (
                 <FAQItem key={item.q} q={item.q} a={item.a} />
               ))}
@@ -78,12 +78,12 @@ export default async function HelpPage({ params }: Props) {
 
       {/* Still need help CTA */}
       <div className="max-w-3xl mx-auto px-6 md:px-8 pb-24">
-        <div className="bg-[#ee237c] rounded-3xl p-10 text-center text-white">
+        <div className="bg-primary rounded-3xl p-10 text-center text-primary-foreground">
           <h2 className="text-2xl font-bold mb-3">{t("ctaTitle")}</h2>
-          <p className="text-white/80 mb-8">{t("ctaDesc")}</p>
+          <p className="text-primary-foreground/80 mb-8">{t("ctaDesc")}</p>
           <Link
             href="/contact"
-            className="inline-flex items-center gap-2 bg-white text-[#ee237c] px-8 py-4 rounded-2xl font-bold hover:bg-slate-50 transition-all"
+            className="inline-flex items-center gap-2 bg-background text-primary px-8 py-4 rounded-2xl font-bold hover:bg-muted transition-all"
           >
             {t("ctaButton")} <ArrowRight className="h-4 w-4" />
           </Link>
