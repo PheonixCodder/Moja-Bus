@@ -1,0 +1,121 @@
+{
+  "auth": {
+    "login": {
+      "title": "Connexion Agent de Guichet",
+      "subtitle": "Moja Ride Guichet",
+      "emailLabel": "Adresse e-mail",
+      "passwordLabel": "Mot de passe",
+      "submitButton": "Se connecter",
+      "errorInvalid": "E-mail ou mot de passe incorrect",
+      "errorNoAccess": "Vous n'avez pas accès au guichet. Contactez votre administrateur."
+    }
+  },
+  "terminalSelect": {
+    "title": "Choisir votre terminal",
+    "subtitle": "Sélectionnez le terminal depuis lequel vous travaillez aujourd'hui",
+    "switchTitle": "Changer de terminal",
+    "switchWarning": "Changer de terminal effacera votre réserve de sièges hors ligne. Continuer ?",
+    "switchConfirm": "Changer",
+    "switchCancel": "Annuler"
+  },
+  "sell": {
+    "tabLabel": "Vente",
+    "title": "Voyages du jour",
+    "noTrips": "Aucun voyage au départ de ce terminal aujourd'hui",
+    "searchPlaceholder": "Rechercher une destination...",
+    "availableSeats": "{{count}} siège(s) disponible(s)",
+    "selectSeat": "Choisir un siège",
+    "nextAvailable": "Prochain siège disponible",
+    "offlineBanner": "HORS LIGNE — {{count}} siège(s) en réserve",
+    "offlineExpired": "Réserve expirée — reconnectez-vous pour continuer les ventes",
+    "nextAvailableOffline": "siège(s) disponible(s) en réserve hors ligne",
+    "pickFromPool": "Choisir dans la réserve"
+  },
+  "passenger": {
+    "title": "Passager",
+    "searchLabel": "Chercher par e-mail ou téléphone",
+    "searchPlaceholder": "email@exemple.com ou +225...",
+    "newPassenger": "Nouveau passager",
+    "fullNameLabel": "Nom complet",
+    "emailLabel": "Adresse e-mail",
+    "phoneLabel": "Téléphone (optionnel)",
+    "existingFound": "Compte trouvé",
+    "createButton": "Créer le compte",
+    "selectButton": "Sélectionner"
+  },
+  "payment": {
+    "title": "Paiement",
+    "methodCash": "Espèces",
+    "methodPaystack": "Paiement mobile (QR)",
+    "cashAmount": "Montant reçu",
+    "cashConfirm": "Confirmer la réception",
+    "qrTitle": "Montrez ce QR au passager",
+    "qrInstruction": "Le passager scanne avec son téléphone et paye",
+    "qrTimeout": "Expiration dans",
+    "qrWaiting": "En attente du paiement...",
+    "qrPaid": "Paiement reçu !",
+    "qrExpired": "Délai expiré — recommencer",
+    "qrFailed": "Paiement échoué"
+  },
+  "confirmation": {
+    "title": "Billet confirmé !",
+    "ticketSent": "Billet envoyé à {{email}}",
+    "newAccountCreated": "Compte Moja Ride créé pour {{email}}",
+    "printButton": "Imprimer (Bluetooth)",
+    "shareButton": "Partager le billet",
+    "sellAnother": "Nouvelle vente"
+  },
+  "checkin": {
+    "tabLabel": "Enregistrement",
+    "title": "Scanner le ticket",
+    "instruction": "Pointez la caméra sur le QR ticket du passager",
+    "success": "Enregistré !",
+    "error": "Erreur",
+    "errorNotFound": "Billet introuvable",
+    "errorUsed": "Billet déjà utilisé",
+    "errorWrongTerminal": "Ce billet n'est pas pour ce terminal",
+    "errorStatus": "Statut invalide : {{status}}"
+  },
+  "bookings": {
+    "tabLabel": "Réservations",
+    "title": "Ventes d'aujourd'hui",
+    "filterAll": "Toutes",
+    "filterCash": "Espèces",
+    "filterPaystack": "Mobile",
+    "noBookings": "Aucune vente aujourd'hui",
+    "sales": "ventes",
+    "offline": "Hors ligne"
+  },
+  "reconcile": {
+    "title": "Récapitulatif du jour",
+    "totalSales": "Total des ventes",
+    "cashTotal": "Total espèces",
+    "paystackTotal": "Total mobile",
+    "grandTotal": "Total général",
+    "offlineSales": "Ventes hors ligne",
+    "walkUps": "Passagers au comptoir",
+    "shareButton": "Exporter / Partager",
+    "shareTitle": "Récapitulatif Guichet — {{date}}",
+    "refresh": "Actualiser",
+    "refreshing": "Actualisation...",
+    "saleDetail": "Détail des ventes",
+    "cashAbbr": "Espèces"
+  },
+  "profile": {
+    "tabLabel": "Profil",
+    "currentTerminal": "Terminal actuel",
+    "switchTerminal": "Changer de terminal",
+    "language": "Langue",
+    "logout": "Déconnexion",
+    "logoutConfirm": "Êtes-vous sûr de vouloir vous déconnecter ?"
+  },
+  "offline": {
+    "conflictBanner": "{{count}} réservation(s) en conflit — votre responsable a été notifié",
+    "pending": "en attente"
+  },
+  "errors": {
+    "network": "Erreur réseau. Vérifiez votre connexion.",
+    "generic": "Une erreur est survenue. Réessayez.",
+    "sessionExpired": "Session expirée. Veuillez vous reconnecter."
+  }
+}

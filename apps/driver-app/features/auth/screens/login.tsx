@@ -349,7 +349,7 @@ export default function LoginView() {
 									},
 									focusedPinCodeContainerStyle: {
 										borderColor: colors.primary.rose,
-										backgroundColor: "rgba(238, 35, 124, 0.08)",
+										backgroundColor: `${colors.primary.rose}14`,
 									},
 									pinCodeTextStyle: {
 										color: colors.neutral.textPrimary,

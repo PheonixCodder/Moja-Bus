@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { Cancel01Icon, Ticket01Icon } from '@hugeicons/core-free-icons';
 import { Colors, Palette } from '@/constants/theme';
+import { IconColors } from '@/constants/ui-colors';
 import { PassengerSeatMap } from '@/features/booking/components/passenger-seat-map';
 import { TripSummaryCard } from '@/features/booking/components/trip-summary-card';
 import { useSeatAvailability } from '@/features/booking/hooks/use-seat-availability';
@@ -96,7 +97,7 @@ export function SeatSelectionSheet({
           </View>
 
           <Pressable onPress={onClose} className="p-2 bg-muted rounded-full">
-            <HugeiconsIcon icon={Cancel01Icon} size={18} color={Colors.light.textSecondary} />
+            <HugeiconsIcon icon={Cancel01Icon} size={18} color={IconColors.secondary} />
           </Pressable>
         </View>
 

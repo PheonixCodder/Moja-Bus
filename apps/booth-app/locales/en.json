@@ -1,0 +1,121 @@
+{
+  "auth": {
+    "login": {
+      "title": "Operator Login",
+      "subtitle": "Sign in with your credentials",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "submitButton": "Sign In",
+      "errorInvalid": "Invalid credentials",
+      "errorNoAccess": "No booth access for this user"
+    }
+  },
+  "terminalSelect": {
+    "title": "Select Terminal",
+    "subtitle": "Choose your operating terminal",
+    "switchTitle": "Switch Terminal",
+    "switchWarning": "Switching terminals will reset your session. Continue?",
+    "switchConfirm": "Switch",
+    "switchCancel": "Cancel"
+  },
+  "sell": {
+    "tabLabel": "Sell",
+    "title": "Today's Trips",
+    "noTrips": "No trips scheduled for today",
+    "searchPlaceholder": "Search trips...",
+    "availableSeats": "{available} / {total} seats",
+    "selectSeat": "Select Seat",
+    "nextAvailable": "Next available trip",
+    "offlineBanner": "Offline — {{count}} seat(s) in pool",
+    "offlineExpired": "Offline pool expired — reconnect to continue sales",
+    "nextAvailableOffline": "seat(s) available in offline pool",
+    "pickFromPool": "Pick from pool"
+  },
+  "passenger": {
+    "title": "Passenger",
+    "searchLabel": "Search by email",
+    "searchPlaceholder": "passenger@example.com",
+    "newPassenger": "Create new passenger",
+    "fullNameLabel": "Full Name",
+    "emailLabel": "Email Address",
+    "phoneLabel": "Phone Number",
+    "existingFound": "Found existing passenger",
+    "createButton": "Create Passenger",
+    "selectButton": "Use This Passenger"
+  },
+  "payment": {
+    "title": "Payment Method",
+    "methodCash": "Cash",
+    "methodPaystack": "Card / Mobile Money",
+    "cashAmount": "Cash amount: {amount} XOF",
+    "cashConfirm": "Tap to confirm and collect cash",
+    "qrTitle": "Scan to Pay",
+    "qrInstruction": "Ask the passenger to scan this QR code with their mobile app",
+    "qrTimeout": "Payment expires in {seconds}s",
+    "qrWaiting": "Waiting for payment confirmation...",
+    "qrPaid": "Payment confirmed!",
+    "qrExpired": "Payment expired. Please try again.",
+    "qrFailed": "Payment verification failed"
+  },
+  "confirmation": {
+    "title": "Sale Complete",
+    "ticketSent": "Ticket sent to {email}",
+    "newAccountCreated": "A new MoovMove account has been created",
+    "printButton": "Print Ticket",
+    "shareButton": "Share Ticket",
+    "sellAnother": "Sell Another Ticket"
+  },
+  "checkin": {
+    "tabLabel": "Check-in",
+    "title": "Scan Ticket",
+    "instruction": "Position the ticket QR code within the scanner frame",
+    "success": "Check-in successful",
+    "error": "Error",
+    "errorNotFound": "Ticket not found",
+    "errorUsed": "Ticket already used",
+    "errorWrongTerminal": "Ticket not valid for this terminal",
+    "errorStatus": "Ticket cannot be boarded"
+  },
+  "bookings": {
+    "tabLabel": "Bookings",
+    "title": "Bookings",
+    "filterAll": "All",
+    "filterCash": "Cash",
+    "filterPaystack": "Card",
+    "noBookings": "No bookings found",
+    "sales": "sales",
+    "offline": "Offline"
+  },
+  "reconcile": {
+    "title": "Daily Reconciliation",
+    "totalSales": "Total Sales",
+    "cashTotal": "Cash Total",
+    "paystackTotal": "Card Total",
+    "grandTotal": "Grand Total",
+    "offlineSales": "Offline Sales",
+    "walkUps": "Walk-up Sales",
+    "shareButton": "Share Report",
+    "shareTitle": "Daily Reconciliation Report",
+    "refresh": "Refresh",
+    "refreshing": "Refreshing...",
+    "saleDetail": "Sales Detail",
+    "cashAbbr": "Cash"
+  },
+  "profile": {
+    "tabLabel": "Profile",
+    "currentTerminal": "Current Terminal",
+    "switchTerminal": "Switch Terminal",
+    "language": "Language",
+    "logout": "Logout",
+    "logoutConfirm": "Are you sure you want to log out?"
+  },
+  "offline": {
+    "conflictBanner": "{{count}} intercity seat conflict(s) — notified to management",
+    "pending": "pending sync"
+  },
+  "errors": {
+    "network": "Network error — check your connection",
+    "generic": "Something went wrong",
+    "sessionExpired": "Session expired, please log in again"
+  }
+}

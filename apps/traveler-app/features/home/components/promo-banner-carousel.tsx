@@ -13,6 +13,7 @@ import { ArrowRight01Icon, Tag01Icon } from "@hugeicons/core-free-icons";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Colors, Palette } from "@/constants/theme";
+import { IconColors } from "@/constants/ui-colors";
 import type { PromoBanner } from "../types";
 import { H_PADDING } from "../constants";
 
@@ -153,7 +154,7 @@ export function PromoBannerCarousel({ banners }: PromoBannerCarouselProps) {
                         <HugeiconsIcon
                           icon={Tag01Icon}
                           size={10}
-                          color={Colors.light.primaryForeground}
+                          color={IconColors.onBrand}
                         />
                         <Text className="text-[10px] font-black text-white uppercase tracking-wider">
                           {item.badge}
@@ -178,7 +179,7 @@ export function PromoBannerCarousel({ banners }: PromoBannerCarouselProps) {
                     <HugeiconsIcon
                       icon={ArrowRight01Icon}
                       size={18}
-                      color={Colors.light.primaryForeground}
+                      color={IconColors.onBrand}
                     />
                   </View>
                 </View>

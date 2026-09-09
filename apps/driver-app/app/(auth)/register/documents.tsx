@@ -127,7 +127,7 @@ export default function RegisterStep3DocumentsScreen() {
 						title={t("step3Title")}
 						subtitle={t("step3Subtitle")}
 						showBack
-						onBack={() => router.canGoBack() ? router.back() : router.replace("/(auth)/register/license")}
+						onBack={() => router.replace("/(auth)/register/license")}
 					/>
 					<View className="h-1 bg-card w-full">
 						<View className="h-full bg-primary w-3/4" />

@@ -27,6 +27,8 @@ export const ROLE_LABELS: Record<StaffRole, string> = {
   DISPATCHER: "Dispatcher",
   CONDUCTOR: "Conductor",
   DRIVER: "Driver",
+  // Phase B1 — terminal counter agent
+  BOOTH: "Booth Agent",
 };
 
 export const ROLE_COLORS: Record<StaffRole, string> = {
@@ -40,6 +42,8 @@ export const ROLE_COLORS: Record<StaffRole, string> = {
   DISPATCHER: "bg-warning/15 text-warning border-warning/30",
   CONDUCTOR: "bg-pink-500/15 text-pink-600 border-pink-500/30",
   DRIVER: "bg-teal-500/15 text-teal-600 border-teal-500/30",
+  // Phase B1 — booth agents shown in orange-amber
+  BOOTH: "bg-orange-500/15 text-orange-600 border-orange-500/30",
 };
 
 export const ROLE_BADGE_CLASSES = ROLE_COLORS;

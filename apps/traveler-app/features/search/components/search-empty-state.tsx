@@ -9,6 +9,7 @@ import {
   Clock01Icon,
 } from '@hugeicons/core-free-icons';
 import { Colors, Palette } from '@/constants/theme';
+import { IconColors } from '@/constants/ui-colors';
 import type { CityValue } from '../types';
 
 interface SearchEmptyStateProps {
@@ -83,7 +84,7 @@ export function SearchEmptyState({
               {/* Meta row */}
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center gap-1">
-                  <HugeiconsIcon icon={Clock01Icon} size={10} color={Colors.light.textSecondary} />
+                  <HugeiconsIcon icon={Clock01Icon} size={10} color={IconColors.secondary} />
                   <Text className="text-[11px] text-muted-foreground font-semibold">{route.duration}</Text>
                 </View>
                 <View className="bg-success/10 rounded-lg px-2 py-0.5 border border-success/20">
@@ -108,7 +109,7 @@ export function SearchEmptyState({
               <View className="flex-1">
                 <Text className="text-sm font-extrabold text-card-foreground">{route.origin.text}</Text>
                 <View className="flex-row items-center gap-1 mt-0.5">
-                  <HugeiconsIcon icon={Clock01Icon} size={10} color={Colors.light.textSecondary} />
+                  <HugeiconsIcon icon={Clock01Icon} size={10} color={IconColors.secondary} />
                   <Text className="text-[11px] text-muted-foreground font-semibold">{route.duration}</Text>
                 </View>
               </View>
@@ -138,7 +139,7 @@ export function SearchEmptyState({
   return (
     <View className="flex-1 items-center justify-center p-8 mt-10">
       <View className="w-16 h-16 rounded-2xl bg-muted items-center justify-center mb-4">
-        <HugeiconsIcon icon={LocationOffline01Icon} size={32} color={Colors.light.textSecondary} />
+        <HugeiconsIcon icon={LocationOffline01Icon} size={32} color={IconColors.secondary} />
       </View>
       <Text className="text-xl font-extrabold text-foreground mb-1.5 text-center">
         {t('noResultsTitle')}

@@ -17,6 +17,8 @@ export const STAFF_ROLES = [
   "DISPATCHER",
   "CONDUCTOR",
   "DRIVER",
+  // Phase B1 — terminal counter agent (booth app only; no ERP access)
+  "BOOTH",
 ] as const;
 
 export type StaffRole = (typeof STAFF_ROLES)[number];
@@ -351,6 +353,14 @@ export const ROLE_TEMPLATES: Record<StaffRole, PermissionKey[]> = {
     "telemetry:stream",
     "reviews:read",
   ],
+
+  // Phase B1 — booth counter agent.
+  // Explicitly minimal: sell at counter, check in passengers, read own terminal's bookings.
+  // NO fleet, routes, schedules, financials, withdrawals, staff management, or company settings.
+  BOOTH: [
+    "bookings:read",
+    "bookings:checkin",
+  ],
 };
 
 /** Who may assign which role labels (OWNER never via invite). */
@@ -365,6 +375,7 @@ export const ASSIGNABLE_ROLES: Record<StaffRole, StaffRole[]> = {
     "DISPATCHER",
     "CONDUCTOR",
     "DRIVER",
+    "BOOTH",
   ],
   ADMIN: [
     "MANAGER",
@@ -374,8 +385,9 @@ export const ASSIGNABLE_ROLES: Record<StaffRole, StaffRole[]> = {
     "DISPATCHER",
     "CONDUCTOR",
     "DRIVER",
+    "BOOTH",
   ],
-  MANAGER: ["SUPPORT", "TREASURY", "DISPATCHER", "CONDUCTOR", "DRIVER"],
+  MANAGER: ["SUPPORT", "TREASURY", "DISPATCHER", "CONDUCTOR", "DRIVER", "BOOTH"],
   OPERATIONS: ["DRIVER"],
   FINANCE: [],
   SUPPORT: [],
@@ -383,6 +395,7 @@ export const ASSIGNABLE_ROLES: Record<StaffRole, StaffRole[]> = {
   DISPATCHER: [],
   CONDUCTOR: [],
   DRIVER: [],
+  BOOTH: [],
 };
 
 export const ROLE_LEVELS: Record<StaffRole, number> = {
@@ -396,6 +409,8 @@ export const ROLE_LEVELS: Record<StaffRole, number> = {
   FINANCE: 250,
   SUPPORT: 200,
   DRIVER: 150,
+  // Phase B1 — below all ERP-access roles; booth agents have no authority over other staff
+  BOOTH: 100,
 };
 
 import {

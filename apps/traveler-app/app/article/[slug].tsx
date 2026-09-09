@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { ArrowLeft01Icon, Clock01Icon, User02Icon } from "@hugeicons/core-free-icons";
 import { Colors, Palette } from "@/constants/theme";
+import { IconColors } from "@/constants/ui-colors";
 
 export default function ArticleDetailScreen() {
   const { t } = useTranslation(["home", "common"]);
@@ -34,7 +35,7 @@ export default function ArticleDetailScreen() {
             onPress={() => router.back()}
             className="size-9 rounded-full bg-muted items-center justify-center"
           >
-            <HugeiconsIcon icon={ArrowLeft01Icon} size={20} color={Colors.light.textPrimary} />
+            <HugeiconsIcon icon={ArrowLeft01Icon} size={20} color={IconColors.default} />
           </Pressable>
 
           <Text className="text-xs font-extrabold text-muted-foreground uppercase tracking-widest">
@@ -94,7 +95,7 @@ export default function ArticleDetailScreen() {
                 ) : <View />}
 
                 <View className="flex-row items-center gap-1">
-                  <HugeiconsIcon icon={Clock01Icon} size={12} color={Colors.light.textMuted} />
+                  <HugeiconsIcon icon={Clock01Icon} size={12} color={IconColors.muted} />
                   <Text className="text-xs text-muted-foreground font-medium">
                     {t("home:minRead", { count: post.readingTime || 3 })}
                   </Text>
@@ -115,7 +116,7 @@ export default function ArticleDetailScreen() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <HugeiconsIcon icon={User02Icon} size={16} color={Colors.light.textMuted} />
+                    <HugeiconsIcon icon={User02Icon} size={16} color={IconColors.muted} />
                   )}
                 </View>
                 <View>

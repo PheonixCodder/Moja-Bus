@@ -5,43 +5,46 @@ ivory_coast_data/
 app-references/
 legacy-apps-setup/
 graphify-out/
+context/
 
 # =========================================================================
-# 2. MONOREPO & APP PROTECTION (Ignore other apps during this build)
-# =========================================================================
-# This ignores every other app folder *except* driver-app
-apps/traveler-app/
-apps/web/
-# If you have any other folders inside /apps, add them here
-
-# Ignore deep dependency/cache folders across all sub-apps
-apps/**/node_modules/
-apps/**/.turbo/
-apps/**/.expo/
-
-# =========================================================================
-# 3. GLOBAL DEPENDENCIES & CACHES
+# 2. DEPENDENCY & CACHE FOLDERS (all levels)
 # =========================================================================
 node_modules/
+**/node_modules/
 .yarn/
 .npm/
 .pnpm-store/
-.gradle/
 .turbo/
+**/.turbo/
 .expo/
+**/.expo/
+.gradle/
+**/.gradle/
 
 # =========================================================================
-# 4. NATIVE BUILD ARTIFACTS
+# 3. NATIVE SOURCE DIRECTORIES — EAS regenerates via CNG from app.json
 # =========================================================================
-**/android/build/
-**/android/app/build/
-**/android/.gradle/
-**/ios/build/
-**/ios/Pods/
+**/android/
+**/ios/
+
+# =========================================================================
+# 4. BUILD OUTPUT (all levels)
+# =========================================================================
+dist/
+**/dist/
+build/
+**/build/
+**/.next/
+**/.vite/
 
 # =========================================================================
 # 5. BINARIES
 # =========================================================================
 **/*.apk
 **/*.aab
-dist/
+
+# =========================================================================
+# 6. SENSITIVE CREDENTIAL FILES (not needed for build)
+# =========================================================================
+moja-ride-*.json

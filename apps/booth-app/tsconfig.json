@@ -1,0 +1,27 @@
+{
+  "extends": "@moja/typescript/react-native.json",
+  "compilerOptions": {
+    "strict": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*", "../web/*"]
+    },
+    "jsx": "react-jsx",
+    "moduleResolution": "bundler",
+    "module": "esnext",
+    "target": "esnext",
+    "moduleDetection": "force",
+    "noImplicitAny": true,
+    "skipLibCheck": true,
+    "exactOptionalPropertyTypes": false,
+    "ignoreDeprecations": "6.0"
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts",
+    "nativewind-env.d.ts"
+  ],
+  "exclude": ["node_modules"]
+}

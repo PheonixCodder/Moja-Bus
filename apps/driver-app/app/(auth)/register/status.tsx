@@ -37,7 +37,14 @@ export default function RegisterStatusScreen() {
 	const trpc = useTRPC();
 
 	useEffect(() => {
-		useDriverRegistrationStore.getState().reset();
+		// Defer the reset until after the slide-out animation finishes (~300ms).
+		// An immediate reset clears submitted:true while carrier.tsx is still
+		// mounted during the transition — the wizard guard there sees empty data
+		// and fires a redirect back to step 1 before this screen can settle.
+		const timer = setTimeout(() => {
+			useDriverRegistrationStore.getState().reset();
+		}, 350);
+		return () => clearTimeout(timer);
 	}, []);
 
 	const {

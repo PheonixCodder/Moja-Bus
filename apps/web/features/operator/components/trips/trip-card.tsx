@@ -1,8 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { Button } from "@moja/ui/components/ui/button";
 import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@moja/ui/components/ui/combobox";
+import { cn } from "@moja/ui/lib/utils";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  AlertTriangle,
   ArrowRight,
   Bus,
   Calendar,
@@ -10,28 +20,19 @@ import {
   ChevronUp,
   Clock,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
 import { toast } from "sonner";
-import { cn } from "@moja/ui/lib/utils";
-import { Button } from "@moja/ui/components/ui/button";
-import {
-  Combobox,
-  ComboboxInput,
-  ComboboxContent,
-  ComboboxList,
-  ComboboxItem,
-  ComboboxEmpty,
-} from "@moja/ui/components/ui/combobox";
-import { useTRPC } from "@/trpc/client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { RouterOutputs } from "@/trpc/client";
-import { TripStatusBadge } from "./trip-status-badge";
-import { TRIP_STATUS_CONFIG } from "@/features/operator/lib/trips/status-config";
 import { UrbanBadge } from "@/components/urban-badge";
-import { DriverAssignmentRows } from "./driver-assignment-rows";
 import {
   formatTripDate,
   formatTripTime,
 } from "@/features/operator/lib/trips/format";
+import { TRIP_STATUS_CONFIG } from "@/features/operator/lib/trips/status-config";
+import type { RouterOutputs } from "@/trpc/client";
+import { useTRPC } from "@/trpc/client";
+import { DriverAssignmentRows } from "./driver-assignment-rows";
+import { TripStatusBadge } from "./trip-status-badge";
 
 type TripListItem = RouterOutputs["trips"]["list"]["items"][number];
 type BusItem = RouterOutputs["fleet"]["getBuses"]["buses"][number];
@@ -41,11 +42,13 @@ export function TripCard({
   buses,
   canUpdate,
   onViewManifest,
+  hasBoothConflict,
 }: {
   trip: TripListItem;
   buses: BusItem[];
   canUpdate: boolean;
   onViewManifest: (id: string) => void;
+  hasBoothConflict?: boolean;
 }) {
   const t = useTranslations("operatorDashboard.trips");
   const [expanded, setExpanded] = useState(false);
@@ -123,6 +126,12 @@ export function TripCard({
                 </span>
               )}
               <TripStatusBadge status={trip.status} />
+              {hasBoothConflict ? (
+                <div className="flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                  <AlertTriangle className="h-3 w-3" />
+                  {t("boothConflictBadge")}
+                </div>
+              ) : null}
               {expanded ? (
                 <ChevronUp className="size-3.5 text-muted-foreground" />
               ) : (

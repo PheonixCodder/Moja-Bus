@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Pressable, View } from "react-native";
 import { Text } from "@/components/ui/text";
 import { Palette, Colors } from "@/constants/theme";
+import { IconColors } from "@/constants/ui-colors";
 
 export function TicketEmptyState() {
 	const { t } = useTranslation("booking");
@@ -25,7 +26,7 @@ export function TicketEmptyState() {
 				className="bg-primary px-6 py-2.5 rounded-full flex-row items-center gap-2 shadow-sm"
 				style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
 			>
-				<HugeiconsIcon icon={Calendar01Icon} size={16} color={Colors.light.card} />
+				<HugeiconsIcon icon={Calendar01Icon} size={16} color={IconColors.onCard} />
 				<Text className="text-xs font-bold text-primary-foreground">{t("myBookings")}</Text>
 			</Pressable>
 		</View>

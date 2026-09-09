@@ -2,6 +2,7 @@ import { useState } from "react";
 import { View, Pressable, TextInput, ActivityIndicator } from "react-native";
 import { Text } from "@/components/ui/text";
 import { Palette, Colors } from "@/constants/theme";
+import { PlaceholderColor } from "@/constants/ui-colors";
 import {
   Dialog,
   DialogContent,
@@ -76,7 +77,7 @@ export function TopupDialog({ isOpen, onClose, onSubmitTopup, isPending }: Topup
                 onChangeText={setTopupAmount}
                 keyboardType="numeric"
                 placeholder="Enter amount"
-                placeholderTextColor={Colors.light.textMuted}
+                placeholderTextColor={PlaceholderColor}
                 className="bg-background rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-foreground pr-12"
               />
               <Text className="absolute right-3 top-[10px] text-xs font-bold text-muted-foreground">XOF</Text>

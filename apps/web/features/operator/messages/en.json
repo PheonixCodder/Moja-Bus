@@ -843,7 +843,11 @@
         "seatTitle": "Seat {label} — {status}",
         "confirmedHeld": "{confirmed} confirmed · {held} held"
       },
-      "intercity": "Intercity"
+      "intercity": "Intercity",
+      "boothConflictBadge": "Booth conflict",
+      "boothConflictBannerTitle": "Offline booth overbooking",
+      "boothConflictBannerDescription": "{count} booking(s) exceed capacity from offline booth sales. Agent: {staff} — Terminal: {terminal}",
+      "boothConflictBannerAction": "Review conflicting bookings"
     },
     "bookings": {
       "metaTitle": "Bookings — Moja Ride Operator",

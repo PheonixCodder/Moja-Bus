@@ -5,6 +5,7 @@ import { Alert, Pressable, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
 import { Palette, Colors } from "@/constants/theme";
+import { PlaceholderColor } from "@/constants/ui-colors";
 import { useTRPC } from "@/lib/trpc";
 
 function sourceLabel(source: string, t: (k: any) => string): string {
@@ -80,7 +81,7 @@ export function PromoIncentives() {
             placeholder={t("promoClaimPlaceholder")}
             autoCapitalize="characters"
             className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground"
-            placeholderTextColor={Colors.light.textMuted}
+            placeholderTextColor={PlaceholderColor}
           />
           <Pressable
             disabled={!claimCode.trim() || claimMutation.isPending}

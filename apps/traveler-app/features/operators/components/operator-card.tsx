@@ -4,6 +4,7 @@ import { HugeiconsIcon } from '@hugeicons/react-native';
 import { Bus01Icon, Location01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons';
 import { useTranslation } from 'react-i18next';
 import { Colors, Palette } from '@/constants/theme';
+import { IconColors } from '@/constants/ui-colors';
 import { useOperatorsPrefetch } from '@/features/operators/hooks/use-operators-prefetch';
 
 export interface OperatorCardItem {
@@ -90,7 +91,7 @@ export function OperatorCard({ operator, variant = 'list' }: OperatorCardProps) 
           </View>
           {operator.cityNames.length > 0 && (
             <View className="flex-row items-center gap-1">
-              <HugeiconsIcon icon={Location01Icon} size={11} color={Colors.light.textMuted} />
+              <HugeiconsIcon icon={Location01Icon} size={11} color={IconColors.muted} />
               <Text className="text-xs font-medium text-muted-foreground" numberOfLines={1}>
                 {operator.cityNames.slice(0, 2).join(', ')}
               </Text>
@@ -155,7 +156,7 @@ export function OperatorCard({ operator, variant = 'list' }: OperatorCardProps) 
             {t('activeBuses')}
           </Text>
           <View className="flex-row items-center gap-1.5">
-            <HugeiconsIcon icon={Bus01Icon} size={13} color={Colors.light.textMuted} />
+            <HugeiconsIcon icon={Bus01Icon} size={13} color={IconColors.muted} />
             <Text className="text-sm font-black text-foreground">{operator._count.fleet}</Text>
           </View>
         </View>
@@ -166,7 +167,7 @@ export function OperatorCard({ operator, variant = 'list' }: OperatorCardProps) 
         <View className="flex-row flex-wrap gap-1.5">
           {operator.cityNames.slice(0, 4).map((city) => (
             <View key={city} className="flex-row items-center gap-1 px-2 py-0.5 bg-muted rounded-full">
-              <HugeiconsIcon icon={Location01Icon} size={10} color={Colors.light.textMuted} />
+              <HugeiconsIcon icon={Location01Icon} size={10} color={IconColors.muted} />
               <Text className="text-xs font-medium text-muted-foreground">{city}</Text>
             </View>
           ))}

@@ -1,0 +1,87 @@
+{
+  "expo": {
+    "name": "Moja Ride Booth",
+    "slug": "booth-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "mojabooth",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.mojaride.booth",
+      "buildNumber": "1"
+    },
+    "android": {
+      "ndk": {
+        "abiFilters": ["armeabi-v7a", "arm64-v8a"]
+      },
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#ee237c"
+      },
+      "package": "com.mojaride.booth",
+      "versionCode": 1,
+      "permissions": [
+        "CAMERA",
+        "BLUETOOTH",
+        "BLUETOOTH_ADMIN",
+        "BLUETOOTH_CONNECT",
+        "BLUETOOTH_SCAN",
+        "ACCESS_FINE_LOCATION",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/logo/moja-logo.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#ee237c",
+          "imageWidth": 320
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Moja Ride Booth needs camera access to scan passenger QR tickets."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#ee237c"
+        }
+      ],
+      [
+        "expo-secure-store",
+        {
+          "configureAndroidBackup": true
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "1a73da21-5b82-48a3-b78a-fe81103f9810"
+      }
+    },
+    "owner": "moja-ride"
+  }
+}

@@ -1,103 +1,45 @@
-@import "tailwindcss/theme.css" layer(theme);
-@import "tailwindcss/preflight.css" layer(base);
-@import "tailwindcss/utilities.css";
+@import "tailwindcss";
 
 @import "nativewind/theme";
 @import "@moja/theme/global.css";
 
-@theme {
-  /* Canonical Backward-Compatibility Aliases mapped to @moja/theme */
-  --color-bg-app: var(--background);
-  --color-bg-card: var(--card);
-  --color-bg-elevated: var(--card-elevated);
-  --color-border-subtle: var(--border);
-  --color-border-strong: #3f3f46;
+/* ============================================================================
+   DRIVER APP — LOCAL OVERRIDES
+   Applied after @moja/theme/global.css. web/packages/ui are not affected.
+   ============================================================================ */
 
-  --color-text-primary: var(--foreground);
+/* Mobile radius scale — larger touch targets than web (web keeps 0.625rem).
+   rounded-xl = 20px, matches existing rounded-[20px] screens. */
+:root {
+  --radius: 1rem;
+}
+
+@theme {
+  /* Backward-compat aliases — properly mapped to CSS variables, not hardcoded hex */
+  --color-bg-app:        var(--background);
+  --color-bg-card:       var(--card);
+  --color-bg-elevated:   var(--card-elevated);
+  --color-border-subtle: var(--border);
+  --color-border-strong: var(--border-strong);   /* was hardcoded #3f3f46 */
+
+  --color-text-primary:   var(--foreground);
   --color-text-secondary: var(--muted-foreground);
-  --color-text-muted: #71717a;
+  --color-text-muted:     var(--muted-foreground); /* was hardcoded #71717a */
 
   --color-error: var(--destructive);
 
-  /* Font Families */
-  --font-montserrat: "Montserrat";
-  --font-montserrat-medium: "Montserrat-Medium";
-  --font-montserrat-semibold: "Montserrat-SemiBold";
-  --font-montserrat-bold: "Montserrat-Bold";
+  /* Canonical Monorepo Font Families */
+  --font-sans:               "Outfit";
+  --font-outfit:             "Outfit";
+  --font-outfit-medium:      "Outfit-Medium";
+  --font-outfit-semibold:    "Outfit-SemiBold";
+  --font-outfit-bold:        "Outfit-Bold";
+
+  --font-heading:            "Raleway";
+  --font-raleway:            "Raleway";
+  --font-raleway-semibold:   "Raleway-SemiBold";
+  --font-raleway-bold:       "Raleway-Bold";
 }
 
-/* ==========================================================================
-   TYPOGRAPHY UTILITIES (Duolingo / Lingua Pattern)
-   ========================================================================== */
-
-/* h1 — Screen / Large Title */
-@utility h1 {
-  font-family: "Montserrat-Bold";
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 34px;
-  color: #fafafa;
-}
-
-/* h2 — Section Title */
-@utility h2 {
-  font-family: "Montserrat-Bold";
-  font-size: 22px;
-  font-weight: 700;
-  line-height: 28px;
-  color: #fafafa;
-}
-
-/* h3 — Card / Modal Title */
-@utility h3 {
-  font-family: "Montserrat-SemiBold";
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 24px;
-  color: #fafafa;
-}
-
-/* h4 — Subsection / Form Label */
-@utility h4 {
-  font-family: "Montserrat-Medium";
-  font-size: 15px;
-  font-weight: 500;
-  line-height: 20px;
-  color: #fafafa;
-}
-
-/* body-lg — Prominent Body / Value Text */
-@utility body-lg {
-  font-family: "Montserrat";
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 24px;
-  color: #fafafa;
-}
-
-/* body-md — Standard Body */
-@utility body-md {
-  font-family: "Montserrat";
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 20px;
-  color: #fafafa;
-}
-
-/* body-sm — Secondary Details */
-@utility body-sm {
-  font-family: "Montserrat";
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 18px;
-  color: #a1a1aa;
-}
-
-/* caption — Badges, Timestamps, Footers */
-@utility caption {
-  font-family: "Montserrat";
-  font-size: 11px;
-  font-weight: 400;
-  line-height: 15px;
-  color: #71717a;
-}
+/* Typography @utility helpers (h1, h2, h3, h4, body-lg, body-md, body-sm, caption, micro)
+   are inherited from @moja/theme/global.css — do not redeclare here. */

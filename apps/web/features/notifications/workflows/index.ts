@@ -79,6 +79,9 @@ import { operatorWithdrawalSettledWorkflow } from "./payments/withdrawal-settled
 import { adminStaffInviteWorkflow } from "./staff/admin-staff-invite";
 import { operatorStaffInviteWorkflow } from "./staff/operator-staff-invite";
 import { staffAcceptanceAlertWorkflow } from "./staff/staff-acceptance-alert";
+import { boothTicketCreatedWorkflow } from "./booth/ticket-created";
+import { boothAccountCreatedWorkflow } from "./booth/account-created";
+import { boothUrbanConflictWorkflow } from "./booth/urban-conflict";
 
 export const workflows = [
   authOtpWorkflow,
@@ -156,4 +159,9 @@ export const workflows = [
   driverTripUnassignedWorkflow,
   driverMarketplaceFeaturedWorkflow,
   driverMarketplaceSuspendedWorkflow,
+
+  // Phase B2 — Booth app notifications
+  boothTicketCreatedWorkflow,
+  boothAccountCreatedWorkflow,
+  boothUrbanConflictWorkflow,
 ];

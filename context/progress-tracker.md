@@ -492,6 +492,20 @@ Execution rules live in `13-phased-execution-plan.md` §Execution rules (one ses
 - [x] Paystack test-mode split + refund validation (run script before v2 go-live)
 - [x] Admin UI for commission tiers + settlement
 
+## Booth App (apps/booth-app)
+
+| Phase | Description | Status |
+|-------|-------------|--------|
+| 1 | Schema + Role + Middleware | ✅ Complete |
+| 2 | tRPC Booth Router | ✅ Complete |
+| 3 | App Scaffold | ✅ Complete |
+| 4 | Auth + Boot Gate + Terminal Select | ✅ Complete |
+| 5 | Sell Flow (Online) | ✅ Complete |
+| 6 | Offline Hold Pool | ✅ Complete |
+| 7 | Check-In + Bookings + Reconcile + Profile | ✅ Complete |
+| 8 | Notifications | ✅ Complete |
+| 9 | Context + Docs | ✅ Complete |
+
 ### Saved Passengers + Per-Seat Booking (2026-07-04)
 
 - [x] `SavedPassenger` model + `Booking.holdGroupId` / `savedPassengerId` (Prisma)

@@ -186,7 +186,7 @@ export default function RegisterStep2LicenseScreen() {
 						title={t("step2Title")}
 						subtitle={t("step2Subtitle")}
 						showBack
-						onBack={() => router.canGoBack() ? router.back() : router.replace("/(auth)/register")}
+						onBack={() => router.replace("/(auth)/register")}
 					/>
 					<View className="h-1 bg-card w-full">
 						<View className="h-full bg-primary w-1/2" />

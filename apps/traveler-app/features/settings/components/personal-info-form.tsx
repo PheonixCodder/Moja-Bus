@@ -3,6 +3,7 @@ import { Platform, Pressable, Switch, TextInput, View } from "react-native";
 import DateTimePicker, { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import { Text } from "@/components/ui/text";
 import { Palette, Colors } from "@/constants/theme";
+import { PlaceholderColor, SwitchColors } from "@/constants/ui-colors";
 
 export interface PersonalInfoFormData {
 	fullName: string;
@@ -64,7 +65,7 @@ export function PersonalInfoForm({ initialData, email, onChange }: PersonalInfoF
 					value={initialData.fullName}
 					onChangeText={(val) => onChange({ ...initialData, fullName: val })}
 					placeholder="Enter your full name"
-					placeholderTextColor={Colors.light.textMuted}
+					placeholderTextColor={PlaceholderColor}
 					className="bg-background rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-foreground"
 					autoCapitalize="words"
 				/>
@@ -90,7 +91,7 @@ export function PersonalInfoForm({ initialData, email, onChange }: PersonalInfoF
 					value={initialData.phone}
 					onChangeText={(val) => onChange({ ...initialData, phone: val })}
 					placeholder="+225 07 00 00 00 00"
-					placeholderTextColor={Colors.light.textMuted}
+					placeholderTextColor={PlaceholderColor}
 					className="bg-background rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-foreground"
 					keyboardType="phone-pad"
 				/>
@@ -191,7 +192,7 @@ export function PersonalInfoForm({ initialData, email, onChange }: PersonalInfoF
 					value={initialData.marketingOptIn}
 					onValueChange={(val) => onChange({ ...initialData, marketingOptIn: val })}
 					trackColor={{ false: Palette.zinc[200], true: Palette.rose[500] }}
-					thumbColor={Colors.light.background}
+					thumbColor={SwitchColors.thumb}
 				/>
 			</View>
 		</View>

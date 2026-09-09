@@ -10,6 +10,7 @@ export function useWizardGuard(step: 2 | 3 | 4) {
 		licenseNumber,
 		licenseExpiryDate,
 		nationalIdNumber,
+		submitted,
 	} = useDriverRegistrationStore();
 
 	// Zustand persist rehydrates from AsyncStorage asynchronously. On the very
@@ -27,6 +28,11 @@ export function useWizardGuard(step: 2 | 3 | 4) {
 
 	useEffect(() => {
 		if (!hydrated) return; // skip until store is rehydrated
+
+		// If the user just submitted the final step, don't redirect — the carrier
+		// screen calls store.reset() then router.replace("/register/status") and
+		// we must not race that navigation with a guard-triggered redirect.
+		if (submitted) return;
 
 		const hasStep1 = Boolean(fullName.trim() && phone.trim());
 		const hasStep2 = Boolean(hasStep1 && licenseNumber.trim() && licenseExpiryDate.trim());
@@ -56,5 +62,5 @@ export function useWizardGuard(step: 2 | 3 | 4) {
 			}
 			return;
 		}
-	}, [hydrated, step, fullName, phone, licenseNumber, licenseExpiryDate, nationalIdNumber, router]);
+	}, [hydrated, step, submitted, fullName, phone, licenseNumber, licenseExpiryDate, nationalIdNumber, router]);
 }

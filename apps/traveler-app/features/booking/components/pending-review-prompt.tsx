@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/lib/trpc";
 import { ReviewSheet } from "@/features/booking/components/review-sheet";
 import { Palette, Colors } from "@/constants/theme";
+import { IconColors } from "@/constants/ui-colors";
 
 type PendingReviewBooking = {
 	id: string;
@@ -94,7 +95,7 @@ export function PendingReviewPrompt() {
 								</Text>
 							</View>
 							<Pressable onPress={handleDismiss} className="p-1.5 rounded-full bg-muted">
-								<X size={16} color={Colors.light.textMuted} />
+								<X size={16} color={IconColors.muted} />
 							</Pressable>
 						</View>
 
@@ -114,7 +115,7 @@ export function PendingReviewPrompt() {
 								className="flex-1 h-12 rounded-xl bg-primary items-center justify-center flex-row gap-1.5"
 							>
 								<Text className="text-sm font-bold text-primary-foreground">{t("rateNow")}</Text>
-								<ChevronRight size={16} color={Colors.light.card} />
+								<ChevronRight size={16} color={IconColors.onCard} />
 							</Pressable>
 						</View>
 					</Pressable>

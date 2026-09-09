@@ -1,12 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
-import { useQueryStates } from "nuqs";
-import { Radio, RefreshCw } from "lucide-react";
-import { cn } from "@moja/ui/lib/utils";
+import type { TripStatus } from "@moja/schemas";
 import { Button } from "@moja/ui/components/ui/button";
-import { Spinner } from "@moja/ui/components/ui/spinner";
 import {
   Empty,
   EmptyDescription,
@@ -14,22 +9,27 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@moja/ui/components/ui/empty";
-import { useTRPC } from "@/trpc/client";
-import type { TripStatus } from "@moja/schemas";
+import { Spinner } from "@moja/ui/components/ui/spinner";
+import { cn } from "@moja/ui/lib/utils";
 import {
-  useSuspenseQuery,
   useQuery,
   useQueryClient,
+  useSuspenseQuery,
 } from "@tanstack/react-query";
-import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
-import { useDebounce } from "@/features/operator/hooks/useDebounce";
-import { tripListParsers } from "@/features/operator/lib/trips/trip-search-params";
-import { formatTripHeaderDate } from "@/features/operator/lib/trips/format";
-import { sumStatusCounts } from "@/features/operator/lib/trips/trip-where";
-import { getCalendarDateKey } from "@/lib/timezone";
+import { Radio, RefreshCw } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useQueryStates } from "nuqs";
+import { useMemo, useState } from "react";
+import { ManifestDrawer } from "@/features/operator/components/trips/manifest-drawer";
 import { TripCard } from "@/features/operator/components/trips/trip-card";
 import { TripsToolbar } from "@/features/operator/components/trips/trips-toolbar";
-import { ManifestDrawer } from "@/features/operator/components/trips/manifest-drawer";
+import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
+import { useDebounce } from "@/features/operator/hooks/useDebounce";
+import { formatTripHeaderDate } from "@/features/operator/lib/trips/format";
+import { tripListParsers } from "@/features/operator/lib/trips/trip-search-params";
+import { sumStatusCounts } from "@/features/operator/lib/trips/trip-where";
+import { getCalendarDateKey } from "@/lib/timezone";
+import { useTRPC } from "@/trpc/client";
 
 export function OperatorTripsView() {
   const t = useTranslations("operatorDashboard.trips");
@@ -121,8 +121,7 @@ export function OperatorTripsView() {
     !!startDate ||
     !!endDate;
 
-  const windowLabel =
-    listData.window ?? statusCountsData?.window ?? null;
+  const windowLabel = listData.window ?? statusCountsData?.window ?? null;
 
   const { data: busesData } = useQuery({
     ...trpc.fleet.getBuses.queryOptions({ slim: true }),
@@ -304,6 +303,9 @@ export function OperatorTripsView() {
                       buses={buses}
                       canUpdate={canUpdate && canReadFleet}
                       onViewManifest={(id) => void setParams({ manifest: id })}
+                      hasBoothConflict={listData.boothConflictTripIds?.includes(
+                        trip.id,
+                      )}
                     />
                   ))}
                 </div>

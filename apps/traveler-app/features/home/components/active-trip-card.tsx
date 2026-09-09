@@ -9,6 +9,7 @@ import {
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Colors, Palette } from "@/constants/theme";
+import { IconColors } from "@/constants/ui-colors";
 import type { ActiveTripCardData } from "../lib/map-active-trip";
 
 interface ActiveTripCardProps {
@@ -37,7 +38,7 @@ export function ActiveTripCard({ booking, onPressIn }: ActiveTripCardProps) {
 			>
 				<View className="flex-row items-center justify-between mb-3">
 					<View className="flex-row items-center gap-1 bg-white/20 border border-white/30 px-2.5 py-1 rounded-full">
-						<HugeiconsIcon icon={Clock01Icon} size={12} color={Colors.light.primaryForeground} />
+						<HugeiconsIcon icon={Clock01Icon} size={12} color={IconColors.onBrand} />
 						<Text className="text-sm font-extrabold text-white uppercase tracking-wider">
 							{t("activeTripTitle")}
 						</Text>
@@ -54,7 +55,7 @@ export function ActiveTripCard({ booking, onPressIn }: ActiveTripCardProps) {
 							{t("departure", { ns: "booking" })}: {departureTime}
 						</Text>
 					</View>
-					<HugeiconsIcon icon={ArrowRight01Icon} size={20} color={Colors.light.primaryForeground} />
+					<HugeiconsIcon icon={ArrowRight01Icon} size={20} color={IconColors.onBrand} />
 					<View className="items-end gap-0.5">
 						<Text className="text-lg font-black text-white">{booking.destName}</Text>
 						<Text className="text-sm text-white/80">
@@ -68,7 +69,7 @@ export function ActiveTripCard({ booking, onPressIn }: ActiveTripCardProps) {
 						{t("showQR", { ns: "booking", defaultValue: "Show QR at station gate" })}
 					</Text>
 					<View className="flex-row items-center gap-1.5 bg-card px-3 py-1.5 rounded-full shadow-sm">
-						<HugeiconsIcon icon={Ticket01Icon} size={14} color={Colors.light.textPrimary} />
+						<HugeiconsIcon icon={Ticket01Icon} size={14} color={IconColors.default} />
 						<Text className="text-xs font-extrabold text-foreground">
 							{t("viewTicket", { ns: "booking" })}
 						</Text>

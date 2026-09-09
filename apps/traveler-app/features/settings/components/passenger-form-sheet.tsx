@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import PhoneInput, { type ICountry } from "rn-international-phone-number";
 import { Text } from "@/components/ui/text";
 import { Palette, Colors } from "@/constants/theme";
+import { PlaceholderColor } from "@/constants/ui-colors";
 
 export type PassengerFormData = {
 	fullName: string;
@@ -135,7 +136,7 @@ export function PassengerFormSheet({
 										value={form.fullName}
 										onChangeText={(val) => setForm((f) => ({ ...f, fullName: val }))}
 										placeholder="Enter full name"
-										placeholderTextColor={Colors.light.textMuted}
+										placeholderTextColor={PlaceholderColor}
 										className="bg-background rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-foreground"
 									/>
 								</View>
@@ -187,7 +188,7 @@ export function PassengerFormSheet({
 										value={form.idNumber}
 										onChangeText={(val) => setForm((f) => ({ ...f, idNumber: val }))}
 										placeholder="e.g. C001293910"
-										placeholderTextColor={Colors.light.textMuted}
+										placeholderTextColor={PlaceholderColor}
 										className="bg-background rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-foreground"
 										autoCapitalize="characters"
 									/>
@@ -200,7 +201,7 @@ export function PassengerFormSheet({
 										value={form.email}
 										onChangeText={(val) => setForm((f) => ({ ...f, email: val }))}
 										placeholder="Enter email address"
-										placeholderTextColor={Colors.light.textMuted}
+										placeholderTextColor={PlaceholderColor}
 										keyboardType="email-address"
 										autoCapitalize="none"
 										className="bg-background rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-foreground"
@@ -214,7 +215,7 @@ export function PassengerFormSheet({
 										value={form.label}
 										onChangeText={(val) => setForm((f) => ({ ...f, label: val }))}
 										placeholder="e.g. Family, Spouse, Co-worker"
-										placeholderTextColor={Colors.light.textMuted}
+										placeholderTextColor={PlaceholderColor}
 										className="bg-background rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-foreground"
 									/>
 								</View>

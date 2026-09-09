@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "driver-app",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -24,6 +24,9 @@
       }
     },
     "android": {
+      "ndk": {
+        "abiFilters": ["armeabi-v7a", "arm64-v8a"]
+      },
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#09090b"
@@ -54,7 +57,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash.png",
+          "image": "./assets/logo/moja-logo.png",
           "resizeMode": "contain",
           "backgroundColor": "#09090b",
           "imageWidth": 320

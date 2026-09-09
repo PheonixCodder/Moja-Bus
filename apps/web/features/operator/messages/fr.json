@@ -50,7 +50,6 @@
       "operator": "Opérateur",
       "platformAdmin": "Administrateur plateforme"
     },
-
     "overview": {
       "portalFallback": "Portail Opérateur Moja Ride",
       "quickPortal": "Portail Rapide",
@@ -844,7 +843,11 @@
         "seatTitle": "Siège {label} — {status}",
         "confirmedHeld": "{confirmed} confirmé(s) · {held} réservé(s)"
       },
-      "intercity": "Interurbain"
+      "intercity": "Interurbain",
+      "boothConflictBadge": "Conflit guichet",
+      "boothConflictBannerTitle": "Surréservation guichet hors ligne",
+      "boothConflictBannerDescription": "{count} réservation(s) excèdent la capacité suite à des ventes hors ligne. Agent : {staff} — Terminal : {terminal}",
+      "boothConflictBannerAction": "Examiner les réservations en conflit"
     },
     "bookings": {
       "metaTitle": "Réservations — Opérateur Moja Ride",

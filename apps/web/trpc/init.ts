@@ -1,4 +1,5 @@
 import { getPrismaClient } from "@moja/db";
+import { StaffRole } from "@prisma/client";
 import { canOperateRuns } from "@moja/schemas";
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
@@ -395,5 +396,92 @@ export const driverProcedure = loadDriverProfile.use(
     }
 
     return next({ ctx });
+  },
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BOOTH PROCEDURE (Phase B1)
+// Requires: authenticated user + active Operator record with a booth-eligible role
+//           + company must be ACTIVE or VERIFIED
+// Sets ctx.operator (full Operator row) and ctx.companyId on the context.
+//
+// Booth-eligible roles: BOOTH, DISPATCHER, OPERATIONS, MANAGER, ADMIN, OWNER
+// Ineligible (never allow booth access): CONDUCTOR, DRIVER, FINANCE, SUPPORT, TREASURY
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Roles that are permitted to use the booth app (Phase B1).
+const BOOTH_ELIGIBLE_ROLES: StaffRole[] = [
+  StaffRole.BOOTH,
+  StaffRole.DISPATCHER,
+  StaffRole.OPERATIONS,
+  StaffRole.MANAGER,
+  StaffRole.ADMIN,
+  StaffRole.OWNER,
+];
+
+export const boothProcedure = protectedProcedure.use(
+  async ({ ctx, next }) => {
+    const cacheKey = `booth:${ctx.user.id}`;
+    const cached = ctx._cache.get(cacheKey) as
+      | Awaited<ReturnType<typeof ctx.prisma.operator.findFirst>>
+      | undefined;
+
+    const operator =
+      cached ??
+      (await ctx.prisma.operator.findFirst({
+        where: {
+          userId: ctx.user.id,
+          isActive: true,
+          deletedAt: null,
+          role: { in: BOOTH_ELIGIBLE_ROLES },
+        },
+        include: {
+          company: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              status: true,
+              logoUrl: true,
+            },
+          },
+        },
+      }));
+
+    if (!cached && operator) {
+      ctx._cache.set(cacheKey, operator);
+    }
+
+    if (!operator) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message:
+          "You do not have booth access. Contact your company administrator to be assigned a booth role.",
+      });
+    }
+
+    const company = (operator as any).company as {
+      id: string;
+      name: string;
+      slug: string;
+      status: string;
+      logoUrl: string | null;
+    };
+
+    if (!["ACTIVE", "VERIFIED"].includes(company.status)) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message:
+          "Your company account is not active. Contact Moja Ride support.",
+      });
+    }
+
+    return next({
+      ctx: {
+        ...ctx,
+        operator,
+        companyId: operator.companyId,
+      },
+    });
   },
 );

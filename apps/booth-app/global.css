@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@import "nativewind/theme";
+@import "@moja/theme/global.css";
+
+@theme {
+  /* Booth-specific backward-compatibility aliases mapped to @moja/theme */
+  --color-bg-app: var(--background);
+  --color-bg-card: var(--card);
+  --color-bg-elevated: var(--card-elevated);
+  --color-border-subtle: var(--border);
+  --color-border-strong: var(--border-strong);
+
+  --color-text-primary: var(--foreground);
+  --color-text-secondary: var(--muted-foreground);
+  --color-text-muted: var(--muted-foreground);
+
+  --color-error: var(--destructive);
+
+  /* ── Body / UI — Outfit ────────────────────────────── */
+  --font-sans:              "Outfit";
+  --font-outfit:            "Outfit";
+  --font-outfit-medium:     "Outfit-Medium";
+  --font-outfit-semibold:   "Outfit-SemiBold";
+  --font-outfit-bold:       "Outfit-Bold";
+  /* ── Headings — Raleway ────────────────────────────── */
+  --font-heading:           "Raleway";
+  --font-raleway:           "Raleway";
+  --font-raleway-semibold:  "Raleway-SemiBold";
+  --font-raleway-bold:      "Raleway-Bold";
+  --font-raleway-extrabold: "Raleway-ExtraBold";
+}
+
+/* Mobile radius scale — larger touch targets than web (web keeps 0.625rem) */
+:root {
+  --radius: 1rem;
+}
+
+/* Typography @utility helpers (h1, h2, h3, h4, body-lg, body-md, body-sm, caption, micro)
+   are inherited from @moja/theme/global.css — do not redeclare here. */

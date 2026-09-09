@@ -33,7 +33,7 @@ import { colors } from "@/constants/theme";
 export default function RegisterStep1Screen() {
 	const { t } = useTranslation("auth");
 	const router = useRouter();
-	const { data: session, isPending: sessionPending } = authClient.useSession();
+	const { data: session } = authClient.useSession();
 	const trpc = useTRPC();
 	const presign = useMutation(trpc.storage.presignUpload.mutationOptions());
 
@@ -59,9 +59,10 @@ export default function RegisterStep1Screen() {
 		}
 	}, [effectivePhone, updateData]);
 
-	const [nameInput, setNameInput] = useState(
-		fullName || (session?.user as any)?.fullName || (session?.user as any)?.name || ""
-	);
+	// Do NOT fall back to session?.user?.name — Better Auth sets it to
+	// "User {phone}" for phone-OTP signups, which would pre-fill a garbage value.
+	// Only restore what the driver explicitly typed (persisted in the store).
+	const [nameInput, setNameInput] = useState(fullName || "");
 	const [expInput, setExpInput] = useState(String(yearsOfExperience || 3));
 	const [selfieUri, setSelfieUri] = useState<string | null>(
 		profileSelfieLocalPreview || (profileSelfieUri && !profileSelfieUri.startsWith("documents/") ? profileSelfieUri : null)
@@ -146,8 +147,7 @@ export default function RegisterStep1Screen() {
 					<PageHeader
 						title={t("step1Title")}
 						subtitle={t("step1Subtitle")}
-						showBack
-						onBack={() => router.replace("/(auth)/login")}
+						showBack={false}
 					/>
 					{/* Progress Indicator */}
 					<View className="h-1 bg-card w-full">

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { UserIcon } from "@hugeicons/core-free-icons";
 import { Colors, Palette } from "@/constants/theme";
+import { IconColors } from "@/constants/ui-colors";
 import {
   buildSeatGrid,
   getColumnHeaders,
@@ -60,7 +61,7 @@ function SeatCell({
   if (isDriver) {
     return (
       <View className="flex-1 h-[46px] m-[3px] rounded-xl bg-foreground border-[1.5px] border-border items-center justify-center">
-        <HugeiconsIcon icon={UserIcon} size={16} color={Colors.light.card} />
+        <HugeiconsIcon icon={UserIcon} size={16} color={IconColors.onCard} />
       </View>
     );
   }

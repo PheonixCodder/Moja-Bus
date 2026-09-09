@@ -4,6 +4,7 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import { ArrowRight01Icon, Clock01Icon } from "@hugeicons/core-free-icons";
 import { router } from "expo-router";
 import { Colors, Palette } from "@/constants/theme";
+import { IconColors } from "@/constants/ui-colors";
 import type { CityValue } from "@/features/search/types";
 import { toLocalISODate } from "@/features/search/lib/format";
 
@@ -112,7 +113,7 @@ export function PopularRoutesGrid() {
             {/* Duration & Price Footer */}
             <View className="flex-row items-center justify-between mt-0.5">
               <View className="flex-row items-center gap-1">
-                <HugeiconsIcon icon={Clock01Icon} size={11} color={Colors.light.textMuted} />
+                <HugeiconsIcon icon={Clock01Icon} size={11} color={IconColors.muted} />
                 <Text className="text-sm font-semibold text-muted-foreground">
                   {route.duration}
                 </Text>

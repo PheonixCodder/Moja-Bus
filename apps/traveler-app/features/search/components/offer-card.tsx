@@ -8,6 +8,7 @@ import {
   SparklesIcon,
 } from '@hugeicons/core-free-icons';
 import { Colors, Palette } from '@/constants/theme';
+import { IconColors } from '@/constants/ui-colors';
 import { formatPriceXOF } from '../lib/format';
 import { formatLocationLabel } from '@/lib/format-location-label';
 
@@ -209,7 +210,7 @@ export function OfferCard({ offer, onSelect, onPressIn }: OfferCardProps) {
           <Text className={`font-black text-xs ${isSoldOut ? 'text-muted-foreground' : 'text-primary-foreground'}`}>
             {isSoldOut ? t('soldOut') : t('selectSeats')}
           </Text>
-          {!isSoldOut && <HugeiconsIcon icon={ArrowRight01Icon} size={14} color={Colors.light.primaryForeground} />}
+          {!isSoldOut && <HugeiconsIcon icon={ArrowRight01Icon} size={14} color={IconColors.onBrand} />}
         </Pressable>
       </View>
     </View>

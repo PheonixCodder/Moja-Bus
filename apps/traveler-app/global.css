@@ -1,6 +1,33 @@
-@import "tailwindcss/theme.css" layer(theme);
-@import "tailwindcss/preflight.css" layer(base);
-@import "tailwindcss/utilities.css";
+@import "tailwindcss";
 
 @import "nativewind/theme";
 @import "@moja/theme/global.css";
+
+/* ============================================================================
+   TRAVELER APP — LOCAL OVERRIDES
+   Applied after @moja/theme/global.css. web/packages/ui are not affected.
+   ============================================================================ */
+
+/* Mobile radius scale — larger touch targets than web (web keeps 0.625rem).
+   rounded-xl = 20px, matches existing rounded-[20px] screens. */
+:root {
+  --radius: 1rem;
+}
+
+@theme {
+  /* ── Body / UI — Outfit ────────────────────────────── */
+  --font-sans:              "Outfit";
+  --font-outfit:            "Outfit";
+  --font-outfit-medium:     "Outfit-Medium";
+  --font-outfit-semibold:   "Outfit-SemiBold";
+  --font-outfit-bold:       "Outfit-Bold";
+  /* ── Headings — Raleway ────────────────────────────── */
+  --font-heading:           "Raleway";
+  --font-raleway:           "Raleway";
+  --font-raleway-semibold:  "Raleway-SemiBold";
+  --font-raleway-bold:      "Raleway-Bold";
+  --font-raleway-extrabold: "Raleway-ExtraBold";
+}
+
+/* Typography @utility helpers (h1, h2, h3, h4, body-lg, body-md, body-sm, caption, micro)
+   are inherited from @moja/theme/global.css — do not redeclare here. */

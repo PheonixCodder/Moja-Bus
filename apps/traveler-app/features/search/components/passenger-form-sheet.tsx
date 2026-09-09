@@ -26,6 +26,7 @@ import {
   SparklesIcon,
 } from '@hugeicons/core-free-icons';
 import { Colors, Palette } from '@/constants/theme';
+import { IconColors } from '@/constants/ui-colors';
 import { authClient } from '@/lib/auth-client';
 import { useTRPC } from '@/lib/trpc';
 import { useSavedPassengers } from '@/hooks/use-passengers';
@@ -599,11 +600,11 @@ export function PassengerFormSheet({
                       {t('passengerNameLabel')}
                     </Text>
                     <View className="flex-row items-center bg-background border border-border rounded-xl px-3 py-3">
-                      <HugeiconsIcon icon={UserIcon} size={18} color={Colors.light.textSecondary} />
+                      <HugeiconsIcon icon={UserIcon} size={18} color={IconColors.secondary} />
                       <TextInput
                         className="flex-1 ml-2.5 text-base text-foreground font-medium"
                         placeholder={t('passengerNamePlaceholder')}
-                        placeholderTextColor={Colors.light.textSecondary}
+                        placeholderTextColor={IconColors.secondary}
                         value={pax.passengerName}
                         onChangeText={(v) => updatePassenger(idx, 'passengerName', v)}
                         autoCapitalize="words"
@@ -617,11 +618,11 @@ export function PassengerFormSheet({
                       {t('passengerPhoneLabel')}
                     </Text>
                     <View className="flex-row items-center bg-background border border-border rounded-xl px-3 py-3">
-                      <HugeiconsIcon icon={Call02Icon} size={18} color={Colors.light.textSecondary} />
+                      <HugeiconsIcon icon={Call02Icon} size={18} color={IconColors.secondary} />
                       <TextInput
                         className="flex-1 ml-2.5 text-base text-foreground font-medium"
                         placeholder={t('passengerPhonePlaceholder')}
-                        placeholderTextColor={Colors.light.textSecondary}
+                        placeholderTextColor={IconColors.secondary}
                         value={pax.passengerPhone}
                         onChangeText={(v) => updatePassenger(idx, 'passengerPhone', v)}
                         keyboardType="phone-pad"
@@ -641,7 +642,7 @@ export function PassengerFormSheet({
                 <TextInput
                   className="flex-1 bg-background border border-border rounded-xl px-3 py-3 text-sm font-semibold text-foreground uppercase"
                   placeholder={t('booking:promoPlaceholder')}
-                  placeholderTextColor={Colors.light.textSecondary}
+                  placeholderTextColor={IconColors.secondary}
                   value={promoCode}
                   editable={!appliedCode && !isPending}
                   autoCapitalize="characters"

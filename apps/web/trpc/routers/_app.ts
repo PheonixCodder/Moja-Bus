@@ -2,6 +2,7 @@ import { createTRPCRouter } from "../init";
 import { adminRouter } from "./admin";
 import { adminStaffRouter } from "./admin-staff";
 import { blogRouter } from "./blog";
+import { boothRouter } from "./booth";
 import { bookingRouter } from "./booking";
 import { capturesRouter } from "./captures";
 import { contactRouter } from "./contact";
@@ -25,6 +26,7 @@ import { terminalsRouter } from "./terminals";
 import { tripsRouter } from "./trips";
 
 export const appRouter = createTRPCRouter({
+  booth: boothRouter,
   operator: operatorRouter,
   terminals: terminalsRouter,
   staff: staffRouter,

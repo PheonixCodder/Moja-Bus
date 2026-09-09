@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { Search01Icon, Cancel01Icon, Location01Icon, Navigation01Icon, Bus01Icon } from '@hugeicons/core-free-icons';
 import { Colors, Palette } from '@/constants/theme';
+import { IconColors } from '@/constants/ui-colors';
 import { useSearchCities } from '../hooks/use-search-cities';
 import type { CityValue } from '../types';
 
@@ -46,18 +47,18 @@ export function CitySearchField({
         {/* Header Search Input */}
         <View className="flex-row items-center p-4 border-b border-border gap-3">
           <View className="flex-1 flex-row items-center bg-muted/60 border border-border rounded-2xl px-3.5 py-3">
-            <HugeiconsIcon icon={Search01Icon} size={18} color={Colors.light.textSecondary} />
+            <HugeiconsIcon icon={Search01Icon} size={18} color={IconColors.secondary} />
             <TextInput
               className="flex-1 ml-2.5 text-base text-foreground font-extrabold"
               placeholder={t('fromPlaceholder')}
-              placeholderTextColor={Colors.light.textSecondary}
+              placeholderTextColor={IconColors.secondary}
               value={query}
               onChangeText={setQuery}
               autoFocus
             />
             {query.length > 0 && (
               <Pressable onPress={() => setQuery('')} className="p-1">
-                <HugeiconsIcon icon={Cancel01Icon} size={16} color={Colors.light.textSecondary} />
+                <HugeiconsIcon icon={Cancel01Icon} size={16} color={IconColors.secondary} />
               </Pressable>
             )}
           </View>
