@@ -6,10 +6,11 @@ import { PortalHost } from "@rn-primitives/portal";
 import { useQuery } from "@tanstack/react-query";
 import Constants from "expo-constants";
 import * as Linking from "expo-linking";
-import { DefaultTheme, router, Stack, ThemeProvider } from "expo-router";
+import { router, Stack, ThemeProvider } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { PostHogProvider as PHProvider } from "posthog-react-native";
 import { useEffect } from "react";
+import { View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { PendingReviewPrompt } from "@/features/booking/components/pending-review-prompt";
@@ -21,16 +22,10 @@ import { storePendingReferralCode } from "@/lib/pending-referral";
 import { posthog } from "@/lib/posthog";
 import { TRPCReactProvider, useTRPC } from "@/lib/trpc";
 import { Colors } from "@/constants/theme";
+import { NAV_THEME } from "@/lib/theme";
 
 const isExpoGo = Constants.appOwnership === "expo";
 
-const LightTheme = {
-	...DefaultTheme,
-	colors: {
-		...DefaultTheme.colors,
-		background: Colors.light.background,
-	},
-};
 
 interface TrpcQuery<TInput, TOutput> {
 	queryOptions: (
@@ -213,27 +208,37 @@ export default function RootLayout() {
 	const content = (
 		<TRPCReactProvider>
 			<AuthenticatedNovuProvider>
-				<ThemeProvider value={LightTheme}>
+				<ThemeProvider value={NAV_THEME}>
 					<StatusBar style="dark" />
-					<Stack
-						screenOptions={{
-							headerShown: false,
-							animation: "slide_from_right",
-							contentStyle: { flex: 1, backgroundColor: Colors.light.background },
-						}}
+					{/*
+					  className="light" forces NativeWind to always use :root (light)
+					  CSS variables regardless of device system dark mode preference.
+					  This prevents partial dark-mode bleed on devices with dark system theme.
+					*/}
+					<View
+						className="flex-1 light"
+						style={{ backgroundColor: Colors.light.background }}
 					>
-						<Stack.Screen name="(tabs)" />
-						<Stack.Screen
-							name="article/[slug]"
-							options={{
-								presentation: "modal",
-								animation: "slide_from_bottom",
+						<Stack
+							screenOptions={{
+								headerShown: false,
+								animation: "slide_from_right",
+								contentStyle: { flex: 1, backgroundColor: Colors.light.background },
 							}}
-						/>
-					</Stack>
-					<Toast />
-					<PortalHost />
-					<PendingReviewPrompt />
+						>
+							<Stack.Screen name="(tabs)" />
+							<Stack.Screen
+								name="article/[slug]"
+								options={{
+									presentation: "modal",
+									animation: "slide_from_bottom",
+								}}
+							/>
+						</Stack>
+						<Toast />
+						<PortalHost />
+						<PendingReviewPrompt />
+					</View>
 				</ThemeProvider>
 			</AuthenticatedNovuProvider>
 		</TRPCReactProvider>

@@ -10,6 +10,7 @@ import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 import { Colors, Palette } from '@/constants/theme';
+import { IconColors } from '@/constants/ui-colors';
 import { Text } from '@/components/ui/text';
 import { formatLocationLabel } from '@/lib/format-location-label';
 import { useHoldCountdown } from '../hooks/use-hold-countdown';
@@ -187,7 +188,7 @@ export function BookingCard({ booking, onPress, onPressIn }: BookingCardProps) {
       {/* Footer: Passenger / Seats + Total Price */}
       <View className="border-border/60 mt-3 flex-row items-center justify-between border-t pt-3">
         <View className="flex-row items-center gap-1.5">
-          <HugeiconsIcon icon={Ticket01Icon} size={14} color={Colors.light.textMuted} />
+          <HugeiconsIcon icon={Ticket01Icon} size={14} color={IconColors.muted} />
           <Text className="text-muted-foreground text-xs font-medium">
             {seatCount === 1
               ? t('seatSingle', { label: seatLabels })

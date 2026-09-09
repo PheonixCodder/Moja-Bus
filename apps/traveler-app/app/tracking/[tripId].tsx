@@ -20,6 +20,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors, Palette } from "@/constants/theme";
+import { IconColors } from "@/constants/ui-colors";
 import { TravelerTrackingMap } from "@/features/tracking/components/traveler-tracking-map";
 import { useTRPC } from "@/lib/trpc";
 
@@ -69,7 +70,7 @@ export default function LiveBusTrackingScreen() {
 				accessibilityRole="button"
 				accessibilityLabel={t("back", { defaultValue: "Back" })}
 			>
-				<ArrowLeft size={20} color={Colors.dark.text} />
+				<ArrowLeft size={20} color={IconColors.default} />
 			</Pressable>
 			<View className="items-center">
 				<Text className="text-xs font-black text-foreground uppercase tracking-wider">

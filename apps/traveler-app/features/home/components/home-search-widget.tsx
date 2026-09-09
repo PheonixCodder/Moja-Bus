@@ -10,6 +10,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import Toast from "react-native-toast-message";
 import { Colors, Palette } from "@/constants/theme";
+import { IconColors } from "@/constants/ui-colors";
 import { CitySearchField } from "@/features/search/components/city-search-field";
 import type { CityValue } from "@/features/search/types";
 import { toLocalISODate } from "@/features/search/lib/format";
@@ -178,7 +179,7 @@ export function HomeSearchWidget() {
               accessibilityLabel={t("homeSearch.swap")}
               className="absolute right-2 size-7 rounded-full bg-card border border-border items-center justify-center shadow-xs active:bg-muted"
             >
-              <HugeiconsIcon icon={ArrowUpDownIcon} size={13} color={Colors.light.textMuted} />
+              <HugeiconsIcon icon={ArrowUpDownIcon} size={13} color={IconColors.muted} />
             </Pressable>
           </View>
 
@@ -198,7 +199,7 @@ export function HomeSearchWidget() {
           accessibilityLabel={t("homeSearch.searchButton")}
           className="bg-primary active:opacity-90 min-h-12 h-12 rounded-xl flex-row items-center justify-center gap-2 shadow-sm shadow-primary/25"
         >
-          <HugeiconsIcon icon={Search01Icon} size={16} color={Colors.light.primaryForeground} />
+          <HugeiconsIcon icon={Search01Icon} size={16} color={IconColors.onBrand} />
           <Text className="text-sm font-extrabold text-primary-foreground">
             {t("homeSearch.searchButton")}
           </Text>

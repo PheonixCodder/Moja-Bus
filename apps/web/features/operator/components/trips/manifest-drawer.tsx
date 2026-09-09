@@ -1,7 +1,26 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { Button } from "@moja/ui/components/ui/button";
+import { Checkbox } from "@moja/ui/components/ui/checkbox";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@moja/ui/components/ui/combobox";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@moja/ui/components/ui/drawer";
+import { Input } from "@moja/ui/components/ui/input";
+import { Spinner } from "@moja/ui/components/ui/spinner";
+import { cn } from "@moja/ui/lib/utils";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
   ArrowRight,
@@ -12,41 +31,22 @@ import {
   ScanLine,
   XCircle,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { cn } from "@moja/ui/lib/utils";
-import { Button } from "@moja/ui/components/ui/button";
-import { Checkbox } from "@moja/ui/components/ui/checkbox";
-import { Input } from "@moja/ui/components/ui/input";
-import { Spinner } from "@moja/ui/components/ui/spinner";
-import {
-  Combobox,
-  ComboboxInput,
-  ComboboxContent,
-  ComboboxList,
-  ComboboxItem,
-  ComboboxEmpty,
-} from "@moja/ui/components/ui/combobox";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-} from "@moja/ui/components/ui/drawer";
-import { useTRPC } from "@/trpc/client";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { RouterOutputs } from "@/trpc/client";
 import {
   TicketScanner,
   type TicketScanResult,
 } from "@/features/operator/components/ticket-scanner";
-import { TripStatusBadge } from "./trip-status-badge";
-import { SegmentOccupancySection } from "./segment-occupancy";
 import {
   formatTripDate,
   formatTripTime,
 } from "@/features/operator/lib/trips/format";
 import { nextTripActions } from "@/lib/trip-status";
+import type { RouterOutputs } from "@/trpc/client";
+import { useTRPC } from "@/trpc/client";
+import { SegmentOccupancySection } from "./segment-occupancy";
+import { TripStatusBadge } from "./trip-status-badge";
 
 type BusItem = RouterOutputs["fleet"]["getBuses"]["buses"][number];
 
@@ -108,7 +108,7 @@ export function ManifestDrawer({
       setGateDraft(trip.gate ?? "");
       setNotesDraft(trip.notes ?? "");
     }
-  }, [trip?.id, trip?.gate, trip?.notes]);
+  }, [trip?.id, trip?.gate, trip?.notes, trip]);
 
   const invalidateTripData = useCallback(() => {
     void queryClient.invalidateQueries(trpc.trips.list.pathFilter());
@@ -225,6 +225,10 @@ export function ManifestDrawer({
     trip?.bookings?.filter((b) => b.status === "PENDING_PAYMENT") ?? [];
   const checkedInCount = confirmedBookings.filter((b) => b.checkedInAt).length;
   const actions = trip ? nextTripActions(trip.status) : null;
+
+  // Phase B2 — booth conflict resolution data
+  const boothConflictSales = trip?.boothConflictSales ?? [];
+  const hasBoothConflict = boothConflictSales.length > 0;
 
   async function handleManualCheckIn(bookingId: string) {
     if (!trip) return;
@@ -383,7 +387,27 @@ export function ManifestDrawer({
               </div>
             </div>
 
-            {/* Tab switch */}
+            {/* Phase B2 — Booth conflict warning banner */}
+            {hasBoothConflict ? (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 flex gap-3 items-start">
+                <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-amber-800">
+                    {tRoot("boothConflictBannerTitle")}
+                  </p>
+                  <p className="text-amber-700 text-sm mt-0.5">
+                    {tRoot("boothConflictBannerDescription", {
+                      count: boothConflictSales.length,
+                      staff: boothConflictSales[0]?.staffName ?? "—",
+                      terminal: boothConflictSales[0]?.terminalName ?? "—",
+                    })}
+                  </p>
+                  <p className="text-amber-600 text-xs mt-1">
+                    {tRoot("boothConflictBannerAction")}
+                  </p>
+                </div>
+              </div>
+            ) : null}
             <div className="flex gap-1 border-b border-border -mb-2">
               <Button
                 type="button"
@@ -738,7 +762,7 @@ export function ManifestDrawer({
                     <div className="border border-border rounded-md overflow-hidden">
                       {holdBookings.map((b) => (
                         <div
-                           key={b.id}
+                          key={b.id}
                           className="grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2.5 border-b border-border last:border-b-0 items-center opacity-60"
                         >
                           <div>
@@ -850,7 +874,7 @@ export function ManifestDrawer({
                           variant="outline"
                           onClick={() => {
                             const mins = parseInt(delayMinutes, 10);
-                            if (isNaN(mins) || mins <= 0) {
+                            if (Number.isNaN(mins) || mins <= 0) {
                               toast.error(t("invalidDelay"));
                               return;
                             }

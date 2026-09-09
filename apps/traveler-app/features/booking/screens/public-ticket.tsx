@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SubpageHeader } from "@/components/subpage-header";
 import { Text } from "@/components/ui/text";
 import { BottomTabInset, Colors, Palette } from "@/constants/theme";
+import { IconColors } from "@/constants/ui-colors";
 import { useGetTicketByToken } from "@/features/booking/hooks/use-bookings";
 import {
 	formatDateWithWeekday,
@@ -31,8 +32,8 @@ function TicketQrCode({ payload }: { payload: string }) {
 			<QRCode
 				value={payload}
 				size={200}
-				backgroundColor={Colors.light.card}
-				color={Colors.light.textPrimary}
+				backgroundColor={IconColors.onCard}
+				color={IconColors.default}
 				ecl="M"
 			/>
 		</View>

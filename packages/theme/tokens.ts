@@ -30,6 +30,10 @@ export const Palette = {
     500: "#f59e0b", // Semantic Warning
     600: "#d97706",
   },
+  orange: {
+    500: "#f97316", // Streak / Reward accent
+    600: "#ea6c0a",
+  },
   red: {
     50: "#fef2f2",
     500: "#ef4444", // Semantic Destructive / Error
@@ -84,6 +88,9 @@ export const Colors = {
     primaryDark: Palette.rose[600],
     primaryForeground: "#ffffff",
 
+    // Reward / Gamification
+    streak: Palette.orange[500],      // "#f97316" — always orange in both modes
+
     // Functional Statuses
     success: Palette.emerald[500],
     successSubtle: Palette.emerald[50],
@@ -124,6 +131,9 @@ export const Colors = {
     primaryDark: Palette.rose[600],
     primaryForeground: "#ffffff",
 
+    // Reward / Gamification
+    streak: Palette.orange[500],      // "#f97316" — always orange in both modes
+
     // Functional Statuses
     success: Palette.emerald[500],
     successSubtle: "#064e3b",
@@ -148,12 +158,24 @@ export type ThemeColor = keyof typeof Colors.light;
 
 /**
  * Typography Scale & Font Families
+ * Aligned across Web (Next.js) and Mobile (Expo)
+ * Body / Sans: Outfit | Headings / Display: Raleway
  */
 export const FontFamily = {
-  regular: "Montserrat",
-  medium: "Montserrat-Medium",
-  semiBold: "Montserrat-SemiBold",
-  bold: "Montserrat-Bold",
+  // Primary UI Sans (Outfit)
+  regular: "Outfit",
+  medium: "Outfit-Medium",
+  semiBold: "Outfit-SemiBold",
+  bold: "Outfit-Bold",
+  extraBold: "Outfit-ExtraBold",
+  black: "Outfit-Black",
+  // Headings & Display (Raleway)
+  headingRegular: "Raleway",
+  headingMedium: "Raleway-Medium",
+  headingSemiBold: "Raleway-SemiBold",
+  headingBold: "Raleway-Bold",
+  headingExtraBold: "Raleway-ExtraBold",
+  headingBlack: "Raleway-Black",
 } as const;
 
 export const FontSize = {
@@ -193,7 +215,8 @@ export const FontWeight = {
  * Universal Fonts export for platform compatibility
  */
 export const Fonts = {
-  sans: "Montserrat",
+  sans: "Outfit",
+  heading: "Raleway",
   serif: "Georgia, serif",
   rounded: "SF Pro Rounded, normal",
   mono: "ui-monospace, monospace",
@@ -229,17 +252,28 @@ export const Spacing = {
 } as const;
 
 /**
- * Corner Radius Scale
+ * Corner Radius Scale — Mobile (Expo / NativeWind)
+ * Matches --radius: 1rem override in apps/driver-app and apps/traveler-app global.css.
+ * Web uses its own radius derivation from packages/ui/src/styles/style-maia.css.
+ *
+ * --radius-sm  = 1rem - 4px = 12px
+ * --radius-md  = 1rem - 2px = 14px
+ * --radius-lg  = 1rem       = 16px
+ * --radius-xl  = 1rem + 4px = 20px  ← matches rounded-[20px] feature screens
+ * --radius-2xl = 1rem + 8px = 24px
+ * --radius-3xl = 1rem + 12px= 28px
+ * --radius-4xl = 1rem + 16px= 32px
  */
 export const Radii = {
   none: 0,
-  xs: 4,
-  sm: 6,
-  md: 8,
-  lg: 10,
-  xl: 14,
-  "2xl": 18,
-  "3xl": 24,
+  xs:   4,
+  sm:   12,
+  md:   14,
+  lg:   16,
+  xl:   20,
+  "2xl": 24,
+  "3xl": 28,
+  "4xl": 32,
   full: 9999,
 } as const;
 

@@ -5,50 +5,89 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4f1351ad-4d4d-4706-9835-a4271b138320" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.easignore" beforeDir="false" afterPath="$PROJECT_DIR$/.easignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/app/language.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/app/language.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/components/TabBar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/components/TabBar.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/features/earnings/screens/earnings-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/features/earnings/screens/earnings-view.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/features/live/components/delay-modal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/features/live/components/delay-modal.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/features/live/components/speedometer-gauge.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/features/live/components/speedometer-gauge.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/features/live/screens/live-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/features/live/screens/live-view.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/features/offers/components/offer-card.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/features/offers/components/offer-card.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/features/offers/screens/offers-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/features/offers/screens/offers-view.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/features/profile/screens/profile-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/features/profile/screens/profile-view.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/features/scanner/components/ticket-result-modal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/features/scanner/components/ticket-result-modal.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/features/scanner/screens/scanner-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/features/scanner/screens/scanner-view.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/features/trips/components/mode-switcher.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/features/trips/components/mode-switcher.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/features/trips/components/trip-card.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/features/trips/components/trip-card.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/features/trips/screens/manifest-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/features/trips/screens/manifest-view.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/features/trips/screens/trips-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/features/trips/screens/trips-view.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/lib/i18n.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/lib/i18n.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/lib/telemetry.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/lib/telemetry.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/en/earnings.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/en/earnings.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/en/live.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/en/live.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/en/manifest.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/en/manifest.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/en/notifications.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/en/notifications.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/en/offers.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/en/offers.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/en/passport.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/en/passport.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/en/scanner.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/en/scanner.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/en/trips.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/en/trips.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/fr/earnings.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/fr/earnings.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/fr/live.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/fr/live.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/fr/manifest.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/fr/manifest.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/fr/notifications.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/fr/notifications.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/fr/offers.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/fr/offers.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/fr/passport.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/fr/passport.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/fr/scanner.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/fr/scanner.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/driver-app/locales/fr/trips.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/locales/fr/trips.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/graphify-out/.graphify_labels.json" beforeDir="false" afterPath="$PROJECT_DIR$/graphify-out/.graphify_labels.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/graphify-out/.graphify_labels.json.sig" beforeDir="false" afterPath="$PROJECT_DIR$/graphify-out/.graphify_labels.json.sig" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/graphify-out/2026-08-30/.graphify_labels.json" beforeDir="false" afterPath="$PROJECT_DIR$/graphify-out/2026-08-30/.graphify_labels.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/graphify-out/2026-08-30/GRAPH_REPORT.md" beforeDir="false" afterPath="$PROJECT_DIR$/graphify-out/2026-08-30/GRAPH_REPORT.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/graphify-out/2026-08-30/graph.json" beforeDir="false" afterPath="$PROJECT_DIR$/graphify-out/2026-08-30/graph.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/graphify-out/2026-08-30/manifest.json" beforeDir="false" afterPath="$PROJECT_DIR$/graphify-out/2026-08-30/manifest.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/graphify-out/GRAPH_REPORT.md" beforeDir="false" afterPath="$PROJECT_DIR$/graphify-out/GRAPH_REPORT.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/graphify-out/graph.html" beforeDir="false" afterPath="$PROJECT_DIR$/graphify-out/graph.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/graphify-out/graph.json" beforeDir="false" afterPath="$PROJECT_DIR$/graphify-out/graph.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/graphify-out/manifest.json" beforeDir="false" afterPath="$PROJECT_DIR$/graphify-out/manifest.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/app.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/app/(auth)/register/carrier.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/app/(auth)/register/carrier.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/app/(auth)/register/documents.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/app/(auth)/register/documents.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/app/(auth)/register/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/app/(auth)/register/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/app/(auth)/register/license.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/app/(auth)/register/license.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/app/(auth)/register/status.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/app/(auth)/register/status.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/app/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/app/_layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/constants/theme.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/constants/theme.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/features/auth/components/auth-shell.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/features/auth/components/auth-shell.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/features/auth/screens/login.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/features/auth/screens/login.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/global.css" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/global.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/hooks/use-load-fonts.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/hooks/use-load-fonts.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/hooks/use-wizard-guard.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/hooks/use-wizard-guard.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/driver-app/stores/driver-registration.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/driver-app/stores/driver-registration.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/app.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/app/(tabs)/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/app/(tabs)/_layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/app/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/app/_layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/app/article/[slug].tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/app/article/[slug].tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/app/tracking/[tripId].tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/app/tracking/[tripId].tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/components/custom-alert.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/components/custom-alert.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/components/notification-bell.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/components/notification-bell.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/components/subpage-header.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/components/subpage-header.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/auth/components/auth-button.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/auth/components/auth-button.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/booking/components/booking-card.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/booking/components/booking-card.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/booking/components/booking-empty-state.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/booking/components/booking-empty-state.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/booking/components/cancel-dialog.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/booking/components/cancel-dialog.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/booking/components/passenger-seat-map.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/booking/components/passenger-seat-map.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/booking/components/pending-review-prompt.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/booking/components/pending-review-prompt.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/booking/components/ticket-empty-state.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/booking/components/ticket-empty-state.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/booking/components/trip-summary-card.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/booking/components/trip-summary-card.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/booking/screens/public-ticket.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/booking/screens/public-ticket.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/home/components/active-trip-card.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/home/components/active-trip-card.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/home/components/blog-news-section.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/home/components/blog-news-section.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/home/components/home-header.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/home/components/home-header.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/home/components/home-search-widget.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/home/components/home-search-widget.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/home/components/popular-routes-grid.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/home/components/popular-routes-grid.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/home/components/promo-banner-carousel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/home/components/promo-banner-carousel.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/operators/components/operator-card.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/operators/components/operator-card.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/operators/components/operator-reviews-tab.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/operators/components/operator-reviews-tab.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/search/components/city-search-field.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/search/components/city-search-field.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/search/components/filters-sheet.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/search/components/filters-sheet.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/search/components/offer-card.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/search/components/offer-card.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/search/components/passenger-form-sheet.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/search/components/passenger-form-sheet.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/search/components/search-empty-state.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/search/components/search-empty-state.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/search/components/search-form.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/search/components/search-form.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/search/components/seat-selection-sheet.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/search/components/seat-selection-sheet.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/search/components/sort-sheet.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/search/components/sort-sheet.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/settings/components/passenger-form-sheet.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/settings/components/passenger-form-sheet.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/settings/components/personal-info-form.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/settings/components/personal-info-form.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/settings/components/profile-hero.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/settings/components/profile-hero.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/settings/components/promo-incentives.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/settings/components/promo-incentives.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/settings/components/topup-dialog.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/settings/components/topup-dialog.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/features/settings/screens/referrals.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/features/settings/screens/referrals.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/global.css" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/global.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/hooks/use-load-fonts.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/hooks/use-load-fonts.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/lib/theme.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/lib/theme.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/traveler-app/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/traveler-app/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/app/[locale]/dashboard/(passenger)/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/app/[locale]/dashboard/(passenger)/layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/notifications/outbox/enqueue.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/notifications/outbox/enqueue.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/notifications/workflows/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/notifications/workflows/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/operator/components/staff/role-sheet.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/operator/components/staff/role-sheet.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/operator/components/trips/manifest-drawer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/operator/components/trips/manifest-drawer.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/operator/components/trips/trip-card.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/operator/components/trips/trip-card.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/operator/lib/staff.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/operator/lib/staff.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/operator/messages/en.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/operator/messages/en.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/operator/messages/fr.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/operator/messages/fr.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/operator/views/operator-dashboard-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/operator/views/operator-dashboard-view.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/features/operator/views/operator-trips-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/features/operator/views/operator-trips-view.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/trpc/init.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/trpc/init.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/trpc/routers/_app.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/trpc/routers/_app.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/trpc/routers/trips.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/trpc/routers/trips.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/context/code-standards.md" beforeDir="false" afterPath="$PROJECT_DIR$/context/code-standards.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/context/progress-tracker.md" beforeDir="false" afterPath="$PROJECT_DIR$/context/progress-tracker.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/db/prisma/schema.prisma" beforeDir="false" afterPath="$PROJECT_DIR$/packages/db/prisma/schema.prisma" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/schemas/src/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/schemas/src/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/schemas/src/permissions.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/schemas/src/permissions.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/theme/global.css" beforeDir="false" afterPath="$PROJECT_DIR$/packages/theme/global.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/theme/tokens.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/theme/tokens.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pnpm-lock.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pnpm-lock.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -157,7 +196,7 @@
     &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
     &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
     &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;fix-shadcn-design-problems&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;javascript.preferred.runtime.type.id&quot;: &quot;node&quot;,
     &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,

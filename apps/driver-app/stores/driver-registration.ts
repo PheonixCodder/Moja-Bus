@@ -38,6 +38,9 @@ export interface DriverRegistrationState {
   // Actions
   updateData: (data: Partial<DriverRegistrationState>) => void;
   reset: () => void;
+  /** Set to true right before navigating to /register/status so that the
+   *  wizard guard on step 4 doesn't redirect back to step 1 after reset(). */
+  submitted: boolean;
 }
 
 const initialState = {
@@ -62,6 +65,7 @@ const initialState = {
   medicalDocLocalPreview: null as string | null,
   carrierCode: "",
   employmentType: "EXCLUSIVE_INTERCITY" as EmploymentType,
+  submitted: false,
 };
 
 export const useDriverRegistrationStore = create<DriverRegistrationState>()(

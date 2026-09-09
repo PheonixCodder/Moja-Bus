@@ -1,4 +1,4 @@
-import { Notification03Icon } from "@hugeicons/core-free-icons";
+﻿import { Notification03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useCounts } from "@novu/react-native";
 import { useQuery } from "@tanstack/react-query";
@@ -6,6 +6,7 @@ import { router } from "expo-router";
 import { Pressable, View } from "react-native";
 import { useTRPC } from "@/lib/trpc";
 import { authClient } from "@/lib/auth-client";
+import { IconColors } from "@/constants/ui-colors";
 import { Colors } from "@/constants/theme";
 import { Text } from "./ui/text";
 
@@ -61,7 +62,7 @@ function BellWithCount() {
 			style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
 		>
 			<View>
-				<HugeiconsIcon icon={Notification03Icon} size={24} color={Colors.light.textMuted} />
+				<HugeiconsIcon icon={Notification03Icon} size={24} color={IconColors.muted} />
 				{unread > 0 && (
 					<View className="absolute -top-1 -right-1.5 min-w-[18px] h-[18px] rounded-full bg-destructive items-center justify-center px-1">
 						<Text className="text-xs font-bold text-destructive-foreground">

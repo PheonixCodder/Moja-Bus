@@ -75,10 +75,20 @@ export function AuthShell({
 			>
 				<View className="w-full max-w-[440px] self-center gap-6">
 					{logoSource ? (
-						<View className="w-16 h-16 rounded-2xl bg-white p-2 items-center justify-center shadow-lg">
+						<View
+							style={{
+								width: 64,
+								height: 64,
+								borderRadius: 16,
+								backgroundColor: "#ffffff",
+								padding: 8,
+								alignItems: "center",
+								justifyContent: "center",
+							}}
+						>
 							<Image
 								source={logoSource}
-								className="w-full h-full"
+								style={{ width: 48, height: 48 }}
 								resizeMode="contain"
 							/>
 						</View>

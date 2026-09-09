@@ -5,6 +5,7 @@ import { ActivityIndicator, Modal, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/text";
 import { Palette, Colors } from "@/constants/theme";
+import { IconColors } from "@/constants/ui-colors";
 import { formatPriceXOF } from "../lib/format-time";
 
 type CancelDialogProps = {
@@ -116,7 +117,7 @@ export function CancelDialog({
 								className="flex-1 bg-destructive py-3.5 rounded-xl items-center justify-center flex-row gap-2 shadow-xs opacity-100 disabled:opacity-60"
 							>
 								{isPending ? (
-									<ActivityIndicator size="small" color={Colors.light.card} />
+									<ActivityIndicator size="small" color={IconColors.onCard} />
 								) : (
 									<Text className="text-destructive-foreground font-black text-xs">
 										{t("confirmCancel")}

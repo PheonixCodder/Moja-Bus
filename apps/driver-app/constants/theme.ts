@@ -40,7 +40,7 @@ export const colors = {
 	semantic: {
 		success: Palette.emerald[500],
 		warning: Palette.amber[500],
-		streak: "#f97316",
+		streak: Palette.orange[500],
 		error: Palette.red[500],
 		info: Palette.blue[500],
 	},

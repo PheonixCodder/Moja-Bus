@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { Text } from "@/components/ui/text";
 import { Palette, Colors } from "@/constants/theme";
+import { IconColors } from "@/constants/ui-colors";
 import { formatDateWithWeekday, formatPriceXOF, formatTimeOnly } from "../lib/format-time";
 
 type TripSummaryCardProps = {
@@ -99,7 +100,7 @@ export function TripSummaryCard({
 				<View className="flex-row items-center justify-between border-t border-border/40 pt-3">
 					{seatLabel ? (
 						<View className="flex-row items-center gap-1.5">
-							<HugeiconsIcon icon={AirplaneSeatIcon} size={14} color={Colors.light.textMuted} />
+							<HugeiconsIcon icon={AirplaneSeatIcon} size={14} color={IconColors.muted} />
 							<Text className="text-foreground text-xs font-semibold">
 								{t("seatSingle", { label: seatLabel })}
 							</Text>

@@ -8,6 +8,7 @@ import {
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Colors, Palette } from "@/constants/theme";
+import { IconColors } from "@/constants/ui-colors";
 import { useHomePrefetch } from "../hooks/use-home-prefetch";
 
 interface BlogPostItem {
@@ -82,7 +83,7 @@ export function BlogNewsSection({ posts }: BlogNewsSectionProps) {
 
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center gap-1">
-                  <HugeiconsIcon icon={Clock01Icon} size={11} color={Colors.light.textMuted} />
+                  <HugeiconsIcon icon={Clock01Icon} size={11} color={IconColors.muted} />
                   <Text className="text-sm text-muted-foreground font-medium">
                     {post.readingTime || 3} min
                   </Text>

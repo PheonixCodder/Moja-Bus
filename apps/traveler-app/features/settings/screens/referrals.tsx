@@ -14,6 +14,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { SubpageHeader } from "@/components/subpage-header";
 import { Text } from "@/components/ui/text";
 import { BottomTabInset, Palette, Colors } from "@/constants/theme";
+import { PlaceholderColor } from "@/constants/ui-colors";
 import { useTRPC } from "@/lib/trpc";
 
 const WEB_ORIGIN =
@@ -245,7 +246,7 @@ export function ReferralsView() {
           <TextInput
             className="rounded-xl border border-border bg-background px-4 py-3 text-base font-semibold uppercase text-foreground"
             placeholder={t("codePlaceholder")}
-            placeholderTextColor={Colors.light.textMuted}
+            placeholderTextColor={PlaceholderColor}
             autoCapitalize="characters"
             value={codeInput}
             onChangeText={(v) => setCodeInput(v.toUpperCase())}

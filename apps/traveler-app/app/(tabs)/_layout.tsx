@@ -24,6 +24,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { useTranslation } from "react-i18next";
 import { Palette, Colors } from "@/constants/theme";
+import { IconColors } from "@/constants/ui-colors";
 
 const iconMap: Record<string, { icon: typeof Home01Icon; labelKey: string }> = {
   index: { icon: Home01Icon, labelKey: "home" },
@@ -142,7 +143,7 @@ function SearchButton({ onPress }: { onPress: () => void }) {
           elevation: 10,
         })}
       >
-        <HugeiconsIcon icon={Search01Icon} size={26} color={Colors.light.card} />
+        <HugeiconsIcon icon={Search01Icon} size={26} color={IconColors.onCard} />
       </Pressable>
     </View>
   );
@@ -206,6 +207,8 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
     >
       <View style={{ width: barWidth, height: TOTAL_HEIGHT }}>
         <Svg width="100%" height="100%" viewBox={`0 0 ${barWidth} ${TOTAL_HEIGHT}`}>
+          {/* SVG fill/stroke cannot use NativeWind classes — JS values required.
+              Traveler-app is permanently light, so Colors.light.* is correct here. */}
           <Path
             d={getCurvedPath(barWidth)}
             fill={Colors.light.card}

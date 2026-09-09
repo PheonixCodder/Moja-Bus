@@ -1,6 +1,7 @@
 import { ActivityIndicator, Modal, Pressable, View } from "react-native";
 import { Text } from "@/components/ui/text";
 import { Colors, Palette } from "@/constants/theme";
+import { IconColors } from "@/constants/ui-colors";
 
 type CustomAlertProps = {
 	visible: boolean;
@@ -74,7 +75,7 @@ export function CustomAlert({
 							className={`flex-1 py-2 rounded-xl items-center ${confirmBgClass} ${isPending ? 'opacity-60' : 'opacity-100'}`}
 						>
 							{isPending ? (
-								<ActivityIndicator size="small" color={Colors.light.primaryForeground} />
+								<ActivityIndicator size="small" color={IconColors.onBrand} />
 							) : (
 								<Text className="text-sm font-bold text-primary-foreground">
 									{confirmLabel}

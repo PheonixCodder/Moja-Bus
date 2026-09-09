@@ -5,6 +5,7 @@ import { NotificationBell } from "@/components/notification-bell";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Colors, Palette } from "@/constants/theme";
+import { IconColors } from "@/constants/ui-colors";
 import { authClient } from "@/lib/auth-client";
 import { useSettingsPrefetch } from "@/features/settings/hooks/use-settings-prefetch";
 
@@ -48,7 +49,7 @@ export function HomeHeader({ walletBalance, isAuthenticated }: HomeHeaderProps) 
 						{walletBalance.toLocaleString()} F
 					</Text>
 					<View className="bg-primary rounded-full p-0.5 ml-0.5">
-						<HugeiconsIcon icon={Add01Icon} size={9} color={Colors.light.primaryForeground} />
+						<HugeiconsIcon icon={Add01Icon} size={9} color={IconColors.onBrand} />
 					</View>
 				</Pressable>
 

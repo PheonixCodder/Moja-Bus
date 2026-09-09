@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "traveler-app",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -15,6 +15,9 @@
       "associatedDomains": ["applinks:mojaride.com"]
     },
     "android": {
+      "ndk": {
+        "abiFilters": ["armeabi-v7a", "arm64-v8a"]
+      },
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -47,7 +50,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash.png",
+          "image": "./assets/logo/moja-logo.png",
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
           "imageWidth": 320

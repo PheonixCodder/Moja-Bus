@@ -24,7 +24,8 @@ import {
   Navigation01Icon,
 } from '@hugeicons/core-free-icons';
 import * as Haptics from 'expo-haptics';
-import { Colors, Palette } from '@/constants/theme';
+import { Palette } from '@/constants/theme';
+import { IconColors } from '@/constants/ui-colors';
 import type { CityValue } from '../types';
 
 interface SearchFormProps {
@@ -146,7 +147,7 @@ export function SearchForm({
           className="flex-row items-center px-4 py-3.5 rounded-b-[20px] bg-card active:bg-muted/50"
         >
           <View className="w-[34px] h-[34px] rounded-full bg-muted items-center justify-center mr-3">
-            <HugeiconsIcon icon={Location01Icon} size={15} color={Colors.light.textSecondary} />
+            <HugeiconsIcon icon={Location01Icon} size={15} color={IconColors.secondary} />
           </View>
           <View className="flex-1 pr-9">
             <Text className="text-[9px] font-black text-muted-foreground tracking-[1.5px] uppercase mb-0.5">
@@ -194,7 +195,7 @@ export function SearchForm({
             <HugeiconsIcon
               icon={Remove01Icon}
               size={11}
-              color={passengers > 1 ? Colors.light.textPrimary : Colors.light.borderStrong}
+              color={passengers > 1 ? IconColors.default : IconColors.muted}
             />
           </Pressable>
 
@@ -218,7 +219,7 @@ export function SearchForm({
             <HugeiconsIcon
               icon={Add01Icon}
               size={11}
-              color={passengers < 6 ? Colors.light.textPrimary : Colors.light.borderStrong}
+              color={passengers < 6 ? IconColors.default : IconColors.muted}
             />
           </Pressable>
         </View>

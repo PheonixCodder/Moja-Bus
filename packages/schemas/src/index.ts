@@ -2,6 +2,7 @@ export * from "./admin";
 export * from "./admin-permissions";
 export * from "./auth";
 export * from "./booking";
+export * from "./booth";
 export * from "./contact";
 export * from "./discounts";
 export * from "./drivers";

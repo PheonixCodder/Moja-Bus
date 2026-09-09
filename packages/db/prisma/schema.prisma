@@ -83,6 +83,14 @@ enum RefundRecordStatus {
   VOIDED
 }
 
+/// Payment method recorded on every BoothSale.
+/// CASH        = staff collects banknotes at the counter.
+/// PAYSTACK_LINK = Paystack checkout QR shown on booth screen; passenger pays on own phone.
+enum BoothPaymentMethod {
+  CASH
+  PAYSTACK_LINK
+}
+
 enum AccountOwnerType {
   USER
   COMPANY
@@ -204,6 +212,11 @@ enum StaffRole {
   DISPATCHER
   CONDUCTOR
   DRIVER
+  /// Terminal booth agent — sell tickets at a physical counter, check in passengers,
+  /// and reconcile cash. Booth-eligible roles also include DISPATCHER, OPERATIONS,
+  /// MANAGER, ADMIN, and OWNER; BOOTH is the dedicated role for counter-only staff.
+  /// Grants no ERP access (no fleet, routes, schedules, financials, or staff management).
+  BOOTH
 }
 
 enum AdminStaffRole {
@@ -804,6 +817,9 @@ model Operator {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Booth App — sales made by this staff member at a terminal counter
+  boothSales BoothSale[] @relation("BoothSaleStaff")
+
   @@unique([userId, companyId])
   @@index([companyId])
   @@index([userId])
@@ -1190,6 +1206,9 @@ model CompanyLocation {
   waypoints    RouteWaypoint[]
   tripStops    TripStop[]
   captures     LocationCapture[]
+
+  // Booth App — counter sales made from this terminal
+  boothSales BoothSale[] @relation("BoothSaleTerminal")
 
   @@index([companyId])
   @@index([cityId])
@@ -2141,6 +2160,9 @@ model Booking {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Booth App — audit record for this booking if it was made at a counter (optional)
+  boothSale BoothSale?
 
   @@index([companyId])
   @@index([tripId, seatId, status])
@@ -3127,4 +3149,77 @@ model OutboxMessage {
   @@index([status, nextAttemptAt])
   @@index([type, createdAt])
   @@map("outbox_message")
+}
+
+// ============================================
+// BOOTH APP — COUNTER SALES (Phase B1)
+// ============================================
+// One record per booking made via the booth app.
+// Provides a full audit trail for:
+//   - cash reconciliation (end-of-day report)
+//   - staff accountability (which agent made the sale)
+//   - terminal-level sales reporting
+//   - offline-sale tracking and conflict resolution
+//
+// Architectural invariants:
+//   - Created inside the same $transaction as the Booking record (no orphaned sales)
+//   - cashAmountXOF is non-null iff paymentMethod = CASH
+//   - paystackRef   is non-null iff paymentMethod = PAYSTACK_LINK
+//   - hasConflict is set only by the server during offline-queue sync (never by client)
+model BoothSale {
+  id String @id @default(cuid())
+
+  // Booking this sale record belongs to (1:1 — every booth booking has exactly one sale record)
+  bookingId String  @unique
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  // Company scoping — always set (booth agent is always affiliated to a company)
+  companyId String
+
+  // Terminal at which the sale was made
+  terminalId String
+  terminal   CompanyLocation @relation("BoothSaleTerminal", fields: [terminalId], references: [id])
+
+  // Staff member (Operator.id, not User.id) who processed the sale
+  staffId String
+  staff   Operator @relation("BoothSaleStaff", fields: [staffId], references: [id])
+
+  // ── Payment ──────────────────────────────────────────────────────────────
+  paymentMethod BoothPaymentMethod
+
+  /// Physical cash received from the passenger (XOF). Non-null iff CASH.
+  cashAmountXOF Int?
+
+  /// Paystack payment reference for audit trail. Non-null iff PAYSTACK_LINK.
+  paystackRef String?
+
+  // ── Operational flags ────────────────────────────────────────────────────
+  /// True when the booking was created while the booth had no network connectivity.
+  /// These bookings use a pre-acquired hold-pool slot and are flushed on reconnect.
+  wasOffline Boolean @default(false)
+
+  /// True when a walk-up passenger (no prior account) was served at the counter.
+  walkedUpPassenger Boolean @default(false)
+
+  /// True when a brand-new TRAVELER account was created during this sale.
+  /// Triggers the booth-account-created notification workflow.
+  passengerAccountCreated Boolean @default(false)
+
+  // ── Urban overbooking conflict (offline sync) ────────────────────────────
+  /// Set to true by the server during offline-queue sync when urban trip
+  /// capacity is exceeded. The operator is notified via the ERP dashboard.
+  /// Never written by the booth client directly.
+  hasConflict     Boolean @default(false)
+  conflictDetails String?
+
+  confirmedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@index([companyId])
+  @@index([terminalId])
+  @@index([staffId])
+  @@index([confirmedAt])
+  @@index([wasOffline])
+  @@index([hasConflict])
+  @@map("booth_sale")
 }

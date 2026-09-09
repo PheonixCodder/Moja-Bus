@@ -38,11 +38,11 @@ export function ProfileHero({ name, image, onPress }: ProfileHeroProps) {
         <Text
           numberOfLines={1}
           ellipsizeMode="tail"
-          className="text-xl font-bold text-white max-w-[80%]"
+          className="text-xl font-bold text-foreground max-w-[80%]"
         >
           {name}
         </Text>
-        <Text className="text-sm font-normal text-white/60 mt-1">
+        <Text className="text-sm font-normal text-muted-foreground mt-1">
           Manage your account & travel preferences
         </Text>
       </View>

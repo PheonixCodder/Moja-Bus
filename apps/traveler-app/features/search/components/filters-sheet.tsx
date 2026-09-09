@@ -4,7 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { Cancel01Icon, FilterIcon, CheckmarkCircle01Icon } from '@hugeicons/core-free-icons';
-import { Colors, Palette } from '@/constants/theme';
+import { Palette } from '@/constants/theme';
+import { SwitchColors } from '@/constants/ui-colors';
 import type { SearchFilters } from '../types';
 import { EMPTY_FILTERS, AMENITY_IDS, TIME_IDS, SEAT_CLASS_IDS } from '../lib/constants';
 
@@ -144,8 +145,8 @@ export function FiltersSheet({
             <Switch
               value={localFilters.isExpress}
               onValueChange={(val) => setLocalFilters((prev) => ({ ...prev, isExpress: val }))}
-              trackColor={{ false: Colors.light.borderStrong, true: Palette.rose[200] }}
-              thumbColor={localFilters.isExpress ? Palette.rose[500] : Colors.light.card}
+              trackColor={{ false: SwitchColors.trackOff, true: SwitchColors.trackOnSubtle }}
+              thumbColor={localFilters.isExpress ? SwitchColors.thumbActive : SwitchColors.thumb}
             />
           </View>
 

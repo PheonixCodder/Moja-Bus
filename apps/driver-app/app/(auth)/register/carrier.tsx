@@ -96,7 +96,10 @@ export default function RegisterStep4CarrierScreen() {
 			});
 
 			DriverFeedback.successScan();
-			store.reset();
+			// Signal submission so the wizard guard doesn't redirect after we
+			// navigate away. Do NOT call store.reset() here — status.tsx already
+			// resets the store in its own useEffect once it mounts safely.
+			store.updateData({ submitted: true });
 
 			if (!result.affiliated) {
 				Alert.alert(
@@ -135,7 +138,7 @@ export default function RegisterStep4CarrierScreen() {
 						title={t("step4Title")}
 						subtitle={t("step4Subtitle")}
 						showBack
-						onBack={() => router.canGoBack() ? router.back() : router.replace("/(auth)/register/documents")}
+						onBack={() => router.replace("/(auth)/register/documents")}
 					/>
 					<View className="h-1 bg-card w-full">
 						<View className="h-full bg-primary w-full" />

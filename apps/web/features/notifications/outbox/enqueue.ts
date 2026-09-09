@@ -74,10 +74,14 @@ export const OUTBOX_TYPES = {
   CAMPAIGN_BUDGET_EXHAUSTED: "CAMPAIGN_BUDGET_EXHAUSTED",
   // Phase 33 (F-PS-16) — operator rebooking confirmation to the passenger
   PASSENGER_REBOOKED: "PASSENGER_REBOOKED",
-  // Phase 37 — post-arrival review request (outbox-migrated)
-  PASSENGER_REVIEW_REQUEST: "PASSENGER_REVIEW_REQUEST",
-  // Phase 2D (DRV-P1-07) — roadside vehicle breakdown emergency alert to operators
-  OPERATOR_VEHICLE_BREAKDOWN: "OPERATOR_VEHICLE_BREAKDOWN",
+   // Phase 37 — post-arrival review request (outbox-migrated)
+   PASSENGER_REVIEW_REQUEST: "PASSENGER_REVIEW_REQUEST",
+   // Phase 2D (DRV-P1-07) — roadside vehicle breakdown emergency alert to operators
+   OPERATOR_VEHICLE_BREAKDOWN: "OPERATOR_VEHICLE_BREAKDOWN",
+   // Phase B2 — Booth app notifications
+   BOOTH_TICKET_CREATED: "BOOTH_TICKET_CREATED",
+   BOOTH_ACCOUNT_CREATED: "BOOTH_ACCOUNT_CREATED",
+   BOOTH_URBAN_CONFLICT: "BOOTH_URBAN_CONFLICT",
 } as const;
 
 export type OutboxType = (typeof OUTBOX_TYPES)[keyof typeof OUTBOX_TYPES];

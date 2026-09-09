@@ -11,7 +11,8 @@ import {
   Sorting01Icon,
   CheckmarkCircle01Icon,
 } from '@hugeicons/core-free-icons';
-import { Colors, Palette } from '@/constants/theme';
+import { Palette } from '@/constants/theme';
+import { IconColors } from '@/constants/ui-colors';
 import type { SortKey } from '../types';
 
 interface SortSheetProps {
@@ -55,7 +56,7 @@ export function SortSheet({
             <Text className="text-lg font-extrabold text-foreground">{t('sortLabel')}</Text>
           </View>
           <Pressable onPress={onClose} className="p-2 bg-muted rounded-full">
-            <HugeiconsIcon icon={Cancel01Icon} size={18} color={Colors.light.textSecondary} />
+            <HugeiconsIcon icon={Cancel01Icon} size={18} color={IconColors.secondary} />
           </Pressable>
         </View>
 
@@ -80,7 +81,7 @@ export function SortSheet({
                   <HugeiconsIcon
                     icon={option.icon}
                     size={20}
-                    color={isSelected ? Palette.rose[500] : Colors.light.textSecondary}
+                    color={isSelected ? Palette.rose[500] : IconColors.secondary}
                   />
                 </View>
 

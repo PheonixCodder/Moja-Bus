@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { Stack, router, ThemeProvider } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { View } from "react-native";
 import * as SplashScreen from "expo-splash-screen";
 import Toast from "react-native-toast-message";
 import { NovuProvider } from "@novu/react-native";
@@ -167,28 +168,39 @@ export default function RootLayout() {
 				<AuthenticatedNovuProvider>
 					<ThemeProvider value={NAV_THEME}>
 						<StatusBar style="light" />
-						<Stack
-							screenOptions={{
-								headerShown: false,
-								contentStyle: { flex: 1, backgroundColor: colors.neutral.background },
-								animation: "slide_from_right",
-							}}
+						{/*
+						  className="dark" forces NativeWind to resolve .dark CSS variables
+						  for ALL descendant components. This is the single switch that makes
+						  bg-background, text-foreground, bg-card, border-border etc. render
+						  the dark palette. Without this, NativeWind resolves :root (light).
+						*/}
+						<View
+							className="flex-1 dark"
+							style={{ backgroundColor: colors.neutral.background }}
 						>
-							<Stack.Screen name="index" />
-							<Stack.Screen name="(auth)/login" />
-							<Stack.Screen name="(auth)/preferences" />
-							<Stack.Screen name="(auth)/register" />
-							<Stack.Screen name="(tabs)" />
-							<Stack.Screen name="notifications" />
-							<Stack.Screen
-								name="trip/[id]/manifest"
-								options={{
-									presentation: "modal",
-									animation: "slide_from_bottom",
+							<Stack
+								screenOptions={{
+									headerShown: false,
+									contentStyle: { flex: 1, backgroundColor: colors.neutral.background },
+									animation: "slide_from_right",
 								}}
-							/>
-						</Stack>
-						<Toast />
+							>
+								<Stack.Screen name="index" />
+								<Stack.Screen name="(auth)/login" />
+								<Stack.Screen name="(auth)/preferences" />
+								<Stack.Screen name="(auth)/register" />
+								<Stack.Screen name="(tabs)" />
+								<Stack.Screen name="notifications" />
+								<Stack.Screen
+									name="trip/[id]/manifest"
+									options={{
+										presentation: "modal",
+										animation: "slide_from_bottom",
+									}}
+								/>
+							</Stack>
+							<Toast />
+						</View>
 					</ThemeProvider>
 				</AuthenticatedNovuProvider>
 			</TRPCReactProvider>

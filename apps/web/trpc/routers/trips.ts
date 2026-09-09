@@ -404,6 +404,26 @@ export const tripsRouter = createTRPCRouter({
         }),
       ]);
 
+      // Phase B2 — fetch trips with booth conflicts for the badge on trip cards
+      const boothConflictTrips = await ctx.prisma.boothSale.findMany({
+        where: {
+          companyId: ctx.companyId,
+          hasConflict: true,
+          booking: {
+            trip: {
+              id: { in: trips.map((t) => t.id) },
+            },
+          },
+        },
+        select: {
+          booking: { select: { tripId: true } },
+          staff: {
+            select: { user: { select: { fullName: true } } },
+          },
+          terminal: { select: { name: true } },
+        },
+      });
+
       return {
         items: trips,
         total,
@@ -411,6 +431,15 @@ export const tripsRouter = createTRPCRouter({
         pageSize,
         pageCount: Math.max(1, Math.ceil(total / pageSize)),
         window,
+        // Phase B2 — booth conflict trip IDs + summary for trip card badges
+        boothConflictTripIds: Array.from(
+          new Set(boothConflictTrips.map((s) => s.booking.tripId)),
+        ),
+        boothConflicts: boothConflictTrips.map((s) => ({
+          tripId: s.booking.tripId,
+          staffName: s.staff?.user?.fullName ?? "",
+          terminalName: s.terminal?.name ?? "",
+        })),
       };
     }),
 
@@ -690,7 +719,7 @@ export const tripsRouter = createTRPCRouter({
                   holdExpiresAt: { gt: new Date() },
                 },
               ],
-            },
+              },
             orderBy: { createdAt: "asc" },
           },
         },
@@ -700,10 +729,42 @@ export const tripsRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found" });
       }
 
-      return trip;
+      // Phase B2 — fetch all booth sales with conflicts for this trip
+      const boothConflictSales = await ctx.prisma.boothSale.findMany({
+        where: {
+          companyId: ctx.companyId,
+          hasConflict: true,
+          booking: { tripId: input.id },
+        },
+        include: {
+          booking: {
+            select: {
+              bookingReference: true,
+              passengerName: true,
+            },
+          },
+          staff: {
+            select: { user: { select: { fullName: true } } },
+          },
+          terminal: { select: { name: true } },
+        },
+      });
+
+      return {
+        ...trip,
+        boothConflictSales: boothConflictSales.map((s) => ({
+          id: s.id,
+          conflictDetails: s.conflictDetails,
+          confirmedAt: s.confirmedAt,
+          bookingReference: s.booking.bookingReference,
+          passengerName: s.booking.passengerName,
+          staffName: s.staff?.user?.fullName ?? "",
+          terminalName: s.terminal?.name ?? "",
+        })),
+      };
     }),
 
-  // L1: seat visualization payload, loaded lazily (only when the Seat Map tab
+    // L1: seat visualization payload, loaded lazily (only when the Seat Map tab
   // is opened) so it never bloats the manifest drawer's initial query.
   getSeatMap: operatorCompanyProcedure
     .input(z.object({ id: z.string() }))
