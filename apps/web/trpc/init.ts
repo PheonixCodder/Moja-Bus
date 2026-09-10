@@ -1,6 +1,5 @@
 import { getPrismaClient } from "@moja/db";
-import { StaffRole } from "@prisma/client";
-import { canOperateRuns } from "@moja/schemas";
+import { canOperateRuns, type StaffRole } from "@moja/schemas";
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
@@ -411,12 +410,12 @@ export const driverProcedure = loadDriverProfile.use(
 
 // Roles that are permitted to use the booth app (Phase B1).
 const BOOTH_ELIGIBLE_ROLES: StaffRole[] = [
-  StaffRole.BOOTH,
-  StaffRole.DISPATCHER,
-  StaffRole.OPERATIONS,
-  StaffRole.MANAGER,
-  StaffRole.ADMIN,
-  StaffRole.OWNER,
+  "BOOTH",
+  "DISPATCHER",
+  "OPERATIONS",
+  "MANAGER",
+  "ADMIN",
+  "OWNER",
 ];
 
 export const boothProcedure = protectedProcedure.use(
