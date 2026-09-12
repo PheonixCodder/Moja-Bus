@@ -1,6 +1,13 @@
+import { UserIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import React from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { colors } from "@/constants/theme";
+import { IconColors } from "@/constants/ui-colors";
+import { BoothFeedback } from "@/lib/haptics";
+import { cn } from "@/lib/utils";
 
-interface Seat {
+export interface Seat {
   seatId: string;
   tripSeatId: string;
   label: string;
@@ -11,7 +18,7 @@ interface Seat {
   status: "AVAILABLE" | "SOLD" | "HELD" | "DRIVER" | "EMPTY" | "BLOCKED";
 }
 
-interface SeatMapProps {
+export interface SeatMapProps {
   rows: number;
   columns: number;
   deck: number;
@@ -19,50 +26,6 @@ interface SeatMapProps {
   selectedSeatId: string | null;
   onSeatSelect: (seat: Seat) => void;
   offlineAvailableSeatIds?: Set<string>;
-}
-
-function getSeatColor(
-  seat: Seat,
-  isSelected: boolean,
-  isOfflinePool?: boolean,
-): string {
-  if (isSelected) return "bg-primary";
-  if (isOfflinePool) return "bg-amber-400";
-
-  switch (seat.status) {
-    case "AVAILABLE":
-      return "bg-green-500";
-    case "SOLD":
-      return "bg-foreground/20";
-    case "HELD":
-      return "bg-orange-400";
-    case "DRIVER":
-      return "bg-foreground/10";
-    case "EMPTY":
-      return "bg-transparent";
-    case "BLOCKED":
-      return "bg-foreground/30";
-    default:
-      return "bg-foreground/20";
-  }
-}
-
-function getSeatTextColor(
-  seat: Seat,
-  isSelected: boolean,
-  isOfflinePool?: boolean,
-): string {
-  if (isSelected) return "text-white";
-  if (isOfflinePool) return "text-white";
-
-  if (
-    seat.status === "DRIVER" ||
-    seat.status === "EMPTY" ||
-    seat.status === "BLOCKED"
-  ) {
-    return "text-foreground/30";
-  }
-  return "text-white";
 }
 
 export function SeatMap({
@@ -92,90 +55,150 @@ export function SeatMap({
     }
   }
 
-  const selectedSeat = seats.find((s) => s.seatId === selectedSeatId);
-  const selectedSeatObj = selectedSeat;
+  const selectedSeatObj = seats.find((s) => s.seatId === selectedSeatId);
 
   return (
-    <ScrollView className="px-4">
+    <ScrollView className="flex-1 px-4" contentContainerClassName="pb-10">
       {/* Legend */}
-      <View className="flex-row gap-4 justify-center mb-6">
+      <View className="flex-row flex-wrap gap-3 justify-center mb-6 py-2 px-3 bg-muted/30 rounded-2xl border border-border/50">
         <View className="flex-row items-center gap-1.5">
-          <View className="w-4 h-4 rounded bg-green-500" />
-          <Text className="text-xs text-foreground/60">Disponible</Text>
+          <View className="w-3.5 h-3.5 rounded-t-sm rounded-b-md bg-emerald-50 border border-emerald-500" />
+          <Text className="text-xs font-medium text-foreground/70">
+            Disponible
+          </Text>
         </View>
+
         <View className="flex-row items-center gap-1.5">
-          <View className="w-4 h-4 rounded bg-primary" />
-          <Text className="text-xs text-foreground/60">Sélectionné</Text>
+          <View className="w-3.5 h-3.5 rounded-t-sm rounded-b-md bg-primary border border-primary shadow-xs" />
+          <Text className="text-xs font-semibold text-primary">
+            Sélectionné
+          </Text>
         </View>
+
         <View className="flex-row items-center gap-1.5">
-          <View className="w-4 h-4 rounded bg-foreground/20" />
-          <Text className="text-xs text-foreground/60">Réservé</Text>
+          <View className="w-3.5 h-3.5 rounded-t-sm rounded-b-md bg-muted border border-border" />
+          <Text className="text-xs font-medium text-foreground/50">Occupé</Text>
         </View>
-        {offlineAvailableSeatIds && offlineAvailableSeatIds.size > 0 && (
+
+        {offlineAvailableSeatIds && offlineAvailableSeatIds.size > 0 ? (
           <View className="flex-row items-center gap-1.5">
-            <View className="w-4 h-4 rounded bg-amber-400" />
-            <Text className="text-xs text-foreground/60">Réserve</Text>
+            <View className="w-3.5 h-3.5 rounded-t-sm rounded-b-md bg-amber-100 border border-amber-500" />
+            <Text className="text-xs font-semibold text-amber-800">
+              Réserve
+            </Text>
           </View>
-        )}
+        ) : null}
+      </View>
+
+      {/* Bus Front Cap / Cockpit Indicator */}
+      <View className="items-center mb-4">
+        <View className="w-36 h-3 rounded-t-full bg-border/80 border-t-2 border-primary/40" />
+        <Text className="text-xs uppercase tracking-widest text-muted-foreground font-bold mt-1">
+          Avant du bus
+        </Text>
       </View>
 
       {/* Seat grid — render row by row */}
-      <View className="items-center gap-1">
+      <View className="items-center gap-2">
         {Array.from({ length: rows }, (_, rowIndex) => (
           <View
-            // biome-ignore lint/suspicious/noArrayIndexKey: static grid rows, no reordering
+            // biome-ignore lint/suspicious/noArrayIndexKey: physical bus row layout coordinate
             key={`row-${rowIndex}`}
-            className="flex-row gap-1 justify-center"
+            className="flex-row gap-2 items-center justify-center"
           >
-            <Text className="text-xs text-foreground/50 w-6 text-right pr-1">
+            {/* Row Number Marker */}
+            <Text className="text-xs font-bold text-muted-foreground/60 w-5 text-center">
               {rowIndex + 1}
             </Text>
+
             {Array.from({ length: columns }, (_, colIndex) => {
               const seat = grid[rowIndex]?.[colIndex];
               if (!seat) {
                 return (
-                  // biome-ignore lint/suspicious/noArrayIndexKey: static grid cells, no reordering
-                  <View key={`empty-${colIndex}`} className="w-10 h-10" />
+                  <View
+                    // biome-ignore lint/suspicious/noArrayIndexKey: physical bus column coordinate
+                    key={`empty-${rowIndex}-${colIndex}`}
+                    className="w-11 h-11"
+                  />
                 );
               }
 
               const isDriverArea =
-                seat.seatType === "DRIVER_AREA" ||
-                seat.seatType === "EMPTY_SPACE";
+                seat.seatType === "DRIVER_AREA" || seat.status === "DRIVER";
+
               if (isDriverArea) {
                 return (
                   <View
-                    key={seat.tripSeatId}
-                    className="w-10 h-10 rounded items-center justify-center"
+                    key={seat.tripSeatId || `driver-${rowIndex}-${colIndex}`}
+                    className="w-11 h-11 rounded-2xl bg-foreground/10 border border-border items-center justify-center"
                   >
-                    <Text className="text-xs text-foreground/30">
-                      {seat.status === "DRIVER" ? "🚗" : ""}
-                    </Text>
+                    <HugeiconsIcon
+                      icon={UserIcon}
+                      size={18}
+                      color={IconColors.muted}
+                    />
                   </View>
+                );
+              }
+
+              if (seat.status === "EMPTY") {
+                return (
+                  <View
+                    key={
+                      seat.tripSeatId || `empty-space-${rowIndex}-${colIndex}`
+                    }
+                    className="w-11 h-11"
+                  />
                 );
               }
 
               const isSelected = seat.seatId === selectedSeatId;
               const isOfflinePool = offlineAvailableSeatIds?.has(seat.seatId);
-              const isDisabled =
-                seat.status !== "AVAILABLE" && !isSelected && !isOfflinePool;
+              const isAvailable = seat.status === "AVAILABLE" || isOfflinePool;
+              const isOccupied = !isAvailable && !isSelected;
 
-              const bgColor = getSeatColor(seat, isSelected, isOfflinePool);
-              const textColor = getSeatTextColor(
-                seat,
-                isSelected ?? false,
-                isOfflinePool,
-              );
+              // Compute cell classes based on state
+              let cellClass = "bg-muted/40 border-border";
+              let textClass = "text-muted-foreground/50";
+
+              if (isSelected) {
+                cellClass =
+                  "bg-primary border-primary shadow-sm shadow-primary/30";
+                textClass = "text-white";
+              } else if (isOfflinePool) {
+                cellClass = "bg-amber-100 border-amber-500";
+                textClass = "text-amber-900";
+              } else if (isAvailable) {
+                cellClass =
+                  "bg-emerald-50 border-emerald-500 active:bg-emerald-100";
+                textClass = "text-emerald-800";
+              }
 
               return (
                 <TouchableOpacity
                   key={seat.tripSeatId}
-                  className={`w-10 h-10 rounded items-center justify-center ${bgColor}`}
-                  onPress={() => onSeatSelect(seat)}
-                  disabled={isDisabled}
-                  style={{ aspectRatio: 1 }}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Siège ${seat.label}, ${isSelected ? "sélectionné" : isAvailable ? "disponible" : "occupé"}`}
+                  accessibilityState={{
+                    selected: isSelected,
+                    disabled: isOccupied,
+                  }}
+                  disabled={isOccupied}
+                  onPress={() => {
+                    void BoothFeedback.selection();
+                    onSeatSelect(seat);
+                  }}
+                  className={cn(
+                    "w-11 h-11 rounded-t-xl rounded-b-2xl border-[1.5px] items-center justify-center active:scale-95",
+                    cellClass,
+                  )}
                 >
-                  <Text className={`text-xs font-bold ${textColor}`}>
+                  <Text
+                    className={cn(
+                      "text-xs font-extrabold tracking-tight",
+                      textClass,
+                    )}
+                  >
                     {seat.label}
                   </Text>
                 </TouchableOpacity>
@@ -185,15 +208,24 @@ export function SeatMap({
         ))}
       </View>
 
-      {/* Selected seat info */}
-      {selectedSeatObj && (
-        <View className="mt-6 bg-card border border-border rounded-xl p-4">
-          <Text className="text-sm text-foreground/60">Siège sélectionné</Text>
-          <Text className="text-xl font-bold text-foreground mt-1">
-            {selectedSeatObj.label}
-          </Text>
+      {/* Selected seat info banner */}
+      {selectedSeatObj ? (
+        <View className="mt-8 bg-card border border-primary/20 rounded-2xl p-4 shadow-sm flex-row items-center justify-between">
+          <View>
+            <Text className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+              Siège sélectionné
+            </Text>
+            <Text className="text-xl font-heading font-extrabold text-foreground mt-0.5">
+              Siège {selectedSeatObj.label}
+            </Text>
+          </View>
+          <View className="w-10 h-10 rounded-xl bg-primary/10 items-center justify-center border border-primary/30">
+            <Text className="text-primary font-bold text-base">
+              {selectedSeatObj.label}
+            </Text>
+          </View>
         </View>
-      )}
+      ) : null}
     </ScrollView>
   );
 }

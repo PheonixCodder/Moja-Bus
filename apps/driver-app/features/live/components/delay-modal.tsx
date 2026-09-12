@@ -63,7 +63,7 @@ export function DelayModal({
 					</View>
 
 					<View className="gap-1.5">
-						<Text className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{t("delay.minutesLabel")}</Text>
+						<Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t("delay.minutesLabel")}</Text>
 						<TextInput
 							className="bg-background border border-border rounded-2xl px-4 h-12 text-foreground text-sm font-semibold"
 							keyboardType="number-pad"
@@ -73,7 +73,7 @@ export function DelayModal({
 					</View>
 
 					<View className="gap-1.5">
-						<Text className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{t("delay.reasonLabel")}</Text>
+						<Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t("delay.reasonLabel")}</Text>
 						<View className="flex-row flex-wrap gap-2">
 							{DELAY_REASONS.map((option) => {
 								const isSelected = delayReason === option.value;
@@ -104,7 +104,7 @@ export function DelayModal({
 					</View>
 
 					<View className="gap-1.5">
-						<Text className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{t("delay.noteLabel")}</Text>
+						<Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t("delay.noteLabel")}</Text>
 						<TextInput
 							className="bg-background border border-border rounded-2xl px-4 h-12 text-foreground text-sm font-semibold"
 							placeholder={t("delay.notePlaceholder")}

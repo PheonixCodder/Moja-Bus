@@ -2,6 +2,8 @@ import type { Prisma } from "@moja/db";
 import { createTerminalSchema, updateTerminalSchema } from "@moja/schemas";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { stringifyCsv } from "@/lib/csv/parser";
+import { TERMINALS_CSV_TEMPLATE } from "@/lib/csv/templates";
 import { requirePermission } from "@/lib/permissions/authorize";
 import { createTRPCRouter, operatorCompanyProcedure } from "../init";
 
@@ -286,6 +288,153 @@ export const terminalsRouter = createTRPCRouter({
         });
 
         return { success: true };
+      });
+    }),
+
+  exportCsv: operatorCompanyProcedure.query(async ({ ctx }) => {
+    requirePermission(ctx, "terminals:read");
+
+    const locations = await ctx.prisma.companyLocation.findMany({
+      where: { companyId: ctx.companyId },
+      include: { cityRelation: true },
+      orderBy: { name: "asc" },
+    });
+
+    const headers = TERMINALS_CSV_TEMPLATE.columns.map((c) => c.label);
+    const rows = locations.map((loc) => [
+      loc.name,
+      loc.cityRelation?.name ?? loc.city ?? "",
+      loc.addressLine1,
+      loc.phone,
+      loc.isTerminal ? "TRUE" : "FALSE",
+      loc.managerName ?? "",
+      loc.managerPhone ?? "",
+      loc.latitude ?? "",
+      loc.longitude ?? "",
+    ]);
+
+    const csv = stringifyCsv(headers, rows);
+    const dateStr = new Date().toISOString().slice(0, 10);
+    return {
+      filename: `terminals-${dateStr}.csv`,
+      csv,
+      count: locations.length,
+    };
+  }),
+
+  batchImport: operatorCompanyProcedure
+    .input(
+      z.object({
+        upsert: z.boolean().default(false),
+        records: z.array(
+          z.object({
+            name: z.string().min(1, "Name is required"),
+            city: z.string().min(1, "City is required"),
+            addressLine1: z.string().min(1, "Address is required"),
+            phone: z.string().min(1, "Phone is required"),
+            isTerminal: z.boolean().optional().default(true),
+            managerName: z.string().optional().nullable(),
+            managerPhone: z.string().optional().nullable(),
+            latitude: z.number().optional().nullable(),
+            longitude: z.number().optional().nullable(),
+          }),
+        ),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "terminals:create");
+
+      return ctx.prisma.$transaction(async (tx) => {
+        const [cities, existingLocations] = await Promise.all([
+          tx.city.findMany({ where: { isActive: true } }),
+          tx.companyLocation.findMany({
+            where: { companyId: ctx.companyId },
+          }),
+        ]);
+
+        const existingByName = new Map(
+          existingLocations.map((l) => [l.name.toLowerCase().trim(), l]),
+        );
+
+        let createdCount = 0;
+        let updatedCount = 0;
+        let skippedCount = 0;
+        const errors: Array<{ row: number; reason: string }> = [];
+
+        for (let i = 0; i < input.records.length; i++) {
+          const rec = input.records[i];
+          if (!rec) continue;
+
+          const cleanName = rec.name.trim();
+          const cleanCity = rec.city.trim().toLowerCase();
+
+          // Match city
+          const matchedCity = cities.find(
+            (c) =>
+              c.name.toLowerCase() === cleanCity ||
+              (c.nameEn && c.nameEn.toLowerCase() === cleanCity),
+          );
+          const cityId = matchedCity?.id ?? null;
+
+          // Resolve municipality
+          const geo = await ensureTerminalGeography(tx, cityId, undefined);
+
+          const existing = existingByName.get(cleanName.toLowerCase());
+
+          if (existing) {
+            if (input.upsert) {
+              await tx.companyLocation.update({
+                where: { id: existing.id },
+                data: {
+                  addressLine1: rec.addressLine1.trim(),
+                  city: matchedCity ? null : rec.city.trim(),
+                  cityId: cityId ?? existing.cityId,
+                  municipalityId: geo.municipalityId ?? existing.municipalityId,
+                  phone: rec.phone.trim(),
+                  isTerminal: rec.isTerminal ?? existing.isTerminal,
+                  managerName: rec.managerName?.trim() ?? existing.managerName,
+                  managerPhone:
+                    rec.managerPhone?.trim() ?? existing.managerPhone,
+                  latitude: rec.latitude ?? existing.latitude,
+                  longitude: rec.longitude ?? existing.longitude,
+                },
+              });
+              updatedCount++;
+            } else {
+              skippedCount++;
+            }
+          } else {
+            await tx.companyLocation.create({
+              data: {
+                companyId: ctx.companyId,
+                name: cleanName,
+                addressLine1: rec.addressLine1.trim(),
+                city: matchedCity ? null : rec.city.trim(),
+                cityId,
+                municipalityId: geo.municipalityId ?? null,
+                phone: rec.phone.trim(),
+                isTerminal: rec.isTerminal ?? true,
+                managerName: rec.managerName?.trim() ?? null,
+                managerPhone: rec.managerPhone?.trim() ?? null,
+                latitude: rec.latitude ?? null,
+                longitude: rec.longitude ?? null,
+                geoCaptureStatus: "COMPLETE",
+                country: "Cote d'Ivoire",
+              },
+            });
+            createdCount++;
+          }
+        }
+
+        return {
+          totalRows: input.records.length,
+          validRows: createdCount + updatedCount,
+          invalidRows: errors.length,
+          createdCount,
+          updatedCount,
+          skippedCount,
+          errors,
+        };
       });
     }),
 });

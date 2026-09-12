@@ -1,12 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useQueryStates } from "nuqs";
-import { useTranslations } from "next-intl";
-import { CalendarClock, Plus } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@moja/ui/components/ui/button";
-import { Spinner } from "@moja/ui/components/ui/spinner";
 import {
   Empty,
   EmptyContent,
@@ -15,39 +9,50 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@moja/ui/components/ui/empty";
-import { useTRPC } from "@/trpc/client";
+import { Spinner } from "@moja/ui/components/ui/spinner";
 import {
-  useSuspenseQuery,
-  useQuery,
   useMutation,
+  useQuery,
   useQueryClient,
+  useSuspenseQuery,
 } from "@tanstack/react-query";
+import { CalendarClock, Plus } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useQueryStates } from "nuqs";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import {
+  CsvImportModal,
+  downloadCsvFile,
+  SCHEDULES_CSV_TEMPLATE,
+} from "@/components/csv-importer";
+import { CalendarStep } from "@/features/operator/components/schedules/calendar-step";
+import { PreviewStep } from "@/features/operator/components/schedules/preview-step";
+import { PricingStep } from "@/features/operator/components/schedules/pricing-step";
+import { RoutePickerStep } from "@/features/operator/components/schedules/route-picker-step";
+import { ScheduleCard } from "@/features/operator/components/schedules/schedule-card";
+import { ScheduleDeleteDialog } from "@/features/operator/components/schedules/schedule-delete-dialog";
+import { ScheduleEditDrawer } from "@/features/operator/components/schedules/schedule-edit-drawer";
+import { ScheduleSuccessBanner } from "@/features/operator/components/schedules/schedule-success-banner";
+import { ScheduleToolbar } from "@/features/operator/components/schedules/schedule-toolbar";
+import { TimingStep } from "@/features/operator/components/schedules/timing-step";
+import { WizardStepper } from "@/features/operator/components/schedules/wizard-stepper";
 import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
 import { scheduleListParsers } from "@/features/operator/lib/schedules/schedule-search-params";
 import {
+  buildStopsFromRoute,
+  type CalendarConfig,
+  defaultCalendarConfig,
+  type FareDraft,
+  hasRequiredFullRouteFare,
+  type RouteDetail,
+  type ScheduleDetail,
+  type ScheduleListItem,
+  type TimingDraft,
   WIZARD_STEPS,
   type WizardStep,
-  type ScheduleListItem,
-  type ScheduleDetail,
-  type RouteDetail,
-  type FareDraft,
-  type CalendarConfig,
-  type TimingDraft,
-  defaultCalendarConfig,
-  buildStopsFromRoute,
-  hasRequiredFullRouteFare,
 } from "@/features/operator/lib/schedules/types";
-import { WizardStepper } from "@/features/operator/components/schedules/wizard-stepper";
-import { RoutePickerStep } from "@/features/operator/components/schedules/route-picker-step";
-import { CalendarStep } from "@/features/operator/components/schedules/calendar-step";
-import { TimingStep } from "@/features/operator/components/schedules/timing-step";
-import { PricingStep } from "@/features/operator/components/schedules/pricing-step";
-import { PreviewStep } from "@/features/operator/components/schedules/preview-step";
-import { ScheduleToolbar } from "@/features/operator/components/schedules/schedule-toolbar";
-import { ScheduleCard } from "@/features/operator/components/schedules/schedule-card";
-import { ScheduleSuccessBanner } from "@/features/operator/components/schedules/schedule-success-banner";
-import { ScheduleDeleteDialog } from "@/features/operator/components/schedules/schedule-delete-dialog";
-import { ScheduleEditDrawer } from "@/features/operator/components/schedules/schedule-edit-drawer";
+import { useTRPC } from "@/trpc/client";
 
 export function OperatorSchedulesView() {
   const trpc = useTRPC();
@@ -120,6 +125,8 @@ export function OperatorSchedulesView() {
   const [extendingScheduleId, setExtendingScheduleId] = useState<string | null>(
     null,
   );
+  const [importModalOpen, setImportModalOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const createScheduleMutation = useMutation({
     ...trpc.schedules.create.mutationOptions(),
@@ -145,6 +152,28 @@ export function OperatorSchedulesView() {
       queryClient.invalidateQueries(trpc.schedules.list.pathFilter());
     },
   });
+  const batchImportMutation = useMutation(
+    trpc.schedules.batchImport.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries(trpc.schedules.list.pathFilter());
+      },
+    }),
+  );
+
+  const handleExportCsv = async () => {
+    setIsExporting(true);
+    try {
+      const data = await queryClient.fetchQuery(
+        trpc.schedules.exportCsv.queryOptions(),
+      );
+      downloadCsvFile(data.filename, data.csv);
+      toast.success(`Exported ${data.count} schedules to ${data.filename}`);
+    } catch {
+      toast.error("Failed to export schedules");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   useEffect(() => {
     if (!routePick) {
@@ -158,7 +187,7 @@ export function OperatorSchedulesView() {
       .then((data) => setSelectedRoute(data))
       .catch(() => toast.error(t("toast.loadRouteFailed")))
       .finally(() => setLoadingRouteDetail(false));
-  }, [routePick, queryClient, trpc.routes.get]);
+  }, [routePick, queryClient, trpc.routes.get, t]);
 
   useEffect(() => {
     if (!editId) {
@@ -173,7 +202,7 @@ export function OperatorSchedulesView() {
         toast.error(t("toast.loadScheduleFailed"));
         setParams({ edit: "" });
       });
-  }, [editId, canUpdate, queryClient, trpc.schedules.get, setParams]);
+  }, [editId, canUpdate, queryClient, trpc.schedules.get, setParams, t]);
 
   const stops = selectedRoute ? buildStopsFromRoute(selectedRoute) : [];
 
@@ -455,6 +484,9 @@ export function OperatorSchedulesView() {
           id: r.id,
           label: `${r.originTerminal?.cityRelation?.name ?? r.originTerminal?.city ?? "Origin"} → ${r.destTerminal?.cityRelation?.name ?? r.destTerminal?.city ?? "Dest"}`,
         }))}
+        onExport={handleExportCsv}
+        isExporting={isExporting}
+        onImport={() => setImportModalOpen(true)}
       />
 
       <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
@@ -561,6 +593,29 @@ export function OperatorSchedulesView() {
               err instanceof Error ? err.message : t("toast.deleteFailed"),
             );
           }
+        }}
+      />
+
+      <CsvImportModal
+        open={importModalOpen}
+        onOpenChange={setImportModalOpen}
+        config={SCHEDULES_CSV_TEMPLATE}
+        onImport={async ({ records, upsert }) => {
+          return await batchImportMutation.mutateAsync({
+            upsert,
+            records: records as Array<{
+              routeName: string;
+              departureTime: string;
+              operatingDays?: string | null;
+              baseFareXOF: number;
+              durationMinutes: number;
+              preferredBusPlate?: string | null;
+              scheduleName?: string | null;
+            }>,
+          });
+        }}
+        onSuccess={() => {
+          queryClient.invalidateQueries(trpc.schedules.list.pathFilter());
         }}
       />
     </div>

@@ -870,27 +870,27 @@
     "semantic_hash": ""
   },
   "apps/driver-app/app/(auth)/register/carrier.tsx": {
-    "mtime": 1789118557.2843971,
-    "seen": 1789189733.4582825,
-    "ast_hash": "663845b69e712c1b7c113afa3074ae7e",
+    "mtime": 1789229686.4118464,
+    "seen": 1789230852.8163788,
+    "ast_hash": "336201de1a6221dd9e6df216538fd03a",
     "semantic_hash": ""
   },
   "apps/driver-app/app/(auth)/register/documents.tsx": {
-    "mtime": 1789118557.2934015,
-    "seen": 1789189733.4582853,
-    "ast_hash": "54303e7436cb8d6ac181d2f9ceaf1580",
+    "mtime": 1789229686.4123516,
+    "seen": 1789230852.8163798,
+    "ast_hash": "ff3ffbf4ec5fb8c4815712129fa72fee",
     "semantic_hash": ""
   },
   "apps/driver-app/app/(auth)/register/index.tsx": {
-    "mtime": 1789118557.297414,
-    "seen": 1789189733.4582882,
-    "ast_hash": "2380c500630c134257d56d421589c81c",
+    "mtime": 1789229686.4123516,
+    "seen": 1789230852.8163812,
+    "ast_hash": "a0806cd559d174bb5cb24e053c0df120",
     "semantic_hash": ""
   },
   "apps/driver-app/app/(auth)/register/license.tsx": {
-    "mtime": 1789118557.2994306,
-    "seen": 1789189733.4582913,
-    "ast_hash": "66089bbea390deb563f2cf2f01b4f67b",
+    "mtime": 1789229686.4133596,
+    "seen": 1789230852.8163824,
+    "ast_hash": "aa3a1f5a3f5a9d0ae7f85fb186c12187",
     "semantic_hash": ""
   },
   "apps/driver-app/app/(auth)/register/status.tsx": {
@@ -972,9 +972,9 @@
     "semantic_hash": ""
   },
   "apps/driver-app/components/notification-bell.tsx": {
-    "mtime": 1789118355.4655278,
-    "seen": 1789189733.4590669,
-    "ast_hash": "995174e2eb7c1f5043df043b08e40665",
+    "mtime": 1789229686.416359,
+    "seen": 1789230852.8173687,
+    "ast_hash": "60fb1ba06972f62d217459c47e53e56f",
     "semantic_hash": ""
   },
   "apps/driver-app/components/urgent-dispatch-gate.tsx": {
@@ -984,9 +984,9 @@
     "semantic_hash": ""
   },
   "apps/driver-app/features/dispatch/components/urgent-dispatch-modal.tsx": {
-    "mtime": 1789118557.3624654,
-    "seen": 1789189733.4593468,
-    "ast_hash": "471de4d19910dfe419fbd111382cad0e",
+    "mtime": 1789229686.4240892,
+    "seen": 1789230852.8180606,
+    "ast_hash": "87b95442be2e6651a40b7a533039bf64",
     "semantic_hash": ""
   },
   "apps/driver-app/features/map/components/driver-navigation-map.tsx": {
@@ -1248,9 +1248,9 @@
     "semantic_hash": ""
   },
   "apps/traveler-app/app/(tabs)/_layout.tsx": {
-    "mtime": 1789118207.5168545,
-    "seen": 1789189733.4765394,
-    "ast_hash": "61a9cd530190b5e967319222846d8b3e",
+    "mtime": 1789229725.4019938,
+    "seen": 1789230852.822236,
+    "ast_hash": "6a69d95f825aa1c703caeac36a62d9f2",
     "semantic_hash": ""
   },
   "apps/traveler-app/app/(tabs)/bookings.tsx": {
@@ -1410,9 +1410,9 @@
     "semantic_hash": "30bcf89ba9c75d37a4db797a96fdf3c2"
   },
   "apps/traveler-app/app/tracking/[tripId].tsx": {
-    "mtime": 1788961216.2804685,
-    "seen": 1789189733.4784408,
-    "ast_hash": "7cfba755c1112ca0cadef2ebc2638660",
+    "mtime": 1789229656.8642418,
+    "seen": 1789230852.8242595,
+    "ast_hash": "588c3077ba6dc0a151883f131a54213e",
     "semantic_hash": ""
   },
   "apps/traveler-app/app/wallet.tsx": {
@@ -1434,9 +1434,9 @@
     "semantic_hash": "93d7ded1407ee40b0715d7bce89a4df4"
   },
   "apps/traveler-app/components/custom-alert.tsx": {
-    "mtime": 1789118207.5728416,
-    "seen": 1789189733.4822564,
-    "ast_hash": "13d50347446f0612ae2710f359f578d9",
+    "mtime": 1789229656.8642418,
+    "seen": 1789230852.8244553,
+    "ast_hash": "9f513acc278a7b95399e60fa8fa3cb16",
     "semantic_hash": ""
   },
   "apps/traveler-app/components/notification-bell.tsx": {
@@ -1620,9 +1620,9 @@
     "semantic_hash": ""
   },
   "apps/traveler-app/components/ui/text.tsx": {
-    "mtime": 1789118208.2169073,
-    "seen": 1789189733.482396,
-    "ast_hash": "2edff2ba2d2998d7afc7ca39f4f36cb8",
+    "mtime": 1789230681.299842,
+    "seen": 1789230852.8265958,
+    "ast_hash": "57fce38a0128a1cf5764f4363adb3137",
     "semantic_hash": ""
   },
   "apps/traveler-app/components/ui/textarea.tsx": {
@@ -1650,9 +1650,9 @@
     "semantic_hash": ""
   },
   "apps/traveler-app/constants/theme.ts": {
-    "mtime": 1789118193.0071957,
-    "seen": 1789189733.4824197,
-    "ast_hash": "5fdb64ce067b485496b9e73dd5ce048c",
+    "mtime": 1789229579.141552,
+    "seen": 1789230852.8268735,
+    "ast_hash": "9e9cd86c93d8749aa09d9f6e4355984c",
     "semantic_hash": ""
   },
   "apps/traveler-app/eas.json": {
@@ -1662,15 +1662,15 @@
     "semantic_hash": "55d454205af07a2afea944016c07fb46"
   },
   "apps/traveler-app/features/auth/components/auth-button.tsx": {
-    "mtime": 1789118208.2709057,
-    "seen": 1789189733.4831982,
-    "ast_hash": "c7b84a29fa7c87b6232514f27f1df315",
+    "mtime": 1789229656.868887,
+    "seen": 1789230852.8270123,
+    "ast_hash": "38a7635a59fab60ce5370f9a70ab5e19",
     "semantic_hash": ""
   },
   "apps/traveler-app/features/auth/components/auth-field.tsx": {
-    "mtime": 1789118563.2575524,
-    "seen": 1789189733.4832025,
-    "ast_hash": "2e2f82740091d19b2b46610cac4ae2a9",
+    "mtime": 1789229656.868887,
+    "seen": 1789230852.827013,
+    "ast_hash": "c0510e012194b31b3d1f069e5fdc1f90",
     "semantic_hash": ""
   },
   "apps/traveler-app/features/auth/components/auth-shell.tsx": {
@@ -1680,9 +1680,9 @@
     "semantic_hash": ""
   },
   "apps/traveler-app/features/auth/screens/login.tsx": {
-    "mtime": 1789119791.052019,
-    "seen": 1789189733.4832106,
-    "ast_hash": "f1ec9b46527ff80c9da461a54558c1c2",
+    "mtime": 1789229763.3062022,
+    "seen": 1789230852.8270907,
+    "ast_hash": "7d512fb182c9eaf434d0949990b6ec05",
     "semantic_hash": ""
   },
   "apps/traveler-app/features/booking/components/amenities-list.tsx": {
@@ -1938,9 +1938,9 @@
     "semantic_hash": ""
   },
   "apps/traveler-app/features/home/components/promo-banner-carousel.tsx": {
-    "mtime": 1789118563.441552,
-    "seen": 1789189733.485825,
-    "ast_hash": "f70953657d693106a7382a87c470e70e",
+    "mtime": 1789229684.9840422,
+    "seen": 1789230852.830342,
+    "ast_hash": "73958e5d33a367ddf5e2d73a15c1aea8",
     "semantic_hash": ""
   },
   "apps/traveler-app/features/home/constants.ts": {
@@ -2028,15 +2028,15 @@
     "semantic_hash": ""
   },
   "apps/traveler-app/features/search/components/city-search-field.tsx": {
-    "mtime": 1789118563.5025802,
-    "seen": 1789189733.4858818,
-    "ast_hash": "e56a10e653bdbb06f7220f7cf1658d92",
+    "mtime": 1789229684.9866564,
+    "seen": 1789230852.8313756,
+    "ast_hash": "dcd7564b2c070e0d9872f035479fc5ae",
     "semantic_hash": ""
   },
   "apps/traveler-app/features/search/components/date-strip.tsx": {
-    "mtime": 1789118563.5105598,
-    "seen": 1789189733.485885,
-    "ast_hash": "a1e00aade5a3603bf950a34cb52a4796",
+    "mtime": 1789229684.9882722,
+    "seen": 1789230852.8313775,
+    "ast_hash": "e676fb22916e0c583baf0276ae965a0c",
     "semantic_hash": ""
   },
   "apps/traveler-app/features/search/components/filters-sheet.tsx": {
@@ -2046,21 +2046,21 @@
     "semantic_hash": ""
   },
   "apps/traveler-app/features/search/components/offer-card.tsx": {
-    "mtime": 1789118563.527555,
-    "seen": 1789189733.4858916,
-    "ast_hash": "51a82948c52225c70ba1dd8aa0313dd8",
+    "mtime": 1789229684.9899032,
+    "seen": 1789230852.8314571,
+    "ast_hash": "2cb0161478818e250b8ce9174aefd96a",
     "semantic_hash": ""
   },
   "apps/traveler-app/features/search/components/passenger-form-sheet.tsx": {
-    "mtime": 1789123036.2477252,
-    "seen": 1789189733.4858944,
-    "ast_hash": "32c6c7585f9b3a8c8b57a1fe7e62aac5",
+    "mtime": 1789191323.4591787,
+    "seen": 1789230852.8314583,
+    "ast_hash": "6938a0bdb85ce92492c19144eb17b0e8",
     "semantic_hash": ""
   },
   "apps/traveler-app/features/search/components/search-empty-state.tsx": {
-    "mtime": 1789118563.5485504,
-    "seen": 1789189733.485898,
-    "ast_hash": "c968130d985b3c30fab0d9fec9443c53",
+    "mtime": 1789229684.9926102,
+    "seen": 1789230852.8314593,
+    "ast_hash": "dfdff3b19e836ecd647554928917f0ab",
     "semantic_hash": ""
   },
   "apps/traveler-app/features/search/components/search-form.tsx": {
@@ -2154,9 +2154,9 @@
     "semantic_hash": ""
   },
   "apps/traveler-app/features/search/screens/search.tsx": {
-    "mtime": 1789118563.6245599,
-    "seen": 1789189733.485952,
-    "ast_hash": "2a1e2f41e7977115f0dd184ff3324111",
+    "mtime": 1789229684.9980748,
+    "seen": 1789230852.8328955,
+    "ast_hash": "5d4d64a17a7878d685102324230c51ef",
     "semantic_hash": ""
   },
   "apps/traveler-app/features/search/types.ts": {
@@ -2184,15 +2184,15 @@
     "semantic_hash": ""
   },
   "apps/traveler-app/features/settings/components/passenger-card.tsx": {
-    "mtime": 1789118563.6385543,
-    "seen": 1789189733.485969,
-    "ast_hash": "38abcb0928a356e428701fbb93a31efa",
+    "mtime": 1789229684.999974,
+    "seen": 1789230852.833212,
+    "ast_hash": "fbcde103d335816c9d9848dc01b87467",
     "semantic_hash": ""
   },
   "apps/traveler-app/features/settings/components/passenger-delete-sheet.tsx": {
-    "mtime": 1789118211.144936,
-    "seen": 1789189733.4859736,
-    "ast_hash": "56aec4683c75743895adad4faf3b1536",
+    "mtime": 1789229685.0019715,
+    "seen": 1789230852.833213,
+    "ast_hash": "db8dae15eb43aa57934d009077c34b6e",
     "semantic_hash": ""
   },
   "apps/traveler-app/features/settings/components/passenger-form-sheet.tsx": {
@@ -2292,9 +2292,9 @@
     "semantic_hash": ""
   },
   "apps/traveler-app/features/settings/screens/notifications.tsx": {
-    "mtime": 1789118211.5421042,
-    "seen": 1789189733.486035,
-    "ast_hash": "0f08da2c76643a5330b4accae11e74ce",
+    "mtime": 1789229685.0079148,
+    "seen": 1789230852.8344133,
+    "ast_hash": "f298df372d223a8b0e14258acafae3e7",
     "semantic_hash": ""
   },
   "apps/traveler-app/features/settings/screens/passengers.tsx": {
@@ -2406,9 +2406,9 @@
     "semantic_hash": ""
   },
   "apps/traveler-app/lib/auth-client.ts": {
-    "mtime": 1789119644.6796067,
-    "seen": 1789189733.4861062,
-    "ast_hash": "439b1b2ca39834a25deef42c9390a31c",
+    "mtime": 1789191344.3548589,
+    "seen": 1789230852.835785,
+    "ast_hash": "90381f6db5af0f1c03bc662107716479",
     "semantic_hash": ""
   },
   "apps/traveler-app/lib/device-hash.ts": {
@@ -7410,10 +7410,10 @@
     "semantic_hash": "a608e90252e736712e5aafd35bd642ac"
   },
   "apps/web/lib/__tests__/trusted-origins.test.ts": {
-    "mtime": 1787824289.1829207,
-    "seen": 1787855978.0485427,
-    "ast_hash": "2cdcedb054a811da93583769ffbbc929",
-    "semantic_hash": "2cdcedb054a811da93583769ffbbc929"
+    "mtime": 1789194616.9125934,
+    "seen": 1789230852.904056,
+    "ast_hash": "bc62faf62d17f4e68de5707d5a7b667e",
+    "semantic_hash": ""
   },
   "apps/web/lib/app-origin.ts": {
     "mtime": 1787824289.1819174,
@@ -7734,9 +7734,9 @@
     "semantic_hash": "276c3fd84fc27e3e6eb64e5d7d0a2adc"
   },
   "apps/web/lib/trusted-origins.ts": {
-    "mtime": 1789145989.5565813,
-    "seen": 1789189734.00148,
-    "ast_hash": "75d180f62f75bd08aeed9ac07342102a",
+    "mtime": 1789194606.830132,
+    "seen": 1789230852.9081373,
+    "ast_hash": "41a68f4a0ffaf3d3fcd0762ae0104887",
     "semantic_hash": ""
   },
   "apps/web/lib/withdrawal-2fa.ts": {
@@ -13824,21 +13824,21 @@
     "semantic_hash": ""
   },
   "apps/driver-app/app/language.tsx": {
-    "mtime": 1789118557.3283558,
-    "seen": 1789189733.458324,
-    "ast_hash": "612482f662602f018e088466c296a1c5",
+    "mtime": 1789229686.4100356,
+    "seen": 1789230852.817153,
+    "ast_hash": "faa41ac7435195fcf38c0de075274a8a",
     "semantic_hash": ""
   },
   "apps/driver-app/components/TabBar.tsx": {
-    "mtime": 1789118355.4605281,
-    "seen": 1789189733.4590633,
-    "ast_hash": "df7b409f090ab47e9067a04d8fafc4a1",
+    "mtime": 1789229686.4170797,
+    "seen": 1789230852.8173668,
+    "ast_hash": "487bcc3ca0f1db8c2c12c80f3ae38fdb",
     "semantic_hash": ""
   },
   "apps/driver-app/components/ui/Badge.tsx": {
-    "mtime": 1789118341.6456802,
-    "seen": 1789189733.4590697,
-    "ast_hash": "5a47a5d13eff883bdddb3238f1c700f8",
+    "mtime": 1789229686.4180915,
+    "seen": 1789230852.8173707,
+    "ast_hash": "f6980cc6bc912d563e4dc1e56d7567ac",
     "semantic_hash": ""
   },
   "apps/driver-app/components/ui/Button.tsx": {
@@ -13854,15 +13854,15 @@
     "semantic_hash": ""
   },
   "apps/driver-app/components/ui/Input.tsx": {
-    "mtime": 1789118355.3136983,
-    "seen": 1789189733.4590762,
-    "ast_hash": "639c3afcd8fdd6819e636bfbc49bf5ee",
+    "mtime": 1789229686.4200888,
+    "seen": 1789230852.8175156,
+    "ast_hash": "fd1e43d6134feb436b86732bbe575f84",
     "semantic_hash": ""
   },
   "apps/driver-app/components/ui/PageHeader.tsx": {
-    "mtime": 1789118205.0404243,
-    "seen": 1789189733.4590778,
-    "ast_hash": "52f21b70aa15d5de4bb487cc5d8e3880",
+    "mtime": 1789229764.1234741,
+    "seen": 1789230852.8175163,
+    "ast_hash": "929934f90eb2665e1c47a0f7cf62d4ca",
     "semantic_hash": ""
   },
   "apps/driver-app/components/ui/ScreenShell.tsx": {
@@ -13872,9 +13872,9 @@
     "semantic_hash": ""
   },
   "apps/driver-app/constants/theme.ts": {
-    "mtime": 1789118178.8755586,
-    "seen": 1789189733.4590876,
-    "ast_hash": "130b5b42716fae46b8d641b6d947de3f",
+    "mtime": 1789229566.3515487,
+    "seen": 1789230852.8177414,
+    "ast_hash": "6e1f00c992265bd50256141774086490",
     "semantic_hash": ""
   },
   "apps/driver-app/eas.json": {
@@ -13896,45 +13896,45 @@
     "semantic_hash": ""
   },
   "apps/driver-app/features/auth/components/auth-shell.tsx": {
-    "mtime": 1789118557.3523636,
-    "seen": 1789189733.4593425,
-    "ast_hash": "665ff5f582f65c411d290fc8832ed2aa",
+    "mtime": 1789229686.4230883,
+    "seen": 1789230852.8180578,
+    "ast_hash": "17355b9d33062292c612701d12e47e36",
     "semantic_hash": ""
   },
   "apps/driver-app/features/auth/screens/login.tsx": {
-    "mtime": 1789118205.1544218,
-    "seen": 1789189733.4593444,
-    "ast_hash": "4372cfbe2f62c05c642ae460234d1c25",
+    "mtime": 1789229764.124492,
+    "seen": 1789230852.8180592,
+    "ast_hash": "0c1d688eac581d438107b8fd9c099012",
     "semantic_hash": ""
   },
   "apps/driver-app/features/earnings/screens/earnings-view.tsx": {
-    "mtime": 1789118557.3745039,
-    "seen": 1789189733.459349,
-    "ast_hash": "692581a1ebc74968d262c78693d3219a",
+    "mtime": 1789229686.4255998,
+    "seen": 1789230852.8180618,
+    "ast_hash": "3f2860bfda31e042ba0f1f41b8e9b4a4",
     "semantic_hash": ""
   },
   "apps/driver-app/features/live/components/delay-modal.tsx": {
-    "mtime": 1789118557.38213,
-    "seen": 1789189733.4593544,
-    "ast_hash": "b834a68add81275aa216adeb126f2a37",
+    "mtime": 1789229686.4276216,
+    "seen": 1789230852.8180645,
+    "ast_hash": "e7c214503eb129aa6336a037da164ef7",
     "semantic_hash": ""
   },
   "apps/driver-app/features/live/components/speedometer-gauge.tsx": {
-    "mtime": 1789118557.3860595,
-    "seen": 1789189733.4593563,
-    "ast_hash": "d1fde0747d26e696c04ffbf9672c2aac",
+    "mtime": 1789229686.428612,
+    "seen": 1789230852.8180656,
+    "ast_hash": "d00dad903a13cf3ac044acbb21297058",
     "semantic_hash": ""
   },
   "apps/driver-app/features/live/screens/live-view.tsx": {
-    "mtime": 1789118557.3945796,
-    "seen": 1789189733.4593585,
-    "ast_hash": "fd4ef82b31d25d4f503b7b4d2003faa3",
+    "mtime": 1789229686.4296255,
+    "seen": 1789230852.8180673,
+    "ast_hash": "b7f955ebd97e13f3e5b594d34913b891",
     "semantic_hash": ""
   },
   "apps/driver-app/features/notifications/components/notification-row.tsx": {
-    "mtime": 1789118557.405565,
-    "seen": 1789189733.4593623,
-    "ast_hash": "897f53a9a0114cdda2deeb8bd116fd7c",
+    "mtime": 1789229686.4316123,
+    "seen": 1789230852.81815,
+    "ast_hash": "b7d8ff081ab55eb0a2407151333a807e",
     "semantic_hash": ""
   },
   "apps/driver-app/features/notifications/screens/notifications-view.tsx": {
@@ -13950,15 +13950,15 @@
     "semantic_hash": ""
   },
   "apps/driver-app/features/offers/components/offer-card.tsx": {
-    "mtime": 1789118557.4105806,
-    "seen": 1789189733.4593687,
-    "ast_hash": "520d94854590b4888b358bfa4dd76981",
+    "mtime": 1789229686.4336145,
+    "seen": 1789230852.8183126,
+    "ast_hash": "4ef246972e7be024be40483271426b9a",
     "semantic_hash": ""
   },
   "apps/driver-app/features/offers/screens/offers-view.tsx": {
-    "mtime": 1789118557.4125738,
-    "seen": 1789189733.4593709,
-    "ast_hash": "951074f9d9e7a32226e57de8fde611b2",
+    "mtime": 1789229686.4346125,
+    "seen": 1789230852.8183138,
+    "ast_hash": "91f0c35d15350f6c31fa53a617d1991c",
     "semantic_hash": ""
   },
   "apps/driver-app/features/profile/screens/profile-view.tsx": {
@@ -13980,33 +13980,33 @@
     "semantic_hash": ""
   },
   "apps/driver-app/features/trips/components/manifest-passenger-row.tsx": {
-    "mtime": 1789118557.4225693,
-    "seen": 1789189733.4593778,
-    "ast_hash": "2e9a06d4d820e010b51b78e46146c37d",
+    "mtime": 1789229686.43849,
+    "seen": 1789230852.8185554,
+    "ast_hash": "416c59848440a9d0d853eaffa248fadc",
     "semantic_hash": ""
   },
   "apps/driver-app/features/trips/components/mode-switcher.tsx": {
-    "mtime": 1789118557.424571,
-    "seen": 1789189733.4593801,
-    "ast_hash": "c17a9825af7acc0b9ccfc43e9e16e9bd",
+    "mtime": 1789229686.439035,
+    "seen": 1789230852.818557,
+    "ast_hash": "7c99830b8e46f3721355811c33b19316",
     "semantic_hash": ""
   },
   "apps/driver-app/features/trips/components/trip-card.tsx": {
-    "mtime": 1789118557.4275675,
-    "seen": 1789189733.4593828,
-    "ast_hash": "69dbc2f48c23f218b796c95a23670b43",
+    "mtime": 1789229686.4401095,
+    "seen": 1789230852.8185585,
+    "ast_hash": "635565951f5b0e4a37e61fbd94265dfb",
     "semantic_hash": ""
   },
   "apps/driver-app/features/trips/screens/manifest-view.tsx": {
-    "mtime": 1789118557.4325664,
-    "seen": 1789189733.4593847,
-    "ast_hash": "1c542ac1433e69b25495166ec552610b",
+    "mtime": 1789229686.4417317,
+    "seen": 1789230852.81856,
+    "ast_hash": "6c9f7e2cd644377edb458aac5942bce0",
     "semantic_hash": ""
   },
   "apps/driver-app/features/trips/screens/trips-view.tsx": {
-    "mtime": 1789118557.4385662,
-    "seen": 1789189733.4593866,
-    "ast_hash": "9d0b022800976b635b8ccecc2b10eaa1",
+    "mtime": 1789229686.443359,
+    "seen": 1789230852.8185613,
+    "ast_hash": "9686c3feafbd4a7b55dd262147c5cf79",
     "semantic_hash": ""
   },
   "apps/driver-app/lib/theme.ts": {
@@ -14190,9 +14190,9 @@
     "semantic_hash": ""
   },
   "apps/driver-app/features/live/components/breakdown-modal.tsx": {
-    "mtime": 1789118557.3790102,
-    "seen": 1789189733.4593523,
-    "ast_hash": "c5f5e96f172d6de0da8d6ac2735049fc",
+    "mtime": 1789229686.4276216,
+    "seen": 1789230852.818063,
+    "ast_hash": "dd51ff061ff90d116b82797f2edf786a",
     "semantic_hash": ""
   },
   "apps/web/lib/driver-authorization.ts": {
@@ -15552,39 +15552,39 @@
     "semantic_hash": ""
   },
   "apps/booth-app/app/(auth)/login.tsx": {
-    "mtime": 1789188617.2145176,
-    "seen": 1789189733.4578164,
-    "ast_hash": "567baffe7e1c01155cffee31c4ac9e63",
+    "mtime": 1789229764.9909618,
+    "seen": 1789230852.8130918,
+    "ast_hash": "0985fbae896d2b576e6c0570bf62e325",
     "semantic_hash": ""
   },
   "apps/booth-app/app/(tabs)/_layout.tsx": {
-    "mtime": 1788966510.831411,
-    "seen": 1789189733.4578204,
-    "ast_hash": "b2917a0afdcd7262bdaac28ea8b2f8cb",
+    "mtime": 1789200701.081267,
+    "seen": 1789230852.8130949,
+    "ast_hash": "4afdf2ea934ce669de3f0a66123c3d9b",
     "semantic_hash": ""
   },
   "apps/booth-app/app/(tabs)/bookings.tsx": {
-    "mtime": 1788966770.6413238,
-    "seen": 1789189733.457824,
-    "ast_hash": "05324fc5564fb4da5a7f5dff8fca17e7",
+    "mtime": 1789229687.1925623,
+    "seen": 1789230852.8130965,
+    "ast_hash": "3f4fa41c044719b16c8e415adbacc6c1",
     "semantic_hash": ""
   },
   "apps/booth-app/app/(tabs)/checkin.tsx": {
-    "mtime": 1789188631.6802607,
-    "seen": 1789189733.4578273,
-    "ast_hash": "38e96eeb1bc8db36b4b319ee11e73810",
+    "mtime": 1789204059.352245,
+    "seen": 1789230852.813098,
+    "ast_hash": "7df84e6ee2d566303032865a9df415be",
     "semantic_hash": ""
   },
   "apps/booth-app/app/(tabs)/index.tsx": {
-    "mtime": 1789151888.3784406,
-    "seen": 1789189733.4578302,
-    "ast_hash": "b70365d8a5b099b75b9e2f13eedaeae1",
+    "mtime": 1789204048.1814394,
+    "seen": 1789230852.813099,
+    "ast_hash": "52a364ce7dc097e094f5bc66246189af",
     "semantic_hash": ""
   },
   "apps/booth-app/app/(tabs)/profile.tsx": {
-    "mtime": 1789189360.0265374,
-    "seen": 1789189733.4578338,
-    "ast_hash": "321f7e86a403466e608eee3e6e724c25",
+    "mtime": 1789229687.1953113,
+    "seen": 1789230852.8131,
+    "ast_hash": "6235f255ea0682904db5764e37af49a3",
     "semantic_hash": ""
   },
   "apps/booth-app/app/_layout.tsx": {
@@ -15594,21 +15594,21 @@
     "semantic_hash": ""
   },
   "apps/booth-app/app/index.tsx": {
-    "mtime": 1789151757.4041743,
-    "seen": 1789189733.4578404,
-    "ast_hash": "88aa4f1322a434002e562129f951b58a",
+    "mtime": 1789194344.6968374,
+    "seen": 1789230852.8131747,
+    "ast_hash": "89dcb3b7a94dcb0524d5583c51ad7353",
     "semantic_hash": ""
   },
   "apps/booth-app/app/reconcile.tsx": {
-    "mtime": 1788966770.904382,
-    "seen": 1789189733.4578433,
-    "ast_hash": "13c0f90e9827b7d046b4b3ccfacb7b3e",
+    "mtime": 1789229687.1895661,
+    "seen": 1789230852.8131764,
+    "ast_hash": "f348eda5953d4431d0ab1b61f1464d5d",
     "semantic_hash": ""
   },
   "apps/booth-app/app/sell/[tripId].tsx": {
-    "mtime": 1789151910.835303,
-    "seen": 1789189733.4578469,
-    "ast_hash": "ff2aeb486300dcda47067c71bda741b8",
+    "mtime": 1789199959.995403,
+    "seen": 1789230852.813178,
+    "ast_hash": "ab8bc433f8a7cef3846305c04d077cc9",
     "semantic_hash": ""
   },
   "apps/booth-app/app/sell/_layout.tsx": {
@@ -15618,27 +15618,27 @@
     "semantic_hash": ""
   },
   "apps/booth-app/app/sell/confirmation.tsx": {
-    "mtime": 1789189317.0616622,
-    "seen": 1789189733.457853,
-    "ast_hash": "b7d9b1b0450028041705acdf5787e4cd",
+    "mtime": 1789229687.1979384,
+    "seen": 1789230852.8132548,
+    "ast_hash": "7fa4658b9e36723f9385560daf62e84e",
     "semantic_hash": ""
   },
   "apps/booth-app/app/sell/passenger.tsx": {
-    "mtime": 1789151929.38511,
-    "seen": 1789189733.4578564,
-    "ast_hash": "128ad798d3de8975363236503a98abde",
+    "mtime": 1789199990.0316567,
+    "seen": 1789230852.813256,
+    "ast_hash": "48d853b4e1d911b38d6c9d3cbda561da",
     "semantic_hash": ""
   },
   "apps/booth-app/app/sell/payment.tsx": {
-    "mtime": 1789152022.4649076,
-    "seen": 1789189733.4578593,
-    "ast_hash": "c653500a708206d4a18a3f24df1b07a9",
+    "mtime": 1789200028.0904653,
+    "seen": 1789230852.813257,
+    "ast_hash": "6d0269cb835286a5a0ff6d1276b807d1",
     "semantic_hash": ""
   },
   "apps/booth-app/app/terminal-select.tsx": {
-    "mtime": 1788966788.9863634,
-    "seen": 1789189733.457862,
-    "ast_hash": "d3cb76833ed8d479ed92f7a881444a08",
+    "mtime": 1789200572.3192608,
+    "seen": 1789230852.8132577,
+    "ast_hash": "310889bf3784731e300e9857a21412b7",
     "semantic_hash": ""
   },
   "apps/booth-app/babel.config.js": {
@@ -15654,21 +15654,21 @@
     "semantic_hash": ""
   },
   "apps/booth-app/components/offline-banner.tsx": {
-    "mtime": 1788876906.906085,
-    "seen": 1789189733.45787,
-    "ast_hash": "bb63461428416240847dd82bc5d7389a",
+    "mtime": 1789199341.871357,
+    "seen": 1789230852.8134053,
+    "ast_hash": "eabe69070aa849a8bd14b3ec28cab9ad",
     "semantic_hash": ""
   },
   "apps/booth-app/components/paystack-qr.tsx": {
-    "mtime": 1788966912.1277359,
-    "seen": 1789189733.4578726,
-    "ast_hash": "02c813cd494f8303b9178cc34fe9376e",
+    "mtime": 1789204069.4004903,
+    "seen": 1789230852.8134065,
+    "ast_hash": "c4d3f1e1b96e38886ebba865e180273a",
     "semantic_hash": ""
   },
   "apps/booth-app/components/seat-map.tsx": {
-    "mtime": 1788854113.6902618,
-    "seen": 1789189733.4578755,
-    "ast_hash": "212e47da9841fc1ec8295a4ad1b1761d",
+    "mtime": 1789229687.2027278,
+    "seen": 1789230852.8134077,
+    "ast_hash": "7c87c53532c32db854b9f8b81420bd01",
     "semantic_hash": ""
   },
   "apps/booth-app/components/ui/accordion.tsx": {
@@ -15684,9 +15684,9 @@
     "semantic_hash": ""
   },
   "apps/booth-app/components/ui/alert.tsx": {
-    "mtime": 1789118207.65684,
-    "seen": 1789189733.4578848,
-    "ast_hash": "292d587b347b9b381fa71192323d2137",
+    "mtime": 1789190940.2197897,
+    "seen": 1789230852.8135602,
+    "ast_hash": "90e58e5079640299428fdf52ad60cb0a",
     "semantic_hash": ""
   },
   "apps/booth-app/components/ui/aspect-ratio.tsx": {
@@ -15702,27 +15702,27 @@
     "semantic_hash": ""
   },
   "apps/booth-app/components/ui/badge.tsx": {
-    "mtime": 1789118207.6838398,
-    "seen": 1789189733.4578938,
-    "ast_hash": "cb1bd7bd14efdb9d67c07f384e28d984",
+    "mtime": 1789204030.965983,
+    "seen": 1789230852.81371,
+    "ast_hash": "648f1675d81ba129be94bff93b057f50",
     "semantic_hash": ""
   },
   "apps/booth-app/components/ui/button.tsx": {
-    "mtime": 1789118207.6988437,
-    "seen": 1789189733.457897,
-    "ast_hash": "e4a2f540a8353f7636b6038fdbe294c5",
+    "mtime": 1789204337.0832336,
+    "seen": 1789230852.813712,
+    "ast_hash": "9ded6bd625fd1379d7f4c75e566334b4",
     "semantic_hash": ""
   },
   "apps/booth-app/components/ui/card.tsx": {
-    "mtime": 1789118207.7078419,
-    "seen": 1789189733.4578998,
-    "ast_hash": "e03bbf7b3a2c535ad86fcf327e2b4039",
+    "mtime": 1789204158.00701,
+    "seen": 1789230852.8137128,
+    "ast_hash": "8753c3db6f8acf3a22396bc14d838260",
     "semantic_hash": ""
   },
   "apps/booth-app/components/ui/checkbox.tsx": {
-    "mtime": 1789118207.7138436,
-    "seen": 1789189733.4579031,
-    "ast_hash": "9c79af3843002e6d45b92f5fb3a227fb",
+    "mtime": 1789203251.0285935,
+    "seen": 1789230852.8137145,
+    "ast_hash": "5b845584894b3271300e676627c5c004",
     "semantic_hash": ""
   },
   "apps/booth-app/components/ui/collapsible.tsx": {
@@ -15732,9 +15732,9 @@
     "semantic_hash": ""
   },
   "apps/booth-app/components/ui/context-menu.tsx": {
-    "mtime": 1789118207.8068614,
-    "seen": 1789189733.4581187,
-    "ast_hash": "4eb0ef401a60616bc1c38225c67cf369",
+    "mtime": 1789203277.1993754,
+    "seen": 1789230852.8137856,
+    "ast_hash": "1f85ece3eab1d56edbb1a219c5202b8e",
     "semantic_hash": ""
   },
   "apps/booth-app/components/ui/dialog.tsx": {
@@ -15744,9 +15744,9 @@
     "semantic_hash": ""
   },
   "apps/booth-app/components/ui/dropdown-menu.tsx": {
-    "mtime": 1789118207.9169085,
-    "seen": 1789189733.4581285,
-    "ast_hash": "d80589a0e40642d4d7096afe4a90cafe",
+    "mtime": 1789203260.302268,
+    "seen": 1789230852.8138576,
+    "ast_hash": "d3f5da499d3193df57c7b0d3a58b83e2",
     "semantic_hash": ""
   },
   "apps/booth-app/components/ui/hover-card.tsx": {
@@ -15756,15 +15756,15 @@
     "semantic_hash": ""
   },
   "apps/booth-app/components/ui/icon.tsx": {
-    "mtime": 1789118207.934908,
-    "seen": 1789189733.458135,
-    "ast_hash": "de3cb540c3d244d8297917ce8d6955f6",
+    "mtime": 1789190960.3997035,
+    "seen": 1789230852.8140342,
+    "ast_hash": "9243d89136dff619886b30d2afdc3fe2",
     "semantic_hash": ""
   },
   "apps/booth-app/components/ui/input.tsx": {
-    "mtime": 1789118207.9389122,
-    "seen": 1789189733.4581382,
-    "ast_hash": "9510c3c7aec90511bd2ebb09ef74c8d7",
+    "mtime": 1789199287.6305697,
+    "seen": 1789230852.8140361,
+    "ast_hash": "a3a0821da5d8299d601911494599a620",
     "semantic_hash": ""
   },
   "apps/booth-app/components/ui/label.tsx": {
@@ -15774,9 +15774,9 @@
     "semantic_hash": ""
   },
   "apps/booth-app/components/ui/menubar.tsx": {
-    "mtime": 1789118208.0579164,
-    "seen": 1789189733.4581447,
-    "ast_hash": "664e64b651fe54d668c05bea9a6c36ff",
+    "mtime": 1789203267.5983403,
+    "seen": 1789230852.8142056,
+    "ast_hash": "929cbcef991e23a161312187bd17f3bc",
     "semantic_hash": ""
   },
   "apps/booth-app/components/ui/native-only-animated-view.tsx": {
@@ -15798,15 +15798,15 @@
     "semantic_hash": ""
   },
   "apps/booth-app/components/ui/radio-group.tsx": {
-    "mtime": 1789118208.0989072,
-    "seen": 1789189733.4581563,
-    "ast_hash": "3ae1041eea1a6e19c9cbe37a706447a1",
+    "mtime": 1789203286.2302132,
+    "seen": 1789230852.8144534,
+    "ast_hash": "d28718287b2e412860ea0d90ca6d2fbf",
     "semantic_hash": ""
   },
   "apps/booth-app/components/ui/select.tsx": {
-    "mtime": 1789118208.168909,
-    "seen": 1789189733.4581585,
-    "ast_hash": "29c39c6932ce19c42ce08a5bc33e3190",
+    "mtime": 1789203294.143759,
+    "seen": 1789230852.8144546,
+    "ast_hash": "d9e6d5210c2593a1981fa297458e94a3",
     "semantic_hash": ""
   },
   "apps/booth-app/components/ui/separator.tsx": {
@@ -15816,21 +15816,21 @@
     "semantic_hash": ""
   },
   "apps/booth-app/components/ui/skeleton.tsx": {
-    "mtime": 1789118208.1809304,
-    "seen": 1789189733.4581642,
-    "ast_hash": "2a17336d845b8860b7f84fadb103641b",
+    "mtime": 1789204079.7619028,
+    "seen": 1789230852.8145247,
+    "ast_hash": "f0697245c099974db5ca646e3dd96c7f",
     "semantic_hash": ""
   },
   "apps/booth-app/components/ui/switch.tsx": {
-    "mtime": 1789118208.187904,
-    "seen": 1789189733.4581668,
-    "ast_hash": "f5cd03c8041d0646b0607b2433985b80",
+    "mtime": 1789203302.1010733,
+    "seen": 1789230852.8145266,
+    "ast_hash": "f711ad608283ebacf617cf65408bd80c",
     "semantic_hash": ""
   },
   "apps/booth-app/components/ui/tabs.tsx": {
-    "mtime": 1789118208.201905,
-    "seen": 1789189733.4581695,
-    "ast_hash": "42b35ef2ece02f1c167d6711a9b06f3f",
+    "mtime": 1789203310.828892,
+    "seen": 1789230852.8145282,
+    "ast_hash": "62a86b7503c019582b3017ef8e732134",
     "semantic_hash": ""
   },
   "apps/booth-app/components/ui/text.tsx": {
@@ -15840,21 +15840,21 @@
     "semantic_hash": ""
   },
   "apps/booth-app/components/ui/textarea.tsx": {
-    "mtime": 1789118208.2209132,
-    "seen": 1789189733.4581747,
-    "ast_hash": "04fd959cffd4d73e5a5b776da5981804",
+    "mtime": 1789203318.9807837,
+    "seen": 1789230852.8145971,
+    "ast_hash": "79adfa45c73d43b3607fb97dc240e641",
     "semantic_hash": ""
   },
   "apps/booth-app/components/ui/toggle-group.tsx": {
-    "mtime": 1789118208.2399073,
-    "seen": 1789189733.4581773,
-    "ast_hash": "81f5628644441f811cfacc6b8099acd3",
+    "mtime": 1789190965.5166996,
+    "seen": 1789230852.8145986,
+    "ast_hash": "43d7e11b6745be3023df3786aa3154af",
     "semantic_hash": ""
   },
   "apps/booth-app/components/ui/toggle.tsx": {
-    "mtime": 1789118208.2479086,
-    "seen": 1789189733.4581804,
-    "ast_hash": "5b0fd1cd78ab3fc52dd1e680f0d9369a",
+    "mtime": 1789203327.0696938,
+    "seen": 1789230852.8146002,
+    "ast_hash": "75f83e1973cc381661471157d26f0b29",
     "semantic_hash": ""
   },
   "apps/booth-app/components/ui/tooltip.tsx": {
@@ -15864,15 +15864,15 @@
     "semantic_hash": ""
   },
   "apps/booth-app/constants/theme.ts": {
-    "mtime": 1788966510.9475718,
-    "seen": 1789189733.4581854,
-    "ast_hash": "1a02dccd819836f89e36a7c6690d3d11",
+    "mtime": 1789229569.1179082,
+    "seen": 1789230852.814669,
+    "ast_hash": "2cbc368586643486a35ad7c62a40ca8a",
     "semantic_hash": ""
   },
   "apps/booth-app/constants/ui-colors.ts": {
-    "mtime": 1788966344.2696545,
-    "seen": 1789189733.4581883,
-    "ast_hash": "0cd2c37426946b7ca741b2769811279c",
+    "mtime": 1789226274.545774,
+    "seen": 1789230852.8146703,
+    "ast_hash": "714d2bd4cc5a99d950c20f72eade15fc",
     "semantic_hash": ""
   },
   "apps/booth-app/eas.json": {
@@ -15882,8 +15882,8 @@
     "semantic_hash": ""
   },
   "apps/booth-app/expo-env.d.ts": {
-    "mtime": 1789138810.927701,
-    "seen": 1789189733.458193,
+    "mtime": 1789203592.107048,
+    "seen": 1789230852.8147416,
     "ast_hash": "0dd9dccdb4b08595bc83df70d6a154d3",
     "semantic_hash": ""
   },
@@ -15894,9 +15894,9 @@
     "semantic_hash": ""
   },
   "apps/booth-app/hooks/use-load-fonts.ts": {
-    "mtime": 1788971409.455757,
-    "seen": 1789189733.458198,
-    "ast_hash": "8c11fc642fce3abb0015d85f25d21c61",
+    "mtime": 1789226280.1322098,
+    "seen": 1789230852.8148196,
+    "ast_hash": "cc6ef0d5911eaa3423825c0e14348c83",
     "semantic_hash": ""
   },
   "apps/booth-app/hooks/use-network-status.ts": {
@@ -15912,15 +15912,15 @@
     "semantic_hash": ""
   },
   "apps/booth-app/lib/bluetooth-print.ts": {
-    "mtime": 1788914718.3593628,
-    "seen": 1789189733.4582057,
-    "ast_hash": "f9ad671b2cf082b6005d5e9d8418a5af",
+    "mtime": 1789199059.2022812,
+    "seen": 1789230852.814961,
+    "ast_hash": "f0dda3391c1d3ff351edede2bcf7ec94",
     "semantic_hash": ""
   },
   "apps/booth-app/lib/haptics.ts": {
-    "mtime": 1788797324.9634178,
-    "seen": 1789189733.4582083,
-    "ast_hash": "3aa9e9b2512c3e2a7c25db7da8f05472",
+    "mtime": 1789197386.9499636,
+    "seen": 1789230852.814962,
+    "ast_hash": "a9c3d5e3b2940bef29d5ba928d040020",
     "semantic_hash": ""
   },
   "apps/booth-app/lib/i18n.ts": {
@@ -15930,9 +15930,9 @@
     "semantic_hash": ""
   },
   "apps/booth-app/lib/offline-sync.ts": {
-    "mtime": 1789186678.1599402,
-    "seen": 1789189733.458213,
-    "ast_hash": "31d4ff1bd5e7c6fc476e93fd24898ff0",
+    "mtime": 1789199046.3038142,
+    "seen": 1789230852.8150299,
+    "ast_hash": "d2be2f2fa925199807b7d73d91965752",
     "semantic_hash": ""
   },
   "apps/booth-app/lib/theme.ts": {
@@ -15996,27 +15996,27 @@
     "semantic_hash": ""
   },
   "apps/booth-app/stores/hold-pool.ts": {
-    "mtime": 1788881234.5122442,
-    "seen": 1789189733.4582415,
-    "ast_hash": "f709e04235ee68c8f93e5b49121bdd71",
+    "mtime": 1789198408.0546913,
+    "seen": 1789230852.815711,
+    "ast_hash": "05ebbd404ae7d79563060f3fe03309d7",
     "semantic_hash": ""
   },
   "apps/booth-app/stores/offline-queue.ts": {
-    "mtime": 1788879610.1575048,
-    "seen": 1789189733.458245,
-    "ast_hash": "38b75ec89fba8f02cd221636254800f3",
+    "mtime": 1789199021.6553097,
+    "seen": 1789230852.8157127,
+    "ast_hash": "ffb9cc3128fcd6382e3545af4531d375",
     "semantic_hash": ""
   },
   "apps/booth-app/stores/sell-session.ts": {
-    "mtime": 1788826996.4198601,
-    "seen": 1789189733.458248,
-    "ast_hash": "045f14ea1d90a8bcced0bf7c74a3b76d",
+    "mtime": 1789198393.7866797,
+    "seen": 1789230852.8157141,
+    "ast_hash": "163203127c7f0e551a09bf202b9f30c6",
     "semantic_hash": ""
   },
   "apps/booth-app/stores/session.ts": {
-    "mtime": 1789151735.305021,
-    "seen": 1789189733.4582515,
-    "ast_hash": "c880e4da85a3e368280280e891dd0a3e",
+    "mtime": 1789198382.2450614,
+    "seen": 1789230852.815715,
+    "ast_hash": "202db8907f78a19ba969070abad26c82",
     "semantic_hash": ""
   },
   "apps/booth-app/tsconfig.json": {
@@ -16086,9 +16086,9 @@
     "semantic_hash": ""
   },
   "apps/booth-app/context/ui-registry.md": {
-    "mtime": 1788795750.9544814,
-    "seen": 1789189734.514005,
-    "ast_hash": "c33cbe07a2614838d04a316a2d1ad36f",
+    "mtime": 1789203342.562604,
+    "seen": 1789230852.9804208,
+    "ast_hash": "b71806df44264c6aa9f4ecad2a66bf66",
     "semantic_hash": ""
   },
   "context/audits/booth-ecosystem-audit/01-system-map-and-architecture.md": {
@@ -16347,6 +16347,516 @@
     "mtime": 1789119568.3548992,
     "seen": 1789189734.6299226,
     "ast_hash": "be835dbcb2ae7f46f6f8fb97cdfd029c",
+    "semantic_hash": ""
+  },
+  "apps/booth-app/features/auth/components/auth-button.tsx": {
+    "mtime": 1789229687.211908,
+    "seen": 1789230852.8147428,
+    "ast_hash": "d9af3c8ba62f15d086223cd288464826",
+    "semantic_hash": ""
+  },
+  "apps/booth-app/features/auth/components/auth-field.tsx": {
+    "mtime": 1789229687.2129016,
+    "seen": 1789230852.8147445,
+    "ast_hash": "dcb7bcd1a52667ded34006e4edebf00e",
+    "semantic_hash": ""
+  },
+  "apps/booth-app/features/auth/components/auth-shell.tsx": {
+    "mtime": 1789194306.6083617,
+    "seen": 1789230852.8147466,
+    "ast_hash": "6cd34a86252ec5000e8f47ceee3821f9",
+    "semantic_hash": ""
+  },
+  "context/audits/scripts/generate-booth-audits.cjs": {
+    "mtime": 1789196925.3661966,
+    "seen": 1789230852.914919,
+    "ast_hash": "a3352148060069625df1e04a1bdd7f56",
+    "semantic_hash": ""
+  },
+  "context/audits/scripts/generate_all_final_audits.cjs": {
+    "mtime": 1789224387.0655203,
+    "seen": 1789230852.914921,
+    "ast_hash": "d022b85ad326b9b981ee0869a681f023",
+    "semantic_hash": ""
+  },
+  "context/audits/scripts/update_phase3_audits.cjs": {
+    "mtime": 1789222176.2243013,
+    "seen": 1789230852.9150617,
+    "ast_hash": "b07f716547d0c89713ea8d5d909fb17b",
+    "semantic_hash": ""
+  },
+  "context/audits/scripts/update_phase4_audits.cjs": {
+    "mtime": 1789223404.328182,
+    "seen": 1789230852.9151483,
+    "ast_hash": "39756a69d7b96e0b347580c71973b2c6",
+    "semantic_hash": ""
+  },
+  "context/audits/scripts/update_phase5_to_9_audits.cjs": {
+    "mtime": 1789224318.022676,
+    "seen": 1789230852.9151502,
+    "ast_hash": "34dfd42d0b69e4354e090b26df3e8542",
+    "semantic_hash": ""
+  },
+  "context/audits/scripts/update_tracker.cjs": {
+    "mtime": 1789225272.893124,
+    "seen": 1789230852.9151511,
+    "ast_hash": "5723dedf60f5d00f91ba39b18f1cf01b",
+    "semantic_hash": ""
+  },
+  "context/audits/scripts/verify_all_audits.cjs": {
+    "mtime": 1789225307.0368686,
+    "seen": 1789230852.9153113,
+    "ast_hash": "56000b342532352b0f78f95f6f2ddd04",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app-tracker.md": {
+    "mtime": 1789225302.2744267,
+    "seen": 1789230852.9832788,
+    "ast_hash": "6bb51a68614ea9c0c758fbe1a756f706",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/app/(auth)/_layout.md": {
+    "mtime": 1789225230.0785108,
+    "seen": 1789230852.9832807,
+    "ast_hash": "28db6cfe0ef3c4c5ed9eca98b71c9d1b",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/app/(auth)/login.md": {
+    "mtime": 1789225230.0804489,
+    "seen": 1789230852.9832828,
+    "ast_hash": "f73941cb431afe4fedfb2697ddae3a6a",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/app/(tabs)/_layout.md": {
+    "mtime": 1789225237.4922523,
+    "seen": 1789230852.9832842,
+    "ast_hash": "dd18930fb027c28140f0c944bd8cafc8",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/app/(tabs)/bookings.md": {
+    "mtime": 1789225237.4922523,
+    "seen": 1789230852.983285,
+    "ast_hash": "4eb26f984410fd103db4087cd881c56c",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/app/(tabs)/checkin.md": {
+    "mtime": 1789225237.4922523,
+    "seen": 1789230852.9832864,
+    "ast_hash": "e4d23b574f0f531cff82b26247f7008a",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/app/(tabs)/index.md": {
+    "mtime": 1789225237.4922523,
+    "seen": 1789230852.9832878,
+    "ast_hash": "7eaa131025142eee9df470b899c86014",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/app/(tabs)/profile.md": {
+    "mtime": 1789225237.493777,
+    "seen": 1789230852.983289,
+    "ast_hash": "2334ff22da43d2afd1529288319f440d",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/app/_layout.md": {
+    "mtime": 1789225237.4878638,
+    "seen": 1789230852.9832902,
+    "ast_hash": "1e0c561229706387c85c0ce3d237ff02",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/app/index.md": {
+    "mtime": 1789225237.4912286,
+    "seen": 1789230852.9832911,
+    "ast_hash": "da8cac1bed1e3c08c7517aed6631646e",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/app/reconcile.md": {
+    "mtime": 1789225237.5026042,
+    "seen": 1789230852.9832923,
+    "ast_hash": "3cda541a54b1fda8b0819ee07f0b18d2",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/app/sell/[tripId].md": {
+    "mtime": 1789225237.495863,
+    "seen": 1789230852.9832938,
+    "ast_hash": "83697e525995f83737f99f9f04492caf",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/app/sell/_layout.md": {
+    "mtime": 1789225237.494848,
+    "seen": 1789230852.9832945,
+    "ast_hash": "a6c1ff9c0ea9de8f321ccb0d67191028",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/app/sell/confirmation.md": {
+    "mtime": 1789225237.498651,
+    "seen": 1789230852.9832952,
+    "ast_hash": "898bcb7242773b37bc39cbfd74f27be8",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/app/sell/passenger.md": {
+    "mtime": 1789225237.4968765,
+    "seen": 1789230852.9832964,
+    "ast_hash": "9915a8ba76c5dc819c8c7d27d441153d",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/app/sell/payment.md": {
+    "mtime": 1789225237.497641,
+    "seen": 1789230852.983298,
+    "ast_hash": "3d9787cff00e517b482651f00b92faae",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/app/terminal-select.md": {
+    "mtime": 1789225237.4917338,
+    "seen": 1789230852.983299,
+    "ast_hash": "0f0e4bbe606818f18adb6947527ad1fe",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/offline-banner.md": {
+    "mtime": 1789225230.0816033,
+    "seen": 1789230852.9833002,
+    "ast_hash": "e8b448539f03749231ce2dc77ddf532f",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/paystack-qr.md": {
+    "mtime": 1789225230.0832944,
+    "seen": 1789230852.983301,
+    "ast_hash": "38e1dbc4a491d22d5c9143b9f33c115f",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/seat-map.md": {
+    "mtime": 1789225230.0843873,
+    "seen": 1789230852.9833019,
+    "ast_hash": "2cb42e243ba5122a5156ebc742035596",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/accordion.md": {
+    "mtime": 1789222964.6336231,
+    "seen": 1789230852.9833026,
+    "ast_hash": "bac39f4e2a3f89f10c30aa7eb638d20f",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/alert-dialog.md": {
+    "mtime": 1789222964.6346183,
+    "seen": 1789230852.9833043,
+    "ast_hash": "326f3cf4015d6ffd1e574310a5d53e14",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/alert.md": {
+    "mtime": 1789222964.6346183,
+    "seen": 1789230852.983305,
+    "ast_hash": "761a8df1b273d251d36f94628f4dbcae",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/aspect-ratio.md": {
+    "mtime": 1789222964.6356199,
+    "seen": 1789230852.9833057,
+    "ast_hash": "29333aca8858489acb55bae91090097e",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/avatar.md": {
+    "mtime": 1789222964.6356199,
+    "seen": 1789230852.9833066,
+    "ast_hash": "0b38759feb1ec1f3f319baed20b6169d",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/badge.md": {
+    "mtime": 1789222964.6306856,
+    "seen": 1789230852.9833076,
+    "ast_hash": "70e054fe86a62c1686341e365d264cb8",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/button.md": {
+    "mtime": 1789222964.6296926,
+    "seen": 1789230852.9833093,
+    "ast_hash": "fa08c2987a7dca172c9578612f2de83a",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/card.md": {
+    "mtime": 1789222964.6306856,
+    "seen": 1789230852.9833107,
+    "ast_hash": "df67b68f4b62f49a6bda75754b204fef",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/checkbox.md": {
+    "mtime": 1789222964.6362371,
+    "seen": 1789230852.9833112,
+    "ast_hash": "31161677b701eacc845f9f1b4e361ea6",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/collapsible.md": {
+    "mtime": 1789222964.6362371,
+    "seen": 1789230852.983312,
+    "ast_hash": "c061bdb8c8666fe8f8429b4d8d280470",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/context-menu.md": {
+    "mtime": 1789222964.6387744,
+    "seen": 1789230852.9833126,
+    "ast_hash": "5ad62f0223afe3fa76db07bec1d3c3ef",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/dialog.md": {
+    "mtime": 1789222964.639284,
+    "seen": 1789230852.9833143,
+    "ast_hash": "296522f4da0f1f358745d5901529ba16",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/dropdown-menu.md": {
+    "mtime": 1789222964.6398134,
+    "seen": 1789230852.983315,
+    "ast_hash": "49a3f02149eefc5d67b3c2f3d85d2b75",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/hover-card.md": {
+    "mtime": 1789222964.640335,
+    "seen": 1789230852.9833155,
+    "ast_hash": "afadf0f32ccf0f6e4b5a6ebf3566993e",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/icon.md": {
+    "mtime": 1789222964.640863,
+    "seen": 1789230852.9833167,
+    "ast_hash": "4a47596c405e0c0a6d8cc2facdd09aec",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/input.md": {
+    "mtime": 1789222964.6306856,
+    "seen": 1789230852.9833176,
+    "ast_hash": "2a312cfce62487ae56fc6e3449eb12e0",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/label.md": {
+    "mtime": 1789222964.6413925,
+    "seen": 1789230852.9833186,
+    "ast_hash": "af962468b7b6924a1f09ad6ce10f054b",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/menubar.md": {
+    "mtime": 1789222964.642435,
+    "seen": 1789230852.983319,
+    "ast_hash": "26b12dfc9b47b617b85db6dbc791af7b",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/native-only-animated-view.md": {
+    "mtime": 1789222964.642435,
+    "seen": 1789230852.98332,
+    "ast_hash": "e23d0a6c0ce6fb8ffd05a239e43d1652",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/popover.md": {
+    "mtime": 1789222964.6429768,
+    "seen": 1789230852.9833205,
+    "ast_hash": "da7a0ec6d899e9333e8911772e86a5c4",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/progress.md": {
+    "mtime": 1789222964.643497,
+    "seen": 1789230852.9833217,
+    "ast_hash": "1a0160e47ec1e00d81bbc07ec54e68e8",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/radio-group.md": {
+    "mtime": 1789222964.6440387,
+    "seen": 1789230852.9833226,
+    "ast_hash": "e0095d6ddfdaba7800fb17413dc36c59",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/select.md": {
+    "mtime": 1789222964.6440387,
+    "seen": 1789230852.9833233,
+    "ast_hash": "43b1e7cf4b4f81a04287dd2cfef834b6",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/separator.md": {
+    "mtime": 1789222964.6336231,
+    "seen": 1789230852.983324,
+    "ast_hash": "0a38129f56508e4e4f666d818b05327f",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/skeleton.md": {
+    "mtime": 1789222964.6326087,
+    "seen": 1789230852.9833248,
+    "ast_hash": "cfc0c12712ff46a800a5bc924a68cbde",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/switch.md": {
+    "mtime": 1789222964.6445737,
+    "seen": 1789230852.9833262,
+    "ast_hash": "1afdd7d662180a931494738ab621a68d",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/tabs.md": {
+    "mtime": 1789222964.6451058,
+    "seen": 1789230852.9833276,
+    "ast_hash": "6133b99f87dd879b80ea3ba416469893",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/text.md": {
+    "mtime": 1789222964.6296926,
+    "seen": 1789230852.983329,
+    "ast_hash": "e5575c074d21d062e90a54c4385568ee",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/textarea.md": {
+    "mtime": 1789222964.6451058,
+    "seen": 1789230852.98333,
+    "ast_hash": "77d9229542d288cfcdcbdc7ade4377b3",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/toggle-group.md": {
+    "mtime": 1789222964.6456573,
+    "seen": 1789230852.9833307,
+    "ast_hash": "1cdcb254ccbd06be008639f3bbfe24ed",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/toggle.md": {
+    "mtime": 1789222964.6456573,
+    "seen": 1789230852.9833314,
+    "ast_hash": "894ea65fe8d749aecc4f8eb920629c0e",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/components/ui/tooltip.md": {
+    "mtime": 1789222964.6462183,
+    "seen": 1789230852.9833322,
+    "ast_hash": "134f8df765ca36a749af853bd05a387f",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/constants/theme.md": {
+    "mtime": 1789221336.521845,
+    "seen": 1789230852.983333,
+    "ast_hash": "872e9700f89be3b2d06d20fc82ba7ee4",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/constants/ui-colors.md": {
+    "mtime": 1789221336.521845,
+    "seen": 1789230852.9833338,
+    "ast_hash": "dd54bbd73e8b1fa3581bf0d8fb2c6c9b",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/env/expo-env.md": {
+    "mtime": 1789221336.521845,
+    "seen": 1789230852.9833343,
+    "ast_hash": "7b23c5455a290b6814d2679b53d741ff",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/env/nativewind-env.md": {
+    "mtime": 1789221336.521845,
+    "seen": 1789230852.983335,
+    "ast_hash": "62c219ee1f8eca47a0460a5e75780d22",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/features/auth/auth-button.md": {
+    "mtime": 1789225230.0756156,
+    "seen": 1789230852.9833367,
+    "ast_hash": "5c7598adb44d56d2866c4a4784d6d147",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/features/auth/auth-field.md": {
+    "mtime": 1789225230.0739613,
+    "seen": 1789230852.9833384,
+    "ast_hash": "1375fdae52a19b0ae5f44c995a05daef",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/features/auth/auth-shell.md": {
+    "mtime": 1789225230.077399,
+    "seen": 1789230852.9833395,
+    "ast_hash": "3cd1c69c5ba7bc32c6e8127b00b78d85",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/hooks/use-hold-pool.md": {
+    "mtime": 1789223481.3965502,
+    "seen": 1789230852.9833403,
+    "ast_hash": "0bcc64b894d52daf1efa319db04e774a",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/hooks/use-load-fonts.md": {
+    "mtime": 1789221850.9955149,
+    "seen": 1789230852.9833407,
+    "ast_hash": "5742cec39904f915a7e17b6539aca271",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/hooks/use-network-status.md": {
+    "mtime": 1789221850.9965122,
+    "seen": 1789230852.983342,
+    "ast_hash": "90c557fe0e73abbb5095fd9af7b58517",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/lib/auth-client.md": {
+    "mtime": 1789221850.9975429,
+    "seen": 1789230852.9833424,
+    "ast_hash": "7226fb330138641cef092d22323540b7",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/lib/bluetooth-print.md": {
+    "mtime": 1789221850.9985132,
+    "seen": 1789230852.9833431,
+    "ast_hash": "4f1704fe8cd2a7d0f6b6856a523457bf",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/lib/haptics.md": {
+    "mtime": 1789221850.9965122,
+    "seen": 1789230852.983344,
+    "ast_hash": "bfc35193685c3cf4df1fd23d8472afd2",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/lib/i18n.md": {
+    "mtime": 1789221850.9965122,
+    "seen": 1789230852.9833453,
+    "ast_hash": "1ac7b42bf9a24994fe6972bdfa7fc3ca",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/lib/offline-sync.md": {
+    "mtime": 1789221850.9985132,
+    "seen": 1789230852.9833465,
+    "ast_hash": "76e65c54698d97e2b3ff98c63ed44da1",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/lib/theme.md": {
+    "mtime": 1789221336.521845,
+    "seen": 1789230852.9833474,
+    "ast_hash": "37692201475df92cb4859ecaf1b2affc",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/lib/trpc.md": {
+    "mtime": 1789221850.9975429,
+    "seen": 1789230852.9833481,
+    "ast_hash": "b6d01113790be2ed64e407dfc12be965",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/lib/utils.md": {
+    "mtime": 1789221336.521845,
+    "seen": 1789230852.98335,
+    "ast_hash": "b1954fb6c5fc38333f740510628703b6",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/stores/hold-pool.md": {
+    "mtime": 1789223481.3955498,
+    "seen": 1789230852.9833505,
+    "ast_hash": "8338fec6f10b6efedecc6e2ec671d8a3",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/stores/offline-queue.md": {
+    "mtime": 1789223481.3955498,
+    "seen": 1789230852.9833515,
+    "ast_hash": "37b6065788d6cce0e6003e9fc282064c",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/stores/sell-session.md": {
+    "mtime": 1789223481.3955498,
+    "seen": 1789230852.9833527,
+    "ast_hash": "8f560b1c7ae5927d20a15e6d2ab6ffa9",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/stores/session.md": {
+    "mtime": 1789223481.3955498,
+    "seen": 1789230852.9833536,
+    "ast_hash": "24a420b374ef77cc4a222a8715757efb",
+    "semantic_hash": ""
+  },
+  "context/audits/booth-app/tests/i18n-parity.test.md": {
+    "mtime": 1789225237.5046842,
+    "seen": 1789230852.9833546,
+    "ast_hash": "a46b16f7bc72a7b461e3f7180233126f",
     "semantic_hash": ""
   }
 }

@@ -1,26 +1,28 @@
-import { TRPCError } from "@trpc/server";
-import { z } from "zod";
-import { createTRPCRouter, operatorCompanyProcedure } from "../init";
+import type { PrismaClient } from "@moja/db";
 import {
+  addFareSchema,
   createScheduleSchema,
-  updateScheduleBasicSchema,
+  exceptionSchema,
+  type FareType,
+  listSchedulesSchema,
   updateCalendarSchema,
   updateFareSchema,
-  addFareSchema,
-  exceptionSchema,
-  listSchedulesSchema,
-  type FareType,
+  updateScheduleBasicSchema,
 } from "@moja/schemas";
-import { generateTripsForSchedule } from "@/lib/trip-generator";
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+import { cancelTripWithRefunds } from "@/lib/cancel-trip-with-refunds";
+import { stringifyCsv } from "@/lib/csv/parser";
+import { SCHEDULES_CSV_TEMPLATE } from "@/lib/csv/templates";
+import { requirePermission } from "@/lib/permissions/authorize";
+import { getCandidateDepartureDates } from "@/lib/schedule-trip-window";
 import {
-  buildAppDepartureTimestamp,
   addAppCalendarDays,
+  buildAppDepartureTimestamp,
   startOfAppCalendarDay,
 } from "@/lib/timezone";
-import { requirePermission } from "@/lib/permissions/authorize";
-import { cancelTripWithRefunds } from "@/lib/cancel-trip-with-refunds";
-import { getCandidateDepartureDates } from "@/lib/schedule-trip-window";
-import type { PrismaClient } from "@moja/db";
+import { generateTripsForSchedule } from "@/lib/trip-generator";
+import { createTRPCRouter, operatorCompanyProcedure } from "../init";
 
 /**
  * Compute ScheduleWaypoint records from adjacent fare durations + route waypoints.
@@ -447,6 +449,85 @@ async function assertNoFareOverlap(
       });
     }
   }
+}
+
+function parseOperatingDays(raw?: string | null): {
+  monday: boolean;
+  tuesday: boolean;
+  wednesday: boolean;
+  thursday: boolean;
+  friday: boolean;
+  saturday: boolean;
+  sunday: boolean;
+} {
+  const allDays = {
+    monday: true,
+    tuesday: true,
+    wednesday: true,
+    thursday: true,
+    friday: true,
+    saturday: true,
+    sunday: true,
+  };
+
+  if (!raw || !raw.trim()) {
+    return allDays;
+  }
+
+  const normalized = raw.trim().toUpperCase();
+  if (normalized === "DAILY" || normalized === "TOUS LES JOURS") {
+    return allDays;
+  }
+  if (normalized === "WEEKDAYS" || normalized === "SEMAINE") {
+    return {
+      monday: true,
+      tuesday: true,
+      wednesday: true,
+      thursday: true,
+      friday: true,
+      saturday: false,
+      sunday: false,
+    };
+  }
+  if (normalized === "WEEKENDS" || normalized === "WEEKEND") {
+    return {
+      monday: false,
+      tuesday: false,
+      wednesday: false,
+      thursday: false,
+      friday: false,
+      saturday: true,
+      sunday: true,
+    };
+  }
+
+  const tokens = normalized.split(/[,;|/\s]+/).map((t) => t.trim());
+  const res = {
+    monday: false,
+    tuesday: false,
+    wednesday: false,
+    thursday: false,
+    friday: false,
+    saturday: false,
+    sunday: false,
+  };
+
+  for (const token of tokens) {
+    if (token.startsWith("LUN") || token.startsWith("MON")) res.monday = true;
+    if (token.startsWith("MAR") || token.startsWith("TUE")) res.tuesday = true;
+    if (token.startsWith("MER") || token.startsWith("WED"))
+      res.wednesday = true;
+    if (token.startsWith("JEU") || token.startsWith("THU")) res.thursday = true;
+    if (token.startsWith("VEN") || token.startsWith("FRI")) res.friday = true;
+    if (token.startsWith("SAM") || token.startsWith("SAT")) res.saturday = true;
+    if (token.startsWith("DIM") || token.startsWith("SUN")) res.sunday = true;
+  }
+
+  if (!Object.values(res).some(Boolean)) {
+    return allDays;
+  }
+
+  return res;
 }
 
 export const schedulesRouter = createTRPCRouter({
@@ -1720,5 +1801,280 @@ export const schedulesRouter = createTRPCRouter({
       }
 
       return { success: true };
+    }),
+
+  exportCsv: operatorCompanyProcedure.query(async ({ ctx }) => {
+    requirePermission(ctx, "schedules:read");
+
+    const schedules = await ctx.prisma.schedule.findMany({
+      where: { companyId: ctx.companyId, isActive: true },
+      include: {
+        route: true,
+        calendar: true,
+        preferredBus: true,
+        fares: {
+          where: { fromStopOrder: 0, isActive: true },
+          orderBy: { toStopOrder: "desc" },
+          take: 1,
+        },
+      },
+      orderBy: [{ route: { name: "asc" } }, { departureTime: "asc" }],
+    });
+
+    const headers = SCHEDULES_CSV_TEMPLATE.columns.map((c) => c.label);
+    const rows = schedules.map((s) => {
+      const days = [];
+      if (s.calendar?.monday) days.push("Mon");
+      if (s.calendar?.tuesday) days.push("Tue");
+      if (s.calendar?.wednesday) days.push("Wed");
+      if (s.calendar?.thursday) days.push("Thu");
+      if (s.calendar?.friday) days.push("Fri");
+      if (s.calendar?.saturday) days.push("Sat");
+      if (s.calendar?.sunday) days.push("Sun");
+      const daysStr = days.length === 7 ? "DAILY" : days.join(",");
+
+      const primaryFare = s.fares[0];
+
+      return [
+        s.route.name,
+        s.departureTime,
+        daysStr,
+        primaryFare?.priceXOF ?? "",
+        primaryFare?.durationMinutes ?? s.estimatedMinutes ?? 180,
+        s.preferredBus?.registrationPlate ?? "",
+        s.name ?? "",
+      ];
+    });
+
+    const csv = stringifyCsv(headers, rows);
+    const dateStr = new Date().toISOString().slice(0, 10);
+    return {
+      filename: `schedules-${dateStr}.csv`,
+      csv,
+      count: schedules.length,
+    };
+  }),
+
+  batchImport: operatorCompanyProcedure
+    .input(
+      z.object({
+        upsert: z.boolean().default(false),
+        records: z.array(
+          z.object({
+            routeName: z.string().min(1, "Route name is required"),
+            departureTime: z
+              .string()
+              .regex(
+                /^([01]\d|2[0-3]):([0-5]\d)$/,
+                "Departure time must be in HH:mm format",
+              ),
+            operatingDays: z.string().optional().nullable(),
+            baseFareXOF: z
+              .number()
+              .int()
+              .min(1, "Base fare must be at least 1 XOF"),
+            durationMinutes: z
+              .number()
+              .int()
+              .min(1, "Duration must be at least 1 minute"),
+            preferredBusPlate: z.string().optional().nullable(),
+            scheduleName: z.string().optional().nullable(),
+          }),
+        ),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "schedules:create");
+
+      return ctx.prisma.$transaction(async (tx) => {
+        const [routes, buses, existingSchedules] = await Promise.all([
+          tx.route.findMany({
+            where: { companyId: ctx.companyId, status: { not: "ARCHIVED" } },
+            include: { waypoints: { select: { stopOrder: true } } },
+          }),
+          tx.bus.findMany({
+            where: { companyId: ctx.companyId, deletedAt: null },
+            select: { id: true, registrationPlate: true },
+          }),
+          tx.schedule.findMany({
+            where: { companyId: ctx.companyId, isActive: true },
+            include: {
+              route: { select: { name: true } },
+              calendar: true,
+              fares: {
+                where: { fromStopOrder: 0, isActive: true },
+                orderBy: { toStopOrder: "desc" },
+                take: 1,
+              },
+            },
+          }),
+        ]);
+
+        const routeByName = new Map(
+          routes.map((r) => [r.name.toLowerCase().trim(), r]),
+        );
+        const busByPlate = new Map(
+          buses.map((b) => [b.registrationPlate.toLowerCase().trim(), b]),
+        );
+
+        const scheduleKey = (routeName: string, time: string) =>
+          `${routeName.toLowerCase().trim()}__${time.trim()}`;
+        const existingByKey = new Map(
+          existingSchedules.map((s) => [
+            scheduleKey(s.route.name, s.departureTime),
+            s,
+          ]),
+        );
+
+        let createdCount = 0;
+        let updatedCount = 0;
+        let skippedCount = 0;
+        const errors: Array<{ row: number; reason: string }> = [];
+        const today = new Date().toISOString().slice(0, 10);
+
+        for (let i = 0; i < input.records.length; i++) {
+          const rec = input.records[i];
+          if (!rec) continue;
+
+          const rowNum = i + 1;
+          const route = routeByName.get(rec.routeName.toLowerCase().trim());
+          if (!route) {
+            errors.push({
+              row: rowNum,
+              reason: `Route "${rec.routeName}" not found. Please import routes first.`,
+            });
+            continue;
+          }
+
+          let preferredBusId: string | null = null;
+          if (rec.preferredBusPlate?.trim()) {
+            const bus = busByPlate.get(
+              rec.preferredBusPlate.toLowerCase().trim(),
+            );
+            if (bus) {
+              preferredBusId = bus.id;
+            }
+          }
+
+          const calendarDays = parseOperatingDays(rec.operatingDays);
+          const toStopOrder =
+            route.waypoints.length > 0
+              ? Math.max(...route.waypoints.map((w) => w.stopOrder)) + 1
+              : 1;
+
+          const key = scheduleKey(rec.routeName, rec.departureTime);
+          const existing = existingByKey.get(key);
+
+          if (existing) {
+            if (input.upsert) {
+              await tx.schedule.update({
+                where: { id: existing.id },
+                data: {
+                  name: rec.scheduleName?.trim() ?? existing.name,
+                  estimatedMinutes: rec.durationMinutes,
+                  preferredBusId: preferredBusId ?? existing.preferredBusId,
+                  calendar: {
+                    upsert: {
+                      create: {
+                        ...calendarDays,
+                        validFrom: new Date(today),
+                        validUntil: null,
+                      },
+                      update: {
+                        ...calendarDays,
+                      },
+                    },
+                  },
+                },
+              });
+
+              if (existing.fares.length > 0) {
+                await tx.fare.update({
+                  where: { id: existing.fares[0]!.id },
+                  data: {
+                    priceXOF: rec.baseFareXOF,
+                    durationMinutes: rec.durationMinutes,
+                  },
+                });
+              } else {
+                await tx.fare.create({
+                  data: {
+                    scheduleId: existing.id,
+                    type: "FIXED",
+                    fromStopOrder: 0,
+                    toStopOrder,
+                    priceXOF: rec.baseFareXOF,
+                    durationMinutes: rec.durationMinutes,
+                    isActive: true,
+                  },
+                });
+              }
+
+              updatedCount++;
+            } else {
+              skippedCount++;
+            }
+          } else {
+            const newSchedule = await tx.schedule.create({
+              data: {
+                companyId: ctx.companyId,
+                routeId: route.id,
+                name: rec.scheduleName?.trim() ?? null,
+                departureTime: rec.departureTime.trim(),
+                departureTimes: [rec.departureTime.trim()],
+                estimatedMinutes: rec.durationMinutes,
+                preferredBusId,
+                isActive: true,
+                calendar: {
+                  create: {
+                    ...calendarDays,
+                    validFrom: new Date(today),
+                    validUntil: null,
+                  },
+                },
+                fares: {
+                  create: [
+                    {
+                      type: "FIXED",
+                      fromStopOrder: 0,
+                      toStopOrder,
+                      priceXOF: rec.baseFareXOF,
+                      durationMinutes: rec.durationMinutes,
+                      isActive: true,
+                    },
+                  ],
+                },
+              },
+            });
+
+            if (preferredBusId) {
+              try {
+                await generateTripsForSchedule(
+                  newSchedule.id,
+                  preferredBusId,
+                  14,
+                );
+              } catch (err) {
+                console.error(
+                  "Failed to generate trips for imported schedule:",
+                  err,
+                );
+              }
+            }
+
+            createdCount++;
+          }
+        }
+
+        return {
+          totalRows: input.records.length,
+          validRows: createdCount + updatedCount,
+          invalidRows: errors.length,
+          createdCount,
+          updatedCount,
+          skippedCount,
+          errors,
+        };
+      });
     }),
 });

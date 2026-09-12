@@ -51,7 +51,7 @@ export function SearchEmptyState({
         </View>
 
         {/* Section label */}
-        <Text className="text-[11px] font-black text-muted-foreground uppercase tracking-widest mb-3.5 px-5">
+        <Text className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-3.5 px-5">
           {t('popularRoutes')}
         </Text>
 
@@ -85,10 +85,10 @@ export function SearchEmptyState({
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center gap-1">
                   <HugeiconsIcon icon={Clock01Icon} size={10} color={IconColors.secondary} />
-                  <Text className="text-[11px] text-muted-foreground font-semibold">{route.duration}</Text>
+                  <Text className="text-xs text-muted-foreground font-semibold">{route.duration}</Text>
                 </View>
                 <View className="bg-success/10 rounded-lg px-2 py-0.5 border border-success/20">
-                  <Text className="text-[11px] font-extrabold text-success">
+                  <Text className="text-xs font-extrabold text-success">
                     {t('operators:fromPrice')} {route.fromXOF} XOF
                   </Text>
                 </View>
@@ -110,7 +110,7 @@ export function SearchEmptyState({
                 <Text className="text-sm font-extrabold text-card-foreground">{route.origin.text}</Text>
                 <View className="flex-row items-center gap-1 mt-0.5">
                   <HugeiconsIcon icon={Clock01Icon} size={10} color={IconColors.secondary} />
-                  <Text className="text-[11px] text-muted-foreground font-semibold">{route.duration}</Text>
+                  <Text className="text-xs text-muted-foreground font-semibold">{route.duration}</Text>
                 </View>
               </View>
 
@@ -124,7 +124,7 @@ export function SearchEmptyState({
               {/* Destination + price */}
               <View className="flex-1 items-end">
                 <Text className="text-sm font-extrabold text-card-foreground">{route.dest.text}</Text>
-                <Text className="text-[11px] text-success font-bold mt-0.5">
+                <Text className="text-xs text-success font-bold mt-0.5">
                   {route.fromXOF} XOF
                 </Text>
               </View>

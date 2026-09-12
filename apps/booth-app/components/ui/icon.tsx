@@ -5,35 +5,35 @@ import { TextClassContext } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
 
 export type IconProps = LucideProps & {
-	as: LucideIcon;
-	className?: string;
+  as: LucideIcon;
+  className?: string;
 } & React.RefAttributes<LucideIcon>;
 
 const StyledIcon = styled(function IconImpl({
-	as: IconComponent,
-	...props
+  as: IconComponent,
+  ...props
 }: {
-	as: LucideIcon;
-	className?: string;
+  as: LucideIcon;
+  className?: string;
 } & LucideProps) {
-	return <IconComponent {...props} />;
+  return <IconComponent {...props} />;
 });
 
 function Icon({
-	as: IconComponent,
-	className,
-	size = 14,
-	...props
+  as: IconComponent,
+  className,
+  size = 14,
+  ...props
 }: IconProps) {
-	const textClass = React.useContext(TextClassContext);
-	return (
-		<StyledIcon
-			as={IconComponent}
-			className={cn("text-foreground", textClass as string, className)}
-			size={size}
-			{...props}
-		/>
-	);
+  const textClass = React.useContext(TextClassContext);
+  return (
+    <StyledIcon
+      as={IconComponent}
+      className={cn("text-foreground", textClass as string, className)}
+      size={size}
+      {...props}
+    />
+  );
 }
 
 export { Icon };

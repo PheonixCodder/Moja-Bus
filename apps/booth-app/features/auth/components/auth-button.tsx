@@ -44,7 +44,7 @@ export function AuthButton({
           />
           <Text
             className={cn(
-              "text-[15px] font-bold",
+              "text-base font-bold",
               isSecondary ? "text-foreground" : "text-primary-foreground",
             )}
           >
@@ -54,7 +54,7 @@ export function AuthButton({
       ) : (
         <Text
           className={cn(
-            "text-[15px] font-bold",
+            "text-base font-bold",
             isSecondary ? "text-foreground" : "text-primary-foreground",
           )}
         >

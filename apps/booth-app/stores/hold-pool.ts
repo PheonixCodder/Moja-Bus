@@ -30,6 +30,8 @@ interface HoldPoolState {
 
   setPool: (tripId: string, holds: Omit<PoolHold, "consumed">[]) => void;
   consumeHold: (tripId: string, holdId: string) => void;
+  releaseHold: (tripId: string, holdId: string) => void;
+  pruneExpiredHolds: (tripId?: string) => void;
   getAvailableHolds: (tripId: string) => PoolHold[];
   getAvailableForTrip: (tripId: string) => PoolHold[];
   getConsumedHolds: (tripId: string) => PoolHold[];
@@ -73,13 +75,45 @@ export const useHoldPoolStore = create<HoldPoolState>()(
           };
         }),
 
+      releaseHold: (tripId, holdId) =>
+        set((state) => {
+          const pool = state.pools[tripId];
+          if (!pool) return state;
+          return {
+            pools: {
+              ...state.pools,
+              [tripId]: {
+                ...pool,
+                holds: pool.holds.map((h) =>
+                  h.holdId === holdId ? { ...h, consumed: false } : h,
+                ),
+              },
+            },
+          };
+        }),
+
+      pruneExpiredHolds: (tripId) =>
+        set((state) => {
+          const now = new Date();
+          const targetPools = tripId
+            ? { [tripId]: state.pools[tripId] }
+            : state.pools;
+
+          const updated: Record<string, TripHoldPool> = { ...state.pools };
+          for (const [id, pool] of Object.entries(targetPools)) {
+            if (!pool) continue;
+            updated[id] = {
+              ...pool,
+              holds: pool.holds.filter(
+                (h) => !h.consumed && new Date(h.expiresAt) > now,
+              ),
+            };
+          }
+          return { pools: updated };
+        }),
+
       getAvailableHolds: (tripId) => {
-        const pool = get().pools[tripId];
-        if (!pool) return [];
-        const now = new Date();
-        return pool.holds.filter(
-          (h) => !h.consumed && new Date(h.expiresAt) > now,
-        );
+        return get().getAvailableForTrip(tripId);
       },
 
       getAvailableForTrip: (tripId) => {

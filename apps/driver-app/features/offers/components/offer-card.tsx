@@ -102,7 +102,7 @@ export function OfferCard({
 						<Text className="text-sm font-extrabold text-foreground" numberOfLines={1}>
 							{item.carrierName}
 						</Text>
-						<Text className="text-[11px] text-muted-foreground">
+						<Text className="text-xs text-muted-foreground">
 							{t(`employment.${item.employmentType}` as any) ?? item.employmentType}
 						</Text>
 					</View>
@@ -114,28 +114,28 @@ export function OfferCard({
 			<View className="bg-background rounded-2xl border border-border p-3.5 gap-2.5">
 				<View className="flex-row items-center justify-between">
 					<View>
-						<Text className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{t("card.salary")}</Text>
+						<Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t("card.salary")}</Text>
 						<Text className="text-xl font-extrabold font-mono text-foreground tracking-tight">
 							{fmtSalary(item.offeredSalaryCFA, locale)}{" "}
-							<Text className="text-[11px] text-primary font-bold">{t("card.cfaMonthly")}</Text>
+							<Text className="text-xs text-primary font-bold">{t("card.cfaMonthly")}</Text>
 						</Text>
 					</View>
 					{countdown ? (
 						<View className="flex-row items-center gap-1 bg-warning/15 rounded-full px-2 py-1 border border-warning/30">
 							<HugeiconsIcon icon={Time02Icon} size={12} color={colors.semantic.warning} />
-							<Text className="text-[11px] font-bold text-warning">{countdown}</Text>
+							<Text className="text-xs font-bold text-warning">{countdown}</Text>
 						</View>
 					) : null}
 				</View>
 
 				{countered ? (
 					<View className="bg-info/10 rounded-xl border border-info/25 px-2.5 py-1.5 flex-row items-center justify-between">
-						<Text className="text-[11px] font-semibold text-info">
+						<Text className="text-xs font-semibold text-info">
 							{t("card.counterLabel")}
 						</Text>
 						<Text className="text-xs font-mono font-bold text-info">
 							{fmtSalary(item.counterSalaryCFA, locale)}{" "}
-							<Text className="text-[11px] text-info">{t("card.cfaMonthly")}</Text>
+							<Text className="text-xs text-info">{t("card.cfaMonthly")}</Text>
 						</Text>
 					</View>
 				) : null}
@@ -144,12 +144,12 @@ export function OfferCard({
 				<View className="border-t border-border pt-2 gap-1.5">
 					<View className="flex-row items-center gap-1.5">
 						<HugeiconsIcon icon={Calendar01Icon} size={13} color={colors.neutral.textMuted} />
-						<Text className="text-[11px] text-muted-foreground">
+						<Text className="text-xs text-muted-foreground">
 							{t("card.startDate", { date: fmtDate(item.contractStartDate, locale) })}
 						</Text>
 					</View>
 					{item.message ? (
-						<Text className="text-[11px] italic text-muted-foreground leading-4" numberOfLines={2}>
+						<Text className="text-xs italic text-muted-foreground leading-4" numberOfLines={2}>
 							{t("messageQuote", { message: item.message })}
 						</Text>
 					) : null}

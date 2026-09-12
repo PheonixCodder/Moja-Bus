@@ -38,7 +38,7 @@ export function ModeSwitcher({ mode, onModeChange }: ModeSwitcherProps) {
 					>
 						<Text
 							className={cn(
-								"text-[11px] font-bold",
+								"text-xs font-bold",
 								isSelected ? "text-primary-foreground" : "text-muted-foreground",
 							)}
 						>

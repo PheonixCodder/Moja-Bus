@@ -43,6 +43,10 @@ test("i18n key parity between en and fr", () => {
 
 test("fr.json contains zero corrupted mojibake characters", () => {
   const rawFr = JSON.stringify(fr);
-  assert.equal(rawFr.includes("\uFFFD"), false, "fr.json contains \\uFFFD replacement character");
+  assert.equal(
+    rawFr.includes("\uFFFD"),
+    false,
+    "fr.json contains \\uFFFD replacement character",
+  );
   assert.equal(rawFr.includes("Ǹ"), false, "fr.json contains Ǹ character");
 });

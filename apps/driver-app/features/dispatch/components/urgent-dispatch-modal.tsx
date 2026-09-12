@@ -111,7 +111,7 @@ export function UrgentDispatchModal({
 					<View className="flex-row items-center justify-between mb-4">
 						<View className="flex-row items-center gap-1.5 bg-warning/10 border border-warning/30 px-2.5 py-1.5 rounded-full">
 							<AlertTriangle size={16} color={colors.semantic.warning} />
-							<Text className="text-[11px] font-extrabold text-warning uppercase tracking-wider">{t("urgentDispatch")}</Text>
+							<Text className="text-xs font-extrabold text-warning uppercase tracking-wider">{t("urgentDispatch")}</Text>
 						</View>
 						<View className="w-8 h-8 rounded-full bg-primary items-center justify-center">
 							<Text className="text-xs font-black text-primary-foreground font-mono">{timeLeft}s</Text>
@@ -136,7 +136,7 @@ export function UrgentDispatchModal({
 							>
 								<Clock size={11} color={isImminent ? colors.semantic.error : colors.semantic.warning} />
 								<Text
-									className={`text-[11px] font-bold ${
+									className={`text-xs font-bold ${
 										isImminent ? "text-destructive" : "text-warning"
 									}`}
 								>

@@ -57,7 +57,7 @@ export function PassengerCard({
 								variant="outline"
 								className="border-primary/30 bg-primary/10 px-1.5 py-0.5"
 							>
-								<Text className="text-[11px] font-black text-primary tracking-wide uppercase">Me</Text>
+								<Text className="text-xs font-black text-primary tracking-wide uppercase">Me</Text>
 							</Badge>
 						)}
 					</View>

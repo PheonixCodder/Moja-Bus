@@ -30,16 +30,23 @@ import {
 import {
   Building,
   CheckCircle,
+  Download,
   Link2,
   MapPin,
   Navigation,
   Plus,
   Search,
+  Upload,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { parseAsBoolean, parseAsString, useQueryState } from "nuqs";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import {
+  CsvImportModal,
+  downloadCsvFile,
+  TERMINALS_CSV_TEMPLATE,
+} from "@/components/csv-importer";
 import { StatCard } from "@/features/operator/components/stat-card";
 import { TerminalEditorSheet } from "@/features/operator/components/terminals/terminal-editor-sheet";
 import { TerminalsTable } from "@/features/operator/components/terminals/terminals-table";
@@ -107,6 +114,31 @@ export function OperatorTerminalsView() {
         queryClient.invalidateQueries(trpc.terminals.list.pathFilter()),
     }),
   );
+
+  const [importModalOpen, setImportModalOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const batchImportMutation = useMutation(
+    trpc.terminals.batchImport.mutationOptions({
+      onSuccess: () =>
+        queryClient.invalidateQueries(trpc.terminals.list.pathFilter()),
+    }),
+  );
+
+  const handleExportCsv = async () => {
+    setIsExporting(true);
+    try {
+      const data = await queryClient.fetchQuery(
+        trpc.terminals.exportCsv.queryOptions(),
+      );
+      downloadCsvFile(data.filename, data.csv);
+      toast.success(`Exported ${data.count} terminals to ${data.filename}`);
+    } catch {
+      toast.error("Failed to export terminals");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const resolvedLabelQuery = useQuery(
     trpc.locations.getGeoPlaceLabel.queryOptions(
@@ -241,12 +273,35 @@ export function OperatorTerminalsView() {
             {t("pageDescription")}
           </p>
         </div>
-        {can("terminals:create") ? (
-          <Button onClick={handleAddNew} className="shrink-0">
-            <Plus className="mr-2 size-4" />
-            {t("addLocation")}
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <Button
+            variant="outline"
+            onClick={handleExportCsv}
+            disabled={isExporting}
+            className="gap-1.5"
+          >
+            <Download className="size-4" />
+            {isExporting ? "Exporting..." : "Export CSV"}
           </Button>
-        ) : null}
+
+          {can("terminals:create") ? (
+            <Button
+              variant="outline"
+              onClick={() => setImportModalOpen(true)}
+              className="gap-1.5"
+            >
+              <Upload className="size-4" />
+              Import CSV
+            </Button>
+          ) : null}
+
+          {can("terminals:create") ? (
+            <Button onClick={handleAddNew} className="shrink-0 gap-1.5">
+              <Plus className="size-4" />
+              {t("addLocation")}
+            </Button>
+          ) : null}
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -506,6 +561,31 @@ export function OperatorTerminalsView() {
           </div>
         </DrawerContent>
       </Drawer>
+
+      <CsvImportModal
+        open={importModalOpen}
+        onOpenChange={setImportModalOpen}
+        config={TERMINALS_CSV_TEMPLATE}
+        onImport={async ({ records, upsert }) => {
+          return await batchImportMutation.mutateAsync({
+            upsert,
+            records: records as Array<{
+              name: string;
+              city: string;
+              addressLine1: string;
+              phone: string;
+              isTerminal?: boolean;
+              managerName?: string | null;
+              managerPhone?: string | null;
+              latitude?: number | null;
+              longitude?: number | null;
+            }>,
+          });
+        }}
+        onSuccess={() => {
+          queryClient.invalidateQueries(trpc.terminals.list.pathFilter());
+        }}
+      />
     </div>
   );
 }

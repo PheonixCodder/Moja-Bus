@@ -55,6 +55,30 @@ export const useSessionStore = create<SessionState>()(
     {
       name: "booth-session",
       storage: createJSONStorage(() => AsyncStorage),
+      partialize: (state) => ({
+        terminal: state.terminal,
+        profile: state.profile,
+        locale: state.locale,
+      }),
     },
   ),
 );
+
+/**
+ * Granular selectors to avoid re-rendering entire screen trees
+ * when unrelated session properties change.
+ */
+export const selectTerminalId = (state: SessionState): string =>
+  state.terminal?.id ?? "";
+
+export const selectTerminalName = (state: SessionState): string =>
+  state.terminal?.name ?? "";
+
+export const selectIsTerminalLocked = (state: SessionState): boolean =>
+  Boolean(state.profile?.assignedTerminal?.id);
+
+export const selectCashierName = (state: SessionState): string =>
+  state.profile?.staffName ?? "";
+
+export const selectCompanyName = (state: SessionState): string =>
+  state.profile?.companyName ?? "Moja Ride";

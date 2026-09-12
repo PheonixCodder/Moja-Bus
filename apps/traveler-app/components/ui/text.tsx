@@ -15,10 +15,10 @@ const textVariants = cva(
 		variants: {
 			variant: {
 				default: "",
-				h1: "text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground",
-				h2: "text-xl sm:text-2xl font-bold tracking-tight text-foreground",
-				h3: "text-lg font-bold tracking-tight text-foreground",
-				h4: "text-base font-semibold tracking-tight text-foreground",
+				h1: "text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground",
+				h2: "text-3xl font-bold tracking-tight text-foreground",
+				h3: "text-2xl font-bold tracking-tight text-foreground",
+				h4: "text-xl font-semibold tracking-tight text-foreground",
 				p: "text-base leading-6 text-foreground",
 				blockquote: "border-l-2 border-border pl-3 italic text-muted-foreground",
 				code: "bg-muted relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold",

@@ -1,18 +1,23 @@
-import { X } from "@hugeicons/core-free-icons";
+import { Cancel01Icon, Copy01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import * as Clipboard from "expo-clipboard";
+import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Text, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
+import Toast from "react-native-toast-message";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { IconColors } from "@/constants/ui-colors";
 import { BoothFeedback } from "@/lib/haptics";
 import { useTRPC } from "@/lib/trpc";
-import { IconColors } from "@/constants/ui-colors";
+import { cn } from "@/lib/utils";
 
 const TIMEOUT_SECONDS = 600;
 const POLL_INTERVAL_MS = 3000;
 
-interface PaystackQRProps {
+export interface PaystackQRProps {
   holdId: string;
   paymentUrl: string;
   reference: string;
@@ -53,10 +58,10 @@ export function PaystackQR({
 
   useEffect(() => {
     if (pollData?.status === "PAID") {
-      BoothFeedback.paymentSuccess();
+      void BoothFeedback.paymentSuccess();
       onPaid();
     } else if (pollData?.status === "FAILED") {
-      BoothFeedback.invalidScan();
+      void BoothFeedback.invalidScan();
       onTimeout();
     }
   }, [pollData, onPaid, onTimeout]);
@@ -82,52 +87,90 @@ export function PaystackQR({
   const minutes = Math.floor(secondsLeft / 60);
   const seconds = secondsLeft % 60;
 
+  const handleCopyLink = async () => {
+    await Clipboard.setStringAsync(paymentUrl);
+    void BoothFeedback.lightTap();
+    Toast.show({
+      type: "success",
+      text1: "Lien de paiement copié",
+      visibilityTime: 2000,
+    });
+  };
+
   return (
-    <View className="flex-1 items-center px-6 bg-background">
-      <View className="items-center mb-6">
-        <Text className="font-semibold text-foreground text-lg">
+    <View className="flex-1 items-center justify-center px-6 bg-background">
+      <View className="items-center mb-6 max-w-sm">
+        <Text className="font-heading text-2xl font-bold text-foreground text-center">
           {t("payment.qrTitle")}
         </Text>
-        <Text className="text-foreground/60 text-sm mt-1">
+        <Text className="text-muted-foreground text-sm text-center mt-1">
           {t("payment.qrInstruction")}
         </Text>
       </View>
 
-      <View className="bg-white p-4 rounded-2xl border border-border mb-6">
+      {/* QR Code Container Card */}
+      <Card className="bg-white p-6 rounded-3xl border border-border items-center mb-6">
         <QRCode value={paymentUrl} size={220} />
-      </View>
+      </Card>
 
-      <Text className="text-2xl font-bold text-foreground mb-2">
+      {/* Amount Display */}
+      <Text className="text-3xl font-heading font-extrabold text-foreground mb-2 tracking-tight">
         {amountXOF.toLocaleString("fr-CI")} XOF
       </Text>
 
-      <View className="flex-row items-center gap-2 mb-6">
-        <Text className="text-foreground/60 text-sm">
-          {t("payment.qrTimeout")}
+      {/* Countdown and Live Polling Indicator */}
+      <View className="flex-row items-center gap-2 mb-4 bg-muted/50 px-3.5 py-1.5 rounded-full border border-border">
+        <ActivityIndicator size="small" color={IconColors.info} />
+        <Text className="text-muted-foreground text-xs font-medium">
+          {t("payment.qrTimeout")}:
         </Text>
         <Text
-          className={`font-bold text-sm ${
-            secondsLeft < 60 ? "text-red-500" : "text-foreground"
-          }`}
+          className={cn(
+            "font-mono font-bold text-xs",
+            secondsLeft < 60 ? "text-destructive" : "text-foreground",
+          )}
         >
           {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
         </Text>
       </View>
 
-      <Text className="text-foreground/50 text-sm mb-6">
+      <Text className="text-muted-foreground/70 text-xs mb-8 text-center max-w-xs">
         {t("payment.qrWaiting")}
       </Text>
 
-      <TouchableOpacity
-        className="mt-4 flex-row items-center gap-2 border border-border rounded-lg px-4 py-2.5"
-        onPress={() => {
-          void cancelHold.mutate({ holdGroupId: holdId });
-          onBack();
-        }}
-      >
-        <HugeiconsIcon icon={X} size={16} color={IconColors.muted} />
-        <Text className="text-foreground/70 text-sm">Annuler</Text>
-      </TouchableOpacity>
+      {/* Action Buttons */}
+      <View className="w-full max-w-sm flex-col gap-3">
+        <Button
+          variant="outline"
+          size="default"
+          onPress={handleCopyLink}
+          icon={
+            <HugeiconsIcon
+              icon={Copy01Icon}
+              size={18}
+              color={IconColors.default}
+            />
+          }
+          title="Copier le lien de paiement"
+        />
+
+        <Button
+          variant="ghost"
+          size="default"
+          onPress={() => {
+            void cancelHold.mutate({ holdGroupId: holdId });
+            onBack();
+          }}
+          icon={
+            <HugeiconsIcon
+              icon={Cancel01Icon}
+              size={18}
+              color={IconColors.muted}
+            />
+          }
+          title="Annuler le paiement"
+        />
+      </View>
     </View>
   );
 }

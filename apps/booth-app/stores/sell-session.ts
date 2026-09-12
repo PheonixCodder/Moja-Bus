@@ -27,6 +27,10 @@ export interface SellSessionState {
   }) => void;
   setFare: (amountXOF: number) => void;
   setTerminals: (terminalId: string, destinationTerminalId: string) => void;
+  validateSession: () => {
+    valid: boolean;
+    errors: string[];
+  };
   reset: () => void;
 }
 
@@ -46,7 +50,7 @@ const initialState = {
   fareAmountXOF: null,
 };
 
-export const useSellSession = create<SellSessionState>((set) => ({
+export const useSellSession = create<SellSessionState>((set, get) => ({
   ...initialState,
   setTrip: (tripId, isIntercity) => set({ tripId, isIntercity }),
   setSeat: (seatId, tripSeatId) => set({ seatId, tripSeatId }),
@@ -55,5 +59,28 @@ export const useSellSession = create<SellSessionState>((set) => ({
   setFare: (amountXOF) => set({ fareAmountXOF: amountXOF }),
   setTerminals: (terminalId, destinationTerminalId) =>
     set({ terminalId, destinationTerminalId }),
+  validateSession: () => {
+    const s = get();
+    const errors: string[] = [];
+    if (!s.tripId) errors.push("tripId is required");
+    if (!s.passengerId) errors.push("passengerId is required");
+    if (!s.passengerName) errors.push("passengerName is required");
+    if (!s.passengerEmail) errors.push("passengerEmail is required");
+    if (!s.terminalId) errors.push("origin terminalId is required");
+    if (!s.destinationTerminalId)
+      errors.push("destinationTerminalId is required");
+    if (s.fareAmountXOF == null || s.fareAmountXOF < 0)
+      errors.push("fareAmountXOF must be non-negative");
+    if (s.isIntercity && !s.seatId)
+      errors.push("seatId is required for intercity trips");
+    return { valid: errors.length === 0, errors };
+  },
   reset: () => set(initialState),
 }));
+
+/** Granular selectors for sell session */
+export const selectSellTripId = (s: SellSessionState) => s.tripId;
+export const selectSellSeatId = (s: SellSessionState) => s.seatId;
+export const selectSellFare = (s: SellSessionState) => s.fareAmountXOF;
+export const selectIsIntercity = (s: SellSessionState) => s.isIntercity;
+export const selectPassengerName = (s: SellSessionState) => s.passengerName;

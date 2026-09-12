@@ -11,6 +11,10 @@ import {
 } from "@expo-google-fonts/raleway";
 import { useFonts } from "expo-font";
 
+/**
+ * Asynchronously loads canonical brand fonts (Outfit for UI/body, Raleway for headings).
+ * Bundled locally via Expo Google Fonts to guarantee zero network latency and prevent FOUT.
+ */
 export function useLoadFonts() {
   const [loaded, error] = useFonts({
     Outfit: Outfit_400Regular,

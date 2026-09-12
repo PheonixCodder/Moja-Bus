@@ -1,27 +1,35 @@
 import {
   ArrowLeft01Icon,
+  ArrowRight01Icon,
+  Call02Icon,
+  Mail01Icon,
   Search01Icon,
   UserAdd01Icon,
+  UserIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useMutation } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { IconColors } from "@/constants/ui-colors";
 import { BoothFeedback } from "@/lib/haptics";
 import { useTRPC } from "@/lib/trpc";
 import { useSellSession } from "@/stores/sell-session";
-import { IconColors } from "@/constants/ui-colors";
 
 interface Passenger {
   userId: string;
@@ -34,6 +42,7 @@ interface Passenger {
 
 export default function PassengerScreen() {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{
     tripId: string;
     seatId: string;
@@ -44,10 +53,10 @@ export default function PassengerScreen() {
   const trpc = useTRPC();
 
   const setPassenger = useSellSession((s) => s.setPassenger);
-  const sellSession = useSellSession();
+  const initialSession = useSellSession.getState();
 
   const [mode, setMode] = useState<"search" | "create" | "confirmed">(
-    sellSession.passengerId ? "confirmed" : "search",
+    initialSession.passengerId ? "confirmed" : "search",
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [fullName, setFullName] = useState("");
@@ -55,7 +64,16 @@ export default function PassengerScreen() {
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedPassenger, setSelectedPassenger] = useState<Passenger | null>(
-    null,
+    initialSession.passengerId
+      ? {
+          userId: initialSession.passengerId,
+          fullName: initialSession.passengerName ?? "",
+          email: initialSession.passengerEmail ?? "",
+          phone: initialSession.passengerPhone ?? null,
+          emailVerified: false,
+          isNewAccount: initialSession.isNewAccount,
+        }
+      : null,
   );
 
   const lookupMutation = useMutation(
@@ -72,7 +90,7 @@ export default function PassengerScreen() {
       });
       setSelectedPassenger(result);
       setMode("confirmed");
-      BoothFeedback.successScan();
+      void BoothFeedback.successScan();
     } catch {
       setMode("create");
       const clean = searchQuery.trim();
@@ -81,6 +99,11 @@ export default function PassengerScreen() {
       } else {
         setPhone(clean);
       }
+      Toast.show({
+        type: "info",
+        text1: "Passager non trouvé",
+        text2: "Créez une fiche passager rapide pour ce billet.",
+      });
     } finally {
       setLoading(false);
     }
@@ -98,12 +121,24 @@ export default function PassengerScreen() {
       });
       setSelectedPassenger(result);
       setMode("confirmed");
-      BoothFeedback.successScan();
-    } catch {
-      // Error handled by Toast or inline
+      void BoothFeedback.successScan();
+    } catch (err: unknown) {
+      Toast.show({
+        type: "error",
+        text1: "Erreur création passager",
+        text2: (err as Error)?.message ?? "Veuillez vérifier les informations.",
+      });
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleQuickWalkup() {
+    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+    setFullName(`Passager Guichet ${randomSuffix}`);
+    setEmail(`guichet-${randomSuffix}@mojaride.local`);
+    setPhone("+22500000000");
+    setMode("create");
   }
 
   function handleContinue() {
@@ -118,7 +153,9 @@ export default function PassengerScreen() {
     });
 
     const destTerminalId =
-      params.destinationTerminalId || sellSession.destinationTerminalId || "";
+      params.destinationTerminalId ||
+      useSellSession.getState().destinationTerminalId ||
+      "";
 
     router.push({
       pathname: "/sell/payment",
@@ -139,164 +176,263 @@ export default function PassengerScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       className="flex-1 bg-background"
     >
-      <View className="flex-row items-center px-6 pt-14 pb-4 gap-4">
-        <TouchableOpacity
-          onPress={() => {
-            BoothFeedback.tap();
-            router.back();
-          }}
-        >
-          <HugeiconsIcon icon={ArrowLeft01Icon} size={22} color={IconColors.default} />
-        </TouchableOpacity>
-        <Text className="font-heading text-xl font-bold text-foreground flex-1">
-          {t("passenger.title")}
-        </Text>
-      </View>
+      <View style={{ paddingTop: Math.max(insets.top, 16) }} className="flex-1">
+        {/* Header Bar */}
+        <View className="flex-row items-center px-5 pb-4 gap-3 border-b border-border/60">
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Retour"
+            className="w-11 h-11 rounded-2xl bg-card border border-border items-center justify-center active:bg-muted"
+            onPress={() => {
+              void BoothFeedback.tap();
+              router.back();
+            }}
+          >
+            <HugeiconsIcon
+              icon={ArrowLeft01Icon}
+              size={20}
+              color={IconColors.default}
+            />
+          </TouchableOpacity>
 
-      <ScrollView className="flex-1 px-6" keyboardShouldPersistTaps="handled">
-        {(mode === "search" || mode === "create") && (
-          <View className="gap-4 mt-2">
-            <View className="gap-1.5">
-              <Text className="text-sm font-medium text-foreground">
-                {t("passenger.searchLabel")}
-              </Text>
-              <View className="flex-row gap-2">
-                <TextInput
-                  className="flex-1 border border-input rounded-lg px-4 py-3 bg-card text-foreground"
-                  placeholder={t("passenger.searchPlaceholder")}
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-                <TouchableOpacity
-                  className="bg-primary rounded-lg px-4 items-center justify-center"
-                  onPress={handleSearch}
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <ActivityIndicator size="small" color="white" />
-                  ) : (
-                    <HugeiconsIcon
-                      icon={Search01Icon}
-                      size={20}
-                      color="white"
-                    />
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {mode === "create" && (
-              <View className="gap-4 mt-4">
-                <View className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
-                  <Text className="text-amber-800 text-sm">
-                    {t("passenger.newPassenger")}
-                  </Text>
-                </View>
-
-                <View className="gap-1.5">
-                  <Text className="text-sm font-medium text-foreground">
-                    {t("passenger.fullNameLabel")} *
-                  </Text>
-                  <TextInput
-                    className="border border-input rounded-lg px-4 py-3 bg-card text-foreground"
-                    value={fullName}
-                    onChangeText={setFullName}
-                    autoCapitalize="words"
-                  />
-                </View>
-
-                <View className="gap-1.5">
-                  <Text className="text-sm font-medium text-foreground">
-                    {t("passenger.emailLabel")} *
-                  </Text>
-                  <TextInput
-                    className="border border-input rounded-lg px-4 py-3 bg-card text-foreground"
-                    value={email}
-                    onChangeText={setEmail}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                  />
-                </View>
-
-                <View className="gap-1.5">
-                  <Text className="text-sm font-medium text-foreground">
-                    {t("passenger.phoneLabel")}
-                  </Text>
-                  <TextInput
-                    className="border border-input rounded-lg px-4 py-3 bg-card text-foreground"
-                    value={phone}
-                    onChangeText={setPhone}
-                    keyboardType="phone-pad"
-                    placeholder="+225..."
-                  />
-                </View>
-
-                <TouchableOpacity
-                  className="bg-primary rounded-xl py-4 items-center flex-row justify-center gap-2"
-                  onPress={handleCreate}
-                  disabled={loading || !fullName.trim() || !email.trim()}
-                >
-                  <HugeiconsIcon icon={UserAdd01Icon} size={18} color="white" />
-                  <Text className="text-white font-semibold">
-                    {loading ? "..." : t("passenger.createButton")}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            )}
+          <View className="flex-1">
+            <Text className="font-heading text-xl font-bold text-foreground">
+              {t("passenger.title")}
+            </Text>
+            <Text className="text-muted-foreground text-xs font-medium mt-0.5">
+              Étape 2 sur 3 · Identification client
+            </Text>
           </View>
-        )}
+        </View>
 
-        {mode === "confirmed" && selectedPassenger && (
-          <View className="gap-4 mt-2">
-            <View className="bg-green-50 border border-green-200 rounded-xl px-5 py-4">
-              <Text className="text-green-800 font-semibold text-base">
-                {selectedPassenger.isNewAccount
-                  ? t("passenger.newPassenger")
-                  : t("passenger.existingFound")}
-              </Text>
-              <Text className="text-green-700 text-sm mt-1">
-                {selectedPassenger.fullName}
-              </Text>
-              <Text className="text-green-600 text-sm">
-                {selectedPassenger.email}
-              </Text>
-              {selectedPassenger.phone && (
-                <Text className="text-green-600 text-sm">
-                  {selectedPassenger.phone}
+        <ScrollView
+          className="flex-1 px-5 pt-4"
+          keyboardShouldPersistTaps="handled"
+          contentContainerClassName="pb-10"
+        >
+          {(mode === "search" || mode === "create") && (
+            <View className="gap-5">
+              {/* Lookup Card */}
+              <Card className="gap-3">
+                <Text className="text-xs uppercase tracking-wider font-bold text-muted-foreground">
+                  Recherche client existant
                 </Text>
+                <View className="flex-row gap-2">
+                  <View className="flex-1">
+                    <Input
+                      placeholder={t("passenger.searchPlaceholder")}
+                      value={searchQuery}
+                      onChangeText={setSearchQuery}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      leftIcon={
+                        <HugeiconsIcon
+                          icon={Search01Icon}
+                          size={18}
+                          color={IconColors.muted}
+                        />
+                      }
+                      onSubmitEditing={handleSearch}
+                    />
+                  </View>
+                  <Button
+                    variant="primary"
+                    size="md"
+                    loading={loading}
+                    onPress={handleSearch}
+                    icon={
+                      <HugeiconsIcon
+                        icon={Search01Icon}
+                        size={18}
+                        color="white"
+                      />
+                    }
+                  />
+                </View>
+
+                {mode === "search" ? (
+                  <View className="flex-row items-center justify-between pt-2 border-t border-border/50">
+                    <Text className="text-xs text-muted-foreground">
+                      Client sans compte ?
+                    </Text>
+                    <TouchableOpacity
+                      onPress={handleQuickWalkup}
+                      className="py-1 px-2 rounded-lg active:bg-muted"
+                    >
+                      <Text className="text-xs font-bold text-primary">
+                        + Remplissage rapide guichet
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : null}
+              </Card>
+
+              {/* Create New Passenger Form */}
+              {mode === "create" && (
+                <Card className="gap-4">
+                  <View className="flex-row items-center justify-between pb-2 border-b border-border/50">
+                    <View className="flex-row items-center gap-2">
+                      <HugeiconsIcon
+                        icon={UserAdd01Icon}
+                        size={18}
+                        color={IconColors.brand}
+                      />
+                      <Text className="font-heading font-bold text-base text-foreground">
+                        {t("passenger.newPassenger")}
+                      </Text>
+                    </View>
+                    <Badge variant="warning" label="Nouveau" />
+                  </View>
+
+                  <View className="gap-1.5">
+                    <Text className="text-xs font-semibold text-foreground">
+                      {t("passenger.fullNameLabel")} *
+                    </Text>
+                    <Input
+                      placeholder="ex. Konan Yao"
+                      value={fullName}
+                      onChangeText={setFullName}
+                      autoCapitalize="words"
+                      leftIcon={
+                        <HugeiconsIcon
+                          icon={UserIcon}
+                          size={18}
+                          color={IconColors.muted}
+                        />
+                      }
+                    />
+                  </View>
+
+                  <View className="gap-1.5">
+                    <Text className="text-xs font-semibold text-foreground">
+                      {t("passenger.emailLabel")} *
+                    </Text>
+                    <Input
+                      placeholder="client@email.com"
+                      value={email}
+                      onChangeText={setEmail}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      leftIcon={
+                        <HugeiconsIcon
+                          icon={Mail01Icon}
+                          size={18}
+                          color={IconColors.muted}
+                        />
+                      }
+                    />
+                  </View>
+
+                  <View className="gap-1.5">
+                    <Text className="text-xs font-semibold text-foreground">
+                      {t("passenger.phoneLabel")} (Optionnel)
+                    </Text>
+                    <Input
+                      placeholder="+225 07..."
+                      value={phone}
+                      onChangeText={setPhone}
+                      keyboardType="phone-pad"
+                      leftIcon={
+                        <HugeiconsIcon
+                          icon={Call02Icon}
+                          size={18}
+                          color={IconColors.muted}
+                        />
+                      }
+                    />
+                  </View>
+
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    loading={loading}
+                    disabled={!fullName.trim() || !email.trim()}
+                    onPress={handleCreate}
+                    title={t("passenger.createButton")}
+                  />
+                </Card>
               )}
             </View>
+          )}
 
-            <TouchableOpacity
-              className="border border-border rounded-lg py-3 items-center"
-              onPress={() => {
-                setMode("search");
-                setSelectedPassenger(null);
-                setSearchQuery("");
-              }}
-            >
-              <Text className="text-foreground/70">
-                {t("passenger.selectButton")}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </ScrollView>
+          {/* Confirmed Passenger Card */}
+          {mode === "confirmed" && selectedPassenger && (
+            <View className="gap-4">
+              <Card
+                variant="double-bezel"
+                className="gap-3 border-emerald-500/30 bg-emerald-50/40"
+              >
+                <View className="flex-row items-center justify-between">
+                  <Badge
+                    variant="success"
+                    label={
+                      selectedPassenger.isNewAccount
+                        ? "Nouveau compte"
+                        : "Passager vérifié"
+                    }
+                  />
+                  <TouchableOpacity
+                    onPress={() => {
+                      setMode("search");
+                      setSelectedPassenger(null);
+                      setSearchQuery("");
+                    }}
+                    className="py-1 px-2.5 rounded-lg active:bg-emerald-100"
+                  >
+                    <Text className="text-xs font-bold text-emerald-800">
+                      Changer de passager
+                    </Text>
+                  </TouchableOpacity>
+                </View>
 
-      {mode === "confirmed" && selectedPassenger && (
-        <View className="px-6 pb-8 pt-4 border-t border-border">
-          <TouchableOpacity
-            className="bg-primary rounded-xl py-4 items-center"
-            onPress={handleContinue}
+                <View className="flex-row items-center gap-3 pt-1">
+                  <View className="w-12 h-12 rounded-2xl bg-emerald-600 items-center justify-center shadow-xs">
+                    <Text className="text-white font-heading font-extrabold text-lg">
+                      {selectedPassenger.fullName.slice(0, 2).toUpperCase()}
+                    </Text>
+                  </View>
+
+                  <View className="flex-1">
+                    <Text className="text-lg font-heading font-bold text-foreground">
+                      {selectedPassenger.fullName}
+                    </Text>
+                    <Text className="text-sm text-muted-foreground font-medium">
+                      {selectedPassenger.email}
+                    </Text>
+                    {selectedPassenger.phone ? (
+                      <Text className="text-xs text-muted-foreground">
+                        {selectedPassenger.phone}
+                      </Text>
+                    ) : null}
+                  </View>
+                </View>
+              </Card>
+            </View>
+          )}
+        </ScrollView>
+
+        {/* Sticky Continue Footer */}
+        {mode === "confirmed" && selectedPassenger ? (
+          <View
+            style={{ paddingBottom: Math.max(insets.bottom, 20) }}
+            className="px-6 pt-4 border-t border-border bg-card/80 backdrop-blur-md"
           >
-            <Text className="text-white font-semibold text-base">
-              {t("passenger.selectButton")} →
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
+            <Button
+              variant="primary"
+              size="lg"
+              onPress={handleContinue}
+              title="Passer au paiement"
+              trailingIslandIcon={
+                <HugeiconsIcon
+                  icon={ArrowRight01Icon}
+                  size={16}
+                  color="#ffffff"
+                />
+              }
+            />
+          </View>
+        ) : null}
+      </View>
     </KeyboardAvoidingView>
   );
 }

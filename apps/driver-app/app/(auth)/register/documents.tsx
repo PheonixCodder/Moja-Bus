@@ -167,7 +167,7 @@ export default function RegisterStep3DocumentsScreen() {
 					<View className="flex-row items-center justify-between">
 						<Text className="text-base font-extrabold text-foreground tracking-tight">{t("medicalTitle")}</Text>
 						<View className="bg-primary/15 px-2.5 py-1 rounded-full">
-							<Text className="text-[11px] font-bold text-primary uppercase">{t("medicalOptionalBadge")}</Text>
+							<Text className="text-xs font-bold text-primary uppercase">{t("medicalOptionalBadge")}</Text>
 						</View>
 					</View>
 					<Text className="text-xs text-muted-foreground leading-5">

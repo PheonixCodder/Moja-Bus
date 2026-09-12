@@ -108,7 +108,7 @@ export default function LanguageScreen() {
 										<View className="flex-row items-center gap-2">
 											<Text className="text-base font-extrabold text-foreground">{lang.nativeLabel}</Text>
 											<View className="bg-border px-2 py-0.5 rounded-md">
-												<Text className="text-[11px] font-bold text-muted-foreground">{lang.badge}</Text>
+												<Text className="text-xs font-bold text-muted-foreground">{lang.badge}</Text>
 											</View>
 										</View>
 										<Text className="text-xs text-muted-foreground">{t(lang.regionKey)}</Text>

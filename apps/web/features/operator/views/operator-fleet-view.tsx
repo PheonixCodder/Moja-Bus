@@ -1,41 +1,15 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
-import {
-  BusFront,
-  Plus,
-  Search,
-  Pencil,
-  Trash2,
-  LayoutGrid,
-  Activity,
-  Wrench,
-  Armchair,
-  Archive,
-  Layers,
-  ShieldCheck,
-  ThermometerSun,
-  Wifi,
-  CircleDot,
-  Luggage,
-} from "lucide-react";
-import { toast } from "sonner";
-import { cn } from "@moja/ui/lib/utils";
-
 import { Button } from "@moja/ui/components/ui/button";
-import { Input } from "@moja/ui/components/ui/input";
 import { Card, CardContent } from "@moja/ui/components/ui/card";
-import { Spinner } from "@moja/ui/components/ui/spinner";
 import {
-  Empty,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyDescription,
-  EmptyContent,
-  EmptyMedia,
-} from "@moja/ui/components/ui/empty";
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@moja/ui/components/ui/combobox";
 import {
   Dialog,
   DialogContent,
@@ -54,27 +28,58 @@ import {
   DrawerTitle,
 } from "@moja/ui/components/ui/drawer";
 import {
-  Combobox,
-  ComboboxInput,
-  ComboboxContent,
-  ComboboxList,
-  ComboboxItem,
-  ComboboxEmpty,
-} from "@moja/ui/components/ui/combobox";
-import { AccessDeniedCard } from "@/features/operator/components/access-denied-card";
-
-import type { RouterOutputs } from "@/trpc/client";
-import { useTRPC } from "@/trpc/client";
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@moja/ui/components/ui/empty";
+import { Input } from "@moja/ui/components/ui/input";
+import { Spinner } from "@moja/ui/components/ui/spinner";
+import { cn } from "@moja/ui/lib/utils";
 import {
-  useSuspenseQuery,
   useMutation,
   useQueryClient,
+  useSuspenseQuery,
 } from "@tanstack/react-query";
+import {
+  Activity,
+  Archive,
+  Armchair,
+  BusFront,
+  CircleDot,
+  Download,
+  Layers,
+  LayoutGrid,
+  Luggage,
+  Pencil,
+  Plus,
+  Search,
+  ShieldCheck,
+  ThermometerSun,
+  Trash2,
+  Upload,
+  Wifi,
+  Wrench,
+} from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { Suspense, useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
+import {
+  CsvImportModal,
+  downloadCsvFile,
+  FLEET_CSV_TEMPLATE,
+} from "@/components/csv-importer";
+import { AccessDeniedCard } from "@/features/operator/components/access-denied-card";
 import { AddBusModal } from "@/features/operator/components/add-bus-modal";
-import { SeatMapPreview } from "@/features/operator/components/seat-map-preview";
-import { LayoutBuilderSheet } from "@/features/operator/components/layout-builder-sheet";
 import { AddBusTypeDialog } from "@/features/operator/components/fleet/add-bus-type-dialog";
+import { LayoutBuilderSheet } from "@/features/operator/components/layout-builder-sheet";
+import { SeatMapPreview } from "@/features/operator/components/seat-map-preview";
 import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
+import type { RouterOutputs } from "@/trpc/client";
+import { useTRPC } from "@/trpc/client";
 
 type Bus = RouterOutputs["fleet"]["getBuses"]["buses"][number];
 type FleetStats = RouterOutputs["fleet"]["getBuses"]["stats"];
@@ -802,13 +807,14 @@ function LayoutsPanel({ busTypes }: LayoutsPanelProps) {
             <DrawerClose
               render={
                 <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 text-muted-foreground hover:text-foreground" />
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-muted-foreground hover:text-foreground"
+                />
               }
             >
-                {tc("close")}
-              </DrawerClose>
+              {tc("close")}
+            </DrawerClose>
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
@@ -882,6 +888,31 @@ export function OperatorFleetView() {
   // Modals
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [busTypeDialogOpen, setBusTypeDialogOpen] = useState(false);
+  const [importModalOpen, setImportModalOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const batchImportMutation = useMutation(
+    trpc.fleet.batchImport.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries(trpc.fleet.getBuses.pathFilter());
+      },
+    }),
+  );
+
+  const handleExportCsv = async () => {
+    setIsExporting(true);
+    try {
+      const data = await queryClient.fetchQuery(
+        trpc.fleet.exportCsv.queryOptions(),
+      );
+      downloadCsvFile(data.filename, data.csv);
+      toast.success(`Exported ${data.count} vehicles to ${data.filename}`);
+    } catch {
+      toast.error("Failed to export vehicles");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   useEffect(() => {
     if (searchParams && searchParams.get("action") === "new") {
@@ -957,6 +988,27 @@ export function OperatorFleetView() {
           <div className="flex items-center gap-2">
             {activeTab === "buses" ? (
               <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 text-xs gap-1.5"
+                  onClick={handleExportCsv}
+                  disabled={isExporting}
+                >
+                  <Download className="size-3.5" />
+                  {isExporting ? "Exporting..." : "Export CSV"}
+                </Button>
+                {can("fleet:create") && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 text-xs gap-1.5"
+                    onClick={() => setImportModalOpen(true)}
+                  >
+                    <Upload className="size-3.5" />
+                    Import CSV
+                  </Button>
+                )}
                 {can("fleet:create") && (
                   <Button
                     size="sm"
@@ -1306,13 +1358,14 @@ export function OperatorFleetView() {
             <DrawerClose
               render={
                 <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 text-muted-foreground hover:text-foreground" />
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-muted-foreground hover:text-foreground"
+                />
               }
             >
-                {t("seatMap.close")}
-              </DrawerClose>
+              {t("seatMap.close")}
+            </DrawerClose>
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
@@ -1326,6 +1379,28 @@ export function OperatorFleetView() {
           queryClient.invalidateQueries(
             trpc.fleet.getLayoutTemplates.pathFilter(),
           );
+        }}
+      />
+
+      <CsvImportModal
+        open={importModalOpen}
+        onOpenChange={setImportModalOpen}
+        config={FLEET_CSV_TEMPLATE}
+        onImport={async ({ records, upsert }) => {
+          return await batchImportMutation.mutateAsync({
+            upsert,
+            records: records as Array<{
+              registrationPlate: string;
+              internalName?: string | null;
+              seatClass?: "STANDARD" | "VIP" | "ECONOMY";
+              manufactureYear?: number | null;
+              status?: "ACTIVE" | "MAINTENANCE" | "RETIRED";
+              notes?: string | null;
+            }>,
+          });
+        }}
+        onSuccess={() => {
+          queryClient.invalidateQueries(trpc.fleet.getBuses.pathFilter());
         }}
       />
     </div>

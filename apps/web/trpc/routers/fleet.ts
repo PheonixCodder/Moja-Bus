@@ -1,11 +1,13 @@
+import { createBusSchema } from "@moja/schemas";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { createTRPCRouter, operatorCompanyProcedure } from "../init";
+import { stringifyCsv } from "@/lib/csv/parser";
+import { FLEET_CSV_TEMPLATE } from "@/lib/csv/templates";
 import {
-  requirePermission,
   operatorHasPermission,
+  requirePermission,
 } from "@/lib/permissions/authorize";
-import { createBusSchema } from "@moja/schemas";
+import { createTRPCRouter, operatorCompanyProcedure } from "../init";
 
 export const fleetRouter = createTRPCRouter({
   getBusTypes: operatorCompanyProcedure.query(async ({ ctx }) => {
@@ -651,6 +653,168 @@ export const fleetRouter = createTRPCRouter({
 
         await tx.busType.delete({ where: { id: input.id } });
         return { success: true };
+      });
+    }),
+
+  exportCsv: operatorCompanyProcedure.query(async ({ ctx }) => {
+    requirePermission(ctx, "fleet:read");
+
+    const buses = await ctx.prisma.bus.findMany({
+      where: { companyId: ctx.companyId, deletedAt: null },
+      include: { busType: true, layoutTemplate: true },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const headers = FLEET_CSV_TEMPLATE.columns.map((c) => c.label);
+    const rows = buses.map((b) => [
+      b.registrationPlate,
+      b.internalName ?? "",
+      b.seatClass,
+      b.manufactureYear ?? "",
+      b.status,
+      b.notes ?? "",
+    ]);
+
+    const csv = stringifyCsv(headers, rows);
+    const dateStr = new Date().toISOString().slice(0, 10);
+    return {
+      filename: `fleet-${dateStr}.csv`,
+      csv,
+      count: buses.length,
+    };
+  }),
+
+  batchImport: operatorCompanyProcedure
+    .input(
+      z.object({
+        upsert: z.boolean().default(false),
+        records: z.array(
+          z.object({
+            registrationPlate: z
+              .string()
+              .min(1, "Registration plate is required"),
+            internalName: z.string().optional().nullable(),
+            seatClass: z
+              .enum(["STANDARD", "VIP", "ECONOMY"])
+              .optional()
+              .default("STANDARD"),
+            manufactureYear: z.number().int().optional().nullable(),
+            status: z
+              .enum(["ACTIVE", "MAINTENANCE", "RETIRED"])
+              .optional()
+              .default("ACTIVE"),
+            notes: z.string().optional().nullable(),
+          }),
+        ),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "fleet:create");
+
+      return ctx.prisma.$transaction(async (tx) => {
+        // Fetch default layout template for the company
+        const defaultLayout = await tx.seatLayoutTemplate.findFirst({
+          where: {
+            OR: [{ companyId: null }, { companyId: ctx.companyId }],
+          },
+          include: { seatTemplates: true },
+          orderBy: [{ companyId: "asc" }, { totalSeats: "desc" }],
+        });
+
+        if (!defaultLayout) {
+          throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message:
+              "No seat layout templates exist in the system. Please create a layout template before importing vehicles.",
+          });
+        }
+
+        const existingBuses = await tx.bus.findMany({
+          where: { companyId: ctx.companyId, deletedAt: null },
+        });
+
+        const existingByPlate = new Map(
+          existingBuses.map((b) => [
+            b.registrationPlate.toLowerCase().trim(),
+            b,
+          ]),
+        );
+
+        let createdCount = 0;
+        let updatedCount = 0;
+        let skippedCount = 0;
+        const errors: Array<{ row: number; reason: string }> = [];
+
+        for (let i = 0; i < input.records.length; i++) {
+          const rec = input.records[i];
+          if (!rec) continue;
+
+          const plateNorm = rec.registrationPlate.trim().toLowerCase();
+          const existing = existingByPlate.get(plateNorm);
+
+          if (existing) {
+            if (input.upsert) {
+              await tx.bus.update({
+                where: { id: existing.id },
+                data: {
+                  internalName:
+                    rec.internalName?.trim() ?? existing.internalName,
+                  seatClass: rec.seatClass ?? existing.seatClass,
+                  manufactureYear:
+                    rec.manufactureYear ?? existing.manufactureYear,
+                  status: rec.status ?? existing.status,
+                  notes: rec.notes?.trim() ?? existing.notes,
+                },
+              });
+              updatedCount++;
+            } else {
+              skippedCount++;
+            }
+          } else {
+            const bus = await tx.bus.create({
+              data: {
+                companyId: ctx.companyId,
+                registrationPlate: rec.registrationPlate.trim(),
+                internalName: rec.internalName?.trim() ?? null,
+                busTypeId: defaultLayout.busTypeId,
+                layoutTemplateId: defaultLayout.id,
+                seatClass: rec.seatClass ?? "STANDARD",
+                manufactureYear: rec.manufactureYear ?? null,
+                status: rec.status ?? "ACTIVE",
+                notes: rec.notes?.trim() ?? null,
+              },
+            });
+
+            if (defaultLayout.seatTemplates.length > 0) {
+              const seatsData = defaultLayout.seatTemplates.map((t) => ({
+                busId: bus.id,
+                row: t.row,
+                col: t.col,
+                deck: t.deck,
+                label: t.label,
+                seatType: t.seatType,
+                isBookable: t.isBookable,
+                isActive: t.isBookable,
+              }));
+
+              await tx.seat.createMany({
+                data: seatsData,
+              });
+            }
+
+            createdCount++;
+          }
+        }
+
+        return {
+          totalRows: input.records.length,
+          validRows: createdCount + updatedCount,
+          invalidRows: errors.length,
+          createdCount,
+          updatedCount,
+          skippedCount,
+          errors,
+        };
       });
     }),
 });

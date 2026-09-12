@@ -119,7 +119,7 @@ export function ManifestView({ tripId }: ManifestViewProps) {
 				{/* Progress Section */}
 				<View className="gap-1.5">
 					<View className="flex-row items-center justify-between">
-						<Text className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{t("boardingProgress")}</Text>
+						<Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t("boardingProgress")}</Text>
 						<Text className="text-xs font-bold text-primary font-mono">
 							{boardedCount} / {totalCount} ({percentBoarded}%)
 						</Text>
@@ -152,7 +152,7 @@ export function ManifestView({ tripId }: ManifestViewProps) {
 				<View className="flex-row items-center bg-card border border-border rounded-2xl px-3.5 h-12">
 					<HugeiconsIcon icon={Search01Icon} size={18} color={colors.neutral.textMuted} />
 					<TextInput
-						className="flex-1 ml-2.5 text-foreground text-[13px] font-medium"
+						className="flex-1 ml-2.5 text-foreground text-sm font-medium"
 						placeholder={t("searchPlaceholder")}
 						placeholderTextColor={colors.neutral.textMuted}
 						value={search}
