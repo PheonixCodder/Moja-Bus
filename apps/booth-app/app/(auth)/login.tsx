@@ -4,17 +4,14 @@ import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Animated,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
+  StyleSheet,
   Text,
   View,
 } from "react-native";
 import { OtpInput } from "react-native-otp-entry";
-import Toast from "react-native-toast-message";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { AuthButton } from "@/features/auth/components/auth-button";
+import { AuthField } from "@/features/auth/components/auth-field";
+import { AuthShell } from "@/features/auth/components/auth-shell";
 import { Colors, Palette } from "@/constants/theme";
 import { authClient, refreshSession } from "@/lib/auth-client";
 import { BoothFeedback } from "@/lib/haptics";
@@ -78,44 +75,52 @@ export default function LoginScreen() {
   const [identifier, setIdentifier] = useState("");
   const [method, setMethod] = useState<"phone" | "email">("email");
   const [otp, setOtp] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isPending, setIsPending] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
 
   const slideAnim = useRef(new Animated.Value(0)).current;
 
-  // Redirect if session already exists
+  // Redirect if already authenticated
   useEffect(() => {
     if (!sessionPending && session?.user) {
       router.replace("/");
     }
   }, [sessionPending, session?.user]);
 
+  if (sessionPending || session?.user) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator size="large" color={Palette.rose[500]} />
+      </View>
+    );
+  }
+
   function animateForward() {
-    slideAnim.setValue(40);
+    slideAnim.setValue(50);
     Animated.timing(slideAnim, {
       toValue: 0,
-      duration: 220,
+      duration: 250,
       useNativeDriver: true,
     }).start();
   }
 
   function animateBack() {
-    slideAnim.setValue(-40);
+    slideAnim.setValue(-50);
     Animated.timing(slideAnim, {
       toValue: 0,
-      duration: 220,
+      duration: 250,
       useNativeDriver: true,
     }).start();
   }
 
   async function handleSendCode() {
     if (!identifier.trim()) {
-      setErrorMessage(t("errors.generic"));
-      BoothFeedback.tap();
+      setMessage(t("auth.login.emailPlaceholder"));
+      void BoothFeedback.tap();
       return;
     }
 
-    setErrorMessage(null);
+    setMessage(null);
     const detected = detectMethod(identifier);
     setMethod(detected);
 
@@ -126,7 +131,7 @@ export default function LoginScreen() {
       finalIdentifier = finalIdentifier.toLowerCase();
     }
 
-    setLoading(true);
+    setIsPending(true);
     try {
       if (detected === "phone") {
         const { error } = await authClient.phoneNumber.sendOtp({
@@ -141,31 +146,27 @@ export default function LoginScreen() {
         if (error) throw error;
       }
 
-      BoothFeedback.tap();
+      void BoothFeedback.tap();
       setStep("otp");
       animateForward();
     } catch (err) {
-      BoothFeedback.tap();
+      void BoothFeedback.tap();
       const parsed = getAuthError(err);
-      setErrorMessage(parsed.message || t("auth.login.failedToSend"));
-      Toast.show({
-        type: "error",
-        text1: parsed.message || t("auth.login.failedToSend"),
-      });
+      setMessage(parsed.message || t("auth.login.failedToSend"));
     } finally {
-      setLoading(false);
+      setIsPending(false);
     }
   }
 
   async function handleVerifyCode(codeToVerify?: string) {
     const code = codeToVerify ?? otp;
     if (!code || code.length < 6) {
-      setErrorMessage(t("auth.login.enterCode"));
-      BoothFeedback.tap();
+      setMessage(t("auth.login.enterCode"));
+      void BoothFeedback.tap();
       return;
     }
 
-    setErrorMessage(null);
+    setMessage(null);
     let finalIdentifier = identifier.trim();
     if (method === "phone") {
       finalIdentifier = normalizePhoneNumber(finalIdentifier);
@@ -173,7 +174,7 @@ export default function LoginScreen() {
       finalIdentifier = finalIdentifier.toLowerCase();
     }
 
-    setLoading(true);
+    setIsPending(true);
     try {
       if (method === "phone") {
         const result = await authClient.phoneNumber.verify({
@@ -196,8 +197,8 @@ export default function LoginScreen() {
       await BoothFeedback.successScan();
       router.replace("/");
     } catch (err) {
-      await BoothFeedback.tap();
-      const { message, code: errCode, status } = getAuthError(err);
+      void BoothFeedback.tap();
+      const { message: errMsg, code: errCode, status } = getAuthError(err);
       let localizedMsg = t("auth.login.errorInvalid");
 
       if (status === 403) {
@@ -208,180 +209,152 @@ export default function LoginScreen() {
         localizedMsg = t("auth.login.codeExpired");
       } else if (errCode === "TOO_MANY_ATTEMPTS") {
         localizedMsg = t("auth.login.tooManyAttempts");
-      } else if (message) {
-        localizedMsg = message;
+      } else if (errMsg) {
+        localizedMsg = errMsg;
       }
 
-      setErrorMessage(localizedMsg);
-      Toast.show({ type: "error", text1: localizedMsg });
+      setMessage(localizedMsg);
     } finally {
-      setLoading(false);
+      setIsPending(false);
     }
   }
 
-  if (sessionPending || session?.user) {
-    return (
-      <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator size="large" color={Palette.rose[500]} />
-      </View>
-    );
-  }
+  const stepConfig = {
+    input: {
+      badge: t("auth.login.sendCode"),
+      title: t("auth.login.title"),
+      description: t("auth.login.subtitle"),
+    },
+    otp: {
+      badge: t("auth.login.verify"),
+      title: t("auth.login.enterCode"),
+      description: t("auth.login.enter6DigitCode", { identifier }),
+    },
+  } as const;
+
+  const { badge, title, description } = stepConfig[step];
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1 bg-background"
+    <AuthShell
+      badge={badge}
+      title={title}
+      description={description}
+      logoSource={require("@/assets/logo/moja-logo.png")}
     >
-      <ScrollView
-        contentContainerClassName="flex-grow justify-center px-6 py-12"
-        keyboardShouldPersistTaps="handled"
-      >
-        <View className="items-center mb-8">
-          <View className="w-16 h-16 rounded-3xl bg-primary/10 items-center justify-center mb-3">
-            <Text className="text-3xl font-extrabold text-primary">MR</Text>
+      <Animated.View style={{ transform: [{ translateX: slideAnim }] }}>
+        {step === "input" ? (
+          <View className="gap-5">
+            <AuthField
+              label={t("auth.login.emailOrPhone")}
+              placeholder={t("auth.login.emailPlaceholder")}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              value={identifier}
+              onChangeText={(val) => {
+                setIdentifier(val);
+                if (message) setMessage(null);
+              }}
+              onSubmitEditing={handleSendCode}
+              editable={!isPending}
+            />
+
+            {message ? (
+              <Text className="text-[13px] leading-[18px] text-primary">
+                {message}
+              </Text>
+            ) : null}
+
+            <AuthButton
+              label={t("auth.login.sendCode")}
+              pendingLabel={t("auth.login.sendingCode")}
+              isPending={isPending}
+              onPress={handleSendCode}
+            />
           </View>
-          <Text className="text-3xl font-bold text-foreground">
-            {t("auth.login.title")}
-          </Text>
-          <Text className="text-foreground/60 mt-1 text-sm text-center">
-            {step === "input"
-              ? t("auth.login.subtitle")
-              : t("auth.login.enter6DigitCode", { identifier })}
-          </Text>
-        </View>
+        ) : null}
 
-        <Animated.View style={{ transform: [{ translateX: slideAnim }] }}>
-          {step === "input" ? (
-            <View className="gap-4">
-              <View className="gap-2">
-                <Label>{t("auth.login.emailOrPhone")}</Label>
-                <Input
-                  placeholder={t("auth.login.emailPlaceholder")}
-                  value={identifier}
-                  onChangeText={(val: string) => {
-                    setIdentifier(val);
-                    if (errorMessage) setErrorMessage(null);
-                  }}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoComplete="email"
-                  returnKeyType="send"
-                  onSubmitEditing={handleSendCode}
-                  editable={!loading}
-                />
-              </View>
-
-              {errorMessage ? (
-                <Text className="text-xs font-semibold text-destructive px-1">
-                  {errorMessage}
-                </Text>
-              ) : null}
-
-              <Button
-                onPress={handleSendCode}
-                disabled={loading}
-                size="lg"
-                className="mt-2 min-h-[48px] h-12"
-              >
-                {loading ? (
-                  <ActivityIndicator color="#ffffff" size="small" />
-                ) : (
-                  <Text className="text-primary-foreground font-semibold text-base">
-                    {t("auth.login.sendCode")}
-                  </Text>
-                )}
-              </Button>
-            </View>
-          ) : (
-            <View className="gap-5">
-              <View className="gap-2">
-                <Text className="text-xs font-bold text-foreground/80 uppercase tracking-wider">
-                  {t("auth.login.enterCode")}
-                </Text>
-                <OtpInput
-                  numberOfDigits={6}
-                  type="numeric"
-                  autoFocus
-                  onTextChange={(val) => {
-                    setOtp(val);
-                    if (errorMessage) setErrorMessage(null);
-                  }}
-                  onFilled={(filledOtp) => {
-                    setOtp(filledOtp);
-                    void handleVerifyCode(filledOtp);
-                  }}
-                  theme={{
-                    containerStyle: {
-                      width: "100%",
-                      justifyContent: "space-between",
-                    },
-                    pinCodeContainerStyle: {
-                      flex: 1,
-                      minHeight: 52,
-                      aspectRatio: 1,
-                      borderRadius: 16,
-                      borderWidth: 1.5,
-                      borderColor: "rgba(238, 35, 124, 0.3)",
-                      backgroundColor: "rgba(238, 35, 124, 0.05)",
-                      marginHorizontal: 2,
-                    },
-                    focusedPinCodeContainerStyle: {
-                      borderColor: Palette.rose[500],
-                      backgroundColor: "rgba(238, 35, 124, 0.1)",
-                    },
-                    pinCodeTextStyle: {
-                      color: Colors.light.textPrimary,
-                      fontSize: 22,
-                      fontWeight: "700",
-                    },
-                    focusStickStyle: {
-                      backgroundColor: Palette.rose[500],
-                    },
-                  }}
-                />
-              </View>
-
-              {errorMessage ? (
-                <Text className="text-xs font-semibold text-destructive px-1">
-                  {errorMessage}
-                </Text>
-              ) : null}
-
-              <Button
-                onPress={() => handleVerifyCode()}
-                disabled={loading}
-                size="lg"
-                className="mt-2 min-h-[48px] h-12"
-              >
-                {loading ? (
-                  <ActivityIndicator color="#ffffff" size="small" />
-                ) : (
-                  <Text className="text-primary-foreground font-semibold text-base">
-                    {t("auth.login.verify")}
-                  </Text>
-                )}
-              </Button>
-
-              <Button
-                variant="outline"
-                onPress={() => {
-                  setStep("input");
-                  setOtp("");
-                  setErrorMessage(null);
-                  animateBack();
+        {step === "otp" ? (
+          <View className="gap-4">
+            <View className="gap-2">
+              <Text className="text-[14px] font-semibold text-foreground">
+                {t("auth.login.verifying")}
+              </Text>
+              <OtpInput
+                numberOfDigits={6}
+                type="numeric"
+                autoFocus
+                onTextChange={(val) => {
+                  setOtp(val);
+                  if (message) setMessage(null);
                 }}
-                disabled={loading}
-                size="default"
-                className="min-h-[48px] h-12"
-              >
-                <Text className="font-semibold text-base">
-                  {t("auth.login.useDifferentMethod")}
-                </Text>
-              </Button>
+                onFilled={(filledOtp) => {
+                  setOtp(filledOtp);
+                  void handleVerifyCode(filledOtp);
+                }}
+                theme={{
+                  containerStyle: {
+                    width: "100%",
+                    gap: 4,
+                  },
+                  pinCodeContainerStyle: {
+                    flex: 1,
+                    minHeight: 52,
+                    aspectRatio: 1,
+                    borderRadius: 18,
+                    borderWidth: 1,
+                    borderColor: "rgba(238, 35, 124, 0.3)",
+                    backgroundColor: "rgba(238, 35, 124, 0.05)",
+                  },
+                  focusedPinCodeContainerStyle: {
+                    borderColor: Palette.rose[500],
+                  },
+                  pinCodeTextStyle: {
+                    color: Colors.light.textPrimary,
+                    fontSize: 24,
+                    fontWeight: "700",
+                  },
+                  focusStickStyle: {
+                    backgroundColor: Palette.rose[500],
+                  },
+                }}
+              />
             </View>
-          )}
-        </Animated.View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+
+            {message ? (
+              <Text className="text-[13px] leading-[18px] text-primary">
+                {message}
+              </Text>
+            ) : null}
+
+            <AuthButton
+              label={t("auth.login.verify")}
+              pendingLabel={t("auth.login.verifying")}
+              isPending={isPending}
+              onPress={() => handleVerifyCode()}
+            />
+
+            <AuthButton
+              label={t("auth.login.useDifferentMethod")}
+              variant="secondary"
+              onPress={() => {
+                setStep("input");
+                setOtp("");
+                setMessage(null);
+                animateBack();
+              }}
+            />
+          </View>
+        ) : null}
+      </Animated.View>
+    </AuthShell>
   );
 }
+
+const styles = StyleSheet.create({
+  loading: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Colors.light.background,
+  },
+});
