@@ -12,16 +12,6 @@ import { useTRPC } from "@/lib/trpc";
 import { type PoolHold, useHoldPoolStore } from "@/stores/hold-pool";
 
 export function useHoldPool() {
-  const {
-    setPool,
-    consumeHold,
-    getAvailableHolds,
-    getConsumedHolds,
-    getAllUnconsumedHoldIds,
-    clearAllPools,
-    isHoldExpired,
-  } = useHoldPoolStore();
-
   const trpc = useTRPC();
   const preAcquireMutation = useMutation(
     trpc.booth.preAcquireHolds.mutationOptions(),
@@ -44,34 +34,33 @@ export function useHoldPool() {
           seatLabel: h.seatLabel,
           expiresAt: h.expiresAt.toISOString(),
         }));
-        setPool(tripId, mapped);
+        useHoldPoolStore.getState().setPool(tripId, mapped);
         return mapped;
       } catch (e) {
         console.warn("Failed to pre-acquire holds:", e);
         return [];
       }
     },
-    [preAcquireMutation, setPool],
+    [preAcquireMutation],
   );
 
   const releaseAllHolds = useCallback(async () => {
-    const holdIds = getAllUnconsumedHoldIds();
+    const store = useHoldPoolStore.getState();
+    const holdIds = store.getAllUnconsumedHoldIds();
     if (holdIds.length === 0) return;
     try {
       await releaseHoldsMutation.mutateAsync({ holdIds });
     } catch (e) {
       console.warn("Failed to release holds:", e);
     } finally {
-      clearAllPools();
+      store.clearAllPools();
     }
-  }, [getAllUnconsumedHoldIds, releaseHoldsMutation, clearAllPools]);
+  }, [releaseHoldsMutation]);
 
-  const getAvailablePoolSeats = useCallback(
-    (tripId: string): PoolHold[] => {
-      return getAvailableHolds(tripId).filter((h) => !isHoldExpired(h));
-    },
-    [getAvailableHolds, isHoldExpired],
-  );
+  const getAvailablePoolSeats = useCallback((tripId: string): PoolHold[] => {
+    const store = useHoldPoolStore.getState();
+    return store.getAvailableHolds(tripId).filter((h) => !store.isHoldExpired(h));
+  }, []);
 
   const takeHoldForSale = useCallback(
     (tripId: string): PoolHold | null => {
@@ -79,10 +68,10 @@ export function useHoldPool() {
       if (available.length === 0) return null;
       const hold = available[0] ?? null;
       if (!hold) return null;
-      consumeHold(tripId, hold.holdId);
+      useHoldPoolStore.getState().consumeHold(tripId, hold.holdId);
       return hold;
     },
-    [getAvailablePoolSeats, consumeHold],
+    [getAvailablePoolSeats],
   );
 
   const poolExpiryWarning = useCallback(
@@ -99,6 +88,7 @@ export function useHoldPool() {
     getAvailablePoolSeats,
     takeHoldForSale,
     poolExpiryWarning,
-    getConsumedHolds,
+    getConsumedHolds: (tripId: string) =>
+      useHoldPoolStore.getState().getConsumedHolds(tripId),
   };
 }

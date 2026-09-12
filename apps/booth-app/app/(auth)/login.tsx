@@ -9,10 +9,10 @@ import {
   View,
 } from "react-native";
 import { OtpInput } from "react-native-otp-entry";
+import { Colors, Palette } from "@/constants/theme";
 import { AuthButton } from "@/features/auth/components/auth-button";
 import { AuthField } from "@/features/auth/components/auth-field";
 import { AuthShell } from "@/features/auth/components/auth-shell";
-import { Colors, Palette } from "@/constants/theme";
 import { authClient, refreshSession } from "@/lib/auth-client";
 import { BoothFeedback } from "@/lib/haptics";
 
@@ -259,7 +259,7 @@ export default function LoginScreen() {
             />
 
             {message ? (
-              <Text className="text-[13px] leading-[18px] text-primary">
+              <Text className="text-sm leading-[18px] text-primary">
                 {message}
               </Text>
             ) : null}
@@ -276,7 +276,7 @@ export default function LoginScreen() {
         {step === "otp" ? (
           <View className="gap-4">
             <View className="gap-2">
-              <Text className="text-[14px] font-semibold text-foreground">
+              <Text className="text-base font-semibold text-foreground">
                 {t("auth.login.verifying")}
               </Text>
               <OtpInput
@@ -310,7 +310,7 @@ export default function LoginScreen() {
                   },
                   pinCodeTextStyle: {
                     color: Colors.light.textPrimary,
-                    fontSize: 24,
+                    fontSize: 20,
                     fontWeight: "700",
                   },
                   focusStickStyle: {
@@ -321,7 +321,7 @@ export default function LoginScreen() {
             </View>
 
             {message ? (
-              <Text className="text-[13px] leading-[18px] text-primary">
+              <Text className="text-sm leading-[18px] text-primary">
                 {message}
               </Text>
             ) : null}

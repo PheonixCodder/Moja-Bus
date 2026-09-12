@@ -74,7 +74,7 @@ export function TripCard({
 						<Text className="font-mono font-bold text-sm text-foreground">
 							{trip.bus?.registrationPlate ?? t("noBusAssigned")}
 						</Text>
-						<Text className="text-[11px] text-muted-foreground">
+						<Text className="text-xs text-muted-foreground">
 							{trip.company?.name ?? t("noCarrier")} • {role}
 						</Text>
 					</View>

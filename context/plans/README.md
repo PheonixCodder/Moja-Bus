@@ -42,4 +42,5 @@ Each plan follows this structure (produced automatically by `/architect`):
 
 ## Current Plans
 
-*No active plans. Create one with `/architect` before starting a new feature.*
+- [Operator Master Asset Import & Export Plan](./operator-asset-import-export-plan.md) — Apollo-style CSV import and export system for Terminals, Fleets, Routes, and Schedules with column auto-detection, field mapping, and preview validation.
+

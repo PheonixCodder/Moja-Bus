@@ -65,50 +65,65 @@ export async function connectPrinter(address: string): Promise<boolean> {
   }
 }
 
-export async function printTicket(data: TicketData): Promise<void> {
+export function isPrinterSupported(): boolean {
+  return BluetoothPrinter !== null;
+}
+
+export async function printTicket(
+  data: TicketData,
+): Promise<{ success: boolean; error?: string }> {
   if (!BluetoothPrinter) {
-    Alert.alert(
-      "Imprimante non disponible",
-      "L'imprimante Bluetooth n'est pas configurée.",
-    );
-    return;
+    return {
+      success: false,
+      error: "L'imprimante Bluetooth n'est pas disponible ou configurée.",
+    };
   }
 
-  const lines = [
-    {
-      type: "TEXT",
-      value: data.companyName,
-      style: { bold: true, align: "CENTER", size: 2 },
-    },
-    { type: "TEXT", value: "BILLET DE TRANSPORT", style: { align: "CENTER" } },
-    { type: "SEPARATOR" },
-    { type: "TEXT", value: `Passager : ${data.passengerName}` },
-    { type: "TEXT", value: `Ref : ${data.bookingReference}` },
-    { type: "TEXT", value: `Trajet : ${data.route}` },
-    { type: "TEXT", value: `Départ : ${data.departureDate}` },
-    ...(data.seatLabel
-      ? [{ type: "TEXT", value: `Siège : ${data.seatLabel}` }]
-      : []),
-    {
-      type: "TEXT",
-      value: `Montant : ${data.amountXOF.toLocaleString("fr-CI")} XOF`,
-    },
-    { type: "SEPARATOR" },
-    { type: "TEXT", value: `Terminal : ${data.terminalName}` },
-    {
-      type: "TEXT",
-      value: "Présentez ce ticket à l'embarquement",
-      style: { align: "CENTER", small: true },
-    },
-    {
-      type: "TEXT",
-      value: "Moja Ride — mojaride.com",
-      style: { align: "CENTER", small: true },
-    },
-    { type: "FEED", value: 3 },
-  ];
+  try {
+    const lines = [
+      {
+        type: "TEXT",
+        value: data.companyName || "Moja Ride",
+        style: { bold: true, align: "CENTER", size: 2 },
+      },
+      {
+        type: "TEXT",
+        value: "BILLET DE TRANSPORT",
+        style: { align: "CENTER" },
+      },
+      { type: "SEPARATOR" },
+      { type: "TEXT", value: `Passager : ${data.passengerName}` },
+      { type: "TEXT", value: `Ref : ${data.bookingReference}` },
+      { type: "TEXT", value: `Trajet : ${data.route}` },
+      { type: "TEXT", value: `Départ : ${data.departureDate}` },
+      ...(data.seatLabel
+        ? [{ type: "TEXT", value: `Siège : ${data.seatLabel}` }]
+        : []),
+      {
+        type: "TEXT",
+        value: `Montant : ${data.amountXOF.toLocaleString("fr-CI")} XOF`,
+      },
+      { type: "SEPARATOR" },
+      { type: "TEXT", value: `Terminal : ${data.terminalName}` },
+      {
+        type: "TEXT",
+        value: "Présentez ce ticket à l'embarquement",
+        style: { align: "CENTER", small: true },
+      },
+      {
+        type: "TEXT",
+        value: "Moja Ride — mojaride.com",
+        style: { align: "CENTER", small: true },
+      },
+      { type: "FEED", value: 3 },
+    ];
 
-  await BluetoothPrinter.printBill(lines as never[]);
+    await BluetoothPrinter.printBill(lines as never[]);
+    return { success: true };
+  } catch (err: unknown) {
+    const message = (err as Error)?.message ?? "Erreur lors de l'impression";
+    return { success: false, error: message };
+  }
 }
 
 export async function openBluetoothSettings(): Promise<void> {

@@ -133,7 +133,7 @@ export function CitySearchField({
                   ) : null}
                   {item.level === 'terminal' && item.companyName ? (
                     <View className="bg-muted rounded-full px-2 py-0.5">
-                      <Text className="text-[11px] font-bold text-muted-foreground">
+                      <Text className="text-xs font-bold text-muted-foreground">
                         {item.companyName}
                       </Text>
                     </View>

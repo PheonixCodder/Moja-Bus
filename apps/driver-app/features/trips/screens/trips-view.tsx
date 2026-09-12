@@ -186,7 +186,7 @@ export function TripsView() {
 				<View className="flex-row items-center justify-between">
 					<View className="gap-0.5 flex-1">
 						<Text className="text-2xl font-extrabold text-foreground tracking-tight">{t("title")}</Text>
-						<Text className="text-[11px] text-muted-foreground">
+						<Text className="text-xs text-muted-foreground">
 							{serviceMode === "ALL"
 								? t("subtitleAll")
 								: serviceMode === "INTERCITY"

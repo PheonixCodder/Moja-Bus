@@ -40,7 +40,7 @@ export function ManifestPassengerRow({
 			{/* Left: Seat Number Badge & Passenger Details */}
 			<View className="flex-row items-center gap-3 flex-1 mr-2">
 				<View className="size-11 rounded-2xl bg-background border border-border items-center justify-center">
-					<Text className="text-[13px] font-mono font-extrabold text-primary">{passenger.seatNumber}</Text>
+					<Text className="text-sm font-mono font-extrabold text-primary">{passenger.seatNumber}</Text>
 				</View>
 
 				<View className="flex-1 gap-0.5">
@@ -48,9 +48,9 @@ export function ManifestPassengerRow({
 						{passenger.passengerName}
 					</Text>
 					<View className="flex-row items-center gap-1.5">
-						<Text className="text-[11px] text-muted-foreground font-mono">{passenger.bookingReference}</Text>
+						<Text className="text-xs text-muted-foreground font-mono">{passenger.bookingReference}</Text>
 						{passenger.originTerminal && (
-							<Text className="text-[11px] text-muted-foreground" numberOfLines={1}>
+							<Text className="text-xs text-muted-foreground" numberOfLines={1}>
 								• {passenger.originTerminal}
 							</Text>
 						)}

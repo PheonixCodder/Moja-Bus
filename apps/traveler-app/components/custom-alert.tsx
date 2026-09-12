@@ -50,7 +50,7 @@ export function CustomAlert({
 						<View className="mb-3">{icon}</View>
 					) : null}
 
-					<Text className="text-[17px] font-extrabold text-foreground text-center mb-1">
+					<Text className="text-base font-extrabold text-foreground text-center mb-1">
 						{title}
 					</Text>
 

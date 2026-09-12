@@ -7,14 +7,49 @@ import {
 	Palette,
 	Colors,
 	FontFamily,
-	FontSize,
-	LineHeight,
 	FontWeight,
-	TextStyles,
 	Spacing,
 	Radii,
 	ControlHeights,
 } from "@moja/theme/tokens";
+
+// Compact/dense type scale — not importing FontSize/TextStyles/LineHeight
+// from @moja/theme/tokens to avoid affecting @apps/web and @packages/ui.
+const _FontSize = {
+	h1: 32,
+	h2: 24,
+	h3: 20,
+	h4: 16,
+	bodyLg: 16,
+	bodyMd: 14,
+	bodySm: 13,
+	caption: 11,
+} as const;
+
+const _LineHeight = {
+	h1: 38,
+	h2: 30,
+	h3: 26,
+	h4: 22,
+	bodyLg: 22,
+	bodyMd: 20,
+	bodySm: 18,
+	caption: 15,
+} as const;
+
+export const FontSize = _FontSize;
+export const LineHeight = _LineHeight;
+export const TextStyles = {
+	h1: { fontFamily: FontFamily.bold, fontSize: _FontSize.h1, fontWeight: FontWeight.bold, lineHeight: _LineHeight.h1 },
+	h2: { fontFamily: FontFamily.bold, fontSize: _FontSize.h2, fontWeight: FontWeight.bold, lineHeight: _LineHeight.h2 },
+	h3: { fontFamily: FontFamily.semiBold, fontSize: _FontSize.h3, fontWeight: FontWeight.semiBold, lineHeight: _LineHeight.h3 },
+	h4: { fontFamily: FontFamily.medium, fontSize: _FontSize.h4, fontWeight: FontWeight.medium, lineHeight: _LineHeight.h4 },
+	bodyLg: { fontFamily: FontFamily.regular, fontSize: _FontSize.bodyLg, fontWeight: FontWeight.regular, lineHeight: _LineHeight.bodyLg },
+	bodyMd: { fontFamily: FontFamily.regular, fontSize: _FontSize.bodyMd, fontWeight: FontWeight.regular, lineHeight: _LineHeight.bodyMd },
+	bodySm: { fontFamily: FontFamily.regular, fontSize: _FontSize.bodySm, fontWeight: FontWeight.regular, lineHeight: _LineHeight.bodySm },
+	caption: { fontFamily: FontFamily.regular, fontSize: _FontSize.caption, fontWeight: FontWeight.regular, lineHeight: _LineHeight.caption },
+	micro: { fontFamily: FontFamily.semiBold, fontSize: 11, fontWeight: FontWeight.semiBold, lineHeight: 15 },
+} as const;
 
 export {
 	Palette,

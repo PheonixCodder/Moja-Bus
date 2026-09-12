@@ -90,7 +90,7 @@ function NotificationRow({
 				<View className="min-w-0 flex-1 gap-1">
 					<View className="flex-row items-start justify-between gap-2">
 						<Text
-							className={`flex-1 text-[15px] text-foreground ${
+							className={`flex-1 text-base text-foreground ${
 								isRead ? "font-semibold" : "font-bold"
 							}`}
 							numberOfLines={2}

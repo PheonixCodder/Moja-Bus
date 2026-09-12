@@ -45,7 +45,7 @@ export function PassengerDeleteSheet({
 							</View>
 
 							<View className="items-center gap-1">
-								<Text className="text-[17px] font-extrabold text-foreground">Delete Passenger</Text>
+								<Text className="text-base font-extrabold text-foreground">Delete Passenger</Text>
 								<Text className="text-sm text-muted-foreground text-center max-w-[280px] leading-[18px]">
 									Are you sure you want to remove{" "}
 									<Text className="font-bold text-foreground">{passengerName}</Text>{" "}

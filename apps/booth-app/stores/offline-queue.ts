@@ -49,7 +49,9 @@ interface OfflineQueueState {
   dequeue: (id: string) => void;
   markAttempt: (id: string, error?: string) => void;
   setSyncStatus: (status: SyncStatus) => void;
+  setLastSyncAt: (date: string) => void;
   setConflictCount: (count: number) => void;
+  retryEntry: (id: string) => void;
   clearQueue: () => void;
 }
 
@@ -93,7 +95,27 @@ export const useOfflineQueue = create<OfflineQueueState>()(
           ),
         })),
 
-      setSyncStatus: (syncStatus) => set({ syncStatus }),
+      retryEntry: (id) =>
+        set((state) => ({
+          queue: state.queue.map((e) =>
+            e.id === id
+              ? {
+                  ...e,
+                  attempts: 0,
+                  lastError: null,
+                }
+              : e,
+          ),
+        })),
+
+      setSyncStatus: (syncStatus) =>
+        set((state) => ({
+          syncStatus,
+          lastSyncAt:
+            syncStatus === "done" ? new Date().toISOString() : state.lastSyncAt,
+        })),
+
+      setLastSyncAt: (lastSyncAt) => set({ lastSyncAt }),
 
       setConflictCount: (conflictCount) => set({ conflictCount }),
 
@@ -105,3 +127,14 @@ export const useOfflineQueue = create<OfflineQueueState>()(
     },
   ),
 );
+
+/** Granular selectors for offline queue */
+export const selectOfflineQueueLength = (state: OfflineQueueState) =>
+  state.queue.length;
+
+export const selectSyncStatus = (state: OfflineQueueState) => state.syncStatus;
+
+export const selectConflictCount = (state: OfflineQueueState) =>
+  state.conflictCount;
+
+export const selectLastSyncAt = (state: OfflineQueueState) => state.lastSyncAt;

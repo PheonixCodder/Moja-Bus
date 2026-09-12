@@ -89,7 +89,7 @@ export function BreakdownModal({
 						<View className="flex-row items-center gap-2.5 p-3 rounded-xl bg-info/10 border border-info/20">
 							<HugeiconsIcon icon={Location01Icon} size={16} color={colors.semantic.info} />
 							<View className="flex-1">
-								<Text className="text-[11px] font-bold text-info">{t("breakdownGpsFix")}</Text>
+								<Text className="text-xs font-bold text-info">{t("breakdownGpsFix")}</Text>
 								<Text className="text-xs text-foreground font-semibold">
 									{currentLocation
 										? `${currentLocation.latitude.toFixed(5)}, ${currentLocation.longitude.toFixed(5)} (±${Math.round(currentLocation.accuracy ?? 10)}m)`

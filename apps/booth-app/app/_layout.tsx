@@ -10,13 +10,13 @@ import { useEffect, useRef } from "react";
 import { View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
-import { NAV_THEME } from "@/lib/theme";
+import { colors } from "@/constants/theme";
 import { useLoadFonts } from "@/hooks/use-load-fonts";
 import { useNetworkStatus } from "@/hooks/use-network-status";
 import { flushOfflineQueue } from "@/lib/offline-sync";
+import { NAV_THEME } from "@/lib/theme";
 import { TRPCReactProvider, useTRPC } from "@/lib/trpc";
 import { useOfflineQueue } from "@/stores/offline-queue";
-import { colors } from "@/constants/theme";
 
 // Prevent splash auto-hide until the boot gate (index.tsx) finishes its
 // async auth/profile/terminal checks. The splash is hidden there once the
@@ -25,7 +25,7 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function ReconnectHandler() {
   const { isOnline } = useNetworkStatus();
-  const { queue } = useOfflineQueue();
+  const queueLength = useOfflineQueue((s) => s.queue.length);
   const trpc = useTRPC();
   const createCashSale = useMutation(
     trpc.booth.createCashSale.mutationOptions(),
@@ -39,7 +39,7 @@ function ReconnectHandler() {
     const wasOffline = !prevOnlineRef.current;
     prevOnlineRef.current = isOnline;
 
-    if (isOnline && wasOffline && queue.length > 0) {
+    if (isOnline && wasOffline && queueLength > 0) {
       void flushOfflineQueue(
         createCashSale.mutateAsync,
         reportUrbanConflict.mutateAsync,
@@ -61,7 +61,7 @@ function ReconnectHandler() {
     }
   }, [
     isOnline,
-    queue.length,
+    queueLength,
     createCashSale.mutateAsync,
     reportUrbanConflict.mutateAsync,
   ]);
@@ -100,7 +100,10 @@ export default function RootLayout() {
             <Stack
               screenOptions={{
                 headerShown: false,
-                contentStyle: { flex: 1, backgroundColor: colors.neutral.background },
+                contentStyle: {
+                  flex: 1,
+                  backgroundColor: colors.neutral.background,
+                },
                 animation: "slide_from_right",
               }}
             >

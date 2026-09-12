@@ -93,7 +93,7 @@ export function EarningsView() {
 			>
 				<View className="gap-0.5 flex-1">
 					<Text className="text-xl font-extrabold text-foreground tracking-tight">{t("headerTitle")}</Text>
-					<Text className="text-[11px] text-muted-foreground">{t("headerSubtitle")}</Text>
+					<Text className="text-xs text-muted-foreground">{t("headerSubtitle")}</Text>
 				</View>
 				<Pressable
 					onPress={handleRequestPayout}
@@ -121,7 +121,7 @@ export function EarningsView() {
 				{/* Hero Earnings Card */}
 				<Card className="p-6 gap-4 relative overflow-hidden bg-card border-border">
 					<View className="flex-row items-center justify-between">
-						<Text className="text-[11px] font-bold uppercase text-muted-foreground tracking-wider">{t("thisWeek")}</Text>
+						<Text className="text-xs font-bold uppercase text-muted-foreground tracking-wider">{t("thisWeek")}</Text>
 						<Badge
 							variant="warning"
 							label={t("estimationBadge") || "Estimation"}
@@ -138,15 +138,15 @@ export function EarningsView() {
 					{/* Breakdown Grid */}
 					<View className="flex-row items-center gap-4 pt-4 border-t border-border">
 						<View className="flex-1 gap-0.5">
-							<Text className="text-[11px] uppercase text-muted-foreground font-bold">{t("todayLabel")}</Text>
-							<Text className="text-[15px] font-bold text-foreground font-mono">
+							<Text className="text-xs uppercase text-muted-foreground font-bold">{t("todayLabel")}</Text>
+							<Text className="text-base font-bold text-foreground font-mono">
 								{todayEarnings.toLocaleString()} XOF
 							</Text>
 						</View>
 						<View className="w-[1px] h-8 bg-border" />
 						<View className="flex-1 gap-0.5">
-							<Text className="text-[11px] uppercase text-muted-foreground font-bold">{t("tripsCompletedLabel")}</Text>
-							<Text className="text-[15px] font-bold text-success font-mono">
+							<Text className="text-xs uppercase text-muted-foreground font-bold">{t("tripsCompletedLabel")}</Text>
+							<Text className="text-base font-bold text-success font-mono">
 								{totalTrips} {t("tripsCompleted")}
 							</Text>
 						</View>
@@ -174,7 +174,7 @@ export function EarningsView() {
 							<Text className="text-sm font-bold text-foreground">
 								{isShiftActive ? t("shiftOnDuty") : t("shiftOffDuty")}
 							</Text>
-							<Text className="text-[11px] text-muted-foreground">
+							<Text className="text-xs text-muted-foreground">
 								{isShiftActive ? t("shift.activeSub", { minutes: elapsedMinutes }) : t("shift.inactiveSub")}
 							</Text>
 						</View>
@@ -200,7 +200,7 @@ export function EarningsView() {
 				{/* Carrier Compensation Breakdown — DRV-P2-10 */}
 				{earnings?.byCompany && earnings.byCompany.length > 0 && (
 					<View className="gap-3 pt-1.5">
-						<Text className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{t("carrierBreakdown")}</Text>
+						<Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t("carrierBreakdown")}</Text>
 						{earnings.byCompany.map(
 							(comp: NonNullable<typeof earnings>["byCompany"][number]) => (
 								<Card key={comp.companyId} className="p-4 gap-2">
@@ -212,7 +212,7 @@ export function EarningsView() {
 											</View>
 											<View className="flex-1 gap-0.5">
 												<Text className="text-sm font-bold text-foreground">{comp.companyName}</Text>
-												<Text className="text-[11px] text-muted-foreground">
+												<Text className="text-xs text-muted-foreground">
 													{comp.employmentType?.replace(/_/g, " ")} • {comp.rateDescription}
 												</Text>
 											</View>
@@ -225,15 +225,15 @@ export function EarningsView() {
 													label={t("estimationBadge") || "Est."}
 												/>
 											)}
-											<Text className="text-[13px] font-bold font-mono text-success">
+											<Text className="text-sm font-bold font-mono text-success">
 												{comp.weekEarningsXof.toLocaleString()} XOF
 											</Text>
 											{comp.payModel === "PER_TRIP" ? (
-												<Text className="text-[11px] text-muted-foreground">
+												<Text className="text-xs text-muted-foreground">
 													{t("carrierWeekTrips", { trips: comp.weekTrips })}
 												</Text>
 											) : (
-												<Text className="text-[11px] text-muted-foreground">
+												<Text className="text-xs text-muted-foreground">
 													{t("carrierWeekMinutes", { minutes: comp.weekMinutes })}
 												</Text>
 											)}
@@ -242,7 +242,7 @@ export function EarningsView() {
 
 									{/* Today's per-carrier earnings row */}
 									<View className="flex-row items-center justify-between pt-2 mt-1 border-t border-border">
-										<Text className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("todayLabel")}</Text>
+										<Text className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("todayLabel")}</Text>
 										<Text className="text-xs font-bold font-mono text-muted-foreground">
 											{comp.todayEarningsXof.toLocaleString()} XOF
 										</Text>
@@ -255,13 +255,13 @@ export function EarningsView() {
 
 				{/* Shift Ledger History */}
 				<View className="gap-3 pt-1.5">
-					<Text className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{t("recentShifts")}</Text>
+					<Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t("recentShifts")}</Text>
 
 					{recentShifts.length === 0 ? (
 						<Card className="p-6 items-center justify-center text-center gap-1.5">
 							<HugeiconsIcon icon={Clock01Icon} size={32} color={colors.neutral.textMuted} />
 							<Text className="text-xs font-bold text-foreground">{t("emptyLedger")}</Text>
-							<Text className="text-[11px] text-muted-foreground text-center">{t("emptyLedgerDesc")}</Text>
+							<Text className="text-xs text-muted-foreground text-center">{t("emptyLedgerDesc")}</Text>
 						</Card>
 					) : (
 						recentShifts.map((shift: any) => {
@@ -276,14 +276,14 @@ export function EarningsView() {
 										<View className="flex-row items-center gap-3">
 											<HugeiconsIcon icon={Calendar01Icon} size={16} color={colors.neutral.textSecondary} />
 											<View>
-												<Text className="text-[13px] font-bold text-foreground">
+												<Text className="text-sm font-bold text-foreground">
 													{start.toLocaleDateString([], {
 														weekday: "short",
 														day: "numeric",
 														month: "short",
 													})}
 												</Text>
-												<Text className="text-[11px] text-muted-foreground">
+												<Text className="text-xs text-muted-foreground">
 													{start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
 													{shift.endedAt
 														? ` → ${new Date(shift.endedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`

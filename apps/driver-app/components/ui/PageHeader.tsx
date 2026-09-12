@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
 		gap: 2,
 	},
 	title: {
-		fontSize: 24,
+		fontSize: 20,
 		fontWeight: "800",
 		color: colors.neutral.textPrimary,
 		letterSpacing: -0.3,

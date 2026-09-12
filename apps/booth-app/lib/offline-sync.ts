@@ -44,10 +44,24 @@ export async function flushOfflineQueue(
   createCashSale: CreateCashSaleFn,
   reportUrbanConflict: ReportUrbanConflictFn,
 ): Promise<{ flushed: number; conflicts: number; failed: number }> {
-  const { queue, dequeue, markAttempt, setSyncStatus, setConflictCount } =
-    useOfflineQueue.getState();
+  const currentState = useOfflineQueue.getState();
+  if (currentState.syncStatus === "syncing") {
+    return { flushed: 0, conflicts: 0, failed: 0 };
+  }
 
-  if (queue.length === 0) return { flushed: 0, conflicts: 0, failed: 0 };
+  const {
+    queue,
+    dequeue,
+    markAttempt,
+    setSyncStatus,
+    setConflictCount,
+    setLastSyncAt,
+  } = currentState;
+
+  if (queue.length === 0) {
+    setSyncStatus("done");
+    return { flushed: 0, conflicts: 0, failed: 0 };
+  }
 
   setSyncStatus("syncing");
   let flushed = 0;
@@ -130,6 +144,7 @@ export async function flushOfflineQueue(
 
   setConflictCount(conflicts);
   setSyncStatus(conflicts + failed > 0 ? "failed" : "done");
+  setLastSyncAt(new Date().toISOString());
 
   return { flushed, conflicts, failed };
 }

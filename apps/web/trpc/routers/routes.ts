@@ -1,12 +1,14 @@
+import { createRouteSchema, updateRouteSchema } from "@moja/schemas";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { createTRPCRouter, operatorCompanyProcedure } from "../init";
+import { stringifyCsv } from "@/lib/csv/parser";
+import { ROUTES_CSV_TEMPLATE } from "@/lib/csv/templates";
 import {
-  requirePermission,
   requireAnyPermission,
+  requirePermission,
 } from "@/lib/permissions/authorize";
-import { createRouteSchema, updateRouteSchema } from "@moja/schemas";
 import { resolveRouteServiceType } from "@/lib/route-service-type";
+import { createTRPCRouter, operatorCompanyProcedure } from "../init";
 
 export const routesRouter = createTRPCRouter({
   list: operatorCompanyProcedure
@@ -529,5 +531,169 @@ export const routesRouter = createTRPCRouter({
 
       await ctx.prisma.route.delete({ where: { id: input.id } });
       return { success: true, archived: false };
+    }),
+
+  exportCsv: operatorCompanyProcedure.query(async ({ ctx }) => {
+    requirePermission(ctx, "routes:read");
+
+    const routes = await ctx.prisma.route.findMany({
+      where: { companyId: ctx.companyId, status: { not: "ARCHIVED" } },
+      include: {
+        originTerminal: true,
+        destTerminal: true,
+      },
+      orderBy: { name: "asc" },
+    });
+
+    const headers = ROUTES_CSV_TEMPLATE.columns.map((c) => c.label);
+    const rows = routes.map((r) => [
+      r.name,
+      r.originTerminal.name,
+      r.destTerminal.name,
+      r.distanceKm ?? "",
+      r.turnaroundBufferMinutes ?? 45,
+    ]);
+
+    const csv = stringifyCsv(headers, rows);
+    const dateStr = new Date().toISOString().slice(0, 10);
+    return {
+      filename: `routes-${dateStr}.csv`,
+      csv,
+      count: routes.length,
+    };
+  }),
+
+  batchImport: operatorCompanyProcedure
+    .input(
+      z.object({
+        upsert: z.boolean().default(false),
+        records: z.array(
+          z.object({
+            name: z.string().min(1, "Route name is required"),
+            originTerminal: z.string().min(1, "Origin terminal is required"),
+            destTerminal: z.string().min(1, "Destination terminal is required"),
+            distanceKm: z.number().optional().nullable(),
+            turnaroundBufferMinutes: z.number().int().optional().nullable(),
+          }),
+        ),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      requirePermission(ctx, "routes:create");
+
+      return ctx.prisma.$transaction(async (tx) => {
+        const [terminals, existingRoutes] = await Promise.all([
+          tx.companyLocation.findMany({
+            where: {
+              companyId: ctx.companyId,
+              isTerminal: true,
+              isActive: true,
+            },
+            select: { id: true, name: true, cityId: true },
+          }),
+          tx.route.findMany({
+            where: { companyId: ctx.companyId, status: { not: "ARCHIVED" } },
+          }),
+        ]);
+
+        const terminalByName = new Map(
+          terminals.map((t) => [t.name.toLowerCase().trim(), t]),
+        );
+        const routeByName = new Map(
+          existingRoutes.map((r) => [r.name.toLowerCase().trim(), r]),
+        );
+
+        let createdCount = 0;
+        let updatedCount = 0;
+        let skippedCount = 0;
+        const errors: Array<{ row: number; reason: string }> = [];
+
+        for (let i = 0; i < input.records.length; i++) {
+          const rec = input.records[i];
+          if (!rec) continue;
+
+          const rowNum = i + 1;
+          const cleanName = rec.name.trim();
+          const originName = rec.originTerminal.toLowerCase().trim();
+          const destName = rec.destTerminal.toLowerCase().trim();
+
+          const origin = terminalByName.get(originName);
+          if (!origin) {
+            errors.push({
+              row: rowNum,
+              reason: `Origin terminal "${rec.originTerminal}" not found in your company terminals.`,
+            });
+            continue;
+          }
+
+          const dest = terminalByName.get(destName);
+          if (!dest) {
+            errors.push({
+              row: rowNum,
+              reason: `Destination terminal "${rec.destTerminal}" not found in your company terminals.`,
+            });
+            continue;
+          }
+
+          if (origin.id === dest.id) {
+            errors.push({
+              row: rowNum,
+              reason: `Origin and destination terminals must be different.`,
+            });
+            continue;
+          }
+
+          const serviceType =
+            origin.cityId && dest.cityId && origin.cityId === dest.cityId
+              ? "URBAN"
+              : "INTERCITY";
+
+          const existing = routeByName.get(cleanName.toLowerCase());
+
+          if (existing) {
+            if (input.upsert) {
+              await tx.route.update({
+                where: { id: existing.id },
+                data: {
+                  originTerminalId: origin.id,
+                  destTerminalId: dest.id,
+                  distanceKm: rec.distanceKm ?? existing.distanceKm,
+                  turnaroundBufferMinutes:
+                    rec.turnaroundBufferMinutes ??
+                    existing.turnaroundBufferMinutes,
+                  serviceType,
+                },
+              });
+              updatedCount++;
+            } else {
+              skippedCount++;
+            }
+          } else {
+            await tx.route.create({
+              data: {
+                companyId: ctx.companyId,
+                name: cleanName,
+                originTerminalId: origin.id,
+                destTerminalId: dest.id,
+                distanceKm: rec.distanceKm ?? null,
+                turnaroundBufferMinutes: rec.turnaroundBufferMinutes ?? 45,
+                serviceType,
+                status: "ACTIVE",
+              },
+            });
+            createdCount++;
+          }
+        }
+
+        return {
+          totalRows: input.records.length,
+          validRows: createdCount + updatedCount,
+          invalidRows: errors.length,
+          createdCount,
+          updatedCount,
+          skippedCount,
+          errors,
+        };
+      });
     }),
 });

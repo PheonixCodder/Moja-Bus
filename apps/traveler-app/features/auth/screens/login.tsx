@@ -304,7 +304,7 @@ export default function LoginView() {
 						/>
 
 						{message ? (
-							<Text className="text-[13px] leading-[18px] text-primary">
+							<Text className="text-sm leading-[18px] text-primary">
 								{message}
 							</Text>
 						) : null}
@@ -321,7 +321,7 @@ export default function LoginView() {
 				{step === "otp" ? (
 					<View className="gap-4">
 						<View className="gap-2">
-							<Text className="text-[14px] font-semibold text-foreground">
+							<Text className="text-base font-semibold text-foreground">
 								{t("verifying")}
 							</Text>
 							<OtpInput
@@ -349,7 +349,7 @@ export default function LoginView() {
 									},
 									pinCodeTextStyle: {
 										color: Colors.light.textPrimary,
-										fontSize: 24,
+										fontSize: 20,
 										fontWeight: "700",
 									},
 									focusStickStyle: {
@@ -360,7 +360,7 @@ export default function LoginView() {
 						</View>
 
 						{message ? (
-							<Text className="text-[13px] leading-[18px] text-primary">
+							<Text className="text-sm leading-[18px] text-primary">
 								{message}
 							</Text>
 						) : null}
@@ -396,7 +396,7 @@ export default function LoginView() {
 						/>
 
 						<View className="gap-1">
-							<Text className="text-[14px] font-semibold text-foreground">
+							<Text className="text-base font-semibold text-foreground">
 								{t("profileSeatLabel")}
 							</Text>
 							<Select
@@ -440,7 +440,7 @@ export default function LoginView() {
 						</View>
 
 						<View className="gap-1">
-							<Text className="text-[14px] font-semibold text-foreground">
+							<Text className="text-base font-semibold text-foreground">
 								{t("profileClassLabel")}
 							</Text>
 							<Select
@@ -485,10 +485,10 @@ export default function LoginView() {
 
 						<View className="flex-row items-center justify-between gap-4">
 							<View className="flex-1">
-								<Text className="text-[14px] font-semibold text-foreground">
+								<Text className="text-base font-semibold text-foreground">
 									{t("profileMarketingLabel")}
 								</Text>
-								<Text className="text-[12px] leading-[16px] text-muted-foreground">
+								<Text className="text-xs leading-[16px] text-muted-foreground">
 									{t("profileMarketingDesc")}
 								</Text>
 							</View>
@@ -500,7 +500,7 @@ export default function LoginView() {
 						</View>
 
 						{message ? (
-							<Text className="text-[13px] leading-[18px] text-primary">
+							<Text className="text-sm leading-[18px] text-primary">
 								{message}
 							</Text>
 						) : null}

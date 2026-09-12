@@ -108,7 +108,7 @@ function TabItem({
       <Animated.Text
         style={[
           {
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: "700",
             color: Palette.rose[500],
             letterSpacing: 0.3,

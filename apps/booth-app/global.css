@@ -18,17 +18,31 @@
   --color-error: var(--destructive);
 
   /* ── Body / UI — Outfit ────────────────────────────── */
-  --font-sans:              "Outfit";
-  --font-outfit:            "Outfit";
-  --font-outfit-medium:     "Outfit-Medium";
-  --font-outfit-semibold:   "Outfit-SemiBold";
-  --font-outfit-bold:       "Outfit-Bold";
+  --font-sans: "Outfit";
+  --font-outfit: "Outfit";
+  --font-outfit-medium: "Outfit-Medium";
+  --font-outfit-semibold: "Outfit-SemiBold";
+  --font-outfit-bold: "Outfit-Bold";
   /* ── Headings — Raleway ────────────────────────────── */
-  --font-heading:           "Raleway";
-  --font-raleway:           "Raleway";
-  --font-raleway-semibold:  "Raleway-SemiBold";
-  --font-raleway-bold:      "Raleway-Bold";
+  --font-heading: "Raleway";
+  --font-raleway: "Raleway";
+  --font-raleway-semibold: "Raleway-SemiBold";
+  --font-raleway-bold: "Raleway-Bold";
   --font-raleway-extrabold: "Raleway-ExtraBold";
+
+  /* Typography Scale — Compact/dense (mirrors duolingo-clone) */
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-lg: 16px;
+  --text-xl: 16px;
+  --text-2xl: 20px;
+  --text-3xl: 24px;
+  --text-4xl: 32px;
+
+  --leading-tight: 16px;
+  --leading-normal: 20px;
+  --leading-relaxed: 26px;
 }
 
 /* Mobile radius scale — larger touch targets than web (web keeps 0.625rem) */

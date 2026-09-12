@@ -1,28 +1,28 @@
-# Graph Report - moja-buss  (2026-09-11)
+# Graph Report - moja-buss  (2026-09-12)
 
 ## Corpus Check
-- 2756 files · ~1,783,430 words
+- 2841 files · ~1,853,593 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 23075 nodes · 35296 edges · 2035 communities (1528 shown, 507 thin omitted)
-- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 185 edges (avg confidence: 0.82)
+- 25392 nodes · 37694 edges · 2112 communities (1603 shown, 509 thin omitted)
+- Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 185 edges (avg confidence: 0.82)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `ce1c9b91`
+- Built from commit: `00cf4449`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- Button
+- operator-marketplace-view.tsx
 - cn
-- passenger-settings-view.tsx
-- schemas/src/index.ts
+- admin-trip-audit-view.tsx
+- src/components/ui/card.tsx
 - cn
 - screens/wallet.tsx
 - Detailed File-by-File Audit Logs (285 Files Tracked)
-- routers/passenger.ts
+- routers/payments.ts
 - dependencies
 - Detailed File-by-File Audit Logs (247 Files Tracked)
 - screens/search.tsx
@@ -31,52 +31,52 @@
 - verify-claim.mjs
 - 1. Inventory by Pattern & File
 - Detailed File-by-File Audit Logs (239 Files Tracked)
-- init.ts
+- schemas/src/index.ts
 - db/src/index.ts
-- sidebar.tsx
-- routers/operator.ts
+- driver-app/constants/theme.ts
+- traveler-app/components/notification-bell.tsx
 - nativewind/SKILL.md
 - OperatorStaffView
-- passenger-wallet-view.tsx
+- Audit: app/(auth)/_layout.tsx
 - dependencies
 - dependencies
 - traveler-app/lib/trpc.tsx
 - search-params.ts
 - discounts-admin.ts
 - lib/render-report.mjs
-- routers/payments.ts
+- Audit: login.tsx
 - quote-service.ts
 - Milestone Log (newest first)
 - routers/booking.ts
 - dependencies
-- timezone.ts
+- routers/schedules.ts
 - customers.md
 - gates/index.mjs
 - escapeHtml
-- useSessionStore
+- booth-app/app/(tabs)/profile.tsx
 - support-topics.mjs
 - Detailed File-by-File Audit Logs (216 Files Tracked)
 - vercel.mjs
 - src/components/ui/label.tsx
 - payload-contracts.test.ts
-- routers/schedules.ts
+- Audit: index.tsx
 - Breaking changes
-- operator-schedules-view.tsx
+- operator-fleet-view.tsx
 - devDependencies
-- booking-detail.tsx
+- Text
 - promo-campaigns.ts
 - investigation-brief.mjs
 - workspace-resolver.mjs
 - routers/booth.ts
 - shims.d.ts
-- admin-staff-view.tsx
+- Audit: _layout.tsx
 - src/routes.ts
 - gate-investigations.mjs
 - screens/passengers.tsx
 - telemetry.ts
 - booking-details.tsx
 - payment-service.ts
-- screens/bookings.tsx
+- home.tsx
 - Framework Integration
 - Framework Integration
 - screens/personal-info.tsx
@@ -89,16 +89,16 @@
 - extract-claims.mjs
 - expo
 - driver-scoring.ts
-- notify.ts
+- Audit: app/reconcile.tsx
 - display-labels.mjs
 - Framework Integration
 - sanitizers/index.mjs
 - devDependencies
-- Palette
+- traveler-app/constants/theme.ts
 - storefronts.md
 - paystack-checkout.ts
 - driver-app/app/_layout.tsx
-- routers/search.ts
+- search-service.ts
 - Dedicated Virtual Accounts
 - route-normalize.mjs
 - driver-app/lib/trpc.tsx
@@ -122,23 +122,23 @@
 - generate_review.py
 - trip-segments.ts
 - Implementation Plan — Operator Verification ↔ Document Status Sync
-- trip-destination.ts
+- Audit: app/sell/_layout.tsx
 - Virtual Terminal
 - audit-i18n.js
-- live-view.tsx
+- driver-app/lib/mapbox.ts
 - en/manifest.json
 - Detailed File-by-File Audit Logs (194 Files Tracked)
 - domain-specs/driver-system/README.md
 - Project Overview
 - scripts/deep-dive.mjs
-- src/components/ui/select.tsx
-- Button.tsx
+- src/lib/utils.ts
+- trips-view.tsx
+- MigrationRunner
 - blog-detail-view.tsx
-- saved-passenger-service.ts
 - analyze-count4.js
 - biome.json
 - llms-full.md
-- src/fleet.ts
+- Audit: app/sell/passenger.tsx
 - Workflow & Step API Reference
 - locations.ts
 - types/package.json
@@ -149,8 +149,8 @@
 - include
 - .claude/skills/better-auth-security-best-practices/SKILL.md
 - lineOf
-- colors
-- campaign-settings-editor.tsx
+- license.tsx
+- add-bus-modal.tsx
 - amenities-list.tsx
 - scripts/render-report.mjs
 - scan-codebase.mjs
@@ -159,7 +159,7 @@
 - Phase 1: Critical Financial & Security Hotfixes (Immediate)
 - theme/package.json
 - getAppOrigin
-- 00. Executive Summary
+- Audit: app/sell/payment.tsx
 - scripts
 - ui/tsconfig.json
 - ui/components.json
@@ -204,7 +204,7 @@
 - analyze-count2.js
 - analyze-count3.js
 - find-count-issues.js
-- contact/page.tsx
+- public-page-shell.tsx
 - traveler-app/AGENTS.md
 - Terminal
 - apis/transactions.md
@@ -217,7 +217,7 @@
 - compilerOptions
 - Detailed File-by-File Audit Logs (80 Files Tracked)
 - Detailed File-by-File Audit Logs (68 Files Tracked)
-- discounts/lib/pending-referral.ts
+- [locale]/page.tsx
 - .claude/skills/two-factor-authentication-best-practices/SKILL.md
 - conductor-driver-architectural-split.md
 - .junie/skills/two-factor-authentication-best-practices/SKILL.md
@@ -236,7 +236,7 @@
 - Trip Assignment, Dispatch & Double-Booking Engine
 - Removed Features
 - generate_all_trackers.cjs
-- operators/[slug]/page.tsx
+- operator-profile-page.tsx
 - Deployment
 - telemetry-redis.ts
 - scanner-driven.mjs
@@ -303,7 +303,7 @@
 - usage-spike-triage.mjs
 - driver-app/__tests__/i18n-parity.test.ts
 - traveler-app/__tests__/i18n-parity.test.ts
-- routers/trips.ts
+- enqueueOutboxMessage
 - prefetch
 - Branding & Styling Reference
 - AddBusTypeDialog
@@ -344,7 +344,7 @@
 - booth-app/app/_layout.tsx
 - driver-system-remediation/README.md
 - expo-file-system
-- operator-profile.tsx
+- Audit: app/sell/[tripId].tsx
 - expo-image-picker
 - dependencies
 - expo-linking
@@ -368,8 +368,8 @@
 - @rn-primitives/context-menu
 - Usage
 - Rules
-- dashboard/(passenger)/layout.tsx
-- types/src/booking.ts
+- Audit: app/(tabs)/bookings.tsx
+- Audit: app/(tabs)/checkin.tsx
 - useScreenTransition
 - infoPlist
 - Module 09: Remediation Blueprint & Phased Execution Plan
@@ -380,7 +380,7 @@
 - mobile-callback/route.ts
 - app/layout.tsx
 - auth-header.tsx
-- driver-app/constants/theme.ts
+- booth-app/constants/theme.ts
 - 2. Detailed Workflow Specifications
 - Email Templates
 - 1. Mobile Driver App Ergonomics & UX Defects
@@ -667,7 +667,7 @@
 - Registry Authoring and Addresses
 - Base vs Radix
 - Tailwind Design System (v4)
-- external-api-slow.mjs
+- Audit: app/(tabs)/index.tsx
 - 03. Driver Subsystem Deep Dive: Architecture, Flows, & Lifecycle
 - 2. List Performance
 - Implementation Workflow
@@ -883,7 +883,7 @@
 - Detailed Wizard Steps:
 - 03 — Styling, Theme & Assets Deep Dive
 - 04 — Size Bloat & File Hygiene Deep Dive
-- admin-campaigns-view.tsx
+- Audit: app/(tabs)/_layout.tsx
 - Driver Safety Scoring, Analytics & Trust Badges
 - Digest Step
 - Push Step
@@ -941,7 +941,7 @@
 - How Multiple VTs Interact
 - Subphase 1C: Urgent Dispatch Server-Time Synchronization
 - 05. Audit Findings, Gap Register, & Recommendations
-- phone-input.tsx
+- combobox.tsx
 - 2. Styling & CSS Compilation Pipeline Failure
 - web/README.md
 - graphify reference: add a URL and watch a folder
@@ -983,7 +983,7 @@
 - Accent Color (/v5/tailwind/interactivity/accent-color)
 - Align Content (/v5/tailwind/flexbox/align-content)
 - Align Items (/v5/tailwind/flexbox/align-items)
-- admin-permissions.ts
+- Audit: app/(tabs)/profile.tsx
 - Animation (/v5/tailwind/transitions-animation/animation)
 - Appearance (/v5/tailwind/interactivity/appearance)
 - Aspect Ratio (/v5/tailwind/layout/aspect-ratio)
@@ -1047,7 +1047,7 @@
 - Flex Basis (/v5/tailwind/flexbox/flex-basis)
 - Subphase 2D: Vehicle Breakdown & Emergency Dispatch Protocol
 - Go avatar library
-- AdminStaffView
+- Audit: terminal-select.tsx
 - Flex Wrap (/v5/tailwind/flexbox/flex-wrap)
 - Flex (/v5/tailwind/flexbox/flex)
 - Gap (/v5/tailwind/flexbox/gap)
@@ -1131,7 +1131,7 @@
 - driver/dispatch.ts
 - 18 — Incremental Reaudit: CSS Foundation, Packages, Charts, Fields
 - Whitespace (/v5/tailwind/typography/whitespace)
-- validations/admin-staff.ts
+- Audit: offline-banner.tsx
 - Editor Setup (/v5/getting-started/editor-setup)
 - Installation (/v5/getting-started/installation/frameworkless)
 - Delay Step
@@ -1344,7 +1344,7 @@
 - 03. Driver Verification, Governance, & Document Security Audit
 - rn-international-phone-number
 - 2. Detailed Technical Fix Blueprints
-- Notionists
+- Audit: paystack-qr.tsx
 - booth-app/app/(auth)/login.tsx
 - expo-localization
 - expo-splash-screen
@@ -1415,7 +1415,7 @@
 - @rn-primitives/slot
 - @rn-primitives/switch
 - @rn-primitives/tabs
-- web/features/booking/components/passenger-seat-map.tsx
+- Audit: alert.tsx
 - @rn-primitives/tooltip
 - Module 07: Internationalization, Hardware Printing & Branding
 - react-dom
@@ -1425,7 +1425,7 @@
 - 08 — Styling, Theme, and CSS Audit
 - Novu — Moja Ride Notification Integration
 - Subphase 2A: Safety Streak Telemetry Gate & Anti-Gaming
-- web/features/search/lib/constants.ts
+- Audit: alert-dialog.tsx
 - date-fns
 - @dnd-kit/core
 - @dnd-kit/sortable
@@ -1523,7 +1523,7 @@
 - telemetry-ws.ts
 - 2. Implementation Specifications
 - driver-app/AGENTS.md
-- booth-app/components/ui/toggle-group.tsx
+- Audit: aspect-ratio.tsx
 - @rn-primitives/aspect-ratio
 - Module 01: System Map & Monorepo Architecture
 - @rn-primitives/popover
@@ -1559,7 +1559,7 @@
 - Engineering Audit: State Management & Data Flow
 - QA Audit: State Machine Integrity & Violations
 - Moja Ride — Driver System Audit Hub
-- Open Peeps
+- Audit: avatar.tsx
 - src/components/ui/toggle-group.tsx
 - Key Findings Highlights
 - 02-booth-app.md
@@ -1594,10 +1594,10 @@
 - 2. Implementation Specifications
 - Security Audit: Compliance Document Access & IDOR
 - Security Audit: Multi-Tenant Operator Isolation
-- Stripes
+- Audit: badge.tsx
 - Gaze
 - Croodles
-- Dylan
+- Audit: button.tsx
 - Initial Face
 - Voxel Art presets
 - BookingDialog
@@ -1703,7 +1703,7 @@
 - Rings presets
 - Planets presets
 - Glyphs presets
-- Read
+- Audit: card.tsx
 - Box Sizing (/v5/tailwind/layout/box-sizing)
 - 27. Design Debt & Duplication Analysis
 - 00 — Executive Summary
@@ -1716,13 +1716,13 @@
 - App Router
 - Read
 - 7. Migration Tree Problems
-- Planets
+- Audit: checkbox.tsx
 - save_exact_user_files.cjs
 - Driver Mobile App Architecture & UI System
 - 2. Implementation Details
 - App Router
 - Saturate (/v5/tailwind/filters/saturate)
-- Sepia (/v5/tailwind/filters/sepia)
+- Audit: collapsible.tsx
 - 10. Schema Design & Maintainability Problems
 - Architecture Plan — Phase 1: Canonical Design System Foundation
 - Licenses
@@ -1731,7 +1731,7 @@
 - DiceBear for AI assistants
 - Godot avatar library: using DiceBear with Godot
 - Flex Direction (/v5/tailwind/flexbox/flex-direction)
-- Bottts Neutral
+- Audit: dropdown-menu.tsx
 - Rings
 - 13. PostgreSQL Configuration Problems
 - 5. Production Database State
@@ -1741,37 +1741,37 @@
 - 05-testing-and-verification.md
 - Glass
 - Contribute to the library
-- Core options
+- Audit: hover-card.tsx
 - Filter avatar variants with tags
 - Self-hosted avatar API: host DiceBear yourself
 - Place Items (/v5/tailwind/flexbox/place-items)
 - paystack/index.md
 - Object Position (/v5/tailwind/layout/object-position)
-- booth-app/components/ui/avatar.tsx
-- web/features/search/components/search-empty-state.tsx
+- Audit: input.tsx
+- Audit: menubar.tsx
 - Resize (/v5/tailwind/interactivity/resize)
-- operator-fleet-view.tsx
+- banking-view.tsx
 - Scroll Margin (/v5/tailwind/interactivity/scroll-margin)
 - 11. Security Problems
 - 12. Backup & Recovery Problems
 - 15. Monitoring & Observability Gaps
 - Moja Ride Design System Audit — Legacy Repositories & Deprecated Packages
 - Stack
-- search-sort-bar.tsx
+- Audit: native-only-animated-view.tsx
 - Avataaars
 - [id]/page.tsx
 - Big Smile
 - Blobs
-- Bottts
-- admin-staff-activity-section.tsx
+- Audit: popover.tsx
+- Audit: progress.tsx
 - Cameo
 - Step Options
-- Constellation
+- Audit: radio-group.tsx
 - Overflow (/v5/tailwind/layout/overflow)
 - 08 — Remediation Roadmap & Code Solutions
 - Hue Rotate (/v5/tailwind/filters/hue-rotate)
 - Cutouts
-- How avatars are made
+- Audit: select.tsx
 - Disco
 - Flex Shrink (/v5/tailwind/flexbox/flex-shrink)
 - What is DiceBear?
@@ -1780,7 +1780,7 @@
 - Icons
 - 5. UI Components
 - Initials
-- Landscape
+- Audit: separator.tsx
 - Container (/v5/tailwind/layout/container)
 - Lorelei
 - Text Decoration Thickness (/v5/tailwind/typography/text-decoration-thickness)
@@ -1791,29 +1791,29 @@
 - Font Size (/v5/tailwind/typography/font-size)
 - 2. Implementation Specifications
 - 2. Implementation Specifications
-- search-promo-card.tsx
+- Audit: skeleton.tsx
 - 2. Implementation Specifications
 - Squircles
 - booth-ecosystem-remediation/README.md
 - Phase 1: Core Token Engine (`packages/theme`) Overhaul
 - 2. Code Changes
-- Moja Ride Design System Audit — Passenger Web Portal & Booking
+- Audit: switch.tsx
 - Voxel Bot
 - Weave
 - React Native avatar library: using DiceBear with React Native
-- Clay
+- Audit: textarea.tsx
 - 2. Code Changes
 - Booth App (apps/booth-app)
 - @moja/db
 - Moja Ride Design System Audit — Backend, Services, Schemas & Infrastructure
 - Moja Ride Design System Audit — Driver & Conductor Mobile App
-- Touch Action (/v5/tailwind/interactivity/touch-action)
-- Float (/v5/tailwind/layout/float)
+- Audit: toggle.tsx
+- Audit: theme.ts
 - 2. Implementation Specifications
 - 2. Verification Steps & Commands
-- Table Layout (/v5/tailwind/tables/table-layout)
+- Audit: ui-colors.ts
 - Step Options
-- Memory — shadcn/ui Audit Complete (Web / UI / Theme)
+- Audit: nativewind-env.d.ts
 - Moja Ride Design System Audit — Design System Core (UI & Theme Packages)
 - styled (/v5/api/styled)
 - booth-app/metro.config.js
@@ -1838,7 +1838,7 @@
 - shadcn
 - tailwindcss
 - @tailwindcss/typography
-- AdminPermissionKey
+- Audit: auth-field.tsx
 - @aws-sdk/s3-request-presigner
 - useMediaQuery
 - 05 — Cross-Platform Audit: Web, Dashboards & Traveler App
@@ -1854,39 +1854,39 @@
 - Flex Grow (/v5/tailwind/flexbox/flex-grow)
 - Place Self (/v5/tailwind/flexbox/place-self)
 - Scale (/v5/tailwind/transforms/scale)
-- Content (/v5/tailwind/typography/content)
+- Audit: auth-shell.tsx
 - Text Decoration Style (/v5/tailwind/typography/text-decoration-style)
 - Text Transform (/v5/tailwind/typography/text-transform)
 - Mastering Paystack: A Developer’s Guide to Secure, Scalable Payments in Next.js
 - admin-treasury-network-failure.ts
 - backfill-service-type.ts
-- migrate-drivers-data.ts
-- seat-map.tsx
+- Audit: use-load-fonts.ts
+- Audit: use-network-status.ts
 - Module 08: Severity-Ranked Findings Catalog
 - Booth Ecosystem & Booth App — Comprehensive Deep-Dive Audit
 - 06 — Cancellations, Refunds & Arbitrage Vulnerabilities
 - Capitec Pay
 - booth-app/__tests__/i18n-parity.test.ts
-- InviteSheet
+- Audit: auth-client.ts
 - max-path-occupancy.ts
 - PricingStep
-- use-city-search.ts
+- Audit: haptics.ts
 - 5. Border Radius — Full Regression Analysis
 - Web App — tRPC Router Map
-- TransferOwnershipDialog
-- preview-step.tsx
+- Audit: theme.ts
+- Audit: trpc.tsx
 - Payload Schema
-- 3. Size Bloat & File System Hygiene
+- Audit: hold-pool.ts
 - Plan: Moja Ride Universal Theme & Font Migration (Outfit + Raleway & Flawless Light/Dark)
-- Adventurer Neutral
-- Croodles Neutral
+- Audit: offline-queue.ts
+- Audit: sell-session.ts
 - Pixelbot
 - Shadows
 - Shape Grid
-- Slice
-- Thumbs
+- Audit: session.ts
+- Audit: __tests__/i18n-parity.test.ts
 - Toon Head
-- Create
+- booth-app-tracker.md
 - Align Self (/v5/tailwind/flexbox/align-self)
 - Outline Width (/v5/tailwind/borders/outline-width)
 - Ring Offset Color (/v5/tailwind/borders/ring-offset-color)
@@ -1898,14 +1898,14 @@
 - Text Overflow (/v5/tailwind/typography/text-overflow)
 - List All Preferences
 - web/features/booking/components/booking-kpi-strip.tsx
-- account-restored.ts
+- Audit: app/sell/confirmation.tsx
 - account-suspended.ts
-- trip-delayed.ts
+- Audit: seat-map.tsx
 - Moja Ride Design System Audit — Traveler Mobile App
-- Common Preference Operations
+- Audit: accordion.tsx
 - app.json
 - expo-env.d.ts
-- better-auth
+- Audit: context-menu.tsx
 - @better-auth/expo
 - class-variance-authority
 - clsx
@@ -1995,6 +1995,83 @@
 - tailwindcss
 - zustand
 - { useSession, signOut }
+- Audit: dialog.tsx
+- Audit: icon.tsx
+- Audit: label.tsx
+- Audit: tabs.tsx
+- Audit: text.tsx
+- Audit: toggle-group.tsx
+- Audit: tooltip.tsx
+- Audit: expo-env.d.ts
+- Audit: auth-button.tsx
+- Audit: use-hold-pool.ts
+- Audit: bluetooth-print.ts
+- Audit: i18n.ts
+- Audit: offline-sync.ts
+- Audit: utils.ts
+- signed-access-tokens.ts
+- ProfileTab
+- routers/search.ts
+- PassengerAuthFlow
+- session.ts
+- places.ts
+- item.tsx
+- lib/budget-summary.mjs
+- screens/notifications.tsx
+- generate-booth-audits.cjs
+- scanner-view.tsx
+- help/page.tsx
+- privacy/page.tsx
+- terms/page.tsx
+- count-correct.mjs
+- LoginView
+- search-date-strip.tsx
+- sell-session.ts
+- update_phase3_audits.cjs
+- contact/page.tsx
+- update_phase4_audits.cjs
+- tickets/[token]/page.tsx
+- SearchForm
+- update_tracker.cjs
+- platform-bot-protection.mjs
+- PassengerScreen
+- SavedPassengersView
+- generate_all_final_audits.cjs
+- verify_all_audits.cjs
+- How do I set a gender?
+- Your first avatar
+- Moja Ride Platform
+- Channel Steps
+- Create
+- 4. UI Component Library & Root Layout Deficiencies
+- update_phase5_to_9_audits.cjs
+- Adventurer
+- Support DiceBear
+- Critters
+- Glass
+- Identicon
+- Loops
+- Micah
+- Personas
+- Shapes
+- Sprouts
+- Triangles
+- Voxel Art
+- Waves
+- Read
+- Grayscale (/v5/tailwind/filters/grayscale)
+- Display (/v5/tailwind/layout/display)
+- Container Queries (/v5/tailwind/plugins/container-queries)
+- Text Decoration (/v5/tailwind/typography/text-decoration)
+- Word Break (/v5/tailwind/typography/word-break)
+- CheckInTab
+- rebooked.ts
+- review-submitted.ts
+- OperatorSentOffersView
+- List All Preferences
+- Moja Ride Design System Audit — Admin Web Dashboard & Governance
+- List All Preferences
+- expo-router
 
 ## God Nodes (most connected - your core abstractions)
 1. `Detailed File-by-File Audit Logs (285 Files Tracked)` - 286 edges
@@ -2003,59 +2080,59 @@
 4. `Button()` - 229 edges
 5. `Detailed File-by-File Audit Logs (216 Files Tracked)` - 217 edges
 6. `Detailed File-by-File Audit Logs (194 Files Tracked)` - 195 edges
-7. `cn()` - 129 edges
-8. `prefetch()` - 126 edges
-9. `cn()` - 125 edges
+7. `cn()` - 134 edges
+8. `cn()` - 129 edges
+9. `prefetch()` - 126 edges
 10. `escapeHtml()` - 115 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `NavSectionProps` --references--> `PermissionKey`  [EXTRACTED]
-  apps/web/features/operator/components/operator-sidebar.tsx → packages/schemas/src/permissions.ts
-- `CapturePage()` --calls--> `getPrismaClient()`  [EXTRACTED]
-  apps/web/app/[locale]/capture/[token]/page.tsx → packages/db/src/index.ts
+- `resolveGoogleProvider()` --calls--> `getOptionalEnv()`  [EXTRACTED]
+  apps/web/lib/auth-server.ts → packages/config/src/index.ts
 - `AdminLayout()` --calls--> `getPrismaClient()`  [EXTRACTED]
   apps/web/app/[locale]/dashboard/admin/layout.tsx → packages/db/src/index.ts
 - `AdminStaffPage()` --calls--> `getPrismaClient()`  [EXTRACTED]
   apps/web/app/[locale]/dashboard/admin/staff/page.tsx → packages/db/src/index.ts
 - `AdminStaffPage()` --calls--> `getAdminEffectivePermissions()`  [EXTRACTED]
   apps/web/app/[locale]/dashboard/admin/staff/page.tsx → packages/schemas/src/admin-permissions.ts
+- `assertTicketExists()` --calls--> `getPrismaClient()`  [EXTRACTED]
+  apps/web/app/[locale]/tickets/[token]/page.tsx → packages/db/src/index.ts
 
 ## Import Cycles
 - None detected.
 
-## Communities (2035 total, 507 thin omitted)
+## Communities (2112 total, 509 thin omitted)
 
-### Community 0 - "Button"
-Cohesion: 0.04
-Nodes (60): DateRange, roleMeta, UserProfileHeaderProps, UserRole, DashboardDateRangePicker(), DashboardQuickSearch(), dashboardParsers, HeroSearchBar() (+52 more)
+### Community 0 - "operator-marketplace-view.tsx"
+Cohesion: 0.05
+Nodes (42): DateRange, DispatchFilterBar(), DispatchTripDrawer(), dispatchSearchParams, DashboardDateRangePicker(), DashboardQuickSearch(), dashboardParsers, HeroSearchBar() (+34 more)
 
 ### Community 1 - "cn"
-Cohesion: 0.04
-Nodes (92): AccordionContent(), AccordionItem(), AccordionTrigger(), Alert(), AlertDescription(), AlertTitle(), Badge(), BadgeProps (+84 more)
-
-### Community 2 - "passenger-settings-view.tsx"
 Cohesion: 0.03
-Nodes (65): ImageRemoveButtonProps, ImageUploadFieldProps, TripAuditHeader(), TripAuditKpiCards(), TripAuditManifest(), TripAuditReviews(), STATUS_ORDER, stepDone() (+57 more)
+Nodes (103): AccordionContent(), AccordionItem(), AccordionTrigger(), Alert(), AlertDescription(), AlertTitle(), Avatar(), AvatarFallback() (+95 more)
 
-### Community 3 - "schemas/src/index.ts"
+### Community 2 - "admin-trip-audit-view.tsx"
+Cohesion: 0.06
+Nodes (39): BlogAnalyticsToolbar(), TripAuditHeader(), TripAuditKpiCards(), TripAuditManifest(), TripAuditReviews(), STATUS_ORDER, stepDone(), TripAuditTimeline() (+31 more)
+
+### Community 3 - "src/components/ui/card.tsx"
 Cohesion: 0.02
-Nodes (181): metadata, metadata, metadata, ImageUploadField(), BlogAnalyticsContent(), BlogAnalyticsToolbar(), BlogKpiStrip(), BlogKpiStripProps (+173 more)
+Nodes (156): metadata, ImageUploadField(), AdminPromoCreditsCard(), AdminReferralProgramCard(), BlogAnalyticsContent(), BlogKpiStrip(), BlogKpiStripProps, BlogReadDepthChart() (+148 more)
 
 ### Community 4 - "cn"
 Cohesion: 0.03
-Nodes (104): AccordionContent(), AccordionItem(), AccordionTrigger(), Alert(), AlertDescription(), AlertTitle(), AlertDialogAction(), AlertDialogCancel() (+96 more)
+Nodes (110): AccordionContent(), AccordionItem(), AccordionTrigger(), Alert(), AlertDescription(), AlertTitle(), AlertDialogAction(), AlertDialogCancel() (+102 more)
 
 ### Community 5 - "screens/wallet.tsx"
-Cohesion: 0.08
-Nodes (28): BalanceAllocation(), PromoIncentives(), sourceLabel(), TopupDialog(), formatDate(), LedgerEntry, TransactionHistory(), TransactionHistoryProps (+20 more)
+Cohesion: 0.06
+Nodes (42): WalletScreen(), useCheckoutWithWallet(), useCreateHold(), useInitiatePayment(), useReleaseHold(), useVerifyPayment(), PassengerDraft, PassengerFormSheet() (+34 more)
 
 ### Community 6 - "Detailed File-by-File Audit Logs (285 Files Tracked)"
 Cohesion: 0.01
 Nodes (286): [apps/web/app/api/auth/[...all]/route.ts](file:///C:/dev/moja-buss/apps/web/app/api/auth/[...all]/route.ts), [apps/web/app/api/cron/expire-driver-licenses/route.ts](file:///C:/dev/moja-buss/apps/web/app/api/cron/expire-driver-licenses/route.ts), [apps/web/app/api/cron/expire-holds/route.ts](file:///C:/dev/moja-buss/apps/web/app/api/cron/expire-holds/route.ts), [apps/web/app/api/cron/expire-offers/route.ts](file:///C:/dev/moja-buss/apps/web/app/api/cron/expire-offers/route.ts), [apps/web/app/api/cron/generate-trips/route.ts](file:///C:/dev/moja-buss/apps/web/app/api/cron/generate-trips/route.ts), [apps/web/app/api/cron/incentive-status-sweep/route.ts](file:///C:/dev/moja-buss/apps/web/app/api/cron/incentive-status-sweep/route.ts), [apps/web/app/api/cron/process-outbox/route.ts](file:///C:/dev/moja-buss/apps/web/app/api/cron/process-outbox/route.ts), [apps/web/app/api/cron/process-referral-rewards/route.ts](file:///C:/dev/moja-buss/apps/web/app/api/cron/process-referral-rewards/route.ts) (+278 more)
 
-### Community 7 - "routers/passenger.ts"
-Cohesion: 0.05
-Nodes (42): ACCOUNT_CLASS, AccountClass, CancellationRefundChannel, canPassengerSelfCancelWithChannel(), computeRefundQuote(), CreatableRefundChannel, isCreatableRefundChannel(), RefundQuoteInput (+34 more)
+### Community 7 - "routers/payments.ts"
+Cohesion: 0.04
+Nodes (57): ACCOUNT_CLASS, AccountClass, CancellationRefundChannel, canPassengerSelfCancelWithChannel(), computeRefundQuote(), CreatableRefundChannel, isCreatableRefundChannel(), RefundQuoteInput (+49 more)
 
 ### Community 8 - "dependencies"
 Cohesion: 0.06
@@ -2066,16 +2143,16 @@ Cohesion: 0.01
 Nodes (248): [apps/web/app/globals.css](file:///C:/dev/moja-buss/apps/web/app/globals.css), [apps/web/app/[locale]/book/[offerId]/success/page.tsx](file:///C:/dev/moja-buss/apps/web/app/[locale]/book/[offerId]/success/page.tsx), [apps/web/app/[locale]/dashboard/(passenger)/bookings/page.tsx](file:///C:/dev/moja-buss/apps/web/app/[locale]/dashboard/(passenger)/bookings/page.tsx), [apps/web/app/[locale]/dashboard/(passenger)/layout.tsx](file:///C:/dev/moja-buss/apps/web/app/[locale]/dashboard/(passenger)/layout.tsx), [apps/web/app/[locale]/dashboard/(passenger)/page.tsx](file:///C:/dev/moja-buss/apps/web/app/[locale]/dashboard/(passenger)/page.tsx), [apps/web/app/[locale]/dashboard/(passenger)/passengers/page.tsx](file:///C:/dev/moja-buss/apps/web/app/[locale]/dashboard/(passenger)/passengers/page.tsx), [apps/web/app/[locale]/dashboard/(passenger)/referrals/page.tsx](file:///C:/dev/moja-buss/apps/web/app/[locale]/dashboard/(passenger)/referrals/page.tsx), [apps/web/app/[locale]/dashboard/(passenger)/settings/page.tsx](file:///C:/dev/moja-buss/apps/web/app/[locale]/dashboard/(passenger)/settings/page.tsx) (+240 more)
 
 ### Community 10 - "screens/search.tsx"
-Cohesion: 0.06
-Nodes (51): useSeatAvailability(), LocationRowProps, PopularRoute, CitySearchFieldProps, FiltersSheet(), FiltersSheetProps, Offer, PassengerFormSheetProps (+43 more)
+Cohesion: 0.05
+Nodes (63): useSeatAvailability(), buildSearchParams(), HomeSearchWidget(), LocationRowProps, POPULAR_ROUTES, PopularRoute, PopularRoutesGrid(), CitySearchFieldProps (+55 more)
 
 ### Community 11 - "src/drivers.ts"
 Cohesion: 0.02
-Nodes (122): AffiliationPayConfig, calculateAffiliationEarnings(), DEFAULT_DRIVER_PAY_RATE_XOF_PER_MINUTE, earningsFromMinutes(), mondayStartUtc(), openShiftAccrualMinutes(), utcMidnight(), addDays() (+114 more)
+Nodes (172): enqueuePassengerReviewRequest(), LicenseExpiryBadge(), tripListParamsCache, tripListParsers, DriverDetailView(), driverInterval(), DriverTripConflict, FALLBACK_INTERCITY_SPEED_KMH (+164 more)
 
 ### Community 12 - "paystack-client.ts"
-Cohesion: 0.05
-Nodes (47): GET(), mapPool(), runtime, POST(), runtime, releaseDiscountReservations(), toPaystackAmountXOF(), isTopUpPayment() (+39 more)
+Cohesion: 0.07
+Nodes (34): POST(), runtime, toPaystackAmountXOF(), normalizeAccountName(), PAYSTACK_RECIPIENT_CURRENCY, PaystackBank, paystackCreateTransferRecipient(), paystackErrorMessage() (+26 more)
 
 ### Community 13 - "verify-claim.mjs"
 Cohesion: 0.06
@@ -2089,29 +2166,29 @@ Nodes (14): 1. Inventory by Pattern & File, Category A: Base UI `@base-ui/react/
 Cohesion: 0.01
 Nodes (240): [apps/web/app/[locale]/admin/invite/page.tsx](file:///C:/dev/moja-buss/apps/web/app/[locale]/admin/invite/page.tsx), [apps/web/app/[locale]/dashboard/admin/audit-logs/activity/page.tsx](file:///C:/dev/moja-buss/apps/web/app/[locale]/dashboard/admin/audit-logs/activity/page.tsx), [apps/web/app/[locale]/dashboard/admin/audit-logs/bank-access/page.tsx](file:///C:/dev/moja-buss/apps/web/app/[locale]/dashboard/admin/audit-logs/bank-access/page.tsx), [apps/web/app/[locale]/dashboard/admin/audit-logs/webhooks/page.tsx](file:///C:/dev/moja-buss/apps/web/app/[locale]/dashboard/admin/audit-logs/webhooks/page.tsx), [apps/web/app/[locale]/dashboard/admin/contact/inquiries/page.tsx](file:///C:/dev/moja-buss/apps/web/app/[locale]/dashboard/admin/contact/inquiries/page.tsx), [apps/web/app/[locale]/dashboard/admin/content/analytics/page.tsx](file:///C:/dev/moja-buss/apps/web/app/[locale]/dashboard/admin/content/analytics/page.tsx), [apps/web/app/[locale]/dashboard/admin/content/posts/[id]/edit/page.tsx](file:///C:/dev/moja-buss/apps/web/app/[locale]/dashboard/admin/content/posts/[id]/edit/page.tsx), [apps/web/app/[locale]/dashboard/admin/content/posts/page.tsx](file:///C:/dev/moja-buss/apps/web/app/[locale]/dashboard/admin/content/posts/page.tsx) (+232 more)
 
-### Community 16 - "init.ts"
-Cohesion: 0.03
-Nodes (102): handler(), CaptureMetaProps, CapturePage(), CapturePageProps, createCaptureService(), CreateInvitationSchema, GetActivityLogInput, GetActivityLogSchema (+94 more)
+### Community 16 - "schemas/src/index.ts"
+Cohesion: 0.02
+Nodes (150): GET, POST, handler(), CreateInvitationSchema, GetActivityLogInput, GetActivityLogSchema, InvitationIdInput, InvitationIdSchema (+142 more)
 
 ### Community 17 - "db/src/index.ts"
-Cohesion: 0.03
-Nodes (72): GET(), runtime, GET(), runtime, GET(), runtime, GET(), GET() (+64 more)
+Cohesion: 0.02
+Nodes (95): GET(), runtime, GET(), runtime, GET(), runtime, GET(), GET() (+87 more)
 
-### Community 18 - "sidebar.tsx"
+### Community 18 - "driver-app/constants/theme.ts"
 Cohesion: 0.08
-Nodes (40): DashboardSidebarBrand(), DashboardSidebarBrandProps, DashboardSwitcher(), DashboardSwitcherProps, AdminSidebar(), AdminSidebarProps, NavSection(), useAdminPermissions() (+32 more)
+Nodes (37): EMPLOYMENT_OPTIONS, EmploymentType, TabBar(), TabConfig, TABS, { width: SCREEN_WIDTH }, Button(), ButtonProps (+29 more)
 
-### Community 19 - "routers/operator.ts"
-Cohesion: 0.04
-Nodes (66): AuthOtpPayload, AuthOtpType, sendAuthOtp(), auth, BankAccessAction, logBankAccess(), LogBankAccessInput, BankAccountRecord (+58 more)
+### Community 19 - "traveler-app/components/notification-bell.tsx"
+Cohesion: 0.07
+Nodes (26): LANGUAGES, LanguageScreen(), handleSwitchLocale(), LocaleCode, persistLocale(), CustomTabBar(), getCurvedPath(), iconMap (+18 more)
 
 ### Community 20 - "nativewind/SKILL.md"
 Cohesion: 0.04
 Nodes (53): Additional Setup Guides, Additional Setup Guides (/v5/getting-started/installation/_additional-guides), Backdrop Hue Rotate (/v5/tailwind/filters/backdrop-hue-rotate), Background Image (/v5/tailwind/backgrounds/background-image), Compatibility, Compatibility, Compatibility, Compatibility (+45 more)
 
-### Community 22 - "passenger-wallet-view.tsx"
-Cohesion: 0.14
-Nodes (13): bytesToHex(), getDeviceHash(), Props, ReferralJoinView(), BalanceAllocation(), PromoIncentivesPanel(), sourceLabel(), TopupDialog() (+5 more)
+### Community 22 - "Audit: app/(auth)/_layout.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 23 - "dependencies"
 Cohesion: 0.06
@@ -2122,24 +2199,24 @@ Cohesion: 0.05
 Nodes (39): dependencies, expo, expo-clipboard, expo-device, expo-network, expo-status-bar, expo-system-ui, @hugeicons/core-free-icons (+31 more)
 
 ### Community 25 - "traveler-app/lib/trpc.tsx"
-Cohesion: 0.05
-Nodes (51): NotificationHandler(), NotificationTokenResponse, PendingReferralApplier(), PublicRouter, PushTokenRegistrar(), RootLayout(), TrpcQuery, TypedTRPC (+43 more)
+Cohesion: 0.06
+Nodes (41): NotificationHandler(), NotificationTokenResponse, PendingReferralApplier(), PublicRouter, PushTokenRegistrar(), RootLayout(), TrpcQuery, TypedTRPC (+33 more)
 
 ### Community 26 - "search-params.ts"
 Cohesion: 0.04
-Nodes (53): ActivityLogsPage(), metadata, BankAccessLogsPage(), metadata, metadata, PageProps, WebhookLogsPage(), ContentAnalyticsPage() (+45 more)
+Nodes (58): ActivityLogsPage(), metadata, BankAccessLogsPage(), metadata, metadata, PageProps, WebhookLogsPage(), ContentAnalyticsPage() (+50 more)
 
 ### Community 27 - "discounts-admin.ts"
-Cohesion: 0.07
-Nodes (54): omitUndefined(), displayName(), maskEmail(), maskPhone(), BulkCouponResult, bulkCreateCouponCodes(), generateCouponSuffix(), campaignCreateData() (+46 more)
+Cohesion: 0.05
+Nodes (74): omitUndefined(), displayName(), maskEmail(), maskPhone(), BulkCouponResult, bulkCreateCouponCodes(), generateCouponSuffix(), campaignCreateData() (+66 more)
 
 ### Community 28 - "lib/render-report.mjs"
 Cohesion: 0.08
 Nodes (62): classifyService(), computeCostCoverage(), escapeCell(), renderCostCoverageMarkdown(), SERVICE_DIMENSION, formatCandidateLabel(), formatCandidateLine(), formatKind() (+54 more)
 
-### Community 29 - "routers/payments.ts"
-Cohesion: 0.09
-Nodes (24): markOfflineRefundVoid(), Tx, requireAdminAllPermissions(), requireAdminPermission(), adminProcedure, contactRouter, adminGetInquirySchema, adminListInquiriesSchema (+16 more)
+### Community 29 - "Audit: login.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 30 - "quote-service.ts"
 Cohesion: 0.09
@@ -2150,16 +2227,16 @@ Cohesion: 0.05
 Nodes (44): Booking Dialog UX Polish — Centered Seat Map + Stops Timeline (2026-08-02), Commercial lifecycle hardening — Phase 00–07 (2026-08-16), Commercial lifecycle Phase 00 — cancel/refund money safety (2026-08-16), Commercial lifecycle Phase 01 — incentive ledger & referrals (2026-08-16), Commercial lifecycle Phase 02 — schema migrations & data repair (2026-08-16), Commercial lifecycle Phase 03 — hold & payment lifecycle (2026-08-16), Commercial lifecycle Phase 04 — search/quote concurrency (2026-08-16), Commercial lifecycle Phase 05 — product/ops/abuse (2026-08-16) (+36 more)
 
 ### Community 32 - "routers/booking.ts"
-Cohesion: 0.05
-Nodes (56): GET(), localePrefix(), readCookie(), runtime, DigitalTicketCardProps, bookingSummaryGroupKey(), HoldAnchor, holdGroupWhere() (+48 more)
+Cohesion: 0.03
+Nodes (69): DigitalTicketCardProps, HoldLike, bookingSummaryGroupKey(), HoldAnchor, holdGroupWhere(), normalizePhone(), phonesMatch(), isActiveBookingStatus() (+61 more)
 
 ### Community 33 - "dependencies"
 Cohesion: 0.11
 Nodes (19): @base-ui/react, cmdk, cn, dependencies, @base-ui/react, class-variance-authority, cmdk, cn (+11 more)
 
-### Community 34 - "timezone.ts"
-Cohesion: 0.13
-Nodes (36): buildOperatorTripWhere(), OperatorTripBoardFilters, OperatorTripBoardWhereResult, parseAppCalendarDayBound(), sumStatusCounts(), tripSearchOr(), CalendarWeekdays, CandidateDeparture (+28 more)
+### Community 34 - "routers/schedules.ts"
+Cohesion: 0.03
+Nodes (99): buildOperatorTripWhere(), OperatorTripBoardFilters, OperatorTripBoardWhereResult, parseAppCalendarDayBound(), sumStatusCounts(), tripSearchOr(), RevenueAggregation, RevenueAnalyticsRow (+91 more)
 
 ### Community 35 - "customers.md"
 Cohesion: 0.05
@@ -2167,19 +2244,19 @@ Nodes (39): Body Parameters, Body Parameters, Body Parameters, Body Parameters, 
 
 ### Community 36 - "gates/index.mjs"
 Cohesion: 0.05
-Nodes (43): gate(), metadata, unique(), extractColdStarts(), gate(), metadata, GATE_VERSION, gates (+35 more)
+Nodes (43): gate(), metadata, unique(), extractColdStarts(), gate(), metadata, extractCallCounts(), extractExternalApis() (+35 more)
 
 ### Community 37 - "escapeHtml"
 Cohesion: 0.07
 Nodes (32): escapeHtml(), operatorBankRejectedWorkflow, operatorBankVerifiedWorkflow, adminOperatorSignupPendingWorkflow, authOtpWorkflow, OTP_INTROS, OTP_SUBJECTS, operatorSignupOtpWorkflow (+24 more)
 
-### Community 38 - "useSessionStore"
-Cohesion: 0.06
-Nodes (41): BootGate(), ReconcileScreen(), ConfirmationScreen(), handlePrint(), Passenger, PassengerScreen(), BookingsTab(), Filter (+33 more)
+### Community 38 - "booth-app/app/(tabs)/profile.tsx"
+Cohesion: 0.13
+Nodes (32): ReconcileScreen(), Passenger, BookingsTab(), Filter, CheckInResult, ScanState, formatTime(), SellTab() (+24 more)
 
 ### Community 39 - "support-topics.mjs"
 Cohesion: 0.08
-Nodes (45): compareVersion(), HERE, isKnownUrl(), LIBRARY_PATH, libraryForStack(), loadLibrary(), lookupSkillRule(), lookupUrl() (+37 more)
+Nodes (44): compareVersion(), HERE, isKnownUrl(), LIBRARY_PATH, libraryForStack(), loadLibrary(), lookupSkillRule(), lookupUrl() (+36 more)
 
 ### Community 40 - "Detailed File-by-File Audit Logs (216 Files Tracked)"
 Cohesion: 0.01
@@ -2190,88 +2267,88 @@ Cohesion: 0.11
 Nodes (45): isDailyQuotaExceeded(), aggregateServicesByName(), baselineStack(), categorizeError(), checkAuth(), checkCliVersion(), checkObservabilityPlusConfiguration(), classifyObservabilityPlusConfiguration() (+37 more)
 
 ### Community 42 - "src/components/ui/label.tsx"
-Cohesion: 0.03
-Nodes (103): WebhookPayloadDrawer(), WebhookPayloadDrawerProps, InquiryDetailDrawer(), InquiryDetailDrawerProps, STATUS_ACTIONS, INVITABLE_ADMIN_ROLES, AdminMemberAvatar(), AdminMemberAvatarProps (+95 more)
+Cohesion: 0.02
+Nodes (153): MenuItem, NavSection(), NavSectionProps, WebhookPayloadDrawer(), WebhookPayloadDrawerProps, InquiryDetailDrawer(), InquiryDetailDrawerProps, STATUS_ACTIONS (+145 more)
 
 ### Community 43 - "payload-contracts.test.ts"
 Cohesion: 0.05
 Nodes (37): accountRestoredSamples, accountSuspendedSamples, campaignPausedSamples, ContractRow, CONTRACTS, driverAssignmentConflictSamples, payoutFailedSamples, profileUpdatedSamples (+29 more)
 
-### Community 44 - "routers/schedules.ts"
+### Community 44 - "Audit: index.tsx"
 Cohesion: 0.07
-Nodes (32): assertNoFareOverlap(), checkBusScheduleConflict(), computeScheduleWaypoints(), FareWindowInput, parseHHMMToMinutes(), AddFareInput, addFareSchema, CreateScheduleInput (+24 more)
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 45 - "Breaking changes"
 Cohesion: 0.05
 Nodes (39): 6. Override the lightningcss version, Animation changes, Breaking changes, Breaking Changes & Prerequisites, Classname changes, `cssInterop` / `remapProps` → Replaced by `styled()`, Deprecations, Dynamic mapping modifier (+31 more)
 
-### Community 46 - "operator-schedules-view.tsx"
-Cohesion: 0.03
-Nodes (85): metadata, UrbanBadge(), DispatchTripList(), groupTripsByCompany(), STATUS_CONFIG, Trip, dispatchSearchParams, AccessDeniedCard() (+77 more)
+### Community 46 - "operator-fleet-view.tsx"
+Cohesion: 0.02
+Nodes (123): metadata, metadata, UrbanBadge(), DispatchTripList(), groupTripsByCompany(), STATUS_CONFIG, Trip, AccessDeniedCard() (+115 more)
 
 ### Community 47 - "devDependencies"
 Cohesion: 0.08
 Nodes (25): devDependencies, @babel/core, @babel/helper-module-imports, babel-plugin-module-resolver, @babel/plugin-proposal-export-default-from, @babel/plugin-syntax-export-default-from, babel-preset-expo, @moja/typescript (+17 more)
 
-### Community 48 - "booking-detail.tsx"
-Cohesion: 0.06
-Nodes (52): TicketScreen(), BookingCard(), BookingCardProps, STATUS_CONFIG, CancelDialog(), DigitalTicketCard(), DigitalTicketCardProps, HoldCountdown() (+44 more)
+### Community 48 - "Text"
+Cohesion: 0.05
+Nodes (62): SubpageHeader(), Text(), BottomTabInset, BookingCard(), BookingCardProps, STATUS_CONFIG, BookingEmptyState(), BookingFilterTab (+54 more)
 
 ### Community 49 - "promo-campaigns.ts"
 Cohesion: 0.50
 Nodes (3): campaignBudgetExhaustedWorkflow, operatorCampaignPausedPayloadSchema, operatorCampaignPausedWorkflow
 
 ### Community 50 - "investigation-brief.mjs"
-Cohesion: 0.11
-Nodes (39): absoluteBriefPath(), briefRoots(), buildBrief(), cachePolicyGuidance(), capBriefFiles(), citationSubset(), closestAncestorLayoutFiles(), inferFrameworkPlaybook() (+31 more)
+Cohesion: 0.12
+Nodes (38): absoluteBriefPath(), briefRoots(), buildBrief(), cachePolicyGuidance(), capBriefFiles(), citationSubset(), closestAncestorLayoutFiles(), inferFrameworkPlaybook() (+30 more)
 
 ### Community 51 - "workspace-resolver.mjs"
 Cohesion: 0.10
 Nodes (38): DEFAULT_RESOLVE_OPTIONS, detectMonorepoRoot(), escapeRegExp(), expandParts(), expandResolvedSpecifier(), expandPureBarrel(), expandSuffixFanout(), expandWorkspaceGlob() (+30 more)
 
 ### Community 52 - "routers/booth.ts"
-Cohesion: 0.06
-Nodes (42): generateBookingReference(), isActiveBookingStatus(), segmentsOverlap(), BookingHoldService, SeatPassengerInput, listUpcomingScheduleTrips(), rebookPassenger(), RebookPassengerInput (+34 more)
+Cohesion: 0.12
+Nodes (25): generateBookingReference(), listUpcomingScheduleTrips(), rebookPassenger(), RebookPassengerInput, RebookPassengerResult, enqueueBoothTicketCreated(), boothProcedure, boothRouter (+17 more)
 
 ### Community 53 - "shims.d.ts"
 Cohesion: 0.05
 Nodes (39): @base-ui/react, @base-ui/react/accordion, @base-ui/react/alert-dialog, @base-ui/react/avatar, @base-ui/react/button, @base-ui/react/checkbox, @base-ui/react/collapsible, @base-ui/react/context-menu (+31 more)
 
-### Community 54 - "admin-staff-view.tsx"
-Cohesion: 0.09
-Nodes (34): AdminStaffFiltersToolbar(), AdminStaffInvitationCard(), AdminStaffInvitationCardProps, AdminStaffInvitationsSection(), AdminStaffInvitationsSectionProps, AdminStaffMemberRow(), AdminStaffMemberRowProps, AdminStaffMembersSection() (+26 more)
+### Community 54 - "Audit: _layout.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 55 - "src/routes.ts"
-Cohesion: 0.12
-Nodes (17): terminalFormSchema, TerminalFormValues, baseTerminalSchema, CreateRouteInput, createRouteSchema, CreateTerminalInput, createTerminalSchema, RouteStatus (+9 more)
+Cohesion: 0.11
+Nodes (18): terminalFormSchema, TerminalFormValues, baseTerminalSchema, CreateRouteInput, createRouteSchema, CreateTerminalInput, createTerminalSchema, RouteStatus (+10 more)
 
 ### Community 56 - "gate-investigations.mjs"
 Cohesion: 0.09
 Nodes (32): applyAuthDisqualifier(), AUTH_ROUTE_REGEX, isAuthRoute(), CandidateContractError, candidateLabel(), nonEmptyString(), VALID_SCOPES, validateCandidate() (+24 more)
 
 ### Community 57 - "screens/passengers.tsx"
-Cohesion: 0.11
-Nodes (25): Badge(), BadgeProps, badgeTextVariants, badgeVariants, BookingStatus, BookingStatusBadge(), BookingStatusBadgeProps, STATUS_CONFIG (+17 more)
+Cohesion: 0.09
+Nodes (29): PassengersScreen(), Badge(), BadgeProps, badgeTextVariants, badgeVariants, BookingStatus, BookingStatusBadge(), BookingStatusBadgeProps (+21 more)
 
 ### Community 58 - "telemetry.ts"
 Cohesion: 0.07
-Nodes (45): LiveLocationData, SpeedometerGauge(), SpeedometerGaugeProps, TripsView(), activeTelemetryHealth, connectTelemetrySocket(), chunkQueue(), computeSmoothedSpeed() (+37 more)
+Nodes (43): LiveLocationData, SpeedometerGauge(), SpeedometerGaugeProps, activeTelemetryHealth, connectTelemetrySocket(), chunkQueue(), computeSmoothedSpeed(), DEFAULT_SPEED_EMA_ALPHA (+35 more)
 
 ### Community 59 - "booking-details.tsx"
 Cohesion: 0.03
-Nodes (103): QRCode(), QRCodeComponent, QRCodeProps, AdminOfflineRefundsView(), BookingCard(), BookingCardProps, HoldLabel(), STATUS_LABEL_KEY (+95 more)
+Nodes (116): QRCode(), QRCodeComponent, QRCodeProps, RouteMapPreview, AdminOfflineRefundsView(), BookingCard(), BookingCardProps, HoldLabel() (+108 more)
 
 ### Community 60 - "payment-service.ts"
 Cohesion: 0.06
-Nodes (44): GET(), runtime, assertHoldOwnedByUser(), HoldLike, sweepIncentiveStatuses(), notifyOptedInCampaignStarting(), postPromoCreditGrantLedger(), grantPromoCredits() (+36 more)
+Nodes (35): GET(), assertHoldOwnedByUser(), sweepIncentiveStatuses(), Db, postPromoCreditGrantLedger(), grantPromoCredits(), GrantPromoCreditsInput, appendPromoLedgerEntries() (+27 more)
 
-### Community 61 - "screens/bookings.tsx"
-Cohesion: 0.06
-Nodes (40): CustomTabBar(), getCurvedPath(), iconMap, BookingEmptyState(), BookingFilterTab, BookingFilterTabs(), BookingFilterTabsProps, TABS (+32 more)
+### Community 61 - "home.tsx"
+Cohesion: 0.13
+Nodes (18): HOME_UPCOMING_LIMIT, ActiveTripCard(), ActiveTripCardProps, PromoBannerCarousel(), PromoBannerCarouselProps, { width: SCREEN_WIDTH }, H_PADDING, useHomeData() (+10 more)
 
 ### Community 62 - "Framework Integration"
-Cohesion: 0.05
-Nodes (39): Action Steps, Channel Steps, CLI Flags, Code Style Tips, Common Pitfalls, Controls vs Payload, Custom Client, Deployment (+31 more)
+Cohesion: 0.06
+Nodes (35): Action Steps, CLI Flags, Code Style Tips, Common Pitfalls, Controls vs Payload, Custom Client, Deployment, Framework Integration (+27 more)
 
 ### Community 63 - "Framework Integration"
 Cohesion: 0.05
@@ -2294,8 +2371,8 @@ Cohesion: 0.14
 Nodes (13): typedRoutes, expo, assetBundlePatterns, experiments, icon, name, orientation, owner (+5 more)
 
 ### Community 68 - "workflows/index.ts"
-Cohesion: 0.09
-Nodes (24): dynamic, { GET, POST, OPTIONS }, boothUrbanConflictWorkflow, basePayload, driverOfferCounterAcceptedWorkflow, driverOfferCounterDeclinedWorkflow, driverOfferCounteredWorkflow, driverOfferExpiredWorkflow (+16 more)
+Cohesion: 0.08
+Nodes (24): dynamic, { GET, POST, OPTIONS }, boothAccountCreatedWorkflow, boothUrbanConflictWorkflow, driverMarketplaceFeaturedWorkflow, driverMarketplaceSuspendedWorkflow, basePayload, driverAffiliationEndedWorkflow (+16 more)
 
 ### Community 69 - "99-final-audit.md"
 Cohesion: 0.08
@@ -2317,13 +2394,13 @@ Nodes (40): backgroundColor, foregroundImage, adaptiveIcon, googleServicesFile, 
 Cohesion: 0.11
 Nodes (26): runtime, AnomalyReason, BADGE_THRESHOLDS, BadgeInputs, CLEAN_TRIP_CREDIT, CLEAN_TRIPS_PER_CREDIT, isScoringAnomaly(), MAX_DAILY_PENALTY (+18 more)
 
-### Community 74 - "notify.ts"
-Cohesion: 0.10
-Nodes (33): claimCreditGrant(), processExpiringIncentiveReminders(), DISCOUNT_NOVU_WORKFLOWS, notifyCampaignBudgetExhausted(), notifyCreditExpiring(), notifyOperatorCampaignPaused(), notifyReferralAttributed(), notifyReferralRewardPosted() (+25 more)
+### Community 74 - "Audit: app/reconcile.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 75 - "display-labels.mjs"
-Cohesion: 0.12
-Nodes (23): buildBudgetSummary(), buildChatPreview(), buildExactChatMessage(), buildOptions(), buildPrintCheck(), buildQuestionPayload(), buildQuestionText(), renderBudgetSummaryMarkdown() (+15 more)
+Cohesion: 0.19
+Nodes (13): formatNumberLike(), formatSignalPart(), formatSignalValue(), humanizeKey(), KIND_LABELS, normalizeObservedWindowUnits(), PUBLIC_ASSIGNMENT_LABELS, REQUEST_COUNT_KINDS (+5 more)
 
 ### Community 76 - "Framework Integration"
 Cohesion: 0.05
@@ -2331,31 +2408,31 @@ Nodes (39): Action Steps, Channel Steps, CLI Flags, Code Style Tips, Common Pitf
 
 ### Community 77 - "sanitizers/index.mjs"
 Cohesion: 0.07
-Nodes (26): applyDollarStrip(), stripDollarLiterals(), metadata, STRING_FIELDS, metadata, STRING_FIELDS, metadata, STRING_FIELDS (+18 more)
+Nodes (27): sanitizeCitations(), applyDollarStrip(), stripDollarLiterals(), metadata, STRING_FIELDS, metadata, STRING_FIELDS, metadata (+19 more)
 
 ### Community 78 - "devDependencies"
 Cohesion: 0.13
 Nodes (15): husky, lint-staged, devDependencies, @biomejs/biome, husky, lint-staged, tsx, turbo (+7 more)
 
-### Community 79 - "Palette"
+### Community 79 - "traveler-app/constants/theme.ts"
 Cohesion: 0.04
-Nodes (69): IconColors, PlaceholderColor, SwitchColors, LANGUAGES, LanguageScreen(), handleSwitchLocale(), LocaleCode, persistLocale() (+61 more)
+Nodes (68): IconColors, PlaceholderColor, SwitchColors, OperatorProfileScreen(), CustomAlertProps, SubpageHeaderProps, fontFamily, FontSize (+60 more)
 
 ### Community 80 - "storefronts.md"
 Cohesion: 0.05
 Nodes (36): Add Products to Storefront, Body Parameters, Body Parameters, Body Parameters, Create Storefront, Delete Storefront, Duplicate Storefront, Fetch Storefront (+28 more)
 
 ### Community 81 - "paystack-checkout.ts"
-Cohesion: 0.09
-Nodes (23): BookingCheckoutForm(), handleSavedChange(), handleSubmit(), updateAssignment(), validateAssignments(), buildInitialAssignments(), PassengerBookingsView(), CompletePaystackPaymentInput (+15 more)
+Cohesion: 0.18
+Nodes (14): getHoldCountdown(), HoldCountdownState, buildPaystackNewTransactionConfig(), openPaystackCheckout(), openPaystackPopup(), openPaystackPopupWithFallback(), PAYSTACK_CHECKOUT_LOAD_TIMEOUT_SEC, PaystackNewTransactionConfig (+6 more)
 
 ### Community 82 - "driver-app/app/_layout.tsx"
-Cohesion: 0.09
-Nodes (23): LANGUAGES, LanguageScreen(), NotificationHandler(), NotificationTokenResponse, PublicRouter, PushTokenRegistrar(), RootLayout(), TrpcQuery (+15 more)
+Cohesion: 0.12
+Nodes (16): NotificationHandler(), NotificationTokenResponse, PublicRouter, PushTokenRegistrar(), RootLayout(), TrpcQuery, TypedTRPC, useLoadFonts() (+8 more)
 
-### Community 83 - "routers/search.ts"
-Cohesion: 0.10
-Nodes (25): handleSearch(), AvailabilityStatus, computeAvailabilityStatus(), GeoPlace, GeoTerminal, isUrban(), PlaceLevel, placeMatchesTerminal() (+17 more)
+### Community 83 - "search-service.ts"
+Cohesion: 0.18
+Nodes (8): AvailabilityStatus, computeAvailabilityStatus(), GeoPlace, TripSearchReadRepository, SearchContext, SearchService, SearchOffer, SearchResponse
 
 ### Community 84 - "Dedicated Virtual Accounts"
 Cohesion: 0.06
@@ -2366,12 +2443,12 @@ Cohesion: 0.09
 Nodes (37): byRoute(), gate(), metadata, ratioOverThreshold(), round2(), sumRows(), extractErrors(), extractFromStatusRows() (+29 more)
 
 ### Community 86 - "driver-app/lib/trpc.tsx"
-Cohesion: 0.07
-Nodes (42): AuthState, fetchDriverStatus(), IndexScreen(), checkAuth(), REDIRECT_ROUTES, REGISTRATION_STEP_ROUTES, TabLayout(), usePendingOffersCount() (+34 more)
+Cohesion: 0.10
+Nodes (31): AuthState, fetchDriverStatus(), IndexScreen(), checkAuth(), REDIRECT_ROUTES, REGISTRATION_STEP_ROUTES, TabLayout(), usePendingOffersCount() (+23 more)
 
 ### Community 87 - "verify-and-regen.mjs"
-Cohesion: 0.18
-Nodes (22): summarizeClaimResults(), applyQualityFloor(), grade(), gradeRecommendation(), isAccountScope(), roundTo(), scoreActionability(), scoreEvidence() (+14 more)
+Cohesion: 0.17
+Nodes (23): summarizeClaimResults(), applyQualityFloor(), grade(), gradeRecommendation(), isAccountScope(), roundTo(), scoreActionability(), scoreEvidence() (+15 more)
 
 ### Community 88 - "capture-service.ts"
 Cohesion: 0.12
@@ -2411,15 +2488,15 @@ Nodes (10): NotificationItem, NotificationRow(), NotificationRowProps, timeAgo()
 
 ### Community 97 - "traveler-app/features/auth/screens/login.tsx"
 Cohesion: 0.11
-Nodes (19): SelectContent(), SelectItem(), AuthButton(), AuthButtonProps, AuthField(), AuthFieldProps, AuthShell(), AuthShellProps (+11 more)
+Nodes (19): SelectItem(), SelectTrigger(), AuthButton(), AuthButtonProps, AuthField(), AuthFieldProps, AuthShell(), AuthShellProps (+11 more)
 
 ### Community 98 - "src/components/ui/skeleton.tsx"
-Cohesion: 0.06
-Nodes (36): AdminInquiriesPage(), metadata, DriverVerificationsPage(), metadata, LedgerPage(), LedgerPageProps, metadata, metadata (+28 more)
+Cohesion: 0.05
+Nodes (41): AdminInquiriesPage(), metadata, DriverVerificationsPage(), metadata, LedgerPage(), LedgerPageProps, metadata, AdminMarketingAbusePage() (+33 more)
 
 ### Community 99 - "phone-number.ts"
-Cohesion: 0.07
-Nodes (36): LoginPageProps, OperatorLoginPage(), LoginPage(), LoginPageProps, PageProps, SettingsPage(), PassengerAuthFlow(), handleSendCode() (+28 more)
+Cohesion: 0.15
+Nodes (20): PageProps, SettingsPage(), PassengerSettingsView(), COUNTRY_HEADERS, detectCountryFromClient(), detectCountryFromHeaders(), resolveDefaultCountry(), phoneErrorMessage() (+12 more)
 
 ### Community 100 - "Plan — Operator Reviews ↔ Trip / Driver Links"
 Cohesion: 0.20
@@ -2449,9 +2526,9 @@ Nodes (23): SegmentOccupancySection(), SegmentSeatGrid(), SegmentSeatGrid(), Tri
 Cohesion: 0.20
 Nodes (9): Acceptance criteria, Assumptions (defaults — override if wrong), Decisions made, Follow-up for deploy, How to build it, Implementation Plan — Operator Verification ↔ Document Status Sync, Language we agreed on, Out of scope (v1) (+1 more)
 
-### Community 107 - "trip-destination.ts"
-Cohesion: 0.31
-Nodes (6): computeDestinationArrivalOffset(), DestinationArrivalInput, DestinationArrivalTiming, DestinationArrivalWaypoint, APPLY, main()
+### Community 107 - "Audit: app/sell/_layout.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 108 - "Virtual Terminal"
 Cohesion: 0.06
@@ -2461,9 +2538,9 @@ Nodes (33): Add Split Code to Virtual Terminal, Assign Destination to Virtual Te
 Cohesion: 0.09
 Nodes (20): analyzeNode(), args, enMessages, enMissingInFr, FEATURES_DIR, filesToScan, frMessages, fs (+12 more)
 
-### Community 110 - "live-view.tsx"
-Cohesion: 0.10
-Nodes (29): BREAKDOWN_TYPES, BreakdownModal(), BreakdownModalProps, DELAY_REASONS, DelayModal(), DelayModalProps, LiveView(), DriverNavigationMap() (+21 more)
+### Community 110 - "driver-app/lib/mapbox.ts"
+Cohesion: 0.18
+Nodes (16): LiveView(), CacheEnvelope, extractTripCoordinates(), parseCacheEntry(), RawTripStopInput, ROUTE_CACHE_TTL_MS, RouteCoordinate, serializeCacheEntry() (+8 more)
 
 ### Community 111 - "en/manifest.json"
 Cohesion: 0.07
@@ -2485,21 +2562,21 @@ Nodes (31): 1. Manual Ticket Management, 1. No Visibility, 2. Double Booking, 2.
 Cohesion: 0.16
 Nodes (18): escapeODataString(), mergeIntoEvidence(), odataEq(), SCANNER_KINDS, simplify(), SPEC_GENERATORS, specsForCandidate(), TIME_WINDOW (+10 more)
 
-### Community 116 - "src/components/ui/select.tsx"
-Cohesion: 0.03
-Nodes (122): LocaleSwitcher(), LocaleSwitcherProps, ActivityLogsTable(), AdminCampaignsFilterBarProps, ledgerColumns, LedgerFilters(), LedgerFiltersProps, LedgerKpiCards() (+114 more)
+### Community 116 - "src/lib/utils.ts"
+Cohesion: 0.02
+Nodes (151): DashboardSidebarBrand(), DashboardSidebarBrandProps, DashboardSwitcher(), DashboardSwitcherProps, LocaleSwitcher(), LocaleSwitcherProps, AdminSidebar(), AdminSidebarProps (+143 more)
 
-### Community 117 - "Button.tsx"
-Cohesion: 0.08
-Nodes (33): getDicebearGlassUrl(), getUserInitials(), SIZE_MAP, UserAvatar(), UserAvatarProps, Badge(), BadgeProps, Button() (+25 more)
+### Community 117 - "trips-view.tsx"
+Cohesion: 0.09
+Nodes (26): getDicebearGlassUrl(), getUserInitials(), SIZE_MAP, UserAvatar(), UserAvatarProps, Badge(), BadgeProps, Card() (+18 more)
 
-### Community 118 - "blog-detail-view.tsx"
-Cohesion: 0.10
-Nodes (16): BlogShareButtons(), BlogShareButtonsProps, BlogTelemetry(), BlogTelemetryProps, READ_THRESHOLDS, BookingCTA(), BookingCTAProps, BlogDetailView() (+8 more)
+### Community 118 - "MigrationRunner"
+Cohesion: 0.26
+Nodes (4): main(), MigrationConfig, MigrationResult, MigrationRunner
 
-### Community 119 - "saved-passenger-service.ts"
-Cohesion: 0.18
-Nodes (11): TravelInsightsChartProps, SavedPassengerRow, SavedPassengerService, CreateSavedPassengerInput, UpdateSavedPassengerInput, EnsurePassengerProfileResult, SavedPassengerDTO, SavedPassengersListResult (+3 more)
+### Community 119 - "blog-detail-view.tsx"
+Cohesion: 0.09
+Nodes (23): BlogShareButtons(), BlogShareButtonsProps, BlogTelemetry(), BlogTelemetryProps, READ_THRESHOLDS, BookingCTA(), BookingCTAProps, BlogDetailView() (+15 more)
 
 ### Community 120 - "analyze-count4.js"
 Cohesion: 0.10
@@ -2511,11 +2588,11 @@ Nodes (37): source, assist, actions, enabled, css, parser, next, react (+29 more
 
 ### Community 122 - "llms-full.md"
 Cohesion: 0.02
-Nodes (114): Adventurer, Angular avatar library: using DiceBear with Angular, Avataaars Neutral, Avatar styles, Big Ears, Big Ears Neutral, Contribute, Contribute to the API (+106 more)
+Nodes (117): Adventurer Neutral, Angular avatar library: using DiceBear with Angular, Avataaars Neutral, Avatar styles, Background options, Big Ears, Big Ears Neutral, Bottts (+109 more)
 
-### Community 123 - "src/fleet.ts"
-Cohesion: 0.13
-Nodes (14): BusStatus, busStatusEnum, CreateBusInput, createBusSchema, CreateCustomLayoutInput, createCustomLayoutSchema, SeatCell, seatCellSchema (+6 more)
+### Community 123 - "Audit: app/sell/passenger.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 124 - "Workflow & Step API Reference"
 Cohesion: 0.06
@@ -2530,8 +2607,8 @@ Cohesion: 0.12
 Nodes (16): devDependencies, @moja/typescript, exports, files, @moja/typescript, src, tsconfig.json, name (+8 more)
 
 ### Community 127 - "traveler-app/lib/mapbox.ts"
-Cohesion: 0.17
-Nodes (13): TrackingTerminal, TravelerTrackingMap(), TravelerTrackingMapProps, CacheEnvelope, parseCacheEntry(), ROUTE_CACHE_TTL_MS, serializeCacheEntry(), fetchTravelerRouteDirections() (+5 more)
+Cohesion: 0.27
+Nodes (9): CacheEnvelope, parseCacheEntry(), ROUTE_CACHE_TTL_MS, serializeCacheEntry(), fetchTravelerRouteDirections(), generateFallbackLineString(), MAPBOX_TOKEN_CONFIGURED, RouteCoordinate (+1 more)
 
 ### Community 128 - "ai-application.md"
 Cohesion: 0.06
@@ -2554,16 +2631,16 @@ Cohesion: 0.06
 Nodes (30): Account Enumeration Prevention, Background Tasks, Complete Security Configuration Example, Configuration, Configuring the Secret, Configuring Trusted Origins, Cookie Security, Cross-Subdomain Cookies (+22 more)
 
 ### Community 133 - "lineOf"
-Cohesion: 0.06
-Nodes (47): apply(), COUNT_CLAIM_TYPES, metadata, rewriteCount(), apply(), metadata, apply(), metadata (+39 more)
+Cohesion: 0.07
+Nodes (39): apply(), metadata, apply(), metadata, MODE_PATTERNS, countMatches(), findRepeated(), metadata (+31 more)
 
-### Community 134 - "colors"
-Cohesion: 0.12
-Nodes (30): EMPLOYMENT_OPTIONS, EmploymentType, EMPLOYMENT_TYPE_KEYS, RegisterStep4CarrierScreen(), RegisterStep3DocumentsScreen(), RegisterStep1Screen(), LICENSE_CATEGORY_KEYS, RegisterStep2LicenseScreen() (+22 more)
+### Community 134 - "license.tsx"
+Cohesion: 0.13
+Nodes (24): EMPLOYMENT_TYPE_KEYS, RegisterStep4CarrierScreen(), RegisterStep3DocumentsScreen(), RegisterStep1Screen(), LICENSE_CATEGORY_KEYS, RegisterStep2LicenseScreen(), Input(), InputProps (+16 more)
 
-### Community 135 - "campaign-settings-editor.tsx"
-Cohesion: 0.04
-Nodes (53): AdminPromoCreditsCard(), AdminReferralProgramCard(), AdminCampaignDrawerCoupons(), AdminCampaignDrawerCouponsProps, AdminCampaignDrawerPerformance(), AdminCampaignDrawerPerformanceProps, CampaignPerformanceData, AdminCampaignDrawerRedemptions() (+45 more)
+### Community 135 - "add-bus-modal.tsx"
+Cohesion: 0.02
+Nodes (101): AdminCampaignCreateDialog(), handleOpenChange(), reset(), CreateCampaignData, AdminCampaignDrawer(), AdminCampaignDrawerProps, CampaignDrawerTab, AdminCampaignDrawerCoupons() (+93 more)
 
 ### Community 136 - "amenities-list.tsx"
 Cohesion: 0.40
@@ -2594,12 +2671,12 @@ Cohesion: 0.11
 Nodes (18): description, exports, ./global.css, ./tokens, files, react-native, main, name (+10 more)
 
 ### Community 143 - "getAppOrigin"
-Cohesion: 0.23
+Cohesion: 0.21
 Nodes (9): GET(), dashboardUrl(), adminPayoutFailedPayloadSchema, adminPayoutFailedWorkflow, passengerReviewRequestPayloadSchema, passengerReviewRequestWorkflow, operatorVerificationApprovedWorkflow, operatorVerificationRejectedWorkflow (+1 more)
 
-### Community 144 - "00. Executive Summary"
-Cohesion: 0.22
-Nodes (8): 00. Executive Summary, Design-System Maturity: `Level 2.2 / 5 (Reusable with Nascent Systematics)`, Moja Ride Design & Design-Engineering Audit, Overall Design Score: `5.4 / 10`, Overview & Audit Metadata, The Biggest Problems, The Biggest Strengths, Top 15 Highest Priority Fixes (Remediation Masterlist)
+### Community 144 - "Audit: app/sell/payment.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 145 - "scripts"
 Cohesion: 0.04
@@ -2698,8 +2775,8 @@ Cohesion: 0.07
 Nodes (28): A) `VERCEL_TOKEN` is already set in the environment, About `.vercel/` Directory, Authentication error, B) Token is in a `.env` file under `VERCEL_TOKEN`, Build failure, C) Token is in a `.env` file under a different name, Check project state first, CLI not installed (+20 more)
 
 ### Community 169 - "routers/admin.ts"
-Cohesion: 0.11
-Nodes (26): DRIVER_DOC_SEGMENTS, DRIVER_DOC_TYPES, driverDocKeyMatches(), DriverPresignDocInput, driverPresignDocSchema, expectedDriverDocPrefix(), mintDriverDocUrl(), MintPrisma (+18 more)
+Cohesion: 0.08
+Nodes (38): DRIVER_DOC_SEGMENTS, DRIVER_DOC_TYPES, driverDocKeyMatches(), DriverPresignDocInput, driverPresignDocSchema, expectedDriverDocPrefix(), mintDriverDocUrl(), MintPrisma (+30 more)
 
 ### Community 170 - "find-all-count-issues.js"
 Cohesion: 0.14
@@ -2746,8 +2823,8 @@ Cohesion: 0.08
 Nodes (25): devDependencies, @biomejs/biome, @moja/typescript, tailwindcss, @tailwindcss/postcss, @tailwindcss/typography, tsx, @types/ioredis (+17 more)
 
 ### Community 181 - "[locale]/layout.tsx"
-Cohesion: 0.18
-Nodes (7): Props, LangSetter(), PostHogProvider(), routing, Locale, config, NOTE: In Next.js 16, the middleware entry point is proxy.ts (not middleware.ts).
+Cohesion: 0.16
+Nodes (8): Props, LangSetter(), PostHogProvider(), { Link, useRouter, usePathname, redirect, permanentRedirect }, routing, Locale, config, NOTE: In Next.js 16, the middleware entry point is proxy.ts (not middleware.ts).
 
 ### Community 182 - "Driver Adapters"
 Cohesion: 0.07
@@ -2777,9 +2854,9 @@ Nodes (10): countKeyPaths, countKeys, en, files, fs, icuPluralKeys, issues, path
 Cohesion: 0.15
 Nodes (9): countKeys, en, files, fs, grouped, issues, path, seen (+1 more)
 
-### Community 189 - "contact/page.tsx"
-Cohesion: 0.05
-Nodes (33): facts, metadata, statKeys, values, Props, info, metadata, steps (+25 more)
+### Community 189 - "public-page-shell.tsx"
+Cohesion: 0.20
+Nodes (6): facts, metadata, statKeys, values, Props, PublicPageShell()
 
 ### Community 191 - "traveler-app/AGENTS.md"
 Cohesion: 0.13
@@ -2829,9 +2906,9 @@ Nodes (81): [apps/driver-app/app/(auth)/login.tsx](file:///C:/dev/moja-buss/apps
 Cohesion: 0.03
 Nodes (69): Detailed File-by-File Audit Logs (68 Files Tracked), [packages/theme/global.css](file:///C:/dev/moja-buss/packages/theme/global.css), [packages/theme/tokens.ts](file:///C:/dev/moja-buss/packages/theme/tokens.ts), [packages/ui/src/components/ui/accordion.tsx](file:///C:/dev/moja-buss/packages/ui/src/components/ui/accordion.tsx), [packages/ui/src/components/ui/action-drawer.tsx](file:///C:/dev/moja-buss/packages/ui/src/components/ui/action-drawer.tsx), [packages/ui/src/components/ui/alert-dialog.tsx](file:///C:/dev/moja-buss/packages/ui/src/components/ui/alert-dialog.tsx), [packages/ui/src/components/ui/alert.tsx](file:///C:/dev/moja-buss/packages/ui/src/components/ui/alert.tsx), [packages/ui/src/components/ui/aspect-ratio.tsx](file:///C:/dev/moja-buss/packages/ui/src/components/ui/aspect-ratio.tsx) (+61 more)
 
-### Community 203 - "discounts/lib/pending-referral.ts"
-Cohesion: 0.30
-Nodes (9): HomeReferralCapture(), PendingReferralApplier(), clearPendingReferralCode(), consumePendingReferralCode(), normalizeCode(), peekPendingReferralCode(), referralInvitePath(), storePendingReferralCode() (+1 more)
+### Community 203 - "[locale]/page.tsx"
+Cohesion: 0.10
+Nodes (21): HomePage(), Props, HomeReferralCapture(), PendingReferralApplier(), clearPendingReferralCode(), consumePendingReferralCode(), normalizeCode(), peekPendingReferralCode() (+13 more)
 
 ### Community 204 - ".claude/skills/two-factor-authentication-best-practices/SKILL.md"
 Cohesion: 0.08
@@ -2905,9 +2982,9 @@ Nodes (23): Alternatives, Auto-generate after migrate, Auto-seed after migrate, 
 Cohesion: 0.06
 Nodes (36): auditFile(), fs, getFiles(), path, allFiles, backendInfra, driverApp, fileMap (+28 more)
 
-### Community 222 - "operators/[slug]/page.tsx"
-Cohesion: 0.24
-Nodes (6): OperatorSlugPage(), Props, OperatorProfilePage(), Props, Tab, today()
+### Community 222 - "operator-profile-page.tsx"
+Cohesion: 0.40
+Nodes (4): OperatorProfilePage(), Props, Tab, today()
 
 ### Community 223 - "Deployment"
 Cohesion: 0.08
@@ -2994,8 +3071,8 @@ Cohesion: 0.10
 Nodes (21): Bridge running on a non-default port, Can I run multiple bridges simultaneously?, Can I run the Studio without a tunnel?, CLI Flags, Custom bridge path, EU region, Examples, FAQ (+13 more)
 
 ### Community 245 - "moja-ride-design-system-audit/README.md"
-Cohesion: 0.09
-Nodes (17): 19. Cross-Platform Consistency Matrix, 1. The Direct Cross-Product Comparison, 2.1 Intentional Divergences (KEEP & PROTECT), 2.2 Accidental Design Drift (MUST UNIFY), 2. Distinguishing Intentional Divergence from Design Drift, Moja Ride Design & Design-Engineering Audit, Audit Hub & Index, Audit Modules Directory (+9 more)
+Cohesion: 0.07
+Nodes (25): 00. Executive Summary, Design-System Maturity: `Level 2.2 / 5 (Reusable with Nascent Systematics)`, Moja Ride Design & Design-Engineering Audit, Overall Design Score: `5.4 / 10`, Overview & Audit Metadata, The Biggest Problems, The Biggest Strengths, Top 15 Highest Priority Fixes (Remediation Masterlist) (+17 more)
 
 ### Community 246 - "RouteFormDrawer"
 Cohesion: 0.32
@@ -3026,8 +3103,8 @@ Cohesion: 0.43
 Nodes (6): classifyFrameworkSupport(), CORE_SUPPORTED_FRAMEWORKS, frameworkLabel(), LABELS, LIMITED_FRAMEWORKS, normalizeFramework()
 
 ### Community 253 - "auth-server.ts"
-Cohesion: 0.05
-Nodes (39): GET, POST, BlogLayout(), AdminStaffPage(), metadata, OnboardingLayout(), HomePage(), Props (+31 more)
+Cohesion: 0.06
+Nodes (46): LoginPage(), LoginPageProps, BlogLayout(), AdminLayout(), OperatorLayout(), OnboardingLayout(), DashboardLayout(), PageProps (+38 more)
 
 ### Community 254 - "edge-heavy-import.mjs"
 Cohesion: 0.48
@@ -3103,7 +3180,7 @@ Nodes (5): defaultNormalize(), normalizeColdStart(), normalizerFor(), QUERIES, n
 
 ### Community 272 - "src/components/ui/separator.tsx"
 Cohesion: 0.05
-Nodes (33): AdminPostsPage(), metadata, AdminOperationsPage(), metadata, AdminDashboardPage(), PageProps, AdminSettingsPage(), metadata (+25 more)
+Nodes (32): AdminPostsPage(), metadata, AdminOperationsPage(), metadata, AdminDashboardPage(), PageProps, AdminSettingsPage(), metadata (+24 more)
 
 ### Community 273 - "01. Authentication System Map & Architecture"
 Cohesion: 0.15
@@ -3169,13 +3246,13 @@ Nodes (3): keyPaths(), localesDir, readKeys()
 Cohesion: 0.50
 Nodes (3): keyPaths(), localesDir, readKeys()
 
-### Community 289 - "routers/trips.ts"
-Cohesion: 0.03
-Nodes (101): notifyExhaustedCampaignBudgets(), companyOperatorRecipients(), enqueueBoothAccountCreated(), enqueueBoothTicketCreated(), enqueueBoothUrbanConflict(), Tx, enqueueCampaignBudgetExhausted(), Tx (+93 more)
+### Community 289 - "enqueueOutboxMessage"
+Cohesion: 0.05
+Nodes (72): DISCOUNT_NOVU_WORKFLOWS, notifyCampaignBudgetExhausted(), notifyOperatorCampaignPaused(), notifyReferralAttributed(), notifyReferralRewardPosted(), OutboxClient, Subscriber, triggerSafe() (+64 more)
 
 ### Community 290 - "prefetch"
 Cohesion: 0.03
-Nodes (79): AdminInvitePage(), Props, BookingSuccessPage(), BookingSuccessPageProps, Props, EditPostPage(), metadata, AdminDriverMarketplacePage() (+71 more)
+Nodes (70): AdminInvitePage(), Props, BookingSuccessPage(), BookingSuccessPageProps, Props, EditPostPage(), metadata, AdminDriverMarketplacePage() (+62 more)
 
 ### Community 291 - "Branding & Styling Reference"
 Cohesion: 0.10
@@ -3218,8 +3295,8 @@ Cohesion: 0.10
 Nodes (21): Base themes, Brand-locked dark, Brand-presets cookbook, Branding & Styling Reference, Callback context signatures, Common element keys, CSS Modules, Custom icons (+13 more)
 
 ### Community 303 - "CONTEXT_SYSTEM.md"
-Cohesion: 0.17
-Nodes (8): Context & Workspace Rules (Moja Ride), graphify, Context & Workspace Rules (Moja Ride), graphify, 📚 Context-Driven Development (CDD), Moja Ride Platform, 🚀 Overview, 🛠️ Quick Start
+Cohesion: 0.13
+Nodes (12): Context & Workspace Rules (Moja Ride), graphify, Context & Workspace Rules (Moja Ride), graphify, Do not, Locked decisions (Phase 17, user-ratified), Memory — shadcn/ui Audit Complete (Web / UI / Theme), Mobile Font Size Increase (2026-09-11) (+4 more)
 
 ### Community 304 - "Finding details"
 Cohesion: 0.06
@@ -3302,20 +3379,20 @@ Cohesion: 0.50
 Nodes (3): post-commit script, GRAPHIFY_CHANGED, PYTHONHASHSEED
 
 ### Community 327 - "booth-app/app/_layout.tsx"
-Cohesion: 0.10
-Nodes (23): ReconnectHandler(), RootLayout(), PaymentScreen(), handleCashConfirm(), TripSeatScreen(), OfflineBanner(), useHoldPool(), useLoadFonts() (+15 more)
+Cohesion: 0.08
+Nodes (22): ReconnectHandler(), RootLayout(), PaymentScreen(), TripSeatScreen(), OfflineBanner(), useHoldPool(), useLoadFonts(), NetworkStatus (+14 more)
 
 ### Community 328 - "driver-system-remediation/README.md"
 Cohesion: 0.27
 Nodes (4): 1. Phase Objective, 2. Subphase Summary, 3. Dependency & Execution Order, Phase 2: Critical Operational Gaps (`P1`) — Implementation Overview
 
-### Community 330 - "operator-profile.tsx"
-Cohesion: 0.08
-Nodes (27): buildSearchParams(), HomeSearchWidget(), PopularRoutesGrid(), OperatorOverviewTab(), OperatorOverviewTabProps, RoutePreviewItem, OperatorReviewsTab(), OperatorRoutesTab() (+19 more)
+### Community 330 - "Audit: app/sell/[tripId].tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 332 - "dependencies"
 Cohesion: 0.06
-Nodes (33): dependencies, expo-dev-client, expo-font, @expo-google-fonts/raleway, expo-haptics, expo-localization, expo-router, expo-splash-screen (+25 more)
+Nodes (33): dependencies, better-auth, expo-dev-client, expo-font, @expo-google-fonts/raleway, expo-haptics, expo-localization, expo-splash-screen (+25 more)
 
 ### Community 337 - "phase-3-operational-polish-and-ux/README.md"
 Cohesion: 0.18
@@ -3326,12 +3403,12 @@ Cohesion: 0.10
 Nodes (19): Acknowledge the situation honestly, Diagnose before touching code, Do not start rebuilding immediately, Failure Mode 1 — A specific thing is broken, Failure Mode 2 — The session has gone wrong, Failure Mode 3 — The foundation is wrong, Find the root cause, If the fix does not work (+11 more)
 
 ### Community 342 - "getOptionalEnv"
-Cohesion: 0.10
-Nodes (36): b64url(), CheckoutQuotePayload, fromB64url(), QUOTE_VERSION, quoteMatchesHoldInput(), quoteSecret(), signCheckoutQuote(), verifyCheckoutQuote() (+28 more)
+Cohesion: 0.07
+Nodes (49): b64url(), CheckoutQuotePayload, fromB64url(), QUOTE_VERSION, quoteMatchesHoldInput(), quoteSecret(), signCheckoutQuote(), verifyCheckoutQuote() (+41 more)
 
 ### Community 345 - "fr/manifest.json"
 Cohesion: 0.07
-Nodes (26): alreadyBoardedMsg, boarded, boardedCount, btnRetry, btnScanQr, callPassenger, checkInErrorMsg, emptyNone (+18 more)
+Nodes (32): LANGUAGES, LanguageScreen(), getCurrentLanguage(), SupportedLocale, switchLanguage(), USER_LOCALE_STORAGE_KEY, alreadyBoardedMsg, boarded (+24 more)
 
 ### Community 346 - "import-ivory-coast-geo.ts"
 Cohesion: 0.21
@@ -3361,17 +3438,17 @@ Nodes (25): Adding Exif metadata, Avatar style not found, CLI, Compressing a def
 Cohesion: 0.10
 Nodes (19): Animation (HIGH), Core Rendering (CRITICAL), Creating a New Rule, Design System (MEDIUM), Fonts (LOW), JavaScript (LOW), List Performance (HIGH), Monorepo (LOW) (+11 more)
 
-### Community 354 - "dashboard/(passenger)/layout.tsx"
-Cohesion: 0.11
-Nodes (20): AdminLayout(), OperatorLayout(), DashboardLayout(), PageProps, PassengerDashboardPage(), AccessDenied(), AccessDeniedProps, dashboardSearchParamsCache (+12 more)
+### Community 354 - "Audit: app/(tabs)/bookings.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
-### Community 355 - "types/src/booking.ts"
-Cohesion: 0.12
-Nodes (18): TripSummaryData, bookingInclude, CheckInInput, departureRangeForFilter(), ListInput, OperatorBookingService, OperatorBookingDetail, OperatorBookingFilter (+10 more)
+### Community 355 - "Audit: app/(tabs)/checkin.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 356 - "useScreenTransition"
-Cohesion: 0.07
-Nodes (29): BookingDetailScreen(), BookingSuccessScreen(), NotificationsScreen(), OperatorsScreen(), OperatorProfileScreen(), PassengersScreen(), PrivacySecurityScreen(), ReferralsScreen() (+21 more)
+Cohesion: 0.08
+Nodes (27): BookingDetailScreen(), BookingSuccessScreen(), NotificationsScreen(), PrivacySecurityScreen(), ReferralsScreen(), ReviewsScreen(), BookingsScreen(), HomeScreen() (+19 more)
 
 ### Community 357 - "infoPlist"
 Cohesion: 0.20
@@ -3387,15 +3464,15 @@ Nodes (9): 1. Product Benchmark vs. Industry Standards, 2.1 Identity & Commercia
 
 ### Community 360 - "02 — Annotated Findings"
 Cohesion: 0.20
-Nodes (9): 02 — Annotated Findings, 1. Asset & Branding Deficiencies, 4. UI Component Library & Root Layout Deficiencies, Finding A-01: No `assets/` Directory Exists, Finding A-02: Missing `app.json` App Icon & Adaptive Icon, Finding A-03: Missing Splash Screen Configuration, Finding U-01: Zero Design System Components (`components/ui/`), Finding U-02: Missing `<PortalHost />` and `ThemeProvider` (+1 more)
+Nodes (9): 02 — Annotated Findings, 1. Asset & Branding Deficiencies, 3. Size Bloat & File System Hygiene, Finding A-01: No `assets/` Directory Exists, Finding A-02: Missing `app.json` App Icon & Adaptive Icon, Finding A-03: Missing Splash Screen Configuration, Finding B-01: Rogue Nested Repository in `test-archive-1/`, Finding B-02: Untracked Android Build Caches (111.2 MB) (+1 more)
 
 ### Community 361 - "routers/admin-staff.ts"
-Cohesion: 0.14
-Nodes (22): RoleSheet(), adminHasPermission(), AdminPermissionContext, AuthzAdminStaff, AuthzUser, getAdminEffectivePermissionsFn(), requireAdminAnyPermission(), requireAdminCanGrant() (+14 more)
+Cohesion: 0.06
+Nodes (58): AdminInvitationIdInput, AdminInvitationIdSchema, CreateAdminInvitationSchema, GetAdminActivityLogInput, GetAdminActivityLogSchema, ListAdminStaffInput, ListAdminStaffSchema, RemoveAdminStaffInput (+50 more)
 
-### Community 366 - "driver-app/constants/theme.ts"
-Cohesion: 0.09
-Nodes (27): colors, fontFamily, fontSize, fontWeight, lineHeight, textStyles, TabBar(), TabConfig (+19 more)
+### Community 366 - "booth-app/constants/theme.ts"
+Cohesion: 0.11
+Nodes (14): AppColors, colors, fontFamily, FontSize, fontWeight, LineHeight, MaxContentWidth, TextStyles (+6 more)
 
 ### Community 367 - "2. Detailed Workflow Specifications"
 Cohesion: 0.22
@@ -4063,7 +4140,7 @@ Nodes (11): Generate the Hash, Go, HMAC Subscriber Hash, How It Works, Inbox Sec
 
 ### Community 585 - "Subscriber CRUD Examples"
 Cohesion: 0.17
-Nodes (11): Bulk Create, Create, cURL, cURL, cURL, Delete, Node.js, Partial Update (+3 more)
+Nodes (11): Bulk Create, cURL, cURL, cURL — Get Subscriber, Delete, Partial Update, Read, Retrieve Single Subscriber (+3 more)
 
 ### Community 586 - "2. Notification Event Specifications"
 Cohesion: 0.17
@@ -4095,7 +4172,7 @@ Nodes (11): Generate the Hash, Go, HMAC Subscriber Hash, How It Works, Inbox Sec
 
 ### Community 593 - "Subscriber CRUD Examples"
 Cohesion: 0.17
-Nodes (11): Bulk Create, cURL, cURL, cURL — Get Subscriber, Delete, Partial Update, Read, Retrieve Single Subscriber (+3 more)
+Nodes (11): Bulk Create, Create, cURL, cURL, cURL, Delete, Node.js, Partial Update (+3 more)
 
 ### Community 594 - "nuqs Best Practices for Next.js"
 Cohesion: 0.17
@@ -4334,8 +4411,8 @@ Cohesion: 0.20
 Nodes (10): Common Pitfalls, Conversational Digest Example, Cron-Based Digests, Default Configuration, Digest Defaults, Digest Key Composition, See Also, Skip the Digest When (+2 more)
 
 ### Community 656 - "Subscriber Preferences Examples"
-Cohesion: 0.17
-Nodes (12): Client-Side Preference Updates, Common Preference Operations, cURL, cURL, Disable email at global preference level., List All Preferences, Node.js, Node.js (+4 more)
+Cohesion: 0.20
+Nodes (9): Client-Side Preference Updates, Common Preference Operations, cURL, Disable email at global preference level., Node.js, Opt out of email channel for a specific workflow, Subscriber Preferences Examples, Update Global Preferences (+1 more)
 
 ### Community 657 - "Single Trigger Examples"
 Cohesion: 0.20
@@ -4367,7 +4444,7 @@ Nodes (10): Common Pitfalls, Conversational Digest Example, Cron-Based Digests, 
 
 ### Community 664 - "Subscriber Preferences Examples"
 Cohesion: 0.20
-Nodes (9): Client-Side Preference Updates, cURL, cURL, List All Preferences, Node.js, Node.js, Subscriber Preferences Examples, Update Global Preferences (+1 more)
+Nodes (9): Client-Side Preference Updates, Common Preference Operations, cURL, Disable email at global preference level., Node.js, Opt out of email channel for a specific workflow, Subscriber Preferences Examples, Update Global Preferences (+1 more)
 
 ### Community 665 - "Single Trigger Examples"
 Cohesion: 0.20
@@ -4425,9 +4502,9 @@ Nodes (9): Accordion, Base vs Radix, Button / trigger as non-button element (bas
 Cohesion: 0.22
 Nodes (8): 1. Design Token Hierarchy, 2. Component Architecture, Core Concepts, Detailed patterns and worked examples, Key v4 Changes, Quick Start, Tailwind Design System (v4), When to Use This Skill
 
-### Community 679 - "external-api-slow.mjs"
-Cohesion: 0.60
-Nodes (4): extractCallCounts(), extractExternalApis(), gate(), metadata
+### Community 679 - "Audit: app/(tabs)/index.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 680 - "03. Driver Subsystem Deep Dive: Architecture, Flows, & Lifecycle"
 Cohesion: 0.25
@@ -4802,8 +4879,8 @@ Cohesion: 0.29
 Nodes (6): Body Parameters, Fetch Timeout, Headers, Headers, Integration, Update Timeout
 
 ### Community 774 - "src/components/ui/button.tsx"
-Cohesion: 0.04
-Nodes (112): ActivityLogDetailDialog(), ActivityLogDetailDialogProps, ActivityLogsPagination(), ActivityLogsPaginationProps, CHANNEL_COLORS, BankAccessLogsPagination(), BankAccessLogsPaginationProps, BlogTopPostsTableProps (+104 more)
+Cohesion: 0.03
+Nodes (163): ActivityLogDetailDialog(), ActivityLogDetailDialogProps, ActivityLogsPagination(), ActivityLogsPaginationProps, ActivityLogsTable(), CHANNEL_COLORS, BankAccessLogsFilters(), BankAccessLogsPagination() (+155 more)
 
 ### Community 775 - "UI Registry"
 Cohesion: 0.29
@@ -4986,8 +5063,8 @@ Cohesion: 0.33
 Nodes (5): API keys, Authentication, IP whitelisting, Key management best practices, Test and live modes
 
 ### Community 826 - "search-read-repository.ts"
-Cohesion: 0.12
-Nodes (19): isPastSalesCutoff(), SALES_CUTOFF_MINUTES, salesCutoffInstant(), abidjanDateKey(), abidjanDayBounds(), abidjanHour(), SEARCH_TIME_ZONE, destination (+11 more)
+Cohesion: 0.15
+Nodes (15): isPastSalesCutoff(), SALES_CUTOFF_MINUTES, salesCutoffInstant(), destination, end, noFilters, origin, start (+7 more)
 
 ### Community 827 - "UI Tokens"
 Cohesion: 0.33
@@ -5269,9 +5346,9 @@ Nodes (6): 03 — Styling, Theme & Assets Deep Dive, 1. NativeWind & Tailwind v4
 Cohesion: 0.29
 Nodes (6): 04 — Size Bloat & File Hygiene Deep Dive, 1. Measured Disk Consumption Breakdown, 2. Root Cause Analysis, 3. Remediation Plan, Cause 1: Rogue Nested Monorepo (`test-archive-1`), Cause 2: Inadequate `.gitignore`
 
-### Community 899 - "admin-campaigns-view.tsx"
-Cohesion: 0.14
-Nodes (12): AdminCampaignCreateDialog(), handleOpenChange(), reset(), CreateCampaignData, CampaignDrawerTab, AdminCampaignsFilterBar(), AdminCampaignsKpiCards(), AdminCampaignsKpiCardsProps (+4 more)
+### Community 899 - "Audit: app/(tabs)/_layout.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 900 - "Driver Safety Scoring, Analytics & Trust Badges"
 Cohesion: 0.22
@@ -5485,9 +5562,9 @@ Nodes (8): 1. Problem Statement & Findings Addressed, 2. Architecture & Scope of
 Cohesion: 0.40
 Nodes (4): 05. Audit Findings, Gap Register, & Recommendations, 1. Severity-Ranked Findings Catalog, 2. Invariant & Security Verification Checklist, 3. Recommended Remediation Roadmap
 
-### Community 958 - "phone-input.tsx"
-Cohesion: 0.08
-Nodes (26): SearchDialog(), SearchItem, EntityResult, OperatorSearchDialog(), operatorSearchItems, SearchItem, useDebounced(), Command() (+18 more)
+### Community 958 - "combobox.tsx"
+Cohesion: 0.05
+Nodes (30): BookingFilter, BookingList(), BookingListProps, SearchDialog(), SearchItem, EntityResult, OperatorSearchDialog(), operatorSearchItems (+22 more)
 
 ### Community 959 - "2. Styling & CSS Compilation Pipeline Failure"
 Cohesion: 0.33
@@ -5625,9 +5702,9 @@ Nodes (3): Align Content (/v5/tailwind/flexbox/align-content), Compatibility, Us
 Cohesion: 0.67
 Nodes (3): Align Items (/v5/tailwind/flexbox/align-items), Compatibility, Usage
 
-### Community 1002 - "admin-permissions.ts"
-Cohesion: 0.13
-Nodes (20): ADMIN_ASSIGNABLE_ROLES, ADMIN_PERMISSION_KEYS, ADMIN_PERMISSION_META, ADMIN_ROLE_LEVELS, ADMIN_ROLE_TEMPLATES, ADMIN_STAFF_ROLES, ADMIN_STAFF_STATUSES, AdminPermissionKeySchema (+12 more)
+### Community 1002 - "Audit: app/(tabs)/profile.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1003 - "Animation (/v5/tailwind/transitions-animation/animation)"
 Cohesion: 0.67
@@ -5881,6 +5958,10 @@ Nodes (8): 1. Problem Statement & Findings Addressed, 2. Architecture & Scope of
 Cohesion: 0.11
 Nodes (19): `Avatar`, Avatar with custom background, Avatar with transformations, Core options, `DataURI()`, Deterministic avatars, Examples, Fixed size avatar (+11 more)
 
+### Community 1066 - "Audit: terminal-select.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
+
 ### Community 1067 - "Flex Wrap (/v5/tailwind/flexbox/flex-wrap)"
 Cohesion: 0.67
 Nodes (3): Compatibility, Flex Wrap (/v5/tailwind/flexbox/flex-wrap), Usage
@@ -5958,8 +6039,8 @@ Cohesion: 0.67
 Nodes (3): Compatibility, Pointer Events (/v5/tailwind/interactivity/pointer-events), Usage
 
 ### Community 1086 - "search-filters-sidebar.tsx"
-Cohesion: 0.18
-Nodes (12): AMENITY_IDS, FiltersContent, FiltersSidebarSharedProps, OperatorOption, SearchFiltersSidebar, SearchFiltersSidebarProps, SEAT_CLASS_IDS, SeatClassFilter (+4 more)
+Cohesion: 0.14
+Nodes (14): AMENITY_IDS, FiltersContent, FiltersSidebarSharedProps, OperatorOption, SearchFiltersSidebar, SearchFiltersSidebarProps, SEAT_CLASS_IDS, TIME_IDS (+6 more)
 
 ### Community 1087 - "Scroll Padding (/v5/tailwind/interactivity/scroll-padding)"
 Cohesion: 0.67
@@ -6209,9 +6290,9 @@ Nodes (17): 18 — Incremental Reaudit: CSS Foundation, Packages, Charts, Fields
 Cohesion: 0.67
 Nodes (3): Compatibility, Usage, Whitespace (/v5/tailwind/typography/whitespace)
 
-### Community 1150 - "validations/admin-staff.ts"
-Cohesion: 0.13
-Nodes (19): AdminInvitationIdInput, AdminInvitationIdSchema, CreateAdminInvitationSchema, GetAdminActivityLogInput, GetAdminActivityLogSchema, ListAdminStaffInput, ListAdminStaffSchema, RemoveAdminStaffInput (+11 more)
+### Community 1150 - "Audit: offline-banner.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1151 - "Editor Setup (/v5/getting-started/editor-setup)"
 Cohesion: 0.67
@@ -6290,8 +6371,8 @@ Cohesion: 0.67
 Nodes (3): Common Patterns, See Also, Throttle Step
 
 ### Community 1177 - "booth-app/lib/trpc.tsx"
-Cohesion: 0.19
-Nodes (17): authClient, baseURL, ensureAuthCookiesFresh(), getAuthCookieHeader(), getBaseUrl(), getExpoOriginHeader(), Session, syncAuthCookiesFromResponse() (+9 more)
+Cohesion: 0.17
+Nodes (20): AuthState, BootGate(), checkAuth(), authClient, baseURL, ensureAuthCookiesFresh(), getAuthCookieHeader(), getBaseUrl() (+12 more)
 
 ### Community 1333 - "Graphify — Moja Ride Knowledge Graph"
 Cohesion: 0.29
@@ -6318,8 +6399,8 @@ Cohesion: 0.12
 Nodes (15): 1. Executive Summary & Problem Context, 2. Strict Entity & Representation Policies, 3.1 DiceBear Glassy Avatar URL Strategy, 3.2 Canonical Component Primitives, 3. Architecture & Technical Strategy, 4. Master Implementation Scope & Surface Catalog, 6. Verification & Quality Gates, Core Problems Being Solved: (+7 more)
 
 ### Community 1346 - "search-page-client.tsx"
-Cohesion: 0.21
-Nodes (11): SearchMobileFilters(), persistFilters(), restoreFilters(), SearchOffer, SearchPageClient(), SearchPageClientProps, SearchResults, searchParamsCache (+3 more)
+Cohesion: 0.09
+Nodes (23): POPULAR_ROUTES, QuickRoute, SearchEmptyState, SearchEmptyStateProps, SeatClassFilter, TimeFilterId, SearchMobileFilters(), persistFilters() (+15 more)
 
 ### Community 1347 - "06 — Remediation Plan"
 Cohesion: 0.25
@@ -6350,20 +6431,20 @@ Cohesion: 0.12
 Nodes (16): 1.1 `Radii` token vs CSS `--radius` mismatch, 1.2 Dark surface colours use `zinc` not `@moja/theme` taupe, 1.3 `Fonts` export is incomplete, 1.4 `TextStyles` has no dark/light colour variants, 1. `tokens.ts` — Issues Found, 2.1 `@theme inline` radius derivation produces wrong `--radius-3xl`, 2.2 Dark mode `--border` uses opacity shorthand not supported by all RN CSS parsers, 2.3 Typography `@utility` helpers have hardcoded dark colours (+8 more)
 
 ### Community 1364 - "03. Driver Verification, Governance, & Document Security Audit"
-Cohesion: 0.22
+Cohesion: 0.20
 Nodes (9): 03. Driver Verification, Governance, & Document Security Audit, 1. Verification Authority Matrix, 2. Operator Fleet Verification ([`verify-driver-dialog.tsx`](file:///C:/dev/moja-buss/apps/web/features/operator/components/drivers/verify-driver-dialog.tsx)), 3. Platform Admin Verification ([`driver-verification-dialog.tsx`](file:///C:/dev/moja-buss/apps/web/features/admin/components/drivers/driver-verification-dialog.tsx)), 4. Document Presigning & Storage Security ([`driver-doc-mint.ts`](file:///C:/dev/moja-buss/apps/web/features/driver/lib/driver-doc-mint.ts)), Namespace Security Guard:, Security Benefits Verified:, Workflow & Governance: (+1 more)
 
 ### Community 1366 - "2. Detailed Technical Fix Blueprints"
 Cohesion: 0.20
 Nodes (9): 05. Remediation Blueprint & Action Plan, 1. Remediation Action Plan, 2. Detailed Technical Fix Blueprints, 3. Verification & Test Runbook, Fix 1: Boot & Login Routing Gate ([`apps/driver-app/features/auth/screens/login.tsx`](file:///C:/dev/moja-buss/apps/driver-app/features/auth/screens/login.tsx)), Fix 2: S3 Presigned Upload for Selfie ([`apps/driver-app/app/(auth)/register/index.tsx`](file:///C:/dev/moja-buss/apps/driver-app/app/%28auth%29/register/index.tsx)), Fix 3: Registration Store Persistence & Step Route Guards, Fix 4: Server Phone Normalization & P2002 Error Handling ([`drivers.ts`](file:///C:/dev/moja-buss/apps/web/trpc/routers/drivers.ts)) (+1 more)
 
-### Community 1367 - "Notionists"
-Cohesion: 0.50
-Nodes (4): Notionists, Options, Presets, Usage
+### Community 1367 - "Audit: paystack-qr.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1368 - "booth-app/app/(auth)/login.tsx"
-Cohesion: 0.20
-Nodes (12): AuthError, AuthStep, detectMethod(), getAuthError(), LoginScreen(), animateForward(), handleSendCode(), handleVerifyCode() (+4 more)
+Cohesion: 0.13
+Nodes (17): AuthError, AuthStep, detectMethod(), getAuthError(), LoginScreen(), animateForward(), handleSendCode(), handleVerifyCode() (+9 more)
 
 ### Community 1371 - "booth-app/components.json"
 Cohesion: 0.12
@@ -6382,8 +6463,8 @@ Cohesion: 0.13
 Nodes (14): 1. The Core Authentication Paradox (P0 Blocker), 2. Production Origin & Scheme Rejection (P0 Blocker), 3. Client Plugin Suite Comparison, 4. Boot Gate & Startup Redirects Comparison, 5. Session Keepalive & Cookie Security, 6. Auth UX & Design Disconnect vs Traveler App, Booth App Startup Flow (`apps/booth-app/app/index.tsx` & `_layout.tsx`), Client Implementation (`apps/booth-app/app/(auth)/login.tsx`) (+6 more)
 
 ### Community 1387 - "booth-app/components/ui/alert-dialog.tsx"
-Cohesion: 0.23
-Nodes (12): AlertDialogAction(), AlertDialogCancel(), AlertDialogContent(), AlertDialogDescription(), AlertDialogFooter(), AlertDialogHeader(), AlertDialogOverlay(), AlertDialogTitle() (+4 more)
+Cohesion: 0.25
+Nodes (10): AlertDialogAction(), AlertDialogCancel(), AlertDialogContent(), AlertDialogDescription(), AlertDialogFooter(), AlertDialogHeader(), AlertDialogOverlay(), AlertDialogTitle() (+2 more)
 
 ### Community 1394 - "2. The 10 Missing Design Capabilities"
 Cohesion: 0.13
@@ -6410,12 +6491,12 @@ Cohesion: 0.33
 Nodes (5): 07 — Release Checklist, Gate A — Query parity (staging DB), Gate B — UI copy & window, Gate C — Regression, Sign-off
 
 ### Community 1425 - "operator-card.tsx"
-Cohesion: 0.29
-Nodes (9): FALLBACK_OPERATORS, FeaturedOperatorsSection(), FeaturedOperatorsSectionProps, getInitials(), OperatorCard(), OperatorCardItem, OperatorCardProps, useOperatorsPrefetch() (+1 more)
-
-### Community 1438 - "web/features/booking/components/passenger-seat-map.tsx"
 Cohesion: 0.23
-Nodes (9): isPassengerSeat(), PassengerSeatMap(), PassengerSeatMapProps, STATUS_STYLES, buildSeatGrid(), getColumnHeaders(), GridSeat, PassengerSeatStatus (+1 more)
+Nodes (11): OperatorsScreen(), FALLBACK_OPERATORS, FeaturedOperatorsSection(), FeaturedOperatorsSectionProps, getInitials(), OperatorCard(), OperatorCardItem, OperatorCardProps (+3 more)
+
+### Community 1438 - "Audit: alert.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1440 - "Module 07: Internationalization, Hardware Printing & Branding"
 Cohesion: 0.15
@@ -6441,9 +6522,9 @@ Nodes (6): 1. Outbox Pattern (REQUIRED), 2. Subscriber Identity, 3. Workflow Ind
 Cohesion: 0.29
 Nodes (7): 1. Problem Statement & Findings Addressed, 2. Architecture & Scope of Changes, 3. Implementation Steps & File Checklist, 4. Verification & Testing Criteria, Step 1: Update Telemetry Reconcile Library (`apps/web/lib/telemetry-reconcile.ts`), Step 2: Add Unit Tests (`apps/web/lib/__tests__/driver-scoring.test.ts`), Subphase 2A: Safety Streak Telemetry Gate & Anti-Gaming
 
-### Community 1448 - "web/features/search/lib/constants.ts"
-Cohesion: 0.33
-Nodes (5): AMENITY_OPTIONS, DEPARTURE_TIME_OPTIONS, FALLBACK_OPERATORS, PRICE_RANGE, SORT_OPTIONS_UI
+### Community 1448 - "Audit: alert-dialog.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1452 - "booth-app/AGENTS.md"
 Cohesion: 0.17
@@ -6545,9 +6626,9 @@ Nodes (10): 1. Problem Definition & Root Causes, 2. Implementation Specification
 Cohesion: 0.12
 Nodes (13): Context Loading Order, Driver App Agent Rules (apps/driver-app), Key Rules, Driver App — UI Component Registry, Reusable Components, Screens, 1. Architecture Overview, 2. Telemetry Token Authentication (+5 more)
 
-### Community 1547 - "booth-app/components/ui/toggle-group.tsx"
-Cohesion: 0.29
-Nodes (8): ToggleGroup(), ToggleGroupContext, ToggleGroupIcon(), ToggleGroupItem(), useToggleGroupContext(), Toggle(), ToggleIcon(), toggleVariants
+### Community 1547 - "Audit: aspect-ratio.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1551 - "Module 01: System Map & Monorepo Architecture"
 Cohesion: 0.20
@@ -6574,8 +6655,8 @@ Cohesion: 0.33
 Nodes (5): 1. Blocker Issues (P0 Findings), 2. Critical Issues (P1 Findings), 3. Major Issues (P2 Findings), 4. Minor & Polish Issues (P3 / P4 Findings), Driver Operations Domain — Comprehensive Gap Register
 
 ### Community 1562 - "passenger-tracking-view.tsx"
-Cohesion: 0.11
-Nodes (17): Props, PageProps, TrackingPage(), OperatorFleetMapView(), ABIDJAN_CENTER, busIcon(), PassengerTrackingView(), PassengerTrackingViewProps (+9 more)
+Cohesion: 0.18
+Nodes (13): ABIDJAN_CENTER, busIcon(), PassengerTrackingView(), PassengerTrackingViewProps, stopIcon(), TrackingLiveMap(), TrackingLiveMapProps, GatewaySubscriptionOptions (+5 more)
 
 ### Community 1563 - "01. Driver Onboarding & Registration Flow Analysis"
 Cohesion: 0.22
@@ -6590,8 +6671,8 @@ Cohesion: 0.50
 Nodes (4): Fun Emoji, Options, Presets, Usage
 
 ### Community 1566 - "driver-auth-deep-audit/README.md"
-Cohesion: 0.33
-Nodes (4): 1. Executive Summary, 2. Audit Document Index, 3. High-Risk Findings Summary (Top 6), Moja Ride — Driver Authentication & Onboarding Subsystem Deep Audit
+Cohesion: 0.25
+Nodes (6): 04. API Vulnerabilities, Logical Loopholes, & Edge Cases, 1. Vulnerability Inventory, 1. Executive Summary, 2. Audit Document Index, 3. High-Risk Findings Summary (Top 6), Moja Ride — Driver Authentication & Onboarding Subsystem Deep Audit
 
 ### Community 1567 - "2. Deep-Dive Findings & Edge Cases"
 Cohesion: 0.33
@@ -6630,8 +6711,8 @@ Cohesion: 0.33
 Nodes (6): 1. Remediation Phases Overview, 2. Complete Subphase Index, Driver System Remediation Plan — Master Index, [Phase 1: Launch Blockers (`P0`)](./phase-1-launch-blockers/README.md), [Phase 2: Critical Operational Gaps (`P1`)](./phase-2-critical-operational-gaps/README.md), [Phase 3: Operational Polish & UX (`P2`)](./phase-3-operational-polish-and-ux/README.md)
 
 ### Community 1577 - "2. Technical Breakdown of Vulnerabilities"
-Cohesion: 0.22
-Nodes (8): 04. API Vulnerabilities, Logical Loopholes, & Edge Cases, 1. Vulnerability Inventory, 2. Technical Breakdown of Vulnerabilities, VULN-DRV-01: Unregistered Driver Trapped in `FORBIDDEN` Error Loop, VULN-DRV-02: Local `file://` URI Leakage to Production Database, VULN-DRV-03: Missing Wizard Route Guards & State Persistence, VULN-DRV-04: False-Positive `PHONE_REVERIFICATION_REQUIRED` via Whitespace/Formatting, VULN-DRV-05: Race Condition in Exclusive Affiliation Upsert
+Cohesion: 0.33
+Nodes (6): 2. Technical Breakdown of Vulnerabilities, VULN-DRV-01: Unregistered Driver Trapped in `FORBIDDEN` Error Loop, VULN-DRV-02: Local `file://` URI Leakage to Production Database, VULN-DRV-03: Missing Wizard Route Guards & State Persistence, VULN-DRV-04: False-Positive `PHONE_REVERIFICATION_REQUIRED` via Whitespace/Formatting, VULN-DRV-05: Race Condition in Exclusive Affiliation Upsert
 
 ### Community 1578 - "platform-fluid-compute.mjs"
 Cohesion: 0.60
@@ -6669,9 +6750,9 @@ Nodes (4): 1. State Machine Rigor & Violations, 2.1 Driver Unverified Mutation L
 Cohesion: 0.40
 Nodes (4): 1. Audit Overview, 2. Executive Assessment Summary, 3. Directory Structure & Audit Navigation, Moja Ride — Driver System Audit Hub
 
-### Community 1587 - "Open Peeps"
-Cohesion: 0.50
-Nodes (4): Open Peeps, Options, Presets, Usage
+### Community 1587 - "Audit: avatar.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1588 - "src/components/ui/toggle-group.tsx"
 Cohesion: 0.43
@@ -6809,9 +6890,9 @@ Nodes (3): 1. Compliance Document Access Controls, 2. IDOR Evaluation, Security 
 Cohesion: 0.50
 Nodes (3): 1. Multi-Tenant Isolation Controls, 2. Isolation Evaluation, Security Audit: Multi-Tenant Operator Isolation
 
-### Community 1622 - "Stripes"
-Cohesion: 0.50
-Nodes (4): Options, Presets, Stripes, Usage
+### Community 1622 - "Audit: badge.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1623 - "Gaze"
 Cohesion: 0.50
@@ -6821,9 +6902,9 @@ Nodes (4): Gaze, Options, Presets, Usage
 Cohesion: 0.50
 Nodes (4): Croodles, Options, Presets, Usage
 
-### Community 1627 - "Dylan"
-Cohesion: 0.50
-Nodes (4): Dylan, Options, Presets, Usage
+### Community 1627 - "Audit: button.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1628 - "Initial Face"
 Cohesion: 0.50
@@ -7245,9 +7326,9 @@ Nodes (9): Close Up, Cool System, Daylight, Duotone, Electric, Greyscale, Muted,
 Cohesion: 0.22
 Nodes (9): Cool, Duotone, Electric, Glyphs presets, Greyscale, Ink, Muted, Sepia (+1 more)
 
-### Community 1733 - "Read"
-Cohesion: 0.50
-Nodes (4): cURL — Get Subscriber, Read, Retrieve Single Subscriber, Search Subscribers
+### Community 1733 - "Audit: card.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1734 - "Box Sizing (/v5/tailwind/layout/box-sizing)"
 Cohesion: 0.67
@@ -7297,9 +7378,9 @@ Nodes (4): cURL — Get Subscriber, Read, Retrieve Single Subscriber, Search Sub
 Cohesion: 0.29
 Nodes (7): 7. Migration Tree Problems, Finding DB-07 — Timestamp Collision: Two Migrations Share `20260822000000`, Finding DB-08 — Naming Inconsistency: `phase3_` vs `phase03_`, Finding DB-09 — `0_init` Non-Standard Naming, Finding DB-10 — 4-Day Migration Apply Gap: Evidence of Manual/Bulk Deploys, Finding DB-11 — Abandoned Legacy SQL Runner, Finding DB-12 — `db:push` Script Exposed in `package.json`
 
-### Community 1746 - "Planets"
-Cohesion: 0.50
-Nodes (4): Options, Planets, Presets, Usage
+### Community 1746 - "Audit: checkbox.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1747 - "save_exact_user_files.cjs"
 Cohesion: 0.29
@@ -7321,9 +7402,9 @@ Nodes (7): App Router, Client component, Next.js avatar library: using DiceBear 
 Cohesion: 0.67
 Nodes (3): Compatibility, Saturate (/v5/tailwind/filters/saturate), Usage
 
-### Community 1752 - "Sepia (/v5/tailwind/filters/sepia)"
-Cohesion: 0.67
-Nodes (3): Compatibility, Sepia (/v5/tailwind/filters/sepia), Usage
+### Community 1752 - "Audit: collapsible.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1753 - "10. Schema Design & Maintainability Problems"
 Cohesion: 0.33
@@ -7357,9 +7438,9 @@ Nodes (6): Godot avatar library: using DiceBear with Godot, Shipping single defi
 Cohesion: 0.67
 Nodes (3): Compatibility, Flex Direction (/v5/tailwind/flexbox/flex-direction), Usage
 
-### Community 1761 - "Bottts Neutral"
-Cohesion: 0.50
-Nodes (4): Bottts Neutral, Options, Presets, Usage
+### Community 1761 - "Audit: dropdown-menu.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1762 - "Rings"
 Cohesion: 0.50
@@ -7397,9 +7478,9 @@ Nodes (4): Glass, Options, Presets, Usage
 Cohesion: 0.40
 Nodes (5): Avatar styles, Contribute to the library, Core library, CLI, documentation, editor, DiceBear Studio (Figma plugin), JSON Schema
 
-### Community 1771 - "Core options"
-Cohesion: 0.40
-Nodes (5): Background options, Core options, Dynamic color options, Dynamic component options, Variant tags
+### Community 1771 - "Audit: hover-card.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1772 - "Filter avatar variants with tags"
 Cohesion: 0.40
@@ -7421,21 +7502,21 @@ Nodes (6): Key Patterns in Moja Ride, Payment Initialization Flow, Paystack — 
 Cohesion: 0.67
 Nodes (3): Compatibility, Object Position (/v5/tailwind/layout/object-position), Usage
 
-### Community 1777 - "booth-app/components/ui/avatar.tsx"
-Cohesion: 0.28
-Nodes (8): Avatar(), AvatarFallback(), AvatarImage(), getDicebearGlassUrl(), getUserInitials(), SIZE_MAP, UserAvatar(), UserAvatarProps
+### Community 1777 - "Audit: input.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
-### Community 1778 - "web/features/search/components/search-empty-state.tsx"
-Cohesion: 0.40
-Nodes (4): POPULAR_ROUTES, QuickRoute, SearchEmptyState, SearchEmptyStateProps
+### Community 1778 - "Audit: menubar.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1779 - "Resize (/v5/tailwind/interactivity/resize)"
 Cohesion: 0.67
 Nodes (3): Compatibility, Resize (/v5/tailwind/interactivity/resize), Usage
 
-### Community 1780 - "operator-fleet-view.tsx"
-Cohesion: 0.02
-Nodes (123): BankAccessLogsFilters(), BankAccessLogsTable(), WebhookLogsFilters(), WebhookLogsTable(), AdminCampaignDrawer(), AdminCampaignDrawerProps, AdminCampaignDrawerSettings(), statusVariant() (+115 more)
+### Community 1780 - "banking-view.tsx"
+Cohesion: 0.04
+Nodes (81): metadata, ImageRemoveButtonProps, ImageUploadFieldProps, Redirect, RedirectDeleteDialog(), RedirectDeleteDialogProps, RemoveStaffDialog(), RemoveStaffDialogProps (+73 more)
 
 ### Community 1781 - "Scroll Margin (/v5/tailwind/interactivity/scroll-margin)"
 Cohesion: 0.67
@@ -7461,17 +7542,17 @@ Nodes (3): Executive Summary, Health Scorecard, Moja Ride Design System Audit �
 Cohesion: 0.50
 Nodes (4): Options, Presets, Stack, Usage
 
-### Community 1787 - "search-sort-bar.tsx"
-Cohesion: 0.40
-Nodes (4): SearchSortBar, SearchSortBarProps, SORT_ICONS, SORT_KEYS
+### Community 1787 - "Audit: native-only-animated-view.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1788 - "Avataaars"
 Cohesion: 0.50
 Nodes (4): Avataaars, Options, Presets, Usage
 
 ### Community 1789 - "[id]/page.tsx"
-Cohesion: 0.19
-Nodes (5): Props, DriverDetailView(), expiryCountdown(), OperatorSentOffersView(), computeTrustBadges()
+Cohesion: 0.10
+Nodes (5): Props, Props, Props, Props, OperatorFleetMapView()
 
 ### Community 1790 - "Big Smile"
 Cohesion: 0.50
@@ -7481,13 +7562,13 @@ Nodes (4): Big Smile, Options, Presets, Usage
 Cohesion: 0.50
 Nodes (4): Blobs, Options, Presets, Usage
 
-### Community 1792 - "Bottts"
-Cohesion: 0.50
-Nodes (4): Bottts, Options, Presets, Usage
+### Community 1792 - "Audit: popover.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
-### Community 1793 - "admin-staff-activity-section.tsx"
-Cohesion: 0.42
-Nodes (6): AdminStaffActivityItem(), AdminStaffActivityItemProps, AdminStaffActivitySection(), AdminStaffActivitySectionProps, AdminActivityLogEntry, groupAdminActivityByDate()
+### Community 1793 - "Audit: progress.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1794 - "Cameo"
 Cohesion: 0.50
@@ -7497,9 +7578,9 @@ Nodes (4): Cameo, Options, Presets, Usage
 Cohesion: 0.50
 Nodes (4): `disableOutputSanitization`, `providers` (Per-Step Provider Overrides), `skip`, Step Options
 
-### Community 1796 - "Constellation"
-Cohesion: 0.50
-Nodes (4): Constellation, Options, Presets, Usage
+### Community 1796 - "Audit: radio-group.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1797 - "Overflow (/v5/tailwind/layout/overflow)"
 Cohesion: 0.67
@@ -7517,9 +7598,9 @@ Nodes (3): Compatibility, Hue Rotate (/v5/tailwind/filters/hue-rotate), Usage
 Cohesion: 0.50
 Nodes (4): Cutouts, Options, Presets, Usage
 
-### Community 1801 - "How avatars are made"
-Cohesion: 0.50
-Nodes (4): Dig deeper, How avatars are made, The same in every language, The seed makes it deterministic
+### Community 1801 - "Audit: select.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1802 - "Disco"
 Cohesion: 0.50
@@ -7553,9 +7634,9 @@ Nodes (9): 5.1 `components/ui/ScreenShell.tsx`, 5.2 `components/ui/PageHeader.ts
 Cohesion: 0.50
 Nodes (4): Initials, Options, Presets, Usage
 
-### Community 1810 - "Landscape"
-Cohesion: 0.50
-Nodes (4): Landscape, Options, Presets, Usage
+### Community 1810 - "Audit: separator.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1811 - "Container (/v5/tailwind/layout/container)"
 Cohesion: 0.67
@@ -7593,6 +7674,10 @@ Nodes (8): 1. Problem Definition & Root Causes, 2. Implementation Specifications
 Cohesion: 0.22
 Nodes (8): 1. Problem Definition & Root Causes, 2. Implementation Specifications, 3. Verification & Acceptance Criteria, Phase 03: Sales Engine & Financial Integrity, Step 1: Forward & Resolve Destination Terminal Across Sales Flow, Step 2: Refactor Passenger Search & Schema, Step 3: Wire `confirmPaystackSale` in Payment Screen, Step 4: Remove Silent Returns in `payment.tsx`
 
+### Community 1821 - "Audit: skeleton.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
+
 ### Community 1822 - "2. Implementation Specifications"
 Cohesion: 0.22
 Nodes (8): 1. Problem Definition & Root Causes, 2. Implementation Specifications, 3. Verification & Acceptance Criteria, Phase 04: QR Gate Check-In & Offline Sync Resilience, Step 1: Token Normalization in `checkInPassenger`, Step 2: Add Manual Ticket Token Entry in Scanner Screen, Step 3: Repair Conflict Sync Identifiers in Offline Sync, Step 4: Fix Cellular Reachability in Network Hook
@@ -7613,9 +7698,9 @@ Nodes (8): 1. Objectives, 2.1 `packages/theme/tokens.ts`, 2.2 `packages/theme/gl
 Cohesion: 0.22
 Nodes (8): 1. Objectives, 2.1 `package.json`, 2.2 `apps/driver-app/hooks/use-load-fonts.ts`, 2.3 `apps/driver-app/app.json`, 2.4 `apps/driver-app/global.css`, 2. Code Changes, 3. Verification Criteria, Phase 2: Driver App (`apps/driver-app`) Overhaul
 
-### Community 1827 - "Moja Ride Design System Audit — Passenger Web Portal & Booking"
-Cohesion: 0.67
-Nodes (3): Executive Summary, Health Scorecard, Moja Ride Design System Audit — Passenger Web Portal & Booking
+### Community 1827 - "Audit: switch.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1828 - "Voxel Bot"
 Cohesion: 0.50
@@ -7629,9 +7714,9 @@ Nodes (4): Options, Presets, Usage, Weave
 Cohesion: 0.50
 Nodes (3): React Native avatar library: using DiceBear with React Native, With the HTTP API, With the JS library
 
-### Community 1831 - "Clay"
-Cohesion: 0.50
-Nodes (4): Clay, Options, Presets, Usage
+### Community 1831 - "Audit: textarea.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1832 - "2. Code Changes"
 Cohesion: 0.22
@@ -7649,13 +7734,13 @@ Nodes (3): Executive Summary, Health Scorecard, Moja Ride Design System Audit �
 Cohesion: 0.67
 Nodes (3): Executive Summary, Health Scorecard, Moja Ride Design System Audit — Driver & Conductor Mobile App
 
-### Community 1839 - "Touch Action (/v5/tailwind/interactivity/touch-action)"
-Cohesion: 0.67
-Nodes (3): Compatibility, Touch Action (/v5/tailwind/interactivity/touch-action), Usage
+### Community 1839 - "Audit: toggle.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
-### Community 1840 - "Float (/v5/tailwind/layout/float)"
-Cohesion: 0.67
-Nodes (3): Compatibility, Float (/v5/tailwind/layout/float), Usage
+### Community 1840 - "Audit: theme.ts"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1841 - "2. Implementation Specifications"
 Cohesion: 0.25
@@ -7665,17 +7750,17 @@ Nodes (8): 2. Implementation Specifications, Step 1: Install Bluetooth ESC/POS T
 Cohesion: 0.25
 Nodes (7): 1. Objectives, 2. Verification Steps & Commands, Phase 5: Verification, Cleanup & Enterprise Sign-Off, Step 1: Zero-Montserrat Audit, Step 2: Full Monorepo Typecheck, Step 3: Codebase Formatting & Linter Check, Step 4: Documentation & Context Persist
 
-### Community 1843 - "Table Layout (/v5/tailwind/tables/table-layout)"
-Cohesion: 0.67
-Nodes (3): Compatibility, Table Layout (/v5/tailwind/tables/table-layout), Usage
+### Community 1843 - "Audit: ui-colors.ts"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1844 - "Step Options"
 Cohesion: 0.50
 Nodes (4): `disableOutputSanitization`, `providers` (Per-Step Provider Overrides), `skip`, Step Options
 
-### Community 1845 - "Memory — shadcn/ui Audit Complete (Web / UI / Theme)"
-Cohesion: 0.25
-Nodes (8): Do not, Locked decisions (Phase 17, user-ratified), Memory — shadcn/ui Audit Complete (Web / UI / Theme), Mobile Font Size Increase (2026-09-11), Next session starts with, Plan location, Prior state, State
+### Community 1845 - "Audit: nativewind-env.d.ts"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1846 - "Moja Ride Design System Audit — Design System Core (UI & Theme Packages)"
 Cohesion: 0.67
@@ -7709,9 +7794,9 @@ Nodes (3): Break Inside (/v5/tailwind/layout/break-inside), Compatibility, Usage
 Cohesion: 0.29
 Nodes (4): fs, npmrcPath, path, workspaceYaml
 
-### Community 1872 - "AdminPermissionKey"
-Cohesion: 0.29
-Nodes (7): MenuItem, NavSectionProps, EditPermissionsSheetProps, InviteSheetProps, AdminPermissionMatrixProps, CreateAdminInvitationInput, AdminPermissionKey
+### Community 1872 - "Audit: auth-field.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1875 - "05 — Cross-Platform Audit: Web, Dashboards & Traveler App"
 Cohesion: 0.29
@@ -7745,9 +7830,9 @@ Nodes (3): Compatibility, Place Self (/v5/tailwind/flexbox/place-self), Usage
 Cohesion: 0.67
 Nodes (3): Compatibility, Scale (/v5/tailwind/transforms/scale), Usage
 
-### Community 1889 - "Content (/v5/tailwind/typography/content)"
-Cohesion: 0.67
-Nodes (3): Compatibility, Content (/v5/tailwind/typography/content), Usage
+### Community 1889 - "Audit: auth-shell.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1890 - "Text Decoration Style (/v5/tailwind/typography/text-decoration-style)"
 Cohesion: 0.67
@@ -7765,13 +7850,13 @@ Nodes (6): Environment Setup: Guarding Your Secrets, Final Thoughts: Don’t For
 Cohesion: 0.48
 Nodes (6): backfillRouteServiceTypes(), backfillTerminalCities(), backfillTripServiceTypes(), main(), normalize(), prisma
 
-### Community 1895 - "migrate-drivers-data.ts"
-Cohesion: 0.48
-Nodes (6): backfillReviewsData(), backfillTripDriverAssignments(), main(), migrateDriverProfilesAndAffiliations(), prisma, recalculateDriverAggregates()
+### Community 1895 - "Audit: use-load-fonts.ts"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
-### Community 1896 - "seat-map.tsx"
-Cohesion: 0.47
-Nodes (5): getSeatColor(), getSeatTextColor(), Seat, SeatMap(), SeatMapProps
+### Community 1896 - "Audit: use-network-status.ts"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1897 - "Module 08: Severity-Ranked Findings Catalog"
 Cohesion: 0.33
@@ -7793,17 +7878,17 @@ Nodes (6): Capitec Pay, Create a charge, Feature Availability, Handling errors, 
 Cohesion: 0.40
 Nodes (3): __dirname, en, fr
 
-### Community 1902 - "InviteSheet"
-Cohesion: 0.70
-Nodes (5): InviteSheet(), handleSend(), onRoleChange(), reset(), seedAdminPermissions()
+### Community 1902 - "Audit: auth-client.ts"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1904 - "PricingStep"
 Cohesion: 0.70
 Nodes (5): PricingStep(), computeDuration(), getFare(), isAdjacent(), upsertFare()
 
-### Community 1905 - "use-city-search.ts"
-Cohesion: 0.60
-Nodes (3): CitySearchResult, useCitySearch(), useDebounce()
+### Community 1905 - "Audit: haptics.ts"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1906 - "5. Border Radius — Full Regression Analysis"
 Cohesion: 0.40
@@ -7813,33 +7898,33 @@ Nodes (5): 5. Border Radius — Full Regression Analysis, Fix Options, Root Caus
 Cohesion: 0.50
 Nodes (3): Middleware Types, Router Index, Web App — tRPC Router Map
 
-### Community 1908 - "TransferOwnershipDialog"
-Cohesion: 0.67
-Nodes (3): TransferOwnershipDialog(), handleSendOtp(), startCooldown()
+### Community 1908 - "Audit: theme.ts"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
-### Community 1909 - "preview-step.tsx"
-Cohesion: 0.83
-Nodes (3): PreviewStep(), formatTime(), parseLocalDate()
+### Community 1909 - "Audit: trpc.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1910 - "Payload Schema"
 Cohesion: 0.50
 Nodes (4): Payload Schema, With Class Validator, With JSON Schema, With Zod
 
-### Community 1911 - "3. Size Bloat & File System Hygiene"
-Cohesion: 0.50
-Nodes (4): 3. Size Bloat & File System Hygiene, Finding B-01: Rogue Nested Repository in `test-archive-1/`, Finding B-02: Untracked Android Build Caches (111.2 MB), Finding B-03: Inadequate `.gitignore`
+### Community 1911 - "Audit: hold-pool.ts"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1912 - "Plan: Moja Ride Universal Theme & Font Migration (Outfit + Raleway & Flawless Light/Dark)"
 Cohesion: 0.50
 Nodes (3): Executive Summary, Phased Execution Roadmap, Plan: Moja Ride Universal Theme & Font Migration (Outfit + Raleway & Flawless Light/Dark)
 
-### Community 1913 - "Adventurer Neutral"
-Cohesion: 0.50
-Nodes (4): Adventurer Neutral, Options, Presets, Usage
+### Community 1913 - "Audit: offline-queue.ts"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
-### Community 1914 - "Croodles Neutral"
-Cohesion: 0.50
-Nodes (4): Croodles Neutral, Options, Presets, Usage
+### Community 1914 - "Audit: sell-session.ts"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1915 - "Pixelbot"
 Cohesion: 0.50
@@ -7853,21 +7938,21 @@ Nodes (4): Options, Presets, Shadows, Usage
 Cohesion: 0.50
 Nodes (4): Options, Presets, Shape Grid, Usage
 
-### Community 1918 - "Slice"
-Cohesion: 0.50
-Nodes (4): Options, Presets, Slice, Usage
+### Community 1918 - "Audit: session.ts"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
-### Community 1919 - "Thumbs"
-Cohesion: 0.50
-Nodes (4): Options, Presets, Thumbs, Usage
+### Community 1919 - "Audit: __tests__/i18n-parity.test.ts"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
 
 ### Community 1920 - "Toon Head"
 Cohesion: 0.50
 Nodes (4): Options, Presets, Toon Head, Usage
 
-### Community 1921 - "Create"
-Cohesion: 0.50
-Nodes (4): Create, cURL, Node.js, Python
+### Community 1921 - "booth-app-tracker.md"
+Cohesion: 0.07
+Nodes (10): 1. Executive Status Dashboard, 2. Master Inventory & Status Table, 3. Dependency Graph & Phased Audit Sequence, 4.1 UI / UX Findings, 4.2 Design System Findings, 4.3 Architecture & Logic Findings, 4. Problem Matrix by Domain, 5. Next Steps (+2 more)
 
 ### Community 1922 - "Align Self (/v5/tailwind/flexbox/align-self)"
 Cohesion: 0.67
@@ -7909,33 +7994,325 @@ Nodes (3): Compatibility, Text Overflow (/v5/tailwind/typography/text-overflow),
 Cohesion: 0.67
 Nodes (3): cURL, List All Preferences, Node.js
 
+### Community 1933 - "Audit: app/sell/confirmation.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
+
+### Community 1935 - "Audit: seat-map.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
+
 ### Community 1936 - "Moja Ride Design System Audit — Traveler Mobile App"
 Cohesion: 0.67
 Nodes (3): Executive Summary, Health Scorecard, Moja Ride Design System Audit — Traveler Mobile App
 
-### Community 1937 - "Common Preference Operations"
+### Community 1937 - "Audit: accordion.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
+
+### Community 1940 - "Audit: context-menu.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
+
+### Community 2035 - "Audit: dialog.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
+
+### Community 2036 - "Audit: icon.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
+
+### Community 2037 - "Audit: label.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
+
+### Community 2038 - "Audit: tabs.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
+
+### Community 2039 - "Audit: text.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
+
+### Community 2040 - "Audit: toggle-group.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
+
+### Community 2041 - "Audit: tooltip.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
+
+### Community 2042 - "Audit: expo-env.d.ts"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
+
+### Community 2043 - "Audit: auth-button.tsx"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
+
+### Community 2044 - "Audit: use-hold-pool.ts"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
+
+### Community 2045 - "Audit: bluetooth-print.ts"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
+
+### Community 2046 - "Audit: i18n.ts"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
+
+### Community 2047 - "Audit: offline-sync.ts"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
+
+### Community 2048 - "Audit: utils.ts"
+Cohesion: 0.07
+Nodes (29): 10. Theme Audit, 11. Logic Audit, 12. State Management Audit, 13. Async / Side-Effect Audit, 14. Error Handling Audit, 15. Offline / Synchronization Audit, 16. Performance Audit, 17. Accessibility Audit (+21 more)
+
+### Community 2049 - "signed-access-tokens.ts"
+Cohesion: 0.17
+Nodes (20): GET(), localePrefix(), readCookie(), runtime, buildBookingSuccessUrl(), b64url(), CHECKOUT_SESSION_COOKIE, CheckoutSessionPayload (+12 more)
+
+### Community 2050 - "ProfileTab"
+Cohesion: 0.12
+Nodes (11): ConfirmationScreen(), handlePrint(), ProfileTab(), handleConnectPrinter(), handleTestPrint(), loadPrinters(), connectPrinter(), discoverPrinters() (+3 more)
+
+### Community 2051 - "routers/search.ts"
+Cohesion: 0.21
+Nodes (12): abidjanDateKey(), abidjanDayBounds(), abidjanHour(), SEARCH_TIME_ZONE, matchSegmentFare(), SegmentFare, baseFare, normalize() (+4 more)
+
+### Community 2052 - "PassengerAuthFlow"
+Cohesion: 0.15
+Nodes (10): LoginPageProps, OperatorLoginPage(), PassengerAuthFlow(), handleSendCode(), handleVerifyCode(), resolvePostAuthPath(), sendPassengerOtp(), verifyPassengerOtp() (+2 more)
+
+### Community 2053 - "session.ts"
+Cohesion: 0.15
+Nodes (6): SupportedLocale, switchLanguage(), USER_LOCALE_STORAGE_KEY, OperatorProfile, SelectedTerminal, SessionState
+
+### Community 2054 - "places.ts"
+Cohesion: 0.26
+Nodes (8): GeoTerminal, isUrban(), PlaceLevel, placeMatchesTerminal(), normalize(), PairValidationError, SearchPairInput, validateSearchPair()
+
+### Community 2055 - "item.tsx"
+Cohesion: 0.18
+Nodes (4): Item(), ItemMedia(), itemMediaVariants, itemVariants
+
+### Community 2056 - "lib/budget-summary.mjs"
+Cohesion: 0.33
+Nodes (10): buildBudgetSummary(), buildChatPreview(), buildExactChatMessage(), buildOptions(), buildPrintCheck(), buildQuestionPayload(), buildQuestionText(), renderBudgetSummaryMarkdown() (+2 more)
+
+### Community 2057 - "screens/notifications.tsx"
+Cohesion: 0.24
+Nodes (9): NotificationItem, NotificationRow(), NotificationsView(), timeAgo(), isLocalPath(), NotificationRouteData, resolveNotificationRoute(), RouteEntry (+1 more)
+
+### Community 2058 - "generate-booth-audits.cjs"
+Cohesion: 0.18
+Nodes (10): auditsRoot, boothRoot, dirs, fileManifest, fs, generateAuditFile(), inspectSource(), path (+2 more)
+
+### Community 2059 - "scanner-view.tsx"
+Cohesion: 0.24
+Nodes (7): TicketResultModal(), TicketResultModalProps, TicketValidationResult, ValidationStatus, OfflineScanItem, ScannerView(), ACTIVE_TRIP_ID_KEY
+
+### Community 2060 - "help/page.tsx"
+Cohesion: 0.22
+Nodes (7): HelpPage(), Props, en, FAQCategory, FAQItem, fr, getFaq()
+
+### Community 2061 - "privacy/page.tsx"
+Cohesion: 0.27
+Nodes (8): PrivacyPage(), Props, en, fr, getPrivacyContent(), getPrivacyToc(), PrivacyData, PrivacyItem
+
+### Community 2062 - "terms/page.tsx"
+Cohesion: 0.27
+Nodes (8): Props, TermsPage(), en, fr, getTermsContent(), getTermsToc(), TermsData, TermsSection
+
+### Community 2063 - "count-correct.mjs"
+Cohesion: 0.27
+Nodes (8): apply(), COUNT_CLAIM_TYPES, metadata, rewriteCount(), apply(), metadata, STRIP_DIRECTIVES, escapeRegex()
+
+### Community 2064 - "LoginView"
+Cohesion: 0.28
+Nodes (6): buildE164(), LoginView(), animateForward(), handleSendOtp(), handleVerifyOtp(), toFrenchAuthError()
+
+### Community 2065 - "search-date-strip.tsx"
+Cohesion: 0.33
+Nodes (7): MONTHS, parseUTCDate(), SearchDateStrip, SearchDateStripProps, todayUTCString(), WEEKDAYS, useCheapestByDate()
+
+### Community 2067 - "update_phase3_audits.cjs"
+Cohesion: 0.25
+Nodes (6): fs, lines, path, tracker, uiMeta, updatedLines
+
+### Community 2068 - "contact/page.tsx"
+Cohesion: 0.29
+Nodes (4): info, metadata, steps, ContactForm()
+
+### Community 2069 - "update_phase4_audits.cjs"
+Cohesion: 0.29
+Nodes (6): fs, lines, path, rowsToUpdate, tracker, updatedLines
+
+### Community 2070 - "tickets/[token]/page.tsx"
+Cohesion: 0.40
+Nodes (4): assertTicketExists(), PublicTicketPage(), PublicTicketPageProps, TicketMetaProps
+
+### Community 2071 - "SearchForm"
+Cohesion: 0.40
+Nodes (4): parseLocalDate(), SearchForm, todayISO(), toLocalISODate()
+
+### Community 2072 - "update_tracker.cjs"
+Cohesion: 0.33
+Nodes (5): content, fs, lines, path, updatedLines
+
+### Community 2073 - "platform-bot-protection.mjs"
+Cohesion: 0.60
+Nodes (4): computeBotShare(), gate(), metadata, totalRequestsFromSignals()
+
+### Community 2075 - "SavedPassengersView"
+Cohesion: 0.40
+Nodes (3): SavedPassengersView(), openEdit(), toForm()
+
+### Community 2076 - "generate_all_final_audits.cjs"
+Cohesion: 0.40
+Nodes (3): fs, path, trackerContent
+
+### Community 2077 - "verify_all_audits.cjs"
+Cohesion: 0.40
+Nodes (4): content, fs, path, tableLines
+
+### Community 2078 - "How do I set a gender?"
+Cohesion: 0.40
+Nodes (5): Filter by tags, Find and apply the options, How do I set a gender?, Share and reuse option sets, Why there is no dedicated gender option
+
+### Community 2079 - "Your first avatar"
+Cohesion: 0.40
+Nodes (5): Generate avatars in your own code, Make it yours, Pick a style, Where to next?, Your first avatar
+
+### Community 2080 - "Moja Ride Platform"
+Cohesion: 0.40
+Nodes (4): 📚 Context-Driven Development (CDD), Moja Ride Platform, 🚀 Overview, 🛠️ Quick Start
+
+### Community 2081 - "Channel Steps"
+Cohesion: 0.50
+Nodes (4): Channel Steps, Email Step, In-App Step (rich payload), SMS / Push / Chat
+
+### Community 2082 - "Create"
+Cohesion: 0.50
+Nodes (4): Create, cURL, Node.js, Python
+
+### Community 2083 - "4. UI Component Library & Root Layout Deficiencies"
+Cohesion: 0.50
+Nodes (4): 4. UI Component Library & Root Layout Deficiencies, Finding U-01: Zero Design System Components (`components/ui/`), Finding U-02: Missing `<PortalHost />` and `ThemeProvider`, Finding U-03: Missing `components.json`
+
+### Community 2085 - "Adventurer"
+Cohesion: 0.50
+Nodes (4): Adventurer, Options, Presets, Usage
+
+### Community 2086 - "Support DiceBear"
+Cohesion: 0.50
+Nodes (4): Contribute, Help other users, Star the repositories, Support DiceBear
+
+### Community 2087 - "Critters"
+Cohesion: 0.50
+Nodes (4): Critters, Options, Presets, Usage
+
+### Community 2088 - "Glass"
+Cohesion: 0.50
+Nodes (4): Glass, Options, Presets, Usage
+
+### Community 2089 - "Identicon"
+Cohesion: 0.50
+Nodes (4): Identicon, Options, Presets, Usage
+
+### Community 2090 - "Loops"
+Cohesion: 0.50
+Nodes (4): Loops, Options, Presets, Usage
+
+### Community 2091 - "Micah"
+Cohesion: 0.50
+Nodes (4): Micah, Options, Presets, Usage
+
+### Community 2092 - "Personas"
+Cohesion: 0.50
+Nodes (4): Options, Personas, Presets, Usage
+
+### Community 2093 - "Shapes"
+Cohesion: 0.50
+Nodes (4): Options, Presets, Shapes, Usage
+
+### Community 2094 - "Sprouts"
+Cohesion: 0.50
+Nodes (4): Options, Presets, Sprouts, Usage
+
+### Community 2095 - "Triangles"
+Cohesion: 0.50
+Nodes (4): Options, Presets, Triangles, Usage
+
+### Community 2096 - "Voxel Art"
+Cohesion: 0.50
+Nodes (4): Options, Presets, Usage, Voxel Art
+
+### Community 2097 - "Waves"
+Cohesion: 0.50
+Nodes (4): Options, Presets, Usage, Waves
+
+### Community 2098 - "Read"
+Cohesion: 0.50
+Nodes (4): cURL — Get Subscriber, Read, Retrieve Single Subscriber, Search Subscribers
+
+### Community 2099 - "Grayscale (/v5/tailwind/filters/grayscale)"
 Cohesion: 0.67
-Nodes (3): Common Preference Operations, Disable email at global preference level., Opt out of email channel for a specific workflow
+Nodes (3): Compatibility, Grayscale (/v5/tailwind/filters/grayscale), Usage
+
+### Community 2100 - "Display (/v5/tailwind/layout/display)"
+Cohesion: 0.67
+Nodes (3): Compatibility, Display (/v5/tailwind/layout/display), Usage
+
+### Community 2101 - "Container Queries (/v5/tailwind/plugins/container-queries)"
+Cohesion: 0.67
+Nodes (3): Compatibility, Container Queries (/v5/tailwind/plugins/container-queries), Usage
+
+### Community 2102 - "Text Decoration (/v5/tailwind/typography/text-decoration)"
+Cohesion: 0.67
+Nodes (3): Compatibility, Text Decoration (/v5/tailwind/typography/text-decoration), Usage
+
+### Community 2103 - "Word Break (/v5/tailwind/typography/word-break)"
+Cohesion: 0.67
+Nodes (3): Compatibility, Usage, Word Break (/v5/tailwind/typography/word-break)
+
+### Community 2104 - "CheckInTab"
+Cohesion: 1.00
+Nodes (3): CheckInTab(), handleManualSubmit(), handleValidateToken()
+
+### Community 2108 - "List All Preferences"
+Cohesion: 0.67
+Nodes (3): cURL, List All Preferences, Node.js
+
+### Community 2109 - "Moja Ride Design System Audit — Admin Web Dashboard & Governance"
+Cohesion: 0.67
+Nodes (3): Executive Summary, Health Scorecard, Moja Ride Design System Audit — Admin Web Dashboard & Governance
+
+### Community 2110 - "List All Preferences"
+Cohesion: 0.67
+Nodes (3): cURL, List All Preferences, Node.js
 
 ## Knowledge Gaps
-- **12999 isolated node(s):** `options`, `results`, `SCRIPT_DIR`, `SKILLS_REPO_ROOT`, `DEFAULT_WORK_ROOT` (+12994 more)
+- **15132 isolated node(s):** `options`, `results`, `SCRIPT_DIR`, `SKILLS_REPO_ROOT`, `DEFAULT_WORK_ROOT` (+15127 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **507 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **509 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Palette` connect `Palette` to `cn`, `screens/wallet.tsx`, `src/components/ui/button.tsx`, `screens/search.tsx`, `review-sheet.tsx`, `operator-card.tsx`, `traveler-app/lib/trpc.tsx`, `passenger-tracking-view.tsx`, `useSessionStore`, `booking-detail.tsx`, `traveler-app/features/booking/components/passenger-seat-map.tsx`, `screens/passengers.tsx`, `telemetry.ts`, `screens/bookings.tsx`, `screens/personal-info.tsx`, `booth-app/app/_layout.tsx`, `operator-profile.tsx`, `booth-app/app/(auth)/login.tsx`, `traveler-app/features/auth/screens/login.tsx`, `live-view.tsx`, `driver-app/constants/theme.ts`, `Button.tsx`, `traveler-app/lib/mapbox.ts`?**
-  _High betweenness centrality (0.013) - this node is a cross-community bridge._
-- **Why does `cn()` connect `cn` to `screens/personal-info.tsx`, `screens/passengers.tsx`, `traveler-app/features/auth/screens/login.tsx`, `Palette`?**
-  _High betweenness centrality (0.005) - this node is a cross-community bridge._
-- **Why does `getPrismaClient()` connect `db/src/index.ts` to `routers/booking.ts`, `dashboard/(passenger)/layout.tsx`, `prefetch`, `timezone.ts`, `backfill-service-type.ts`, `routers/passenger.ts`, `telemetry-ws.ts`, `driver-scoring.ts`, `migrate-drivers-data.ts`, `trip-destination.ts`, `paystack-client.ts`, `getAppOrigin`, `init.ts`, `routers/operator.ts`, `blog-detail-view.tsx`, `import-ivory-coast-geo.ts`, `payment-service.ts`, `auth-server.ts`?**
+- **Why does `Palette` connect `traveler-app/constants/theme.ts` to `cn`, `screens/wallet.tsx`, `src/components/ui/button.tsx`, `screens/notifications.tsx`, `screens/search.tsx`, `review-sheet.tsx`, `operator-card.tsx`, `driver-app/constants/theme.ts`, `traveler-app/components/notification-bell.tsx`, `traveler-app/lib/trpc.tsx`, `passenger-tracking-view.tsx`, `booth-app/app/(tabs)/profile.tsx`, `Text`, `traveler-app/features/booking/components/passenger-seat-map.tsx`, `screens/passengers.tsx`, `telemetry.ts`, `home.tsx`, `screens/personal-info.tsx`, `booth-app/app/_layout.tsx`, `booth-app/app/(auth)/login.tsx`, `traveler-app/features/auth/screens/login.tsx`, `useScreenTransition`, `booth-app/constants/theme.ts`, `trips-view.tsx`?**
+  _High betweenness centrality (0.012) - this node is a cross-community bridge._
+- **Why does `getAppOrigin()` connect `getAppOrigin` to `routers/booking.ts`, `signed-access-tokens.ts`, `getOptionalEnv`?**
   _High betweenness centrality (0.004) - this node is a cross-community bridge._
+- **Why does `cn()` connect `cn` to `screens/personal-info.tsx`, `screens/passengers.tsx`, `Text`, `traveler-app/features/auth/screens/login.tsx`?**
+  _High betweenness centrality (0.003) - this node is a cross-community bridge._
 - **What connects `options`, `results`, `SCRIPT_DIR` to the rest of the system?**
-  _12999 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `Button` be split into smaller, more focused modules?**
-  _Cohesion score 0.0429042904290429 - nodes in this community are weakly interconnected._
+  _15132 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `operator-marketplace-view.tsx` be split into smaller, more focused modules?**
+  _Cohesion score 0.05093167701863354 - nodes in this community are weakly interconnected._
 - **Should `cn` be split into smaller, more focused modules?**
-  _Cohesion score 0.03893557422969188 - nodes in this community are weakly interconnected._
-- **Should `passenger-settings-view.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.034432234432234435 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.034813786722183666 - nodes in this community are weakly interconnected._
+- **Should `admin-trip-audit-view.tsx` be split into smaller, more focused modules?**
+  _Cohesion score 0.059562841530054644 - nodes in this community are weakly interconnected._

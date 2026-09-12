@@ -607,7 +607,7 @@ export function LiveView() {
 								<HugeiconsIcon icon={Alert02Icon} size={22} color={colors.semantic.error} />
 							</View>
 							<View className="flex-1 gap-0.5">
-								<Text className="text-[13px] font-extrabold text-destructive">{t("breakdownBannerTitle")}</Text>
+								<Text className="text-sm font-extrabold text-destructive">{t("breakdownBannerTitle")}</Text>
 								<Text className="text-xs text-foreground/80 leading-4">{t("breakdownBannerDesc")}</Text>
 							</View>
 						</View>
@@ -622,7 +622,7 @@ export function LiveView() {
 								<HugeiconsIcon icon={Time02Icon} size={22} color={colors.semantic.info} />
 							</View>
 							<View className="flex-1 gap-0.5">
-								<Text className="text-[13px] font-bold text-foreground">{t("restBreakBannerTitle")}</Text>
+								<Text className="text-sm font-bold text-foreground">{t("restBreakBannerTitle")}</Text>
 								<Text className="text-xs font-semibold text-info">
 									{restMinutesRemaining > 0
 										? t("restBreakRemaining", { minutes: restMinutesRemaining })
@@ -653,10 +653,10 @@ export function LiveView() {
 					<View className="flex-row items-center justify-between">
 						<View className="flex-row items-center gap-1.5">
 							<HugeiconsIcon icon={Navigation01Icon} size={16} color={colors.primary.rose} />
-							<Text className="text-[11px] font-bold text-foreground/80 uppercase tracking-wider">{t("stopProgress")}</Text>
+							<Text className="text-xs font-bold text-foreground/80 uppercase tracking-wider">{t("stopProgress")}</Text>
 						</View>
 						{routeIsApproximate ? (
-							<Text className="text-[11px] font-bold text-warning">{t("approximateRoute")}</Text>
+							<Text className="text-xs font-bold text-warning">{t("approximateRoute")}</Text>
 						) : (
 							<Text className="text-xs font-bold text-primary font-mono">
 								{routeDurationSecs
@@ -686,7 +686,7 @@ export function LiveView() {
 											isAtWaypoint ? "bg-warning" : isNearWaypoint ? "bg-success" : "bg-primary",
 										)}
 									/>
-									<Text className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+									<Text className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
 										{isAtWaypoint
 											? t("atTerminal")
 											: t("stopLabel", { current: currentWaypointIndex + 1, total: tripStops.length })}
@@ -751,7 +751,7 @@ export function LiveView() {
 
 					{/* Waypoints Sequence List */}
 					<View className="gap-2 pt-2 border-t border-border">
-						<Text className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{t("stopSheetTitle")}</Text>
+						<Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t("stopSheetTitle")}</Text>
 						{tripStops.map((stop, idx) => {
 							const isPassed = stop.actualDeparture != null;
 							const isCurrent = stop.id === currentWaypoint?.id;
@@ -779,19 +779,19 @@ export function LiveView() {
 											{isPassed ? (
 												<HugeiconsIcon icon={CheckmarkCircle02Icon} size={14} color={colors.semantic.success} />
 											) : (
-												<Text className="text-[11px] font-extrabold text-muted-foreground">{idx + 1}</Text>
+												<Text className="text-xs font-extrabold text-muted-foreground">{idx + 1}</Text>
 											)}
 										</View>
 										<View className="flex-1 gap-0.5">
 											<Text
 												className={cn(
-													"text-[13px] font-bold",
+													"text-sm font-bold",
 													isPassed ? "text-muted-foreground line-through" : isCurrent ? "text-foreground" : "text-foreground/80",
 												)}
 											>
 												{stop.terminal?.name ?? t("stopDefaultName", { index: idx + 1 })}
 											</Text>
-											<Text className="text-[11px] text-muted-foreground">
+											<Text className="text-xs text-muted-foreground">
 												{stop.actualDeparture
 													? t("stopTimeDeparted", { time: new Date(stop.actualDeparture).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) })
 													: stop.actualArrival

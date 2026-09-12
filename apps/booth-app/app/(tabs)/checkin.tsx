@@ -9,8 +9,10 @@ import {
   CancelCircleIcon,
   CheckmarkCircle01Icon,
   Edit01Icon,
+  QrCode01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import { parseTicketToken } from "@moja/schemas";
 import { useMutation } from "@tanstack/react-query";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useRef, useState } from "react";
@@ -20,17 +22,25 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
+  Pressable,
   StyleSheet,
   Text,
-  TextInput,
-  TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/button";
-import { IconColors, PlaceholderColor } from "@/constants/ui-colors";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { IconColors } from "@/constants/ui-colors";
+import { useNetworkStatus } from "@/hooks/use-network-status";
 import { BoothFeedback } from "@/lib/haptics";
 import { useTRPC } from "@/lib/trpc";
-import { useSessionStore } from "@/stores/session";
+import { useOfflineQueue } from "@/stores/offline-queue";
+import {
+  selectTerminalId,
+  selectTerminalName,
+  useSessionStore,
+} from "@/stores/session";
 
 type ScanState = "scanning" | "success" | "error";
 
@@ -42,6 +52,7 @@ interface CheckInResult {
 
 export default function CheckInTab() {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanState, setScanState] = useState<ScanState>("scanning");
   const [result, setResult] = useState<CheckInResult | null>(null);
@@ -51,21 +62,69 @@ export default function CheckInTab() {
   const [manualCode, setManualCode] = useState("");
   const lastScannedToken = useRef<string | null>(null);
 
-  const terminal = useSessionStore((s) => s.terminal);
+  const { isOnline } = useNetworkStatus();
+  const terminalId = useSessionStore(selectTerminalId);
+  const terminalName = useSessionStore(selectTerminalName);
   const trpc = useTRPC();
 
   const checkIn = useMutation(trpc.booth.checkInPassenger.mutationOptions());
 
   async function handleValidateToken(token: string) {
     if (!token.trim() || isProcessing) return;
-    if (!terminal) return;
+    if (!terminalId) return;
     lastScannedToken.current = token.trim();
     setIsProcessing(true);
 
+    const normalizedToken = parseTicketToken(token.trim());
+
+    // Offline Gate Fallback
+    if (!isOnline) {
+      const offlineQueue = useOfflineQueue.getState().queue;
+      const match = offlineQueue.find(
+        (e) =>
+          e.id === normalizedToken ||
+          e.holdId === normalizedToken ||
+          e.seatLabel.toLowerCase() === normalizedToken.toLowerCase() ||
+          (e.passengerName &&
+            e.passengerName.toLowerCase() === normalizedToken.toLowerCase()),
+      );
+
+      setIsProcessing(false);
+      if (match) {
+        setResult({
+          passengerName: match.passengerName,
+          departureTime: new Date().toLocaleTimeString("fr-FR", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          bookingId: match.id,
+        });
+        setScanState("success");
+        BoothFeedback.successScan();
+        setShowManualModal(false);
+        setManualCode("");
+      } else {
+        BoothFeedback.invalidScan();
+        setErrorMsg(
+          t("checkin.errorOfflineOnlyLocal") ||
+            "Mode hors-ligne : Seuls les billets enregistrés localement sur cet appareil peuvent être validés.",
+        );
+        setScanState("error");
+      }
+
+      setTimeout(() => {
+        lastScannedToken.current = null;
+        setScanState("scanning");
+        setResult(null);
+        setErrorMsg(null);
+      }, 3500);
+      return;
+    }
+
     try {
       const res = await checkIn.mutateAsync({
-        ticketToken: token.trim(),
-        terminalId: terminal.id,
+        ticketToken: normalizedToken,
+        terminalId,
       });
 
       setResult({
@@ -82,6 +141,41 @@ export default function CheckInTab() {
       const error = e as { data?: { code?: string }; message?: string };
       const code = error.data?.code;
       const msg = error.message ?? t("errors.generic");
+
+      // Check if network failed mid-flight -> attempt local offline queue verification
+      const isNetError =
+        msg.toLowerCase().includes("network") ||
+        msg.toLowerCase().includes("fetch") ||
+        msg.toLowerCase().includes("connect");
+
+      if (isNetError) {
+        const offlineQueue = useOfflineQueue.getState().queue;
+        const match = offlineQueue.find(
+          (entry) =>
+            entry.id === normalizedToken ||
+            entry.holdId === normalizedToken ||
+            entry.seatLabel.toLowerCase() === normalizedToken.toLowerCase() ||
+            (entry.passengerName &&
+              entry.passengerName.toLowerCase() ===
+                normalizedToken.toLowerCase()),
+        );
+
+        if (match) {
+          setResult({
+            passengerName: match.passengerName,
+            departureTime: new Date().toLocaleTimeString("fr-FR", {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+            bookingId: match.id,
+          });
+          setScanState("success");
+          BoothFeedback.successScan();
+          setShowManualModal(false);
+          setManualCode("");
+          return;
+        }
+      }
 
       if (code === "NOT_FOUND") {
         setErrorMsg(t("checkin.errorNotFound"));
@@ -115,36 +209,58 @@ export default function CheckInTab() {
 
   if (!permission.granted) {
     return (
-      <View className="flex-1 bg-background items-center justify-center px-6">
-        <HugeiconsIcon
-          icon={BarcodeScanIcon}
-          size={48}
-          color={IconColors.muted}
-        />
-        <Text className="text-foreground text-center mt-4 mb-6">
-          L'accès à la caméra est requis pour scanner les QR tickets.
+      <View
+        className="flex-1 bg-background items-center justify-center px-8"
+        style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
+      >
+        <View className="w-20 h-20 rounded-full bg-primary/10 items-center justify-center mb-6">
+          <HugeiconsIcon
+            icon={BarcodeScanIcon}
+            size={40}
+            color={IconColors.brand}
+          />
+        </View>
+        <Text className="text-foreground font-heading text-xl font-bold text-center mb-2">
+          {t("checkin.cameraPermissionTitle") || "Accès caméra requis"}
         </Text>
-        <TouchableOpacity
-          className="bg-primary rounded-xl px-6 py-3"
-          onPress={requestPermission}
+        <Text className="text-muted-foreground text-sm text-center leading-5 mb-8 max-w-[280px]">
+          {t("checkin.cameraPermissionDesc") ||
+            "L'accès à la caméra est indispensable pour scanner les QR codes sur les billets d'embarquement."}
+        </Text>
+        <Button
+          className="w-full max-w-xs"
+          onPress={() => {
+            BoothFeedback.tap();
+            requestPermission();
+          }}
         >
-          <Text className="text-white font-semibold">Autoriser la caméra</Text>
-        </TouchableOpacity>
+          <Text className="text-primary-foreground font-semibold text-base">
+            {t("checkin.grantPermission") || "Autoriser la caméra"}
+          </Text>
+        </Button>
       </View>
     );
   }
 
   return (
     <View className="flex-1 bg-black">
-      <View className="absolute top-14 left-0 right-0 z-10 items-center">
-        <Text className="text-white font-heading text-xl font-bold">
-          {t("checkin.title")}
-        </Text>
-        <Text className="text-white/70 text-sm mt-1">
-          {t("checkin.instruction")}
-        </Text>
+      {/* Top Header HUD */}
+      <View
+        className="absolute left-0 right-0 z-10 items-center px-6"
+        style={{ top: Math.max(insets.top, 20) + 8 }}
+      >
+        <View className="bg-black/60 px-5 py-2.5 rounded-full border border-white/20 backdrop-blur-md items-center">
+          <Text className="text-white font-heading text-base font-bold">
+            {t("checkin.title")}
+          </Text>
+          <Text className="text-white/70 text-xs mt-0.5">
+            {terminalName ? `${terminalName} · ` : ""}
+            {t("checkin.instruction")}
+          </Text>
+        </View>
       </View>
 
+      {/* Camera Stream */}
       {scanState === "scanning" && (
         <CameraView
           style={StyleSheet.absoluteFill}
@@ -162,17 +278,29 @@ export default function CheckInTab() {
         />
       )}
 
+      {/* Scanner Viewfinder Reticle */}
       {scanState === "scanning" && (
-        <View className="flex-1 items-center justify-center">
-          <View className="w-64 h-64 border-2 border-white/60 rounded-2xl" />
+        <View className="flex-1 items-center justify-center pointer-events-none">
+          <View className="w-68 h-68 items-center justify-center">
+            <View className="w-64 h-64 border-2 border-white/80 rounded-3xl relative shadow-2xl">
+              {/* Corner Accents */}
+              <View className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-primary rounded-tl-xl" />
+              <View className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-primary rounded-tr-xl" />
+              <View className="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-primary rounded-bl-xl" />
+              <View className="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-primary rounded-br-xl" />
+            </View>
+          </View>
         </View>
       )}
 
       {/* Manual Entry Button */}
       {scanState === "scanning" && !isProcessing && (
-        <View className="absolute bottom-12 left-0 right-0 items-center z-20">
-          <TouchableOpacity
-            className="flex-row items-center gap-2 bg-white/20 backdrop-blur px-5 py-3 rounded-full border border-white/30"
+        <View
+          className="absolute left-0 right-0 items-center z-20"
+          style={{ bottom: Math.max(insets.bottom, 20) + 16 }}
+        >
+          <Pressable
+            className="flex-row items-center gap-2.5 bg-black/70 backdrop-blur-md px-6 py-3.5 rounded-full border border-white/30 active:opacity-80"
             onPress={() => {
               BoothFeedback.tap();
               setShowManualModal(true);
@@ -182,50 +310,76 @@ export default function CheckInTab() {
             <Text className="text-white font-semibold text-sm">
               {t("checkin.manualEntry")}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       )}
 
+      {/* Processing Loader */}
       {isProcessing && (
-        <View className="absolute bottom-14 left-0 right-0 items-center">
-          <ActivityIndicator size="large" color={IconColors.onPrimary} />
-          <Text className="text-white/70 text-sm mt-2">Validation...</Text>
-        </View>
-      )}
-
-      {scanState === "success" && result && (
-        <View className="flex-1 items-center justify-center px-8 gap-6">
-          <HugeiconsIcon
-            icon={CheckmarkCircle01Icon}
-            size={72}
-            color={IconColors.success}
-          />
-          <Text className="text-white font-heading text-2xl font-bold text-center">
-            {t("checkin.success")}
-          </Text>
-          <View className="bg-white/10 rounded-2xl px-6 py-5 w-full gap-2">
-            <Text className="text-white font-semibold text-lg">
-              {result.passengerName}
-            </Text>
-            <Text className="text-white/80 text-sm">
-              {result.departureTime}
+        <View className="absolute inset-0 bg-black/70 items-center justify-center z-30">
+          <View className="bg-card p-6 rounded-2xl items-center border border-border shadow-2xl">
+            <ActivityIndicator size="large" color={IconColors.brand} />
+            <Text className="text-foreground font-semibold text-sm mt-3">
+              {t("checkin.validating") || "Validation du billet..."}
             </Text>
           </View>
         </View>
       )}
 
+      {/* Result: SUCCESS */}
+      {scanState === "success" && result && (
+        <View className="flex-1 items-center justify-center px-8 z-30 bg-black/85">
+          <View className="items-center gap-4 w-full max-w-sm">
+            <View className="w-20 h-20 rounded-full bg-emerald-500/20 border border-emerald-500/40 items-center justify-center">
+              <HugeiconsIcon
+                icon={CheckmarkCircle01Icon}
+                size={54}
+                color={IconColors.success}
+              />
+            </View>
+
+            <Text className="text-white font-heading text-2xl font-bold text-center">
+              {t("checkin.success")}
+            </Text>
+
+            <Card className="bg-white/15 border-white/20 rounded-2xl p-5 w-full">
+              <Text className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-1">
+                {t("checkin.passenger") || "Passager"}
+              </Text>
+              <Text className="text-white font-bold text-xl">
+                {result.passengerName}
+              </Text>
+              {result.departureTime ? (
+                <Text className="text-white/80 text-sm mt-2 font-mono">
+                  {result.departureTime}
+                </Text>
+              ) : null}
+            </Card>
+          </View>
+        </View>
+      )}
+
+      {/* Result: ERROR */}
       {scanState === "error" && (
-        <View className="flex-1 items-center justify-center px-8 gap-6">
-          <HugeiconsIcon
-            icon={CancelCircleIcon}
-            size={72}
-            color={IconColors.error}
-          />
-          <Text className="text-white font-heading text-2xl font-bold text-center">
-            {t("checkin.error")}
-          </Text>
-          <View className="bg-white/10 rounded-2xl px-6 py-4 w-full">
-            <Text className="text-white/90 text-center">{errorMsg}</Text>
+        <View className="flex-1 items-center justify-center px-8 z-30 bg-black/85">
+          <View className="items-center gap-4 w-full max-w-sm">
+            <View className="w-20 h-20 rounded-full bg-rose-500/20 border border-rose-500/40 items-center justify-center">
+              <HugeiconsIcon
+                icon={CancelCircleIcon}
+                size={54}
+                color={IconColors.error}
+              />
+            </View>
+
+            <Text className="text-white font-heading text-2xl font-bold text-center">
+              {t("checkin.error")}
+            </Text>
+
+            <Card className="bg-rose-500/10 border-rose-500/30 rounded-2xl p-5 w-full">
+              <Text className="text-white font-medium text-center text-sm leading-5">
+                {errorMsg}
+              </Text>
+            </Card>
           </View>
         </View>
       )}
@@ -239,42 +393,53 @@ export default function CheckInTab() {
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          className="flex-1 justify-center bg-black/60 px-6"
+          className="flex-1 justify-center bg-black/70 px-6"
         >
-          <View className="bg-card rounded-2xl p-6 border border-border gap-4 shadow-xl">
-            <Text className="text-lg font-bold text-foreground">
-              {t("checkin.manualEntry")}
-            </Text>
+          <Card className="p-6 gap-4 shadow-2xl">
+            <View className="flex-row items-center gap-2">
+              <HugeiconsIcon
+                icon={QrCode01Icon}
+                size={22}
+                color={IconColors.brand}
+              />
+              <Text className="text-lg font-heading font-bold text-foreground">
+                {t("checkin.manualEntry")}
+              </Text>
+            </View>
+
             <Text className="text-muted-foreground text-xs leading-4">
               {t("checkin.manualPrompt")}
             </Text>
-            <TextInput
-              className="bg-background border border-border rounded-xl px-4 py-3 text-foreground font-semibold uppercase tracking-wider text-base"
+
+            <Input
               placeholder={t("checkin.manualPlaceholder")}
-              placeholderTextColor={PlaceholderColor}
               value={manualCode}
               onChangeText={setManualCode}
               autoCapitalize="characters"
               autoFocus
               returnKeyType="done"
               onSubmitEditing={handleManualSubmit}
+              className="uppercase tracking-widest font-mono font-bold"
             />
+
             <View className="flex-row gap-3 mt-2">
               <Button
                 variant="outline"
-                className="flex-1 min-h-[48px] h-12"
+                className="flex-1"
                 onPress={() => {
+                  BoothFeedback.tap();
                   setShowManualModal(false);
                   setManualCode("");
                 }}
               >
-                <Text className="font-semibold text-base">
+                <Text className="font-semibold text-base text-foreground">
                   {t("checkin.cancel")}
                 </Text>
               </Button>
+
               <Button
                 variant="default"
-                className="flex-1 min-h-[48px] h-12"
+                className="flex-1"
                 onPress={handleManualSubmit}
                 disabled={isProcessing || !manualCode.trim()}
               >
@@ -287,7 +452,7 @@ export default function CheckInTab() {
                 )}
               </Button>
             </View>
-          </View>
+          </Card>
         </KeyboardAvoidingView>
       </Modal>
     </View>

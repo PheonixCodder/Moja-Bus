@@ -30,27 +30,28 @@ Living document. Updated after every component is built or modified.
 
 | Component | File | Notes |
 | :--- | :--- | :--- |
-| `Text` | `components/ui/Text.tsx` | Typography component — `variant` prop maps to `TextStyles` (h1, h2, h3, h4, bodyLg, bodyMd, bodySm, caption) |
-| `Button` | `components/ui/Button.tsx` | Variants: primary, secondary, outline, ghost, destructive, success, warning. Haptics on press. |
-| `Card` | `components/ui/Card.tsx` | Variants: default, elevated, outline, highlight. Rounded-xl with padding. |
-| `Input` | `components/ui/Input.tsx` | Label + TextInput + error/hint support. Focus ring = primary pink. |
-| `Badge` | `components/ui/Badge.tsx` | Variants: default, success, warning, error, info, outline, brand. |
+| `Text` | `components/ui/text.tsx` | Typography component bound to TextClassContext with font-sans & font-heading |
+| `Button` | `components/ui/button.tsx` | 48px min touch target, built-in haptics on press, spinner, variants (default, secondary, outline, ghost, destructive, success, warning) |
+| `Card` | `components/ui/card.tsx` | Variants: default, elevated, muted. Pressable support with built-in haptics and elevation shadows |
+| `Input` | `components/ui/input.tsx` | 48px touch target, left/right icon slots, clear button support, focus styling |
+| `Badge` | `components/ui/badge.tsx` | First-class domain variants: default, secondary, destructive, outline, intercity, urban, cash, offline |
+| `Skeleton` | `components/ui/skeleton.tsx` | 60fps native-driver animated pulsing placeholder for loading states |
 
 ### components/ (domain)
 
 | Component | File | Notes |
 | :--- | :--- | :--- |
-| `OfflineBanner` | `components/offline-banner.tsx` | Top banner when offline — shows queued sale count + conflict alert |
-| `SeatMap` | `components/seat-map.tsx` | Interactive bus seat map with availability, selection, hold states |
-| `PaystackQR` | `components/paystack-qr.tsx` | QR code display with countdown timer and polling status |
+| `OfflineBanner` | `components/offline-banner.tsx` | Top banner when offline — shows queued sale count, live sync spinner, conflict alert |
+| `SeatMap` | `components/seat-map.tsx` | Bus cockpit cap, tactile seat buttons (48px targets), availability, selection, hold, and driver seat states |
+| `PaystackQR` | `components/paystack-qr.tsx` | Elevated card container with QR display, live countdown timer, link copy, and polling status |
 
 ---
 
 ## Design Notes
 
-- Booth app uses **light mode only** (`./app.json` sets `"userInterfaceStyle": "light"`). All theme tokens pull from `Colors.light`.
+- Booth app uses **light mode only** (`./app.json` sets `"userInterfaceStyle": "light"`). All theme tokens pull from `Colors.light` and `@moja/theme`.
 - Primary brand color: `Palette.rose[500]` (`#ee237c`).
-- Font family: Montserrat (regular, medium, semibold, bold) — loaded via `@expo-google-fonts/montserrat`.
-- Touch targets: minimum 44px (standard), 48px (cockpit/high-velocity).
-- No bare `<div>` elements — use React Native `<View>`, `<Text>`, `<Pressable>` / `<TouchableOpacity>`.
+- Font family: Outfit (heading) & Raleway (body) — loaded via `@expo-google-fonts/outfit` and `@expo-google-fonts/raleway`.
+- Touch targets: minimum 48px standard for booth cashier fast-paced operation.
+- No bare `<div>` elements — use React Native `<View>`, `<Text>`, `<Pressable>`.
 - All interactive components must include `accessibilityLabel` and `accessibilityRole`.

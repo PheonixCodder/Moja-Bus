@@ -15,18 +15,18 @@ export function AuthField({
 }: AuthFieldProps) {
   return (
     <View className="gap-2">
-      <Text className="text-[14px] font-semibold text-foreground">{label}</Text>
+      <Text className="text-base font-semibold text-foreground">{label}</Text>
       <TextInput
         placeholderTextColor={PlaceholderColor}
         className={cn(
-          "min-h-[52px] rounded-[18px] border px-4 py-3 text-[16px] text-foreground",
+          "min-h-[52px] rounded-[18px] border px-4 py-3 text-lg text-foreground",
           "border-[rgba(238,35,124,0.3)] bg-[rgba(238,35,124,0.05)]",
           className,
         )}
         {...props}
       />
       {helperText ? (
-        <Text className="text-[11px] leading-[18px] text-muted-foreground">
+        <Text className="text-xs leading-[18px] text-muted-foreground">
           {helperText}
         </Text>
       ) : null}

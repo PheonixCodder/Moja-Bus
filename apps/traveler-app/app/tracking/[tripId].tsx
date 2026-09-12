@@ -152,7 +152,7 @@ export default function LiveBusTrackingScreen() {
 														: "bg-muted-foreground/60"
 											}`}
 										/>
-										<Text className="text-[11px] text-foreground flex-1">
+										<Text className="text-xs text-foreground flex-1">
 											{stop.terminalName}
 											{stop.city ? ` · ${stop.city}` : ""}
 										</Text>

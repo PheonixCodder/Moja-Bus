@@ -647,7 +647,7 @@ export function SearchView() {
                 <Text className="text-xs font-black text-foreground">
                   {tripResults?.total ?? offers.length}
                 </Text>
-                <Text className="text-[11px] font-semibold text-muted-foreground">
+                <Text className="text-xs font-semibold text-muted-foreground">
                   {t((tripResults?.total ?? offers.length) === 1 ? 'resultSingular' : 'resultPlural')}
                 </Text>
               </View>

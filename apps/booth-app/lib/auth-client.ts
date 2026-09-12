@@ -1,12 +1,9 @@
 import {
-  emailOTPClient,
-  phoneNumberClient,
-} from "better-auth/client/plugins";
-import {
   expoClient,
   getSetCookie,
   hasBetterAuthCookies,
 } from "@better-auth/expo/client";
+import { emailOTPClient, phoneNumberClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 import Constants from "expo-constants";
 import * as Linking from "expo-linking";
@@ -38,15 +35,29 @@ export const authClient = createAuthClient({
   ],
 }) as ReturnType<typeof createAuthClient> & {
   phoneNumber: {
-    sendOtp: (opts: { phoneNumber: string }) => Promise<{ data?: any; error?: any }>;
-    verify: (opts: { phoneNumber: string; code: string }) => Promise<{ data?: any; error?: any }>;
+    sendOtp: (opts: {
+      phoneNumber: string;
+    }) => Promise<{ data?: any; error?: any }>;
+    verify: (opts: {
+      phoneNumber: string;
+      code: string;
+    }) => Promise<{ data?: any; error?: any }>;
   };
   emailOtp: {
-    sendVerificationOtp: (opts: { email: string; type: "sign-in" | "email-verification" }) => Promise<{ data?: any; error?: any }>;
-    verifyEmail: (opts: { email: string; otp: string }) => Promise<{ data?: any; error?: any }>;
+    sendVerificationOtp: (opts: {
+      email: string;
+      type: "sign-in" | "email-verification";
+    }) => Promise<{ data?: any; error?: any }>;
+    verifyEmail: (opts: {
+      email: string;
+      otp: string;
+    }) => Promise<{ data?: any; error?: any }>;
   };
   signIn: ReturnType<typeof createAuthClient>["signIn"] & {
-    emailOtp: (opts: { email: string; otp: string }) => Promise<{ data?: any; error?: any }>;
+    emailOtp: (opts: {
+      email: string;
+      otp: string;
+    }) => Promise<{ data?: any; error?: any }>;
   };
 };
 

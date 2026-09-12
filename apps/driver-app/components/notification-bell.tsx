@@ -64,7 +64,7 @@ function BellWithCount() {
 			<HugeiconsIcon icon={Notification01Icon} size={20} color={colors.neutral.textSecondary} />
 			{unread > 0 && (
 				<View className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-primary items-center justify-center px-1 border-2 border-background">
-					<Text className="text-[11px] font-bold text-primary-foreground">
+					<Text className="text-xs font-bold text-primary-foreground">
 						{unread > 99 ? "99+" : unread}
 					</Text>
 				</View>

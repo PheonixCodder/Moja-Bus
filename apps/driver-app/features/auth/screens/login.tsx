@@ -284,7 +284,7 @@ export default function LoginView() {
 									},
 									input: {
 										color: colors.neutral.textPrimary,
-										fontSize: 17,
+										fontSize: 14,
 										fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
 										backgroundColor: "transparent",
 									},
@@ -353,7 +353,7 @@ export default function LoginView() {
 									},
 									pinCodeTextStyle: {
 										color: colors.neutral.textPrimary,
-										fontSize: 24,
+										fontSize: 20,
 										fontWeight: "800",
 										fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
 									},

@@ -17,13 +17,17 @@ function ensureWorkspaceNodeLinker() {
 
   const existing = fs.readFileSync(workspaceYaml, "utf8");
   if (/^nodeLinker:\s*hoisted\s*$/m.test(existing)) {
-    console.log("[eas-build-pre-install] nodeLinker=hoisted already set in workspace");
+    console.log(
+      "[eas-build-pre-install] nodeLinker=hoisted already set in workspace",
+    );
     return;
   }
 
   const next = `${existing.trimEnd()}\nnodeLinker: hoisted\n`;
   fs.writeFileSync(workspaceYaml, next, "utf8");
-  console.log("[eas-build-pre-install] Enabled nodeLinker: hoisted in pnpm-workspace.yaml");
+  console.log(
+    "[eas-build-pre-install] Enabled nodeLinker: hoisted in pnpm-workspace.yaml",
+  );
 }
 
 function ensureNpmrcNodeLinker() {
@@ -32,7 +36,9 @@ function ensureNpmrcNodeLinker() {
     : "";
 
   if (/^node-linker=hoisted$/m.test(existing)) {
-    console.log("[eas-build-pre-install] node-linker=hoisted already set in .npmrc");
+    console.log(
+      "[eas-build-pre-install] node-linker=hoisted already set in .npmrc",
+    );
     return;
   }
 

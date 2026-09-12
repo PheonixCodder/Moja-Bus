@@ -71,11 +71,11 @@ export function Input({
 			</View>
 
 			{error ? (
-				<Text className="text-[11px] font-medium text-destructive mt-0.5">
+				<Text className="text-xs font-medium text-destructive mt-0.5">
 					{error}
 				</Text>
 			) : hint ? (
-				<Text className="text-[11px] text-muted-foreground mt-0.5">{hint}</Text>
+				<Text className="text-xs text-muted-foreground mt-0.5">{hint}</Text>
 			) : null}
 		</View>
 	);

@@ -1,9 +1,9 @@
 "use client";
 
-import { Plus, Search } from "lucide-react";
-import { useTranslations } from "next-intl";
 import { Button } from "@moja/ui/components/ui/button";
 import { Input } from "@moja/ui/components/ui/input";
+import { Download, Plus, Search, Upload } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export function ScheduleToolbar({
   total,
@@ -18,6 +18,9 @@ export function ScheduleToolbar({
   routes,
   routeId,
   onRouteChange,
+  onExport,
+  isExporting,
+  onImport,
 }: {
   total: number;
   q: string;
@@ -31,6 +34,9 @@ export function ScheduleToolbar({
   routes?: Array<{ id: string; label: string }>;
   routeId?: string;
   onRouteChange?: (routeId: string) => void;
+  onExport?: () => void;
+  isExporting?: boolean;
+  onImport?: () => void;
 }) {
   const t = useTranslations("operatorDashboard.schedules");
   return (
@@ -89,12 +95,37 @@ export function ScheduleToolbar({
           </select>
         ) : null}
       </div>
-      {canCreate && (
-        <Button size="sm" className="h-8 text-xs shrink-0" onClick={onNew}>
-          <Plus className="size-3.5 mr-1.5" />
-          {t("createSchedule")}
-        </Button>
-      )}
+      <div className="flex items-center gap-2 shrink-0">
+        {onExport && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs shrink-0 gap-1.5"
+            onClick={onExport}
+            disabled={isExporting}
+          >
+            <Download className="size-3.5" />
+            {isExporting ? "Exporting..." : "Export CSV"}
+          </Button>
+        )}
+        {canCreate && onImport && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs shrink-0 gap-1.5"
+            onClick={onImport}
+          >
+            <Upload className="size-3.5" />
+            Import CSV
+          </Button>
+        )}
+        {canCreate && (
+          <Button size="sm" className="h-8 text-xs shrink-0" onClick={onNew}>
+            <Plus className="size-3.5 mr-1.5" />
+            {t("createSchedule")}
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

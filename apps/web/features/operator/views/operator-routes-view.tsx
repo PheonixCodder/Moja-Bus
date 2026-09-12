@@ -19,14 +19,21 @@ import {
 import {
   CheckCircle2,
   Clock,
+  Download,
   Map as MapIcon,
   Plus,
   Route as RouteIcon,
   Search,
+  Upload,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import {
+  CsvImportModal,
+  downloadCsvFile,
+  ROUTES_CSV_TEMPLATE,
+} from "@/components/csv-importer";
 import { DeleteRouteDialog } from "@/features/operator/components/routes/delete-route-dialog";
 import { RouteCard } from "@/features/operator/components/routes/route-card";
 import { RouteFormDrawer } from "@/features/operator/components/routes/route-form-drawer";
@@ -65,6 +72,32 @@ export function OperatorRoutesView() {
   const [editingRouteId, setEditingRouteId] = useState<string | null>(null);
   const [deletingRoute, setDeletingRoute] = useState<RouteType | null>(null);
   const [successRoute, setSuccessRoute] = useState<RouteType | null>(null);
+
+  const [importModalOpen, setImportModalOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const batchImportMutation = useMutation(
+    trpc.routes.batchImport.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries(trpc.routes.list.pathFilter());
+      },
+    }),
+  );
+
+  const handleExportCsv = async () => {
+    setIsExporting(true);
+    try {
+      const data = await queryClient.fetchQuery(
+        trpc.routes.exportCsv.queryOptions(),
+      );
+      downloadCsvFile(data.filename, data.csv);
+      toast.success(`Exported ${data.count} routes to ${data.filename}`);
+    } catch {
+      toast.error("Failed to export routes");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const filteredRoutes = useMemo(() => {
     if (!routes) return [];
@@ -131,12 +164,35 @@ export function OperatorRoutesView() {
             {t("pageDescription")}
           </p>
         </div>
-        {can("routes:create") ? (
-          <Button onClick={handleAddNew} className="shrink-0">
-            <Plus className="mr-2 size-4" />
-            {t("createRoute")}
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <Button
+            variant="outline"
+            onClick={handleExportCsv}
+            disabled={isExporting}
+            className="gap-1.5"
+          >
+            <Download className="size-4" />
+            {isExporting ? "Exporting..." : "Export CSV"}
           </Button>
-        ) : null}
+
+          {can("routes:create") ? (
+            <Button
+              variant="outline"
+              onClick={() => setImportModalOpen(true)}
+              className="gap-1.5"
+            >
+              <Upload className="size-4" />
+              Import CSV
+            </Button>
+          ) : null}
+
+          {can("routes:create") ? (
+            <Button onClick={handleAddNew} className="shrink-0 gap-1.5">
+              <Plus className="size-4" />
+              {t("createRoute")}
+            </Button>
+          ) : null}
+        </div>
       </div>
 
       {/* Stat Cards */}
@@ -258,6 +314,27 @@ export function OperatorRoutesView() {
         route={deletingRoute}
         open={!!deletingRoute}
         onClose={() => setDeletingRoute(null)}
+      />
+
+      <CsvImportModal
+        open={importModalOpen}
+        onOpenChange={setImportModalOpen}
+        config={ROUTES_CSV_TEMPLATE}
+        onImport={async ({ records, upsert }) => {
+          return await batchImportMutation.mutateAsync({
+            upsert,
+            records: records as Array<{
+              name: string;
+              originTerminal: string;
+              destTerminal: string;
+              distanceKm?: number | null;
+              turnaroundBufferMinutes?: number | null;
+            }>,
+          });
+        }}
+        onSuccess={() => {
+          queryClient.invalidateQueries(trpc.routes.list.pathFilter());
+        }}
       />
     </div>
   );

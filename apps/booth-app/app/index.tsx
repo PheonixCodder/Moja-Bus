@@ -15,7 +15,9 @@ type AuthState =
 
 export default function BootGate() {
   const [authState, setAuthState] = useState<AuthState>("loading");
-  const { setProfile, setProfileLoaded, setTerminal } = useSessionStore();
+  const setProfile = useSessionStore((s) => s.setProfile);
+  const setProfileLoaded = useSessionStore((s) => s.setProfileLoaded);
+  const setTerminal = useSessionStore((s) => s.setTerminal);
 
   useEffect(() => {
     let isMounted = true;

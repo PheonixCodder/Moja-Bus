@@ -4,8 +4,8 @@
 // Primary uses Moja brand rose (#ee237c), not shadcn default black.
 // ============================================================
 
-import { DefaultTheme, type Theme } from "expo-router/react-navigation";
 import { Colors, Palette } from "@moja/theme/tokens";
+import { DefaultTheme, type Theme } from "expo-router/react-navigation";
 
 export const NAV_THEME: Theme = {
   ...DefaultTheme,

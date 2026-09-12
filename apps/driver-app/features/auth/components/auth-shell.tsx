@@ -101,7 +101,7 @@ export function AuthShell({
 
 					{badge ? (
 						<View className="self-start bg-primary/10 border border-primary/30 rounded-full px-3 py-1">
-							<Text className="text-[11px] font-extrabold text-primary tracking-wider uppercase">{badge}</Text>
+							<Text className="text-xs font-extrabold text-primary tracking-wider uppercase">{badge}</Text>
 						</View>
 					) : null}
 
