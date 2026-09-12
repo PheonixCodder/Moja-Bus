@@ -1,7 +1,6 @@
 import {
 	emailOTPClient,
 	phoneNumberClient,
-	inferAdditionalFields,
 } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 import Constants from "expo-constants";
@@ -30,14 +29,25 @@ export const authClient = createAuthClient({
 	plugins: [
 		emailOTPClient(),
 		phoneNumberClient(),
-		inferAdditionalFields,
 		expoClient({
 			scheme: "traveler-app",
 			storage: SecureStore,
 			storagePrefix: AUTH_STORAGE_PREFIX,
 		}) as unknown as { id: "expo"; $Infer: {} },
 	],
-});
+}) as ReturnType<typeof createAuthClient> & {
+	phoneNumber: {
+		sendOtp: (opts: { phoneNumber: string }) => Promise<{ data?: any; error?: any }>;
+		verify: (opts: { phoneNumber: string; code: string }) => Promise<{ data?: any; error?: any }>;
+	};
+	emailOtp: {
+		sendVerificationOtp: (opts: { email: string; type: "sign-in" | "email-verification" }) => Promise<{ data?: any; error?: any }>;
+		verifyEmail: (opts: { email: string; otp: string }) => Promise<{ data?: any; error?: any }>;
+	};
+	signIn: ReturnType<typeof createAuthClient>["signIn"] & {
+		emailOtp: (opts: { email: string; otp: string }) => Promise<{ data?: any; error?: any }>;
+	};
+};
 
 export function getAuthCookieHeader(): string {
 	// expoClient stores cookies in SecureStore; read synchronously via cache if present.

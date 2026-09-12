@@ -29,7 +29,7 @@ function Icon({
 	return (
 		<StyledIcon
 			as={IconComponent}
-			className={cn("text-foreground", textClass, className)}
+			className={cn("text-foreground", textClass as string, className)}
 			size={size}
 			{...props}
 		/>

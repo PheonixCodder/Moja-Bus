@@ -301,10 +301,10 @@ export function PassengerFormSheet({
           return;
         }
         router.push(
-          `/booking/success?reference=${encodeURIComponent(ref)}&total=${walletCharge}&method=WALLET`
+          `/booking/success?reference=${encodeURIComponent(ref)}&total=${totalAmountXOF}&method=WALLET`
         );
       } else {
-        setPendingChargeXOF(paystackCharge);
+        setPendingChargeXOF(totalAmountXOF);
         const paystackResult = await initiatePayment.mutateAsync({
           holdId,
           payerEmail: session?.user?.email ?? undefined,
