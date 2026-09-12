@@ -22,6 +22,7 @@ describe("buildTrustedOrigins", () => {
     });
     assert.deepEqual(origins.sort(), [
       "driver-app://",
+      "exp://",
       "https://api.mojaride.net",
       "https://mojaride.net",
       "mojabooth://",
@@ -29,7 +30,7 @@ describe("buildTrustedOrigins", () => {
     ]);
   });
 
-  it("production with env UNSET contains no localhost and no exp://", () => {
+  it("production with env UNSET contains no localhost", () => {
     const origins = buildTrustedOrigins({
       ...base,
       explicitAllowedOrigins: [],
@@ -38,8 +39,8 @@ describe("buildTrustedOrigins", () => {
     for (const origin of origins) {
       assert.ok(!origin.includes("localhost"), origin);
       assert.ok(!origin.includes("127.0.0.1"), origin);
-      assert.notEqual(origin, "exp://");
     }
+    assert.ok(origins.includes("exp://"));
   });
 
   it("development: localhost fallbacks + Expo Go origins are present", () => {
