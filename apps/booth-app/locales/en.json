@@ -1,13 +1,22 @@
 {
   "auth": {
     "login": {
-      "title": "Operator Login",
-      "subtitle": "Sign in with your credentials",
-      "emailLabel": "Email",
-      "passwordLabel": "Password",
-      "submitButton": "Sign In",
-      "errorInvalid": "Invalid credentials",
-      "errorNoAccess": "No booth access for this user"
+      "title": "Booth Agent Login",
+      "subtitle": "Moja Ride Booth",
+      "emailOrPhone": "Email or Phone Number",
+      "emailPlaceholder": "you@example.com or 07 XX XX XX XX",
+      "sendCode": "Send Code",
+      "sendingCode": "Sending code...",
+      "verify": "Verify Code",
+      "verifying": "Verifying...",
+      "useDifferentMethod": "Use different method",
+      "enterCode": "Verification Code",
+      "enter6DigitCode": "Enter the 6-digit code sent to {{identifier}}.",
+      "codeExpired": "Code has expired. Please request a new one.",
+      "tooManyAttempts": "Too many attempts. Please try again later.",
+      "errorInvalid": "Invalid verification code",
+      "failedToSend": "Failed to send code. Please check your connection.",
+      "errorNoAccess": "No booth access for this user. Contact your administrator."
     }
   },
   "terminalSelect": {
@@ -59,8 +68,8 @@
   },
   "confirmation": {
     "title": "Sale Complete",
-    "ticketSent": "Ticket sent to {email}",
-    "newAccountCreated": "A new MoovMove account has been created",
+    "ticketSent": "Ticket sent to {{email}}",
+    "newAccountCreated": "A new Moja Ride account has been created for {{email}}",
     "printButton": "Print Ticket",
     "shareButton": "Share Ticket",
     "sellAnother": "Sell Another Ticket"
@@ -69,6 +78,11 @@
     "tabLabel": "Check-in",
     "title": "Scan Ticket",
     "instruction": "Position the ticket QR code within the scanner frame",
+    "manualEntry": "Manual Entry",
+    "manualPrompt": "Enter the 6-character booking reference (e.g. MJ-7K9A) or ticket token",
+    "manualPlaceholder": "Booking reference or token",
+    "validate": "Check In",
+    "cancel": "Cancel",
     "success": "Check-in successful",
     "error": "Error",
     "errorNotFound": "Ticket not found",

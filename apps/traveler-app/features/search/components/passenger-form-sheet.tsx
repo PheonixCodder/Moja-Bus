@@ -259,11 +259,10 @@ export function PassengerFormSheet({
       holdId = holdResult.holdId;
       setActiveHoldId(holdId);
       setHeldBookingRefs(holdResult.bookingReferences ?? []);
-      const walletCharge = holdResult.subtotalBaseXOF ?? subtotalBaseXOF;
-      const paystackCharge = holdResult.totalAmountXOF ?? totalAmountXOF;
+      const payableToPay = isZeroCash ? 0 : totalAmountXOF;
 
       if (effectivePaymentMethod === 'WALLET') {
-        if (!isZeroCash && walletBalance < walletCharge) {
+        if (!isZeroCash && walletBalance < payableToPay) {
           await releaseHold.mutateAsync({ holdId });
           Alert.alert(
             t('booking:insufficientFunds'),

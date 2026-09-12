@@ -31,6 +31,7 @@ import {
   preAcquireHoldsSchema,
   releaseHoldsSchema,
   reportUrbanConflictSchema,
+  parseTicketToken,
 } from "@moja/schemas";
 import { TRPCError } from "@trpc/server";
 import { generateBookingReference } from "@/features/booking/lib/booking-reference";
@@ -92,12 +93,29 @@ export const boothRouter = createTRPCRouter({
   // getMyProfile — boot gate check
   // ───────────────────────────────────────────────────────────────────────────
   getMyProfile: boothProcedure.query(async ({ ctx }) => {
+    const assignedTerminal = (ctx.operator as any).assignedTerminal as
+      | { id: string; name: string }
+      | null
+      | undefined;
+    const company = (ctx.operator as any).company as {
+      name: string;
+      logoUrl: string | null;
+    };
+
     return {
       operatorId: ctx.operator.id,
       role: ctx.operator.role,
       companyId: ctx.operator.companyId,
+      companyName: company?.name ?? "",
+      companyLogoUrl: company?.logoUrl ?? null,
       staffName: ctx.user.name, // Better Auth session — fullName proxied as name
       staffEmail: ctx.user.email,
+      assignedTerminal: assignedTerminal
+        ? {
+            id: assignedTerminal.id,
+            name: assignedTerminal.name,
+          }
+        : null,
     };
   }),
 
@@ -385,34 +403,60 @@ export const boothRouter = createTRPCRouter({
   lookupOrCreatePassenger: boothProcedure
     .input(lookupOrCreatePassengerSchema)
     .mutation(async ({ ctx, input }) => {
-      const normalizedEmail = input.email.toLowerCase().trim();
+      const queryStr = (input.query ?? input.email ?? "").trim();
+      const isEmail = queryStr.includes("@");
+      const normalizedEmail = isEmail ? queryStr.toLowerCase() : (input.email?.toLowerCase().trim() ?? null);
+      const rawPhone = !isEmail && queryStr.length > 0 ? queryStr : (input.phone ?? null);
+      const normalizedPhone = rawPhone ? rawPhone.replace(/[\s\-()]/g, "") : null;
 
-      let user = await ctx.prisma.user.findFirst({
-        where: {
-          OR: [
-            { email: normalizedEmail },
-            ...(input.phone ? [{ phoneNumber: input.phone }] : []),
-          ],
-        },
-        select: {
-          id: true,
-          fullName: true,
-          email: true,
-          phoneNumber: true,
-          emailVerified: true,
-          role: true,
-        },
-      });
+      // 1. Search existing user by email or phone
+      const whereConditions: any[] = [];
+      if (normalizedEmail) whereConditions.push({ email: normalizedEmail });
+      if (normalizedPhone) {
+        whereConditions.push({ phoneNumber: normalizedPhone });
+        if (!normalizedPhone.startsWith("+") && normalizedPhone.length === 10) {
+          whereConditions.push({ phoneNumber: `+225${normalizedPhone}` });
+        }
+      }
+
+      let user = whereConditions.length > 0
+        ? await ctx.prisma.user.findFirst({
+            where: { OR: whereConditions },
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              phoneNumber: true,
+              emailVerified: true,
+              role: true,
+            },
+          })
+        : null;
 
       let isNewAccount = false;
 
+      // 2. If user not found, create new account if fullName is provided
       if (!user) {
+        if (!input.fullName || input.fullName.trim().length < 2) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Passenger not found. Please provide their full name to create an account.",
+          });
+        }
+
+        const generatedEmail = normalizedEmail ?? `passenger-${Date.now()}@mojabooth.local`;
+        const phoneToStore = normalizedPhone
+          ? (!normalizedPhone.startsWith("+") && normalizedPhone.length === 10
+              ? `+225${normalizedPhone}`
+              : normalizedPhone)
+          : null;
+
         user = await ctx.prisma.user.create({
           data: {
             id: crypto.randomUUID(),
-            fullName: input.fullName,
-            email: normalizedEmail,
-            phoneNumber: input.phone ?? null,
+            fullName: input.fullName.trim(),
+            email: generatedEmail,
+            phoneNumber: phoneToStore,
             emailVerified: false,
             role: "TRAVELER",
           },
@@ -966,9 +1010,13 @@ export const boothRouter = createTRPCRouter({
   checkInPassenger: boothProcedure
     .input(boothCheckInSchema)
     .mutation(async ({ ctx, input }) => {
+      const normalizedToken = parseTicketToken(input.ticketToken);
       const booking = await ctx.prisma.booking.findFirst({
         where: {
-          ticketToken: input.ticketToken,
+          OR: [
+            { ticketToken: normalizedToken },
+            { bookingReference: normalizedToken.toUpperCase() },
+          ],
           companyId: ctx.companyId,
           status: "CONFIRMED",
         },
@@ -976,6 +1024,7 @@ export const boothRouter = createTRPCRouter({
           id: true,
           tripId: true,
           passengerName: true,
+          bookingReference: true,
           checkedInAt: true,
           userId: true,
           trip: {
@@ -1174,7 +1223,13 @@ export const boothRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       await ctx.prisma.$transaction(async (tx) => {
         await tx.boothSale.updateMany({
-          where: { id: { in: input.boothSaleIds }, companyId: ctx.companyId },
+          where: {
+            OR: [
+              { id: { in: input.boothSaleIds } },
+              { bookingId: { in: input.boothSaleIds } },
+            ],
+            companyId: ctx.companyId,
+          },
           data: {
             hasConflict: true,
             conflictDetails: `Urban overbooking: ${input.excessCount} excess passenger(s) on trip ${input.tripId}`,
@@ -1200,7 +1255,10 @@ export const boothRouter = createTRPCRouter({
           }),
           tx.boothSale.findFirst({
             where: {
-              id: { in: input.boothSaleIds },
+              OR: [
+                { id: { in: input.boothSaleIds } },
+                { bookingId: { in: input.boothSaleIds } },
+              ],
               companyId: ctx.companyId,
             },
             include: {
@@ -1213,7 +1271,10 @@ export const boothRouter = createTRPCRouter({
           ? `${trip.schedule.route.originTerminal?.name ?? "?"} → ${trip.schedule.route.destTerminal?.name ?? "?"}`
           : "—";
         const tripDate = trip ? formatDepartureDate(trip.departureDate) : "";
-        const terminalName = firstSale?.terminal?.name ?? "—";
+        const terminalName =
+          firstSale?.terminal?.name ??
+          ((ctx.operator as any).assignedTerminal?.name as string | undefined) ??
+          "—";
         const staffName =
           firstSale?.staff?.user?.fullName ?? ctx.user.name ?? "—";
 

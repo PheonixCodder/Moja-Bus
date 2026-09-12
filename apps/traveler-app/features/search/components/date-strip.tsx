@@ -97,7 +97,7 @@ export function DateStrip({
               )}
 
               <Text
-                className={`text-[10px] uppercase font-extrabold tracking-widest ${
+                className={`text-[11px] uppercase font-extrabold tracking-widest ${
                   isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground'
                 }`}
               >
@@ -113,7 +113,7 @@ export function DateStrip({
               </Text>
 
               <Text
-                className={`text-[10px] font-bold mb-1 ${
+                className={`text-[11px] font-bold mb-1 ${
                   isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground'
                 }`}
               >
@@ -124,7 +124,7 @@ export function DateStrip({
                 <View className="h-3 w-8 bg-muted rounded" />
               ) : hasTrips ? (
                 <Text
-                  className={`text-[10px] font-black ${
+                  className={`text-[11px] font-black ${
                     isSelected
                       ? 'text-primary-foreground'
                       : isCheapest
@@ -136,7 +136,7 @@ export function DateStrip({
                 </Text>
               ) : (
                 <Text
-                  className={`text-[10px] font-bold ${
+                  className={`text-[11px] font-bold ${
                     isSelected ? 'text-primary-foreground/60' : 'text-muted-foreground/60'
                   }`}
                 >

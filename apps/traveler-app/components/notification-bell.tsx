@@ -1,4 +1,4 @@
-﻿import { Notification03Icon } from "@hugeicons/core-free-icons";
+import { Notification03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useCounts } from "@novu/react-native";
 import { useQuery } from "@tanstack/react-query";

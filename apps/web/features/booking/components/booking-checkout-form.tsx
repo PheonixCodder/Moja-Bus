@@ -446,7 +446,12 @@ export function BookingCheckoutForm({
               <span>{tBooking("checkout.serviceFee")}</span>
               <span>{formatPriceXOF(convenienceFeeXOF)}</span>
             </div>
-          ) : null}
+          ) : (
+            <div className="flex justify-between text-muted-foreground text-xs">
+              <span>{tBooking("checkout.serviceFee")}</span>
+              <span>{paymentMethod === "WALLET" || isZeroCash ? "0 XOF (Waived)" : "0 XOF"}</span>
+            </div>
+          )}
           {creditAppliedXOF > 0 ? (
             <div className="flex justify-between text-success">
               <span>{t("credits")}</span>

@@ -15,31 +15,44 @@
 }
 
 @theme {
-  /* Backward-compat aliases — properly mapped to CSS variables, not hardcoded hex */
-  --color-bg-app:        var(--background);
-  --color-bg-card:       var(--card);
-  --color-bg-elevated:   var(--card-elevated);
-  --color-border-subtle: var(--border);
-  --color-border-strong: var(--border-strong);   /* was hardcoded #3f3f46 */
+   /* Backward-compat aliases — properly mapped to CSS variables, not hardcoded hex */
+   --color-bg-app:        var(--background);
+   --color-bg-card:       var(--card);
+   --color-bg-elevated:   var(--card-elevated);
+   --color-border-subtle: var(--border);
+   --color-border-strong: var(--border-strong);   /* was hardcoded #3f3f46 */
 
-  --color-text-primary:   var(--foreground);
-  --color-text-secondary: var(--muted-foreground);
-  --color-text-muted:     var(--muted-foreground); /* was hardcoded #71717a */
+   --color-text-primary:   var(--foreground);
+   --color-text-secondary: var(--muted-foreground);
+   --color-text-muted:     var(--muted-foreground); /* was hardcoded #71717a */
 
-  --color-error: var(--destructive);
+   --color-error: var(--destructive);
 
-  /* Canonical Monorepo Font Families */
-  --font-sans:               "Outfit";
-  --font-outfit:             "Outfit";
-  --font-outfit-medium:      "Outfit-Medium";
-  --font-outfit-semibold:    "Outfit-SemiBold";
-  --font-outfit-bold:        "Outfit-Bold";
+   /* Canonical Monorepo Font Families */
+   --font-sans:               "Outfit";
+   --font-outfit:             "Outfit";
+   --font-outfit-medium:      "Outfit-Medium";
+   --font-outfit-semibold:    "Outfit-SemiBold";
+   --font-outfit-bold:        "Outfit-Bold";
 
-  --font-heading:            "Raleway";
-  --font-raleway:            "Raleway";
-  --font-raleway-semibold:   "Raleway-SemiBold";
-  --font-raleway-bold:       "Raleway-Bold";
-}
+   --font-heading:            "Raleway";
+   --font-raleway:            "Raleway";
+   --font-raleway-semibold:   "Raleway-SemiBold";
+   --font-raleway-bold:       "Raleway-Bold";
+
+   /* Typography Scale — Increased for competitive parity */
+   --text-xs:   13px;
+   --text-sm:   15px;
+   --text-base: 17px;
+   --text-lg:   19px;
+   --text-xl:   24px;
+   --text-2xl:  30px;
+   --text-3xl:  36px;
+
+   --leading-tight:   16px;
+   --leading-normal:  20px;
+   --leading-relaxed: 26px;
+ }
 
 /* Typography @utility helpers (h1, h2, h3, h4, body-lg, body-md, body-sm, caption, micro)
    are inherited from @moja/theme/global.css — do not redeclare here. */

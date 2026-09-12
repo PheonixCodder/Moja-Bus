@@ -268,73 +268,73 @@
    ============================================================================== */
 
 @utility h1 {
-  font-family: "Raleway-Bold";
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 34px;
-  color: var(--foreground);
+   font-family: "Raleway-Bold";
+   font-size: 30px;
+   font-weight: 700;
+   line-height: 36px;
+   color: var(--foreground);
 }
 
 @utility h2 {
-  font-family: "Raleway-Bold";
-  font-size: 22px;
-  font-weight: 700;
-  line-height: 28px;
-  color: var(--foreground);
+   font-family: "Raleway-Bold";
+   font-size: 24px;
+   font-weight: 700;
+   line-height: 30px;
+   color: var(--foreground);
 }
 
 @utility h3 {
-  font-family: "Raleway-SemiBold";
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 24px;
-  color: var(--foreground);
+   font-family: "Raleway-SemiBold";
+   font-size: 19px;
+   font-weight: 600;
+   line-height: 26px;
+   color: var(--foreground);
 }
 
 @utility h4 {
-  font-family: "Raleway-Medium";
-  font-size: 15px;
-  font-weight: 500;
-  line-height: 20px;
-  color: var(--foreground);
+   font-family: "Raleway-Medium";
+   font-size: 16px;
+   font-weight: 500;
+   line-height: 22px;
+   color: var(--foreground);
 }
 
 @utility body-lg {
-  font-family: "Outfit";
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 24px;
-  color: var(--foreground);
+   font-family: "Outfit";
+   font-size: 17px;
+   font-weight: 400;
+   line-height: 26px;
+   color: var(--foreground);
 }
 
 @utility body-md {
-  font-family: "Outfit";
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 20px;
-  color: var(--foreground);
+   font-family: "Outfit";
+   font-size: 15px;
+   font-weight: 400;
+   line-height: 22px;
+   color: var(--foreground);
 }
 
 @utility body-sm {
-  font-family: "Outfit";
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 18px;
-  color: var(--muted-foreground);
+   font-family: "Outfit";
+   font-size: 13px;
+   font-weight: 400;
+   line-height: 19px;
+   color: var(--muted-foreground);
 }
 
 @utility caption {
-  font-family: "Outfit";
-  font-size: 11px;
-  font-weight: 400;
-  line-height: 15px;
-  color: var(--muted-foreground);
+   font-family: "Outfit";
+   font-size: 12px;
+   font-weight: 400;
+   line-height: 16px;
+   color: var(--muted-foreground);
 }
 
 @utility micro {
-  font-family: "Outfit-SemiBold";
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 14px;
-  color: var(--muted-foreground);
+   font-family: "Outfit-SemiBold";
+   font-size: 11px;
+   font-weight: 600;
+   line-height: 15px;
+   color: var(--muted-foreground);
 }

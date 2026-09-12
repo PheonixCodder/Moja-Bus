@@ -656,7 +656,7 @@ export function LiveView() {
 							<Text className="text-[11px] font-bold text-foreground/80 uppercase tracking-wider">{t("stopProgress")}</Text>
 						</View>
 						{routeIsApproximate ? (
-							<Text className="text-[10px] font-bold text-warning">{t("approximateRoute")}</Text>
+							<Text className="text-[11px] font-bold text-warning">{t("approximateRoute")}</Text>
 						) : (
 							<Text className="text-xs font-bold text-primary font-mono">
 								{routeDurationSecs
@@ -686,7 +686,7 @@ export function LiveView() {
 											isAtWaypoint ? "bg-warning" : isNearWaypoint ? "bg-success" : "bg-primary",
 										)}
 									/>
-									<Text className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+									<Text className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
 										{isAtWaypoint
 											? t("atTerminal")
 											: t("stopLabel", { current: currentWaypointIndex + 1, total: tripStops.length })}
@@ -751,7 +751,7 @@ export function LiveView() {
 
 					{/* Waypoints Sequence List */}
 					<View className="gap-2 pt-2 border-t border-border">
-						<Text className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{t("stopSheetTitle")}</Text>
+						<Text className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{t("stopSheetTitle")}</Text>
 						{tripStops.map((stop, idx) => {
 							const isPassed = stop.actualDeparture != null;
 							const isCurrent = stop.id === currentWaypoint?.id;
@@ -779,7 +779,7 @@ export function LiveView() {
 											{isPassed ? (
 												<HugeiconsIcon icon={CheckmarkCircle02Icon} size={14} color={colors.semantic.success} />
 											) : (
-												<Text className="text-[10px] font-extrabold text-muted-foreground">{idx + 1}</Text>
+												<Text className="text-[11px] font-extrabold text-muted-foreground">{idx + 1}</Text>
 											)}
 										</View>
 										<View className="flex-1 gap-0.5">
@@ -791,7 +791,7 @@ export function LiveView() {
 											>
 												{stop.terminal?.name ?? t("stopDefaultName", { index: idx + 1 })}
 											</Text>
-											<Text className="text-[10px] text-muted-foreground">
+											<Text className="text-[11px] text-muted-foreground">
 												{stop.actualDeparture
 													? t("stopTimeDeparted", { time: new Date(stop.actualDeparture).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) })
 													: stop.actualArrival

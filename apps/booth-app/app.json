@@ -7,7 +7,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "mojabooth",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "assetBundlePatterns": [
       "**/*"
     ],

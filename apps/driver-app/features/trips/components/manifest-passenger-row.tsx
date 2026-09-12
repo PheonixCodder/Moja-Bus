@@ -50,7 +50,7 @@ export function ManifestPassengerRow({
 					<View className="flex-row items-center gap-1.5">
 						<Text className="text-[11px] text-muted-foreground font-mono">{passenger.bookingReference}</Text>
 						{passenger.originTerminal && (
-							<Text className="text-[10px] text-muted-foreground" numberOfLines={1}>
+							<Text className="text-[11px] text-muted-foreground" numberOfLines={1}>
 								• {passenger.originTerminal}
 							</Text>
 						)}

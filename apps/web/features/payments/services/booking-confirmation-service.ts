@@ -269,6 +269,7 @@ export class BookingConfirmationService {
                 "@/features/discounts/services/promo-payment-split"
               );
               const split = splitPromoPaymentInstruments(snapshot);
+              const hasOperatorFundedPromo = (snapshot.operatorPromoFundedXOF ?? 0) > 0;
               seq = appendPromoLedgerEntries({
                 engine,
                 snapshot: {
@@ -285,7 +286,7 @@ export class BookingConfirmationService {
                 operatorReceivableId: operatorAcct.id,
                 holdGroupId: holdGroup.id,
                 sequenceStart: seq,
-                postOperatorContra: false,
+                postOperatorContra: hasOperatorFundedPromo,
               });
             }
 
@@ -597,12 +598,21 @@ export class BookingConfirmationService {
               "@/features/discounts/services/promo-payment-split"
             );
             const split = splitPromoPaymentInstruments(snapshot);
+            // In wallet/zero-cash confirmation, convenience fee is 0. Ensure creditApplied does not exceed ticket subtotal:
+            const maxTicketSubtotal =
+              (snapshot as any).postDiscountSubtotalXOF ?? snapshot.subtotalBaseXOF;
+            const safeCreditApplied = Math.min(
+              split.creditAppliedXOF,
+              maxTicketSubtotal,
+            );
+            const hasOperatorFundedPromo = (snapshot.operatorPromoFundedXOF ?? 0) > 0;
+
             seq = appendPromoLedgerEntries({
               engine,
               snapshot: {
                 platformPromoFundedXOF: snapshot.platformPromoFundedXOF ?? 0,
                 operatorPromoFundedXOF: snapshot.operatorPromoFundedXOF ?? 0,
-                creditAppliedXOF: split.creditAppliedXOF,
+                creditAppliedXOF: safeCreditApplied,
                 ticketDiscountXOF: snapshot.ticketDiscountXOF ?? 0,
               },
               accounts: {
@@ -613,7 +623,7 @@ export class BookingConfirmationService {
               operatorReceivableId: operatorAcct.id,
               holdGroupId: holdGroup.id,
               sequenceStart: seq,
-              postOperatorContra: false,
+              postOperatorContra: hasOperatorFundedPromo,
             });
           }
 

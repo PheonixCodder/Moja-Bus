@@ -1,84 +1,87 @@
-import type React from "react";
-import { Text, View, type ViewProps } from "react-native";
+import { Slot } from "@rn-primitives/slot";
+import { cva, type VariantProps } from "class-variance-authority";
+import { Platform, View } from "react-native";
+import { TextClassContext } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
 
-export interface BadgeProps extends ViewProps {
-  variant?:
-    | "default"
-    | "success"
-    | "warning"
-    | "error"
-    | "info"
-    | "outline"
-    | "brand";
-  size?: "sm" | "md";
-  label?: string;
-  children?: React.ReactNode;
-  textClassName?: string;
+const badgeVariants = cva(
+	cn(
+		"border-border group shrink-0 flex-row items-center justify-center gap-1 overflow-hidden rounded-full border px-2 py-0.5",
+		Platform.select({
+			web: "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive w-fit whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] [&>svg]:pointer-events-none [&>svg]:size-3",
+		}),
+	),
+	{
+		variants: {
+			variant: {
+				default: cn(
+					"bg-primary border-transparent",
+					Platform.select({ web: "[a&]:hover:bg-primary/90" }),
+				),
+				secondary: cn(
+					"bg-secondary border-transparent",
+					Platform.select({ web: "[a&]:hover:bg-secondary/90" }),
+				),
+				destructive: cn(
+					"bg-destructive border-transparent",
+					Platform.select({ web: "[a&]:hover:bg-destructive/90" }),
+				),
+				success: cn(
+					"bg-success/15 border-success/30",
+					Platform.select({ web: "[a&]:hover:bg-success/25" }),
+				),
+				warning: cn(
+					"bg-warning/15 border-warning/30",
+					Platform.select({ web: "[a&]:hover:bg-warning/25" }),
+				),
+				info: cn(
+					"bg-info/15 border-info/30",
+					Platform.select({ web: "[a&]:hover:bg-info/25" }),
+				),
+				outline: Platform.select({
+					web: "[a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+				}),
+			},
+		},
+		defaultVariants: {
+			variant: "default",
+		},
+	},
+);
+
+const badgeTextVariants = cva("text-xs font-medium", {
+	variants: {
+		variant: {
+			default: "text-primary-foreground",
+			secondary: "text-secondary-foreground",
+			destructive: "text-white",
+			success: "text-success font-semibold",
+			warning: "text-warning font-semibold",
+			info: "text-info font-semibold",
+			outline: "text-foreground",
+		},
+	},
+	defaultVariants: {
+		variant: "default",
+	},
+});
+
+type BadgeProps = React.ComponentProps<typeof View> &
+	React.RefAttributes<View> & {
+		asChild?: boolean;
+	} & VariantProps<typeof badgeVariants>;
+
+function Badge({ className, variant, asChild, ...props }: BadgeProps) {
+	const Component = asChild ? Slot : View;
+	return (
+		<TextClassContext.Provider value={badgeTextVariants({ variant })}>
+			<Component
+				className={cn(badgeVariants({ variant }), className)}
+				{...props}
+			/>
+		</TextClassContext.Provider>
+	);
 }
 
-export function Badge({
-  variant = "default",
-  size = "md",
-  label,
-  children,
-  className,
-  textClassName,
-  ...props
-}: BadgeProps) {
-  const variantStyles = {
-    default: "bg-secondary border-transparent",
-    brand: "bg-primary/15 border border-primary/30",
-    success: "bg-success/15 border border-success/30",
-    warning: "bg-warning/15 border border-warning/30",
-    error: "bg-destructive/15 border border-destructive/30",
-    info: "bg-info/15 border border-info/30",
-    outline: "bg-transparent border border-border",
-  }[variant];
-
-  const textVariantStyles = {
-    default: "text-foreground",
-    brand: "text-primary",
-    success: "text-success",
-    warning: "text-warning",
-    error: "text-destructive",
-    info: "text-info",
-    outline: "text-muted-foreground",
-  }[variant];
-
-  const sizeStyles = {
-    sm: "px-2 py-0.5 rounded-md",
-    md: "px-2.5 py-1 rounded-lg",
-  }[size];
-
-  const textSizeStyles = {
-    sm: "text-[10px]",
-    md: "text-xs",
-  }[size];
-
-  return (
-    <View
-      className={cn(
-        "flex-row items-center self-start justify-center",
-        variantStyles,
-        sizeStyles,
-        className,
-      )}
-      {...props}
-    >
-      {label ? (
-        <Text
-          className={cn(
-            "font-bold uppercase tracking-wider",
-            textVariantStyles,
-            textSizeStyles,
-            textClassName,
-          )}
-        >
-          {label}
-        </Text>
-      ) : null}
-      {children}
-    </View>
-  );
-}
+export type { BadgeProps };
+export { Badge, badgeTextVariants, badgeVariants };

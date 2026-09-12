@@ -1,4 +1,8 @@
 import {
+  emailOTPClient,
+  phoneNumberClient,
+} from "better-auth/client/plugins";
+import {
   expoClient,
   getSetCookie,
   hasBetterAuthCookies,
@@ -24,13 +28,27 @@ const baseURL = getBaseUrl();
 export const authClient = createAuthClient({
   baseURL,
   plugins: [
+    emailOTPClient(),
+    phoneNumberClient(),
     expoClient({
       scheme: "mojabooth",
       storage: SecureStore,
       storagePrefix: AUTH_STORAGE_PREFIX,
     }) as unknown as { id: "expo"; $Infer: object },
   ],
-});
+}) as ReturnType<typeof createAuthClient> & {
+  phoneNumber: {
+    sendOtp: (opts: { phoneNumber: string }) => Promise<{ data?: any; error?: any }>;
+    verify: (opts: { phoneNumber: string; code: string }) => Promise<{ data?: any; error?: any }>;
+  };
+  emailOtp: {
+    sendVerificationOtp: (opts: { email: string; type: "sign-in" | "email-verification" }) => Promise<{ data?: any; error?: any }>;
+    verifyEmail: (opts: { email: string; otp: string }) => Promise<{ data?: any; error?: any }>;
+  };
+  signIn: ReturnType<typeof createAuthClient>["signIn"] & {
+    emailOtp: (opts: { email: string; otp: string }) => Promise<{ data?: any; error?: any }>;
+  };
+};
 
 export function getAuthCookieHeader(): string {
   const client = authClient as typeof authClient & {
@@ -72,3 +90,11 @@ export type Session = typeof authClient.$Infer.Session;
 export type User = typeof authClient.$Infer.Session.user;
 
 export const { useSession, signOut } = authClient;
+
+export async function refreshSession() {
+  const sessionAtom = authClient.$store?.atoms?.["session"];
+  const refetch = sessionAtom?.get()?.refetch;
+  if (refetch) {
+    await refetch();
+  }
+}

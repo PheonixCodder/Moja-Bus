@@ -32,7 +32,11 @@ const DEV_EXPO_ORIGINS = [
 ] as const;
 
 /** Shipped mobile builds register these custom schemes on every platform. */
-export const APP_SCHEMES = ["traveler-app://", "driver-app://"] as const;
+export const APP_SCHEMES = [
+  "traveler-app://",
+  "driver-app://",
+  "mojabooth://",
+] as const;
 
 export function buildTrustedOrigins(input: {
   baseUrl: string;

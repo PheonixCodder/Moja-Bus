@@ -36,9 +36,13 @@ export const releaseHoldsSchema = z.object({
 // ─── Passenger ────────────────────────────────────────────────────────────
 
 export const lookupOrCreatePassengerSchema = z.object({
-  email: z.string().email(),
-  fullName: z.string().min(2).max(100),
-  /** Optional — E.164 format if provided */
+  /** Can be an email address or a phone number */
+  query: z.string().min(1).max(100).optional(),
+  /** Backwards-compatibility for explicit email */
+  email: z.string().email().optional(),
+  /** Full name (required when creating a new account) */
+  fullName: z.string().max(100).optional(),
+  /** Optional — phone number if provided separately */
   phone: z.string().optional(),
 });
 

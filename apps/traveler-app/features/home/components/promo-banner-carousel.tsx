@@ -156,7 +156,7 @@ export function PromoBannerCarousel({ banners }: PromoBannerCarouselProps) {
                           size={10}
                           color={IconColors.onBrand}
                         />
-                        <Text className="text-[10px] font-black text-white uppercase tracking-wider">
+                        <Text className="text-[11px] font-black text-white uppercase tracking-wider">
                           {item.badge}
                         </Text>
                       </View>

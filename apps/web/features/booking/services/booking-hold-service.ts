@@ -203,6 +203,7 @@ export class BookingHoldService {
       seatCount: uniqueSeatIds.length,
       convenienceFeeBps: pricing.convenienceFeeBps,
       waiveConvenienceFee: signedQuote.waiveConvenienceFee,
+      paymentMethod: signedQuote.paymentMethod,
       userId: input.userId,
       code: input.discount?.code,
       autoApply: input.discount?.autoApply,

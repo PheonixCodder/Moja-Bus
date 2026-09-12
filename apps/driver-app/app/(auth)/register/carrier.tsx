@@ -185,7 +185,7 @@ export default function RegisterStep4CarrierScreen() {
 										<Text className="text-sm font-bold text-foreground flex-1">{t(item.titleKey)}</Text>
 										<View className="flex-row items-center gap-2">
 											<View className="bg-border px-2 py-0.5 rounded">
-												<Text className="text-[10px] font-bold text-muted-foreground">{t(item.badgeKey)}</Text>
+												<Text className="text-[11px] font-bold text-muted-foreground">{t(item.badgeKey)}</Text>
 											</View>
 											{isSelected ? (
 												<HugeiconsIcon icon={CheckmarkCircle02Icon} size={20} color={colors.primary.rose} />
@@ -203,7 +203,7 @@ export default function RegisterStep4CarrierScreen() {
 					<View className="flex-row items-center justify-between">
 						<Text className="text-base font-extrabold text-foreground tracking-tight">{t("carrierCodeTitle")}</Text>
 						<View className="bg-muted-foreground/20 px-2.5 py-1 rounded-full">
-							<Text className="text-[10px] font-bold text-muted-foreground uppercase">{t("carrierCodeOptional")}</Text>
+							<Text className="text-[11px] font-bold text-muted-foreground uppercase">{t("carrierCodeOptional")}</Text>
 						</View>
 					</View>
 					<Text className="text-xs text-muted-foreground leading-5">

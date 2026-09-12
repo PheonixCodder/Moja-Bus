@@ -142,7 +142,41 @@ export function evaluateCheckoutDiscounts(
 
     if (!ticketPromoBlocksCredit) {
       const interim = buildChargeQuote({ ctx: input.ctx, instruments });
-      let need = interim.provisionalChargeXOF;
+      // Promo credits strictly discount the ticket fare, not payment processing fees:
+      let maxTicketCredit = interim.postDiscountSubtotalXOF;
+
+      // Decision 2: If paying via Paystack (card/mobile money), Paystack rejects
+      // sub-100 XOF charges in CI. If credits would leave a cash payable between 1 and 99 XOF,
+      // cap credits so that remaining cash payable is at least 100 XOF (unless fully covered to 0).
+      if (
+        input.ctx.paymentMethod === "PAYSTACK" &&
+        interim.postDiscountSubtotalXOF > 100
+      ) {
+        // If the user's available credits cannot fully cover the ticket fare,
+        // ensure remaining ticket cash is >= 100 XOF.
+        const totalAvailableCredit = input.creditLots
+          .filter(
+            (l) => l.status === "ACTIVE" || l.status === "PARTIALLY_REDEEMED",
+          )
+          .filter(
+            (l) =>
+              !l.expiresAt || l.expiresAt.getTime() >= input.ctx.now.getTime(),
+          )
+          .reduce(
+            (sum, l) => sum + Math.max(0, l.remainingXOF - l.reservedXOF),
+            0,
+          );
+
+        if (totalAvailableCredit < interim.postDiscountSubtotalXOF) {
+          const maxAllowedToKeepFloor = interim.postDiscountSubtotalXOF - 100;
+          maxTicketCredit = Math.max(
+            0,
+            Math.min(maxTicketCredit, maxAllowedToKeepFloor),
+          );
+        }
+      }
+
+      let need = maxTicketCredit;
       if (input.creditAmountXOF != null) {
         need = Math.min(need, input.creditAmountXOF);
       }

@@ -38,6 +38,9 @@ export default function PaymentScreen() {
   const initiatePaystack = useMutation(
     trpc.booth.initiatePaystackLink.mutationOptions(),
   );
+  const confirmPaystack = useMutation(
+    trpc.booth.confirmPaystackSale.mutationOptions(),
+  );
 
   const fareAmountXOF = sellSession.fareAmountXOF ?? 5000;
 
@@ -46,14 +49,19 @@ export default function PaymentScreen() {
 
   async function handleCashConfirm() {
     const { tripId, passengerId, passengerName, passengerEmail } = sellSession;
-    if (
-      !tripId ||
-      !passengerId ||
-      !passengerName ||
-      !passengerEmail ||
-      !sellSession.terminalId ||
-      !sellSession.destinationTerminalId
-    ) {
+    if (!tripId || !passengerId || !passengerName || !passengerEmail) {
+      Alert.alert(
+        "Données passager manquantes",
+        "Veuillez vérifier les informations du passager avant d'encaisser.",
+      );
+      return;
+    }
+
+    if (!sellSession.terminalId || !sellSession.destinationTerminalId) {
+      Alert.alert(
+        "Terminaux non configurés",
+        "Le terminal de départ ou de destination n'a pas été défini.",
+      );
       return;
     }
 
@@ -143,14 +151,19 @@ export default function PaymentScreen() {
 
   async function handlePaystackInitiate() {
     const { tripId, passengerId, passengerName, passengerEmail } = sellSession;
-    if (
-      !tripId ||
-      !passengerId ||
-      !passengerName ||
-      !passengerEmail ||
-      !sellSession.terminalId ||
-      !sellSession.destinationTerminalId
-    ) {
+    if (!tripId || !passengerId || !passengerName || !passengerEmail) {
+      Alert.alert(
+        "Données passager manquantes",
+        "Veuillez renseigner le nom et l'email du passager pour générer le lien de paiement.",
+      );
+      return;
+    }
+
+    if (!sellSession.terminalId || !sellSession.destinationTerminalId) {
+      Alert.alert(
+        "Terminaux non configurés",
+        "Le terminal de départ ou de destination n'a pas été défini.",
+      );
       return;
     }
 
@@ -270,15 +283,37 @@ export default function PaymentScreen() {
           paymentUrl={paystackData.paymentUrl}
           reference={paystackData.reference}
           amountXOF={paystackData.amountXOF}
-          onPaid={() => {
-            BoothFeedback.paymentSuccess();
-            router.replace({
-              pathname: "/sell/confirmation",
-              params: {
-                bookingId: paystackData.holdId,
-                passengerEmail: sellSession.passengerEmail,
-              },
-            });
+          onPaid={async () => {
+            setLoading(true);
+            try {
+              const confirmed = await confirmPaystack.mutateAsync({
+                holdGroupId: paystackData.holdId,
+                paystackReference: paystackData.reference,
+                terminalId: sellSession.terminalId!,
+                passengerId: sellSession.passengerId!,
+                passengerEmail: sellSession.passengerEmail!,
+                passengerName: sellSession.passengerName!,
+                walkedUpPassenger: true,
+                passengerAccountCreated: sellSession.isNewAccount,
+              });
+
+              BoothFeedback.paymentSuccess();
+              router.replace({
+                pathname: "/sell/confirmation",
+                params: {
+                  bookingId: confirmed.bookingId,
+                  passengerEmail: sellSession.passengerEmail,
+                },
+              });
+            } catch (err) {
+              BoothFeedback.invalidScan();
+              Alert.alert(
+                "Erreur de confirmation",
+                "Le paiement a été validé par Paystack mais la confirmation du billet a échoué. Veuillez réessayer.",
+              );
+            } finally {
+              setLoading(false);
+            }
           }}
           onTimeout={() => {
             setMode("select");

@@ -1,11 +1,11 @@
-ï»¿// ============================================================
-// Driver App â€” JS Colour Constants for Non-CSS Contexts
+// ============================================================
+// Driver App — JS Colour Constants for Non-CSS Contexts
 //
 // Use for: icon color props, placeholderTextColor,
 // Switch trackColor/thumbColor, ActivityIndicator color.
 //
-// Do NOT use for NativeWind className props â€” use CSS tokens there.
-// Rule: Any value here must come from @moja/theme/tokens â€” no raw hex.
+// Do NOT use for NativeWind className props — use CSS tokens there.
+// Rule: Any value here must come from @moja/theme/tokens — no raw hex.
 // ============================================================
 
 import { Palette, Colors } from "@moja/theme/tokens";

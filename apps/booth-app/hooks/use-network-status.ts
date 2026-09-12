@@ -16,16 +16,18 @@ export function useNetworkStatus() {
 
   useEffect(() => {
     NetInfo.fetch().then((state) => {
+      const isReachable = state.isInternetReachable !== false;
       setStatus({
-        isOnline: !!(state.isConnected && state.isInternetReachable),
+        isOnline: Boolean(state.isConnected && isReachable),
         isConnected: state.isConnected,
         connectionType: state.type,
       });
     });
 
     const unsubscribe = NetInfo.addEventListener((state: NetInfoState) => {
+      const isReachable = state.isInternetReachable !== false;
       setStatus({
-        isOnline: !!(state.isConnected && state.isInternetReachable),
+        isOnline: Boolean(state.isConnected && isReachable),
         isConnected: state.isConnected,
         connectionType: state.type,
       });

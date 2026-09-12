@@ -53,6 +53,7 @@ const FALLBACK_ROLES: InvitableStaffRole[] = [
   "TREASURY",
   "DISPATCHER",
   "CONDUCTOR",
+  "BOOTH",
 ];
 
 export function RoleSheet({
@@ -79,9 +80,9 @@ export function RoleSheet({
     if (member) {
       // Phase 14 (F-DV-08) — legacy OWNER/DRIVER member rows coerce to ADMIN;
       // the dropdown only ever offers INVITABLE roles.
-      // Phase B1 — BOOTH is also not an InvitableStaffRole; coerce to ADMIN.
+      // BOOTH is an InvitableStaffRole and preserves its true role.
       setRole(
-        member.role === "OWNER" || member.role === "DRIVER" || member.role === "BOOTH"
+        member.role === "OWNER" || member.role === "DRIVER"
           ? "ADMIN"
           : member.role,
       );

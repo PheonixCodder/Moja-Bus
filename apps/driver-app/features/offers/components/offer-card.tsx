@@ -114,7 +114,7 @@ export function OfferCard({
 			<View className="bg-background rounded-2xl border border-border p-3.5 gap-2.5">
 				<View className="flex-row items-center justify-between">
 					<View>
-						<Text className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{t("card.salary")}</Text>
+						<Text className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{t("card.salary")}</Text>
 						<Text className="text-xl font-extrabold font-mono text-foreground tracking-tight">
 							{fmtSalary(item.offeredSalaryCFA, locale)}{" "}
 							<Text className="text-[11px] text-primary font-bold">{t("card.cfaMonthly")}</Text>
@@ -135,7 +135,7 @@ export function OfferCard({
 						</Text>
 						<Text className="text-xs font-mono font-bold text-info">
 							{fmtSalary(item.counterSalaryCFA, locale)}{" "}
-							<Text className="text-[10px] text-info">{t("card.cfaMonthly")}</Text>
+							<Text className="text-[11px] text-info">{t("card.cfaMonthly")}</Text>
 						</Text>
 					</View>
 				) : null}

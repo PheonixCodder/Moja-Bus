@@ -78,7 +78,7 @@ export function SpeedometerGauge({
 			}`}
 		>
 			<View className="flex-row items-center justify-between w-full">
-				<Text className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{t("speedometer.vehicleSpeed")}</Text>
+				<Text className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{t("speedometer.vehicleSpeed")}</Text>
 				{effectiveOverspeed && (
 					<Badge variant="error" label={t("speedometer.overspeedBadge")} />
 				)}
@@ -97,14 +97,14 @@ export function SpeedometerGauge({
 
 			<View className="flex-row items-center justify-around w-full pt-3 border-t border-border">
 				<View className="items-center gap-0.5">
-					<Text className="text-[10px] uppercase font-bold text-muted-foreground">{t("speedometer.heading")}</Text>
+					<Text className="text-[11px] uppercase font-bold text-muted-foreground">{t("speedometer.heading")}</Text>
 					<Text className="text-xs font-bold font-mono text-info">
 						{currentLocation ? `${Math.round(currentLocation.heading)}°` : "—"}
 					</Text>
 				</View>
 
 				<View className="items-center gap-0.5">
-					<Text className="text-[10px] uppercase font-bold text-muted-foreground">{t("speedometer.altitude")}</Text>
+					<Text className="text-[11px] uppercase font-bold text-muted-foreground">{t("speedometer.altitude")}</Text>
 					<Text className="text-xs font-bold font-mono text-foreground">
 						{currentLocation && currentLocation.altitudeMeters
 							? `${Math.round(currentLocation.altitudeMeters)}m`
@@ -113,7 +113,7 @@ export function SpeedometerGauge({
 				</View>
 
 				<View className="items-center gap-0.5">
-					<Text className="text-[10px] uppercase font-bold text-muted-foreground">{t("speedometer.gpsSignal")}</Text>
+					<Text className="text-[11px] uppercase font-bold text-muted-foreground">{t("speedometer.gpsSignal")}</Text>
 					<Text
 						className={`text-xs font-bold font-mono ${
 							currentLocation?.accuracy && currentLocation.accuracy < 15

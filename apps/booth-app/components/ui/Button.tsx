@@ -1,130 +1,123 @@
-import type React from "react";
-import {
-  ActivityIndicator,
-  type GestureResponderEvent,
-  Text,
-  TouchableOpacity,
-  type TouchableOpacityProps,
-  View,
-} from "react-native";
-import { colors } from "@/constants/theme";
-import { BoothFeedback } from "@/lib/haptics";
+import { cva, type VariantProps } from "class-variance-authority";
+import { Platform, Pressable } from "react-native";
+import { TextClassContext } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
 
-export interface ButtonProps extends TouchableOpacityProps {
-  variant?:
-    | "primary"
-    | "secondary"
-    | "outline"
-    | "ghost"
-    | "destructive"
-    | "success"
-    | "warning";
-  size?: "sm" | "md" | "lg";
-  title?: string;
-  loading?: boolean;
-  icon?: React.ReactNode;
-  iconPosition?: "left" | "right";
-  children?: React.ReactNode;
-  textClassName?: string;
+const buttonVariants = cva(
+	cn(
+		"group shrink-0 flex-row items-center justify-center gap-2 rounded-md shadow-none",
+		Platform.select({
+			web: "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive whitespace-nowrap outline-none transition-all focus-visible:ring-[3px] disabled:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+		}),
+	),
+	{
+		variants: {
+			variant: {
+				default: cn(
+					"bg-primary active:bg-primary/90 shadow-sm shadow-black/5",
+					Platform.select({ web: "hover:bg-primary/90" }),
+				),
+				destructive: cn(
+					"bg-destructive active:bg-destructive/90 dark:bg-destructive/60 shadow-sm shadow-black/5",
+					Platform.select({
+						web: "hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
+					}),
+				),
+				outline: cn(
+					"border-border bg-background active:bg-accent dark:bg-input/30 dark:border-input dark:active:bg-input/50 border shadow-sm shadow-black/5",
+					Platform.select({
+						web: "hover:bg-accent dark:hover:bg-input/50",
+					}),
+				),
+				secondary: cn(
+					"bg-secondary active:bg-secondary/80 shadow-sm shadow-black/5",
+					Platform.select({ web: "hover:bg-secondary/80" }),
+				),
+				ghost: cn(
+					"active:bg-accent dark:active:bg-accent/50",
+					Platform.select({ web: "hover:bg-accent dark:hover:bg-accent/50" }),
+				),
+				link: "",
+			},
+			size: {
+				default: cn(
+					"min-h-11 h-11 px-4 py-2.5 rounded-xl",
+					Platform.select({ web: "has-[>svg]:px-3" }),
+				),
+				sm: cn(
+					"min-h-9 h-9 gap-1.5 rounded-lg px-3",
+					Platform.select({ web: "has-[>svg]:px-2.5" }),
+				),
+				lg: cn(
+					"min-h-12 h-12 rounded-xl px-6",
+					Platform.select({ web: "has-[>svg]:px-4" }),
+				),
+				icon: "min-h-11 min-w-11 h-11 w-11 rounded-xl",
+			},
+		},
+		defaultVariants: {
+			variant: "default",
+			size: "default",
+		},
+	},
+);
+
+const buttonTextVariants = cva(
+	cn(
+		"text-foreground text-sm font-medium",
+		Platform.select({ web: "pointer-events-none transition-colors" }),
+	),
+	{
+		variants: {
+			variant: {
+				default: "text-primary-foreground",
+				destructive: "text-white",
+				outline: cn(
+					"group-active:text-accent-foreground",
+					Platform.select({ web: "group-hover:text-accent-foreground" }),
+				),
+				secondary: "text-secondary-foreground",
+				ghost: "group-active:text-accent-foreground",
+				link: cn(
+					"text-primary group-active:underline",
+					Platform.select({
+						web: "underline-offset-4 hover:underline group-hover:underline",
+					}),
+				),
+			},
+			size: {
+				default: "",
+				sm: "",
+				lg: "",
+				icon: "",
+			},
+		},
+		defaultVariants: {
+			variant: "default",
+			size: "default",
+		},
+	},
+);
+
+type ButtonProps = React.ComponentProps<typeof Pressable> &
+	React.RefAttributes<typeof Pressable> &
+	VariantProps<typeof buttonVariants>;
+
+function Button({ className, variant, size, ...props }: ButtonProps) {
+	return (
+		<TextClassContext.Provider value={buttonTextVariants({ variant, size })}>
+			<Pressable
+				className={cn(
+					props.disabled && "opacity-50",
+					buttonVariants({ variant, size }),
+					className,
+				)}
+				role="button"
+				{...props}
+			/>
+		</TextClassContext.Provider>
+	);
 }
 
-export function Button({
-  variant = "primary",
-  size = "md",
-  title,
-  loading = false,
-  icon,
-  iconPosition = "left",
-  disabled,
-  onPress,
-  children,
-  className,
-  textClassName,
-  ...props
-}: ButtonProps) {
-  const handlePress = (e: GestureResponderEvent) => {
-    if (disabled || loading) return;
-    BoothFeedback.tap();
-    onPress?.(e);
-  };
-
-  const variantStyles = {
-    primary: "bg-primary active:bg-primary-dark border-transparent",
-    secondary: "bg-secondary active:bg-accent border-transparent",
-    outline: "bg-transparent active:bg-card border-border",
-    ghost: "bg-transparent active:bg-card border-transparent",
-    destructive: "bg-destructive active:opacity-90 border-transparent",
-    success: "bg-success active:opacity-90 border-transparent",
-    warning: "bg-warning active:opacity-90 border-transparent",
-  }[variant];
-
-  const sizeStyles = {
-    sm: "min-h-[44px] h-11 px-3.5 rounded-xl",
-    md: "min-h-[48px] h-12 px-5 rounded-2xl",
-    lg: "min-h-[56px] h-14 px-6 rounded-2xl",
-  }[size];
-
-  const textVariantStyles = {
-    primary: "text-primary-foreground font-bold",
-    secondary: "text-secondary-foreground font-semibold",
-    outline: "text-foreground font-semibold",
-    ghost: "text-muted-foreground font-medium",
-    destructive: "text-destructive-foreground font-bold",
-    success: "text-success-foreground font-bold",
-    warning: "text-warning-foreground font-bold",
-  }[variant];
-
-  const textSizeStyles = {
-    sm: "text-xs",
-    md: "text-sm",
-    lg: "text-base",
-  }[size];
-
-  return (
-    <TouchableOpacity
-      onPress={handlePress}
-      disabled={disabled || loading}
-      accessibilityRole="button"
-      accessibilityState={{
-        disabled: Boolean(disabled || loading),
-        busy: Boolean(loading),
-      }}
-      activeOpacity={0.8}
-      className={cn(
-        "flex-row items-center justify-center border",
-        variantStyles,
-        sizeStyles,
-        disabled && "opacity-45",
-        className,
-      )}
-      {...props}
-    >
-      {loading ? (
-        <ActivityIndicator
-          color={
-            variant === "outline" || variant === "ghost"
-              ? colors.neutral.textPrimary
-              : variant === "warning"
-                ? colors.neutral.background
-                : colors.neutral.background
-          }
-          size="small"
-        />
-      ) : (
-        <View className="flex-row items-center justify-center gap-2">
-          {icon && iconPosition === "left" ? icon : null}
-          {title ? (
-            <Text
-              className={cn(textVariantStyles, textSizeStyles, textClassName)}
-            >
-              {title}
-            </Text>
-          ) : null}
-          {children}
-          {icon && iconPosition === "right" ? icon : null}
-        </View>
-      )}
-    </TouchableOpacity>
-  );
-}
+export type { ButtonProps };
+export { Button, buttonTextVariants, buttonVariants };

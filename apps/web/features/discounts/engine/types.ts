@@ -82,6 +82,7 @@ export type EvalContext = {
   preDiscountSubtotalXOF: number;
   convenienceFeeBps: number;
   waiveConvenienceFee?: boolean | undefined;
+  paymentMethod?: "PAYSTACK" | "WALLET" | undefined;
 };
 
 export type RejectionReason = {
