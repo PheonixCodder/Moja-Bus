@@ -74,7 +74,7 @@ function AlertDescription({
 		<Text
 			className={cn(
 				"text-muted-foreground ml-0.5 pb-1.5 pl-6 text-sm leading-relaxed",
-				textClass?.includes("text-destructive") && "text-destructive/90",
+				typeof textClass === "string" && textClass.includes("text-destructive") && "text-destructive/90",
 				className,
 			)}
 			{...props}

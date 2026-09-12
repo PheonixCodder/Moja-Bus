@@ -400,10 +400,24 @@ export default function LoginView() {
 								{t("profileSeatLabel")}
 							</Text>
 							<Select
-								value={preferredSeat}
-								onValueChange={(val) =>
-									setPreferredSeat(val as "NONE" | "WINDOW" | "AISLE")
+								value={
+									preferredSeat
+										? {
+												value: preferredSeat,
+												label:
+													preferredSeat === "WINDOW"
+														? t("profileSeatWindow")
+														: preferredSeat === "AISLE"
+															? t("profileSeatAisle")
+															: t("profileSeatNone"),
+											}
+										: undefined
 								}
+								onValueChange={(option) => {
+									if (option?.value) {
+										setPreferredSeat(option.value as "NONE" | "WINDOW" | "AISLE");
+									}
+								}}
 								disabled={isPending}
 							>
 								<SelectTrigger className="h-11 w-full rounded-[18px] border border-[rgba(238,35,124,0.3)] bg-[rgba(238,35,124,0.05)] px-4">
@@ -412,13 +426,13 @@ export default function LoginView() {
 									/>
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value="NONE">
+									<SelectItem value="NONE" label={t("profileSeatNone")}>
 										{t("profileSeatNone")}
 									</SelectItem>
-									<SelectItem value="WINDOW">
+									<SelectItem value="WINDOW" label={t("profileSeatWindow")}>
 										{t("profileSeatWindow")}
 									</SelectItem>
-									<SelectItem value="AISLE">
+									<SelectItem value="AISLE" label={t("profileSeatAisle")}>
 										{t("profileSeatAisle")}
 									</SelectItem>
 								</SelectContent>
@@ -430,10 +444,24 @@ export default function LoginView() {
 								{t("profileClassLabel")}
 							</Text>
 							<Select
-								value={preferredClass}
-								onValueChange={(val) =>
-									setPreferredClass(val as "ECONOMY" | "STANDARD" | "VIP")
+								value={
+									preferredClass
+										? {
+												value: preferredClass,
+												label:
+													preferredClass === "VIP"
+														? t("profileClassVip")
+														: preferredClass === "STANDARD"
+															? t("profileClassStandard")
+															: t("profileClassEconomy"),
+											}
+										: undefined
 								}
+								onValueChange={(option) => {
+									if (option?.value) {
+										setPreferredClass(option.value as "ECONOMY" | "STANDARD" | "VIP");
+									}
+								}}
 								disabled={isPending}
 							>
 								<SelectTrigger className="h-11 w-full rounded-[18px] border border-[rgba(238,35,124,0.3)] bg-[rgba(238,35,124,0.05)] px-4">
@@ -442,13 +470,13 @@ export default function LoginView() {
 									/>
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value="ECONOMY">
+									<SelectItem value="ECONOMY" label={t("profileClassEconomy")}>
 										{t("profileClassEconomy")}
 									</SelectItem>
-									<SelectItem value="STANDARD">
+									<SelectItem value="STANDARD" label={t("profileClassStandard")}>
 										{t("profileClassStandard")}
 									</SelectItem>
-									<SelectItem value="VIP">
+									<SelectItem value="VIP" label={t("profileClassVip")}>
 										{t("profileClassVip")}
 									</SelectItem>
 								</SelectContent>

@@ -258,7 +258,7 @@ export default function LoginScreen() {
                 <Input
                   placeholder={t("auth.login.emailPlaceholder")}
                   value={identifier}
-                  onChangeText={(val) => {
+                  onChangeText={(val: string) => {
                     setIdentifier(val);
                     if (errorMessage) setErrorMessage(null);
                   }}
