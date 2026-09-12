@@ -59,7 +59,9 @@ export function useHoldPool() {
 
   const getAvailablePoolSeats = useCallback((tripId: string): PoolHold[] => {
     const store = useHoldPoolStore.getState();
-    return store.getAvailableHolds(tripId).filter((h) => !store.isHoldExpired(h));
+    return store
+      .getAvailableHolds(tripId)
+      .filter((h) => !store.isHoldExpired(h));
   }, []);
 
   const takeHoldForSale = useCallback(

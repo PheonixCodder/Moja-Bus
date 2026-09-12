@@ -50,9 +50,7 @@ export default function TripSeatScreen() {
   const poolHolds = useMemo(() => {
     if (!pool) return [];
     const now = new Date();
-    return pool.holds.filter(
-      (h) => !h.consumed && new Date(h.expiresAt) > now,
-    );
+    return pool.holds.filter((h) => !h.consumed && new Date(h.expiresAt) > now);
   }, [pool]);
 
   const availableOfflineSeatIds = useMemo(
