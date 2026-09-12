@@ -24,6 +24,7 @@ describe("buildTrustedOrigins", () => {
       "driver-app://",
       "https://api.mojaride.net",
       "https://mojaride.net",
+      "mojabooth://",
       "traveler-app://",
     ]);
   });

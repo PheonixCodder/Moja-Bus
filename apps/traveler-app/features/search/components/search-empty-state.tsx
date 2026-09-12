@@ -51,7 +51,7 @@ export function SearchEmptyState({
         </View>
 
         {/* Section label */}
-        <Text className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3.5 px-5">
+        <Text className="text-[11px] font-black text-muted-foreground uppercase tracking-widest mb-3.5 px-5">
           {t('popularRoutes')}
         </Text>
 
@@ -88,7 +88,7 @@ export function SearchEmptyState({
                   <Text className="text-[11px] text-muted-foreground font-semibold">{route.duration}</Text>
                 </View>
                 <View className="bg-success/10 rounded-lg px-2 py-0.5 border border-success/20">
-                  <Text className="text-[10px] font-extrabold text-success">
+                  <Text className="text-[11px] font-extrabold text-success">
                     {t('operators:fromPrice')} {route.fromXOF} XOF
                   </Text>
                 </View>

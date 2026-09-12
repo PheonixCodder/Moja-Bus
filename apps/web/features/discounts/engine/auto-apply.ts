@@ -98,14 +98,25 @@ export function buildChargeQuote(input: {
   );
   feeDiscountXOF = Math.min(feeDiscountXOF, convenienceFeeXOF);
 
-  const provisionalChargeXOF =
-    postDiscountSubtotalXOF + convenienceFeeXOF - feeDiscountXOF;
-
+  // Promo credits apply strictly against the post-discount ticket subtotal,
+  // NEVER against electronic payment processor convenience fees!
   let creditAppliedXOF = input.instruments.reduce(
     (sum, i) => sum + i.creditAppliedXOF,
     0,
   );
-  creditAppliedXOF = Math.min(creditAppliedXOF, provisionalChargeXOF);
+  creditAppliedXOF = Math.min(creditAppliedXOF, postDiscountSubtotalXOF);
+
+  // If the ticket fare is 100% covered by promo credits/discounts, the booking
+  // is zero-cash (no card gateway processing), so convenience fee is waived.
+  const isTicketFullyCovered =
+    postDiscountSubtotalXOF === 0 ||
+    creditAppliedXOF >= postDiscountSubtotalXOF;
+  const effectiveConvenienceFeeXOF = isTicketFullyCovered
+    ? 0
+    : Math.max(0, convenienceFeeXOF - feeDiscountXOF);
+
+  const provisionalChargeXOF =
+    postDiscountSubtotalXOF + effectiveConvenienceFeeXOF;
 
   return {
     instruments: input.instruments,
@@ -114,7 +125,7 @@ export function buildChargeQuote(input: {
     creditAppliedXOF,
     preDiscountSubtotalXOF: input.ctx.preDiscountSubtotalXOF,
     postDiscountSubtotalXOF,
-    convenienceFeeXOF,
+    convenienceFeeXOF: effectiveConvenienceFeeXOF,
     provisionalChargeXOF,
     chargeAmountXOF: Math.max(0, provisionalChargeXOF - creditAppliedXOF),
     platformFundedXOF: input.instruments.reduce(

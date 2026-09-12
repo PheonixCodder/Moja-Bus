@@ -19,8 +19,11 @@ export type OperatorProfile = {
   operatorId: string;
   role: string;
   companyId: string;
+  companyName?: string;
+  companyLogoUrl?: string | null;
   staffName: string;
   staffEmail: string;
+  assignedTerminal?: { id: string; name: string } | null;
 };
 
 type SessionState = {

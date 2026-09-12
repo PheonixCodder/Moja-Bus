@@ -1,5 +1,5 @@
-ï»¿// ============================================================
-// Traveler App â€” Navigation Theme
+// ============================================================
+// Traveler App — Navigation Theme
 // Fully aligned with @moja/theme/tokens. Single source of truth.
 // Primary uses Moja brand rose (#ee237c), not shadcn default black.
 // ============================================================
@@ -16,7 +16,7 @@ export const NAV_THEME: Theme = {
 		card:         Colors.light.card,          // "#ffffff"
 		text:         Colors.light.textPrimary,   // "#18181b"
 		border:       Colors.light.border,        // "#e4e4e7"
-		primary:      Palette.rose[500],          // "#ee237c" â€” Moja brand pink
+		primary:      Palette.rose[500],          // "#ee237c" — Moja brand pink
 		notification: Palette.rose[500],          // "#ee237c"
 	},
 };

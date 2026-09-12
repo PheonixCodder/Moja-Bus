@@ -38,6 +38,7 @@ export default function PassengerScreen() {
     tripId: string;
     seatId: string;
     tripSeatId: string;
+    destinationTerminalId: string;
     isIntercity: string;
   }>();
   const trpc = useTRPC();
@@ -65,30 +66,35 @@ export default function PassengerScreen() {
     if (!searchQuery.trim()) return;
     setLoading(true);
     try {
+      const queryVal = searchQuery.trim();
       const result = await lookupMutation.mutateAsync({
-        email: searchQuery.trim(),
-        fullName: "",
-        phone: undefined,
+        query: queryVal,
       });
       setSelectedPassenger(result);
       setMode("confirmed");
       BoothFeedback.successScan();
     } catch {
       setMode("create");
-      if (searchQuery.includes("@")) setEmail(searchQuery.trim());
+      const clean = searchQuery.trim();
+      if (clean.includes("@")) {
+        setEmail(clean);
+      } else {
+        setPhone(clean);
+      }
     } finally {
       setLoading(false);
     }
   }
 
   async function handleCreate() {
-    if (!fullName.trim() || !email.trim()) return;
+    if (!fullName.trim()) return;
     setLoading(true);
     try {
       const result = await lookupMutation.mutateAsync({
-        email: email.trim().toLowerCase(),
         fullName: fullName.trim(),
+        email: email.trim().toLowerCase() || undefined,
         phone: phone.trim() || undefined,
+        query: email.trim().toLowerCase() || phone.trim() || undefined,
       });
       setSelectedPassenger(result);
       setMode("confirmed");
@@ -111,10 +117,14 @@ export default function PassengerScreen() {
       isNewAccount: selectedPassenger.isNewAccount,
     });
 
+    const destTerminalId =
+      params.destinationTerminalId || sellSession.destinationTerminalId || "";
+
     router.push({
       pathname: "/sell/payment",
       params: {
         ...params,
+        destinationTerminalId: destTerminalId,
         passengerId: selectedPassenger.userId,
         passengerName: selectedPassenger.fullName,
         passengerEmail: selectedPassenger.email,

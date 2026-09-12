@@ -181,7 +181,7 @@ export default function RegisterStep1Screen() {
 								) : (
 									<View className="w-28 h-28 rounded-full bg-card items-center justify-center border-2 border-success/40 gap-1.5">
 										<HugeiconsIcon icon={Camera01Icon} size={32} color={colors.semantic.success} />
-										<Text className="text-[10px] font-bold text-success">{t("selfieUploaded", "Photo enregistrée")}</Text>
+										<Text className="text-[11px] font-bold text-success">{t("selfieUploaded", "Photo enregistrée")}</Text>
 									</View>
 								)}
 								<Button

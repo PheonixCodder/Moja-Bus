@@ -26,7 +26,7 @@ export function AuthField({
 				{...props}
 			/>
 			{helperText ? (
-				<Text className="text-[12px] leading-[18px] text-muted-foreground">
+				<Text className="text-[11px] leading-[18px] text-muted-foreground">
 					{helperText}
 				</Text>
 			) : null}

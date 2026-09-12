@@ -6,7 +6,61 @@ Last updated: 2026-09-06 (Phase 9 preset b20te54eby — maia + taupe, Moja pink 
 
 ## State
 
-- **🏁 PRESET `b20te54eby` → Maia/taupe ADOPTED ✅ (2026-09-06)**:
+- **🏁 BOOTH APP & OPERATOR ECOSYSTEM REMEDIATION COMPLETE ACROSS ALL 6 PHASES ✅ (2026-09-12)**:
+  - **Context & Artifacts**:
+    - Complete 9-document audit catalog in `context/audits/booth-ecosystem-audit/` (`README.md`, `01-architecture-and-context-map.md`, `02-iam-auth-and-security.md`, `03-trpc-and-api-contracts.md`, `04-schema-and-database.md`, `05-sales-flow-and-offline-engine.md`, `06-design-system-and-hardware.md`, `07-i18n-and-release-readiness.md`, `08-findings-catalog.md`, `09-remediation-roadmap.md`).
+    - Complete 6-phase implementation plan suite in `context/plans/booth-ecosystem-remediation/` (`phase-01` through `phase-06`).
+  - **Phase 01 — Security, Auth & Trusted Origins**:
+    - Added `"mojabooth://"` to `apps/web/lib/trusted-origins.ts` `APP_SCHEMES`.
+    - Hardened `apps/booth-app/lib/auth-client.ts` with `emailOTPClient()`, `phoneNumberClient()`, `expoClient`, and `refreshSession()`.
+    - Rebuilt `apps/booth-app/app/(auth)/login.tsx` to 100% parity with `traveler-app` using `react-native-otp-entry`, automatic `+225` Côte d'Ivoire phone formatting, French/English translations, and haptics.
+    - Updated `apps/booth-app/app/index.tsx` `BootGate` with fail-open logic for cached session offline resiliency.
+  - **Phase 02 — IAM, Operator Staff Governance & Terminal Scoping**:
+    - Added `"BOOTH"` to `INVITABLE_STAFF_ROLES` in `packages/schemas/src/permissions.ts`.
+    - Eliminated silent coercion of `BOOTH` to `ADMIN` in `role-sheet.tsx` and `invite-sheet.tsx`.
+    - Added `assignedTerminalId` to `Operator` and `StaffInvitation` in `schema.prisma` with reverse relations on `CompanyLocation`.
+    - Authored standard SQL migration `packages/db/prisma/migrations/20260911120000_phase02_staff_terminal_scoping/migration.sql` conforming to `packages/db/MIGRATIONS.md`.
+    - Updated `createInvitation`, `updateRole`, and `invitation.accept` to persist and propagate `assignedTerminalId`.
+    - Extended `booth.getMyProfile` and `useSessionStore` to lock cashier to assigned terminal.
+  - **Phase 03 — Sales Engine & Financial Integrity**:
+    - Fixed passenger search crashes by refactoring `lookupOrCreatePassengerSchema` to support read-only email/phone query without requiring full name until creation.
+    - Propagated `destinationTerminalId` through all sales routes (`app/(tabs)/index.tsx` -> `sell/[tripId].tsx` -> `passenger.tsx` -> `payment.tsx`).
+    - Fixed P0 ghost bookings defect in `payment.tsx` by directly invoking `confirmPaystackSale` inside `PaystackQR.onPaid` callback.
+  - **Phase 04 — QR Gate Check-In & Offline Sync Resilience**:
+    - Upgraded `booth.checkInPassenger` using `parseTicketToken` to normalize URL QR codes (`https://mojaride.com/tickets/...`), JSON payloads, and manual booking references (`MJ-XXXX`).
+    - Added manual booking reference entry modal with haptics in `app/(tabs)/checkin.tsx`.
+    - Fixed false offline lock on mobile networks in `use-network-status.ts` (`state.isInternetReachable !== false`).
+    - Repaired `reportUrbanConflict` in `booth.ts` to match both `id` and `bookingId`, ensuring pool hold sync conflicts are recorded and enriched with terminal/cashier names.
+  - **Phase 05 — Design System & UI Parity**:
+    - Configured `components.json` with new-york style and `@moja/theme` variables.
+    - Ported entire 32-component `@rn-primitives/*` suite from `traveler-app` to `booth-app/components/ui/`, removing legacy capitalized files.
+    - Added `ThemeProvider` with `NAV_THEME` (#ee237c brand rose) and `<PortalHost />` to `app/_layout.tsx`.
+    - Enforced 48px+ touch targets across interactive elements (`Button`, inputs, tabs).
+  - **Phase 06 — Hardware Thermal Printing, i18n Cleansing & CI Parity**:
+    - Cleansed `locales/fr.json` of all UTF-8 mojibake and updated `locales/en.json` replacing legacy `"MoovMove"` with `"Moja Ride"`.
+    - Created automated i18n test suite in `__tests__/i18n-parity.test.ts` and added `test:i18n` npm script (passes 100%).
+    - Wired thermal receipt printing (`printTicket`) into `app/sell/confirmation.tsx` and added Bluetooth printer discovery/pairing modal with test print to `app/(tabs)/profile.tsx`.
+  - **Verification**:
+    - `pnpm --filter booth-app typecheck` exits 0 (clean compilation).
+    - `pnpm --filter booth-app run test:i18n` passes 2/2 tests.
+    - `pnpm --filter @moja/schemas test` passes 86/86 tests.
+
+
+- **🏁 FINANCIAL CHECKOUT LEDGER AUDIT & REMEDIATION COMPLETE ✅ (2026-09-11)**:
+  - **Context & Artifacts**:
+    - Complete 8-document audit catalog in `context/audits/comprehensive-financial-checkout-audit/` (`README.md`, `01-system-and-financial-map.md`, `02-root-cause-journal-validation-failure.md`, `03-checkout-pricing-promo-wallet-matrix.md`, `04-schedules-pricing-and-business-model.md`, `05-cross-platform-audit-web-vs-mobile.md`, `06-cancellations-refunds-and-arbitrage.md`, `07-findings-catalog.md`, `08-remediation-roadmap.md`).
+    - Architectural implementation plan in `context/plans/financial-checkout-ledger-remediation.md`.
+  - **Root Cause & Core Fixes**:
+    - **Journal Validation Mismatch**: Promo credits previously discounted `provisionalChargeXOF` (which included convenience fees). When `confirmFromWallet` waived the fee to 0, it debited 1,025 XOF promo credits while crediting only 1,000 XOF fare (950 operator + 50 commission), tripping `AccountingEngine.validate()` with `Σ Debit (1025) != Σ Credit (1000)`.
+    - **Promo Credit Bounds**: Promo credits are now strictly capped to `postDiscountSubtotalXOF` (fare only), never convenience fees. When credits 100% cover the fare, `convenienceFeeXOF` is automatically waived (`0 XOF`), yielding a pure Zero-Cash booking.
+    - **Paystack 100 XOF Minimum Floor**: When paying via Paystack with partial credits, promo credit usage is capped to ensure remaining cash payable is $\ge 100\text{ XOF}$ (Paystack gateway minimum).
+    - **Zero-Cash Bypass**: Both Web checkout and Traveler App (`passenger-form-sheet.tsx`) permit 100% covered promo bookings to confirm instantly even when user wallet cash balance is 0.
+    - **Accounting Invariant**: Clamped promo debit in `confirmFromWallet` to `maxTicketSubtotal` (`postDiscountSubtotalXOF ?? subtotalBaseXOF`), ensuring double-entry balance $\sum \text{Debit} \equiv \sum \text{Credit}$ in all edge cases.
+    - **Operator Contra Posting**: Operator-funded discounts correctly post contra entries (`postOperatorContra: true`) so platform clearing funds are not drained.
+  - **Verification**:
+    - Full test suite passed: **180 suites, 628 tests passed, 0 failures**.
+    - Unit tests covering Abidjan $\to$ Bouaké (1,000 fare, 25 fee, 5,000 credit) and Paystack 100 XOF floor rule added to `apps/web/features/discounts/engine/__tests__/evaluate.test.ts`.
+
   - Decoded: maia style, taupe base, rose charts, Outfit/Raleway, radius medium (`0.625rem`).
   - `style-maia.css` + `<html class="style-maia">`; `components.json` → `base-maia` / taupe.
   - Theme: taupe neutrals + rose `--chart-*`; **KEEP** Moja `--primary` / ring / sidebar-primary / selection `#ee237c`.
@@ -213,3 +267,17 @@ Earlier commercial-lifecycle decisions (D1–D8 of the hardening plan) live in g
 - Cherry-pick individual discounts notify helpers onto the outbox — that family migrates as ONE future session (D34-2b-i, comment at notify.ts)
 - Follow stored redirect URLs across surfaces in notification tap-routing (mobile never follows /dashboard/*, web map pins account-suspended to no-nav)
 - Widen images.remotePatterns again — editor-supplied URLs use the `unoptimized` prop instead
+
+## Mobile Font Size Increase (2026-09-11)
+
+- **Scope**: Increased font sizes across `apps/driver-app` and `apps/traveler-app` based on CheapOair/Delta comparison feedback
+- **Font families unchanged**: Outfit (body) / Raleway (headings) throughout monorepo
+- **Web app excluded**: Separate Tailwind scale, not affected
+- **Changes made**:
+  - `packages/theme/tokens.ts`: FontSize scale increased (micro 10→11, caption 11→12, bodySm 12→13, bodyMd 14→15, bodyLg 16→17, h4 15→16, h3 18→19, h2 22→24, h1 28→30, display 32→36)
+  - `packages/theme/global.css`: All `@utility` class font sizes updated
+  - Both apps' `global.css`: Added `--text-xs` through `--text-3xl` and `--leading-*` overrides to `@theme inline` block
+  - 200+ component files across both apps: `text-[10px]` → `text-[11px]`, `text-[11px]` → `text-[12px]`, inline `fontSize` values updated
+  - `apps/driver-app/constants/theme.ts`: Auto-updates from `@moja/theme/tokens` (no change needed)
+- **Verification**: `pnpm --filter driver-app typecheck` ✅, `pnpm --filter traveler-app typecheck` ✅
+- **Plan saved**: `context/plans/mobile-font-size-increase-2026-09-11/README.md`

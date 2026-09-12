@@ -1,10 +1,12 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useMutation } from "@tanstack/react-query";
 import {
 	ActivityIndicator,
 	Animated,
 	StyleSheet,
+	Switch,
 	Text,
 	View,
 } from "react-native";
@@ -13,7 +15,9 @@ import { OtpInput } from "react-native-otp-entry";
 import { AuthButton } from "@/features/auth/components/auth-button";
 import { AuthField } from "@/features/auth/components/auth-field";
 import { AuthShell } from "@/features/auth/components/auth-shell";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { authClient, refreshSession } from "@/lib/auth-client";
+import { useTRPC } from "@/lib/trpc";
 import { Palette, Colors } from "@/constants/theme";
 
 type AuthError = { message?: string; code?: string };
@@ -56,14 +60,32 @@ export default function LoginView() {
 
 	const { data: session, isPending: sessionPending } = authClient.useSession();
 	const { t } = useTranslation("auth");
+	const trpc = useTRPC();
 	const [step, setStep] = useState<AuthStep>("input");
 	const [identifier, setIdentifier] = useState("");
 	const [method, setMethod] = useState<"phone" | "email">("email");
 	const [otp, setOtp] = useState("");
 	const [fullName, setFullName] = useState("");
+	const [preferredSeat, setPreferredSeat] = useState<"WINDOW" | "AISLE" | "NONE">("NONE");
+	const [preferredClass, setPreferredClass] = useState<"ECONOMY" | "STANDARD" | "VIP">("ECONOMY");
+	const [marketingOptIn, setMarketingOptIn] = useState(false);
 	const [message, setMessage] = useState<string | null>(null);
-	const [isPending, setIsPending] = useState(false);
+		const updatePreferencesMutation = useMutation(
+		trpc.passenger.updatePreferences.mutationOptions({
+			onSuccess: () => {},
+			onError: (err) => {
+				setMessage(err.message || t("failedToUpdate"));
+				setIsPendingLocal(false);
+			},
+		}),
+	);
+
+	const [isPendingLocal, setIsPendingLocal] = useState(false);
 	const slideAnim = useRef(new Animated.Value(0)).current;
+
+	const isPending =
+		isPendingLocal ||
+		updatePreferencesMutation.isPending;
 
 	// Redirect already-authenticated users away
 	useEffect(() => {
@@ -110,7 +132,7 @@ export default function LoginView() {
 			}
 		}
 
-		setIsPending(true);
+		setIsPendingLocal(true);
 		try {
 			if (detected === "phone") {
 				const { error } = await authClient.phoneNumber.sendOtp({
@@ -129,7 +151,7 @@ export default function LoginView() {
 		} catch (err) {
 			setMessage(getAuthError(err).message || t("failedToSend"));
 		} finally {
-			setIsPending(false);
+			setIsPendingLocal(false);
 		}
 	}
 
@@ -145,7 +167,7 @@ export default function LoginView() {
 			finalIdentifier = `+225${finalIdentifier}`;
 		}
 
-		setIsPending(true);
+		setIsPendingLocal(true);
 		try {
 			type PhoneVerifyResult = Awaited<
 				ReturnType<typeof authClient.phoneNumber.verify>
@@ -174,8 +196,11 @@ export default function LoginView() {
 
 			const isNewUser =
 				new Date(result.data.user.createdAt).getTime() > Date.now() - 10000;
+			const user = result.data.user;
+			const isExistingTravelerMissingName =
+				user.role === "TRAVELER" && !user.name;
 
-			if (isNewUser) {
+			if (isNewUser || isExistingTravelerMissingName) {
 				setStep("profile");
 				animateForward();
 			} else {
@@ -195,7 +220,7 @@ export default function LoginView() {
 			}
 			setMessage(msg);
 		} finally {
-			setIsPending(false);
+			setIsPendingLocal(false);
 		}
 	}
 
@@ -206,22 +231,36 @@ export default function LoginView() {
 		}
 
 		setMessage(null);
-		setIsPending(true);
+		setIsPendingLocal(true);
 		try {
 			const { error } = await authClient.updateUser({
 				name: fullName.trim(),
 			});
 			if (error) throw error;
 
-			try {
-				await refreshSession();
-			} catch {}
-
-			router.replace(destination as any);
+			updatePreferencesMutation.mutate(
+				{
+					fullName: fullName.trim(),
+					preferredSeat,
+					preferredClass,
+					marketingOptIn,
+				},
+				{
+					onSuccess: () => {
+						try {
+							refreshSession();
+						} catch {}
+						router.replace(destination as any);
+					},
+					onError: (err) => {
+						setMessage(err.message || t("failedToUpdate"));
+						setIsPendingLocal(false);
+					},
+				},
+			);
 		} catch (err) {
 			setMessage(getAuthError(err).message || t("failedToUpdate"));
-		} finally {
-			setIsPending(false);
+			setIsPendingLocal(false);
 		}
 	}
 
@@ -238,8 +277,8 @@ export default function LoginView() {
 		},
 		profile: {
 			badge: t("complete"),
-			title: t("whatsYourName"),
-			description: t("nameDisplayed"),
+			title: t("profileHeading"),
+			description: t("profileDescription"),
 		},
 	} as const;
 
@@ -310,7 +349,7 @@ export default function LoginView() {
 									},
 									pinCodeTextStyle: {
 										color: Colors.light.textPrimary,
-										fontSize: 20,
+										fontSize: 24,
 										fontWeight: "700",
 									},
 									focusStickStyle: {
@@ -355,6 +394,82 @@ export default function LoginView() {
 							value={fullName}
 							onChangeText={setFullName}
 						/>
+
+						<View className="gap-1">
+							<Text className="text-[14px] font-semibold text-foreground">
+								{t("profileSeatLabel")}
+							</Text>
+							<Select
+								value={preferredSeat}
+								onValueChange={(val) =>
+									setPreferredSeat(val as "NONE" | "WINDOW" | "AISLE")
+								}
+								disabled={isPending}
+							>
+								<SelectTrigger className="h-11 w-full rounded-[18px] border border-[rgba(238,35,124,0.3)] bg-[rgba(238,35,124,0.05)] px-4">
+									<SelectValue
+										placeholder={t("profileSeatNone")}
+									/>
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="NONE">
+										{t("profileSeatNone")}
+									</SelectItem>
+									<SelectItem value="WINDOW">
+										{t("profileSeatWindow")}
+									</SelectItem>
+									<SelectItem value="AISLE">
+										{t("profileSeatAisle")}
+									</SelectItem>
+								</SelectContent>
+							</Select>
+						</View>
+
+						<View className="gap-1">
+							<Text className="text-[14px] font-semibold text-foreground">
+								{t("profileClassLabel")}
+							</Text>
+							<Select
+								value={preferredClass}
+								onValueChange={(val) =>
+									setPreferredClass(val as "ECONOMY" | "STANDARD" | "VIP")
+								}
+								disabled={isPending}
+							>
+								<SelectTrigger className="h-11 w-full rounded-[18px] border border-[rgba(238,35,124,0.3)] bg-[rgba(238,35,124,0.05)] px-4">
+									<SelectValue
+										placeholder={t("profileClassEconomy")}
+									/>
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="ECONOMY">
+										{t("profileClassEconomy")}
+									</SelectItem>
+									<SelectItem value="STANDARD">
+										{t("profileClassStandard")}
+									</SelectItem>
+									<SelectItem value="VIP">
+										{t("profileClassVip")}
+									</SelectItem>
+								</SelectContent>
+							</Select>
+						</View>
+
+						<View className="flex-row items-center justify-between gap-4">
+							<View className="flex-1">
+								<Text className="text-[14px] font-semibold text-foreground">
+									{t("profileMarketingLabel")}
+								</Text>
+								<Text className="text-[12px] leading-[16px] text-muted-foreground">
+									{t("profileMarketingDesc")}
+								</Text>
+							</View>
+							<Switch
+								value={marketingOptIn}
+								onValueChange={setMarketingOptIn}
+								disabled={isPending}
+							/>
+						</View>
 
 						{message ? (
 							<Text className="text-[13px] leading-[18px] text-primary">

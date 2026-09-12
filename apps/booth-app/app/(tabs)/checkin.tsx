@@ -2,11 +2,13 @@
  * Check-in tab — QR scanner for ticket validation at departure gate.
  * Uses expo-camera to scan boarding pass QR codes and calls the
  * booth.checkInPassenger tRPC procedure to validate and stamp check-in.
+ * Also supports manual entry of booking reference (e.g. MJ-7K9A) or ticket token.
  */
 import {
   BarcodeScanIcon,
   CancelCircleIcon,
   CheckmarkCircle01Icon,
+  Edit01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useMutation } from "@tanstack/react-query";
@@ -15,14 +17,20 @@ import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { Button } from "@/components/ui/button";
+import { IconColors, PlaceholderColor } from "@/constants/ui-colors";
+import { BoothFeedback } from "@/lib/haptics";
 import { useTRPC } from "@/lib/trpc";
 import { useSessionStore } from "@/stores/session";
-import { IconColors } from "@/constants/ui-colors";
 
 type ScanState = "scanning" | "success" | "error";
 
@@ -39,6 +47,8 @@ export default function CheckInTab() {
   const [result, setResult] = useState<CheckInResult | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showManualModal, setShowManualModal] = useState(false);
+  const [manualCode, setManualCode] = useState("");
   const lastScannedToken = useRef<string | null>(null);
 
   const terminal = useSessionStore((s) => s.terminal);
@@ -46,15 +56,15 @@ export default function CheckInTab() {
 
   const checkIn = useMutation(trpc.booth.checkInPassenger.mutationOptions());
 
-  async function handleQRScan(token: string) {
-    if (token === lastScannedToken.current || isProcessing) return;
+  async function handleValidateToken(token: string) {
+    if (!token.trim() || isProcessing) return;
     if (!terminal) return;
-    lastScannedToken.current = token;
+    lastScannedToken.current = token.trim();
     setIsProcessing(true);
 
     try {
       const res = await checkIn.mutateAsync({
-        ticketToken: token,
+        ticketToken: token.trim(),
         terminalId: terminal.id,
       });
 
@@ -64,7 +74,11 @@ export default function CheckInTab() {
         bookingId: res.bookingId,
       });
       setScanState("success");
+      BoothFeedback.successScan();
+      setShowManualModal(false);
+      setManualCode("");
     } catch (e: unknown) {
+      BoothFeedback.invalidScan();
       const error = e as { data?: { code?: string }; message?: string };
       const code = error.data?.code;
       const msg = error.message ?? t("errors.generic");
@@ -86,8 +100,13 @@ export default function CheckInTab() {
         setScanState("scanning");
         setResult(null);
         setErrorMsg(null);
-      }, 3000);
+      }, 3500);
     }
+  }
+
+  function handleManualSubmit() {
+    if (!manualCode.trim()) return;
+    void handleValidateToken(manualCode.trim());
   }
 
   if (!permission) {
@@ -97,7 +116,11 @@ export default function CheckInTab() {
   if (!permission.granted) {
     return (
       <View className="flex-1 bg-background items-center justify-center px-6">
-        <HugeiconsIcon icon={BarcodeScanIcon} size={48} color={IconColors.muted} />
+        <HugeiconsIcon
+          icon={BarcodeScanIcon}
+          size={48}
+          color={IconColors.muted}
+        />
         <Text className="text-foreground text-center mt-4 mb-6">
           L'accès à la caméra est requis pour scanner les QR tickets.
         </Text>
@@ -127,7 +150,13 @@ export default function CheckInTab() {
           style={StyleSheet.absoluteFill}
           facing="back"
           onBarcodeScanned={(data) => {
-            if (data.data) handleQRScan(data.data);
+            if (
+              data.data &&
+              data.data !== lastScannedToken.current &&
+              !isProcessing
+            ) {
+              void handleValidateToken(data.data);
+            }
           }}
           barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
         />
@@ -136,6 +165,24 @@ export default function CheckInTab() {
       {scanState === "scanning" && (
         <View className="flex-1 items-center justify-center">
           <View className="w-64 h-64 border-2 border-white/60 rounded-2xl" />
+        </View>
+      )}
+
+      {/* Manual Entry Button */}
+      {scanState === "scanning" && !isProcessing && (
+        <View className="absolute bottom-12 left-0 right-0 items-center z-20">
+          <TouchableOpacity
+            className="flex-row items-center gap-2 bg-white/20 backdrop-blur px-5 py-3 rounded-full border border-white/30"
+            onPress={() => {
+              BoothFeedback.tap();
+              setShowManualModal(true);
+            }}
+          >
+            <HugeiconsIcon icon={Edit01Icon} size={18} color="#ffffff" />
+            <Text className="text-white font-semibold text-sm">
+              {t("checkin.manualEntry")}
+            </Text>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -169,7 +216,11 @@ export default function CheckInTab() {
 
       {scanState === "error" && (
         <View className="flex-1 items-center justify-center px-8 gap-6">
-          <HugeiconsIcon icon={CancelCircleIcon} size={72} color={IconColors.error} />
+          <HugeiconsIcon
+            icon={CancelCircleIcon}
+            size={72}
+            color={IconColors.error}
+          />
           <Text className="text-white font-heading text-2xl font-bold text-center">
             {t("checkin.error")}
           </Text>
@@ -178,6 +229,67 @@ export default function CheckInTab() {
           </View>
         </View>
       )}
+
+      {/* Manual Entry Modal */}
+      <Modal
+        visible={showManualModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowManualModal(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          className="flex-1 justify-center bg-black/60 px-6"
+        >
+          <View className="bg-card rounded-2xl p-6 border border-border gap-4 shadow-xl">
+            <Text className="text-lg font-bold text-foreground">
+              {t("checkin.manualEntry")}
+            </Text>
+            <Text className="text-muted-foreground text-xs leading-4">
+              {t("checkin.manualPrompt")}
+            </Text>
+            <TextInput
+              className="bg-background border border-border rounded-xl px-4 py-3 text-foreground font-semibold uppercase tracking-wider text-base"
+              placeholder={t("checkin.manualPlaceholder")}
+              placeholderTextColor={PlaceholderColor}
+              value={manualCode}
+              onChangeText={setManualCode}
+              autoCapitalize="characters"
+              autoFocus
+              returnKeyType="done"
+              onSubmitEditing={handleManualSubmit}
+            />
+            <View className="flex-row gap-3 mt-2">
+              <Button
+                variant="outline"
+                className="flex-1 min-h-[48px] h-12"
+                onPress={() => {
+                  setShowManualModal(false);
+                  setManualCode("");
+                }}
+              >
+                <Text className="font-semibold text-base">
+                  {t("checkin.cancel")}
+                </Text>
+              </Button>
+              <Button
+                variant="default"
+                className="flex-1 min-h-[48px] h-12"
+                onPress={handleManualSubmit}
+                disabled={isProcessing || !manualCode.trim()}
+              >
+                {isProcessing ? (
+                  <ActivityIndicator color="#ffffff" size="small" />
+                ) : (
+                  <Text className="text-primary-foreground font-semibold text-base">
+                    {t("checkin.validate")}
+                  </Text>
+                )}
+              </Button>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }

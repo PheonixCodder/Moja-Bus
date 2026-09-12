@@ -444,6 +444,12 @@ export const boothProcedure = protectedProcedure.use(
               logoUrl: true,
             },
           },
+          assignedTerminal: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
       }));
 

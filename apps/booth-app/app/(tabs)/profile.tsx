@@ -7,14 +7,29 @@ import {
   Globe02Icon,
   Logout01Icon,
   MapPinIcon,
+  PrinterIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { router } from "expo-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, Modal, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Modal,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { Button } from "@/components/ui/button";
 import { useHoldPool } from "@/hooks/use-hold-pool";
 import { signOut } from "@/lib/auth-client";
+import {
+  connectPrinter,
+  discoverPrinters,
+  printTicket,
+} from "@/lib/bluetooth-print";
 import { BoothFeedback } from "@/lib/haptics";
 import { switchLanguage } from "@/lib/i18n";
 import { useSessionStore } from "@/stores/session";
@@ -27,6 +42,51 @@ export default function ProfileTab() {
   const { releaseAllHolds } = useHoldPool();
   const [showSwitchModal, setShowSwitchModal] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [showPrinterModal, setShowPrinterModal] = useState(false);
+  const [printerList, setPrinterList] = useState<Array<{ name: string; address: string }>>([]);
+  const [selectedPrinter, setSelectedPrinter] = useState<{ name: string; address: string } | null>(null);
+  const [isScanningPrinters, setIsScanningPrinters] = useState(false);
+  const [isConnectingPrinter, setIsConnectingPrinter] = useState(false);
+
+  async function loadPrinters() {
+    setIsScanningPrinters(true);
+    try {
+      const devices = await discoverPrinters();
+      setPrinterList(devices);
+    } catch {
+      setPrinterList([]);
+    } finally {
+      setIsScanningPrinters(false);
+    }
+  }
+
+  async function handleConnectPrinter(device: { name: string; address: string }) {
+    setIsConnectingPrinter(true);
+    BoothFeedback.tap();
+    const ok = await connectPrinter(device.address);
+    setIsConnectingPrinter(false);
+    if (ok) {
+      setSelectedPrinter(device);
+      BoothFeedback.successScan();
+      Alert.alert("Succès", `Imprimante ${device.name} connectée.`);
+    } else {
+      Alert.alert("Erreur", `Impossible de se connecter à ${device.name}.`);
+    }
+  }
+
+  async function handleTestPrint() {
+    BoothFeedback.tap();
+    await printTicket({
+      passengerName: "Test Impression",
+      bookingReference: "MJ-TEST01",
+      route: "Abidjan → Yamoussoukro",
+      departureDate: new Date().toLocaleDateString("fr-FR"),
+      seatLabel: "01A",
+      amountXOF: 5000,
+      terminalName: terminal?.name ?? "Terminal Principal",
+      companyName: profile?.companyName ?? "Moja Ride",
+    });
+  }
 
   async function handleSwitchTerminal() {
     setShowSwitchModal(false);
@@ -121,6 +181,27 @@ export default function ProfileTab() {
           <Text className="text-foreground/40">→</Text>
         </TouchableOpacity>
 
+        {/* Printer & Peripherals */}
+        <TouchableOpacity
+          className="bg-card border border-border rounded-xl px-5 py-4 flex-row items-center gap-3"
+          onPress={() => {
+            BoothFeedback.tap();
+            setShowPrinterModal(true);
+            void loadPrinters();
+          }}
+        >
+          <HugeiconsIcon icon={PrinterIcon} size={20} color={IconColors.brand} />
+          <View className="flex-1">
+            <Text className="text-foreground font-medium">
+              Imprimante thermique
+            </Text>
+            <Text className="text-foreground/60 text-xs mt-0.5">
+              {selectedPrinter ? selectedPrinter.name : "Non connectée"}
+            </Text>
+          </View>
+          <Text className="text-foreground/40">→</Text>
+        </TouchableOpacity>
+
         {/* Language */}
         <View className="bg-card border border-border rounded-xl px-5 py-4 flex-row items-center gap-3">
           <HugeiconsIcon icon={Globe02Icon} size={20} color={IconColors.muted} />
@@ -200,6 +281,120 @@ export default function ProfileTab() {
                 </Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Printer Settings Modal */}
+      <Modal
+        visible={showPrinterModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowPrinterModal(false)}
+      >
+        <View className="flex-1 bg-black/50 justify-end">
+          <View className="bg-card rounded-t-3xl px-6 pt-6 pb-10 w-full gap-4 max-h-[80%]">
+            <View className="flex-row items-center justify-between pb-2 border-b border-border">
+              <View>
+                <Text className="font-semibold text-foreground text-lg">
+                  Imprimante thermique
+                </Text>
+                <Text className="text-foreground/60 text-xs mt-0.5">
+                  Rechercher et associer une imprimante ESC/POS
+                </Text>
+              </View>
+              <Button
+                variant="ghost"
+                size="sm"
+                onPress={() => setShowPrinterModal(false)}
+              >
+                <Text className="text-foreground/70 font-medium">Fermer</Text>
+              </Button>
+            </View>
+
+            {/* Test print button if printer is connected */}
+            {selectedPrinter ? (
+              <View className="p-4 bg-primary/5 rounded-xl border border-primary/20 gap-2">
+                <Text className="text-xs font-semibold text-primary uppercase">
+                  Connectée : {selectedPrinter.name} ({selectedPrinter.address})
+                </Text>
+                <Button
+                  variant="default"
+                  className="min-h-[44px] h-11"
+                  onPress={handleTestPrint}
+                >
+                  <Text className="text-primary-foreground font-semibold">
+                    Imprimer un ticket test
+                  </Text>
+                </Button>
+              </View>
+            ) : null}
+
+            <View className="flex-row items-center justify-between">
+              <Text className="text-sm font-semibold text-foreground">
+                Appareils à proximité
+              </Text>
+              <Button
+                variant="outline"
+                size="sm"
+                onPress={loadPrinters}
+                disabled={isScanningPrinters}
+              >
+                {isScanningPrinters ? (
+                  <ActivityIndicator size="small" />
+                ) : (
+                  <Text className="text-xs font-medium text-foreground">
+                    Actualiser
+                  </Text>
+                )}
+              </Button>
+            </View>
+
+            <ScrollView className="max-h-60">
+              {printerList.length === 0 ? (
+                <View className="py-6 items-center">
+                  <Text className="text-foreground/50 text-sm text-center">
+                    {isScanningPrinters
+                      ? "Recherche d'imprimantes Bluetooth en cours..."
+                      : "Aucune imprimante détectée.\nAssurez-vous que le Bluetooth est actif."}
+                  </Text>
+                </View>
+              ) : (
+                <View className="gap-2">
+                  {printerList.map((printer) => {
+                    const isSelected = selectedPrinter?.address === printer.address;
+                    return (
+                      <TouchableOpacity
+                        key={printer.address}
+                        className={`p-4 rounded-xl border flex-row items-center justify-between ${
+                          isSelected
+                            ? "border-primary bg-primary/5"
+                            : "border-border bg-card"
+                        }`}
+                        onPress={() => handleConnectPrinter(printer)}
+                        disabled={isConnectingPrinter}
+                      >
+                        <View className="flex-1">
+                          <Text className="font-semibold text-foreground">
+                            {printer.name || "Imprimante inconnue"}
+                          </Text>
+                          <Text className="text-foreground/50 text-xs mt-0.5">
+                            {printer.address}
+                          </Text>
+                        </View>
+                        <Text
+                          className={`text-xs font-bold ${
+                            isSelected ? "text-primary" : "text-foreground/60"
+                          }`}
+                        >
+                          {isSelected ? "Connectée" : "Connecter"}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              )}
+            </ScrollView>
           </View>
         </View>
       </Modal>

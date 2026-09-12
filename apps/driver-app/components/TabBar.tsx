@@ -144,7 +144,7 @@ export function TabBar({ state, navigation, pendingOffers = 0, isConductor = fal
 						</View>
 
 						{!isFocused ? (
-							<Text className="text-[10px] font-semibold text-muted-foreground mt-0.5">
+							<Text className="text-[11px] font-semibold text-muted-foreground mt-0.5">
 								{tab.name === "trips"
 									? "Trajets"
 									: tab.name === "offers"

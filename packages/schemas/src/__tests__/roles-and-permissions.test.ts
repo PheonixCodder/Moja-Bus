@@ -164,6 +164,7 @@ describe("Role Hierarchy and Permissions", () => {
   it("ASSIGNABLE_ROLES matches the shipped map exactly", () => {
     assert.deepEqual(ASSIGNABLE_ROLES.OWNER.slice().sort(), [
       "ADMIN",
+      "BOOTH",
       "CONDUCTOR",
       "DISPATCHER",
       "DRIVER",
@@ -174,6 +175,7 @@ describe("Role Hierarchy and Permissions", () => {
       "TREASURY",
     ]);
     assert.deepEqual(ASSIGNABLE_ROLES.ADMIN.slice().sort(), [
+      "BOOTH",
       "CONDUCTOR",
       "DISPATCHER",
       "DRIVER",
@@ -183,6 +185,7 @@ describe("Role Hierarchy and Permissions", () => {
       "TREASURY",
     ]);
     assert.deepEqual(ASSIGNABLE_ROLES.MANAGER.slice().sort(), [
+      "BOOTH",
       "CONDUCTOR",
       "DISPATCHER",
       "DRIVER",
@@ -192,6 +195,7 @@ describe("Role Hierarchy and Permissions", () => {
     // Deliberate reversal: OPERATIONS assigns ONLY drivers.
     assert.deepEqual(ASSIGNABLE_ROLES.OPERATIONS, ["DRIVER"]);
     for (const role of [
+      "BOOTH",
       "FINANCE",
       "SUPPORT",
       "TREASURY",

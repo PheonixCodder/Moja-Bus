@@ -1,14 +1,16 @@
 import "@/global.css";
 import "@/lib/i18n";
 
+import { PortalHost } from "@rn-primitives/portal";
 import { useMutation } from "@tanstack/react-query";
-import { Stack } from "expo-router";
+import { Stack, ThemeProvider } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef } from "react";
 import { View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+import { NAV_THEME } from "@/lib/theme";
 import { useLoadFonts } from "@/hooks/use-load-fonts";
 import { useNetworkStatus } from "@/hooks/use-network-status";
 import { flushOfflineQueue } from "@/lib/offline-sync";
@@ -90,26 +92,29 @@ export default function RootLayout() {
           CSS variables regardless of device system dark mode preference.
           This is the single switch that keeps the booth in light mode.
         */}
-        <View
-          className="flex-1 light"
-          style={{ backgroundColor: colors.neutral.background }}
-        >
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { flex: 1, backgroundColor: colors.neutral.background },
-              animation: "slide_from_right",
-            }}
+        <ThemeProvider value={NAV_THEME}>
+          <View
+            className="flex-1 light"
+            style={{ backgroundColor: colors.neutral.background }}
           >
-            <Stack.Screen name="index" />
-            <Stack.Screen name="terminal-select" />
-            <Stack.Screen name="reconcile" />
-            <Stack.Screen name="(auth)" />
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="sell" />
-          </Stack>
-          <Toast />
-        </View>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { flex: 1, backgroundColor: colors.neutral.background },
+                animation: "slide_from_right",
+              }}
+            >
+              <Stack.Screen name="index" />
+              <Stack.Screen name="terminal-select" />
+              <Stack.Screen name="reconcile" />
+              <Stack.Screen name="(auth)" />
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="sell" />
+            </Stack>
+            <Toast />
+            <PortalHost />
+          </View>
+        </ThemeProvider>
       </TRPCReactProvider>
     </SafeAreaProvider>
   );

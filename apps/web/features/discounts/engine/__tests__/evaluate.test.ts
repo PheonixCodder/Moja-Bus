@@ -167,6 +167,63 @@ describe("evaluateCheckoutDiscounts", () => {
     assert.equal(result.chargeAmountXOF, result.provisionalChargeXOF - 3000);
   });
 
+  it("caps promo credits to ticket subtotal and waives convenience fee on 100% credit coverage (Abidjan -> Bouake scenario)", () => {
+    const result = evaluateCheckoutDiscounts({
+      ctx: baseCtx({
+        baseFareXOF: 1000,
+        preDiscountSubtotalXOF: 1000,
+        seatCount: 1,
+        convenienceFeeBps: 250, // 25 XOF
+      }),
+      campaigns: [],
+      useCredits: true,
+      creditLots: [
+        {
+          id: "cl_5000",
+          remainingXOF: 5000,
+          reservedXOF: 0,
+          expiresAt: null,
+          status: "ACTIVE",
+        },
+      ],
+    });
+    assert.equal(result.ok, true);
+    // Ticket subtotal is 1000. Credit applied must be exactly 1000, NEVER 1025.
+    assert.equal(result.creditAppliedXOF, 1000);
+    // Fee must be waived because ticket is 100% covered by credits
+    assert.equal(result.convenienceFeeXOF, 0);
+    // Charge amount must be exactly 0 (Zero-Cash booking)
+    assert.equal(result.chargeAmountXOF, 0);
+  });
+
+  it("caps promo credit usage when paymentMethod is PAYSTACK to preserve at least 100 XOF cash payable", () => {
+    const result = evaluateCheckoutDiscounts({
+      ctx: baseCtx({
+        baseFareXOF: 1000,
+        preDiscountSubtotalXOF: 1000,
+        seatCount: 1,
+        convenienceFeeBps: 250, // 25 XOF
+        paymentMethod: "PAYSTACK",
+      }),
+      campaigns: [],
+      useCredits: true,
+      creditLots: [
+        {
+          id: "cl_950",
+          remainingXOF: 950,
+          reservedXOF: 0,
+          expiresAt: null,
+          status: "ACTIVE",
+        },
+      ],
+    });
+    assert.equal(result.ok, true);
+    // Ticket subtotal: 1000. Under PAYSTACK, maxUsableCredit is capped to postDiscountSubtotal - 100 = 900 XOF.
+    // This ensures at least 100 XOF ticket fare (+ 25 XOF fee = 125 XOF total) remains for Paystack processing.
+    assert.equal(result.creditAppliedXOF, 900);
+    assert.equal(result.chargeAmountXOF, 125);
+  });
+
   it("respects trip scope", () => {
     const result = evaluateCheckoutDiscounts({
       ctx: baseCtx({ tripId: "trip_other" }),
@@ -201,3 +258,4 @@ describe("evaluateCheckoutDiscounts", () => {
     assert.equal(result.autoAppliedCampaignId, null);
   });
 });
+

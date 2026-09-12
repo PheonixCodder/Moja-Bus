@@ -40,6 +40,7 @@ export const INVITABLE_STAFF_ROLES = [
   "TREASURY",
   "DISPATCHER",
   "CONDUCTOR",
+  "BOOTH",
 ] as const;
 
 export const InvitableStaffRoleSchema = z.enum(INVITABLE_STAFF_ROLES);

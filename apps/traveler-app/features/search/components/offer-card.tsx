@@ -99,20 +99,20 @@ export function OfferCard({ offer, onSelect, onPressIn }: OfferCardProps) {
               {offer.isExpress ? (
                 <View className="flex-row items-center gap-1">
                   <HugeiconsIcon icon={SparklesIcon} size={10} color={Palette.rose[500]} />
-                  <Text className="text-[10px] font-extrabold text-primary uppercase tracking-wide">
+                  <Text className="text-[11px] font-extrabold text-primary uppercase tracking-wide">
                     {t('expressNonStop')}
                   </Text>
                 </View>
               ) : null}
               {offer.busTypeName ? (
-                <Text className="text-[10px] font-semibold text-muted-foreground">{offer.busTypeName}</Text>
+                <Text className="text-[11px] font-semibold text-muted-foreground">{offer.busTypeName}</Text>
               ) : null}
             </View>
           </View>
         </View>
 
         <View className={`px-2.5 py-1 rounded-xl border ${badgeStyle.bgClass} ${badgeStyle.borderClass}`}>
-          <Text className={`text-[10px] font-black uppercase tracking-wider ${badgeStyle.textClass}`}>
+          <Text className={`text-[11px] font-black uppercase tracking-wider ${badgeStyle.textClass}`}>
             {offer.busClass}
           </Text>
         </View>
@@ -124,13 +124,13 @@ export function OfferCard({ offer, onSelect, onPressIn }: OfferCardProps) {
           <Text className="text-xs font-bold text-foreground/80 mt-0.5" numberOfLines={2}>
             {originLabel}
           </Text>
-          <Text className="text-[10px] font-medium text-muted-foreground mt-0.5" numberOfLines={1}>
+          <Text className="text-[11px] font-medium text-muted-foreground mt-0.5" numberOfLines={1}>
             {offer.departureTerminal}
           </Text>
         </View>
 
         <View className="flex-1 items-center justify-center px-1.5">
-          <Text className="text-[10px] font-bold text-muted-foreground mb-1">{offer.duration}</Text>
+          <Text className="text-[11px] font-bold text-muted-foreground mb-1">{offer.duration}</Text>
           <View className="w-full flex-row items-center">
             <View className="w-1.5 h-1.5 rounded-full bg-border" />
             <View className="flex-1 h-[1px] bg-border" />
@@ -140,7 +140,7 @@ export function OfferCard({ offer, onSelect, onPressIn }: OfferCardProps) {
             <View className="flex-1 h-[1px] bg-border" />
             <View className="w-1.5 h-1.5 rounded-full bg-primary" />
           </View>
-          <Text className="text-[10px] font-bold text-muted-foreground mt-1">
+          <Text className="text-[11px] font-bold text-muted-foreground mt-1">
             {offer.stopCount === 0 ? t('directRoute') : `${offer.stopCount} stops`}
           </Text>
         </View>
@@ -150,7 +150,7 @@ export function OfferCard({ offer, onSelect, onPressIn }: OfferCardProps) {
           <Text className="text-xs font-bold text-foreground/80 mt-0.5 text-right" numberOfLines={2}>
             {destLabel}
           </Text>
-          <Text className="text-[10px] font-medium text-muted-foreground mt-0.5 text-right" numberOfLines={1}>
+          <Text className="text-[11px] font-medium text-muted-foreground mt-0.5 text-right" numberOfLines={1}>
             {offer.arrivalTerminal}
           </Text>
         </View>
@@ -160,7 +160,7 @@ export function OfferCard({ offer, onSelect, onPressIn }: OfferCardProps) {
         <View className="flex-row flex-wrap gap-1.5 mb-3">
           {amenityLabels.map((label) => (
             <View key={label} className="bg-muted/60 border border-border px-2 py-0.5 rounded-lg">
-              <Text className="text-[10px] font-bold text-muted-foreground">{label}</Text>
+              <Text className="text-[11px] font-bold text-muted-foreground">{label}</Text>
             </View>
           ))}
         </View>
@@ -174,7 +174,7 @@ export function OfferCard({ offer, onSelect, onPressIn }: OfferCardProps) {
           <View className="mt-1">
             {offer.availability === 'FEW_LEFT' ? (
               <View className="bg-warning/10 border border-warning/20 px-2 py-0.5 rounded-lg">
-                <Text className="text-warning text-[10px] font-extrabold">
+                <Text className="text-warning text-[11px] font-extrabold">
                   {typeof offer.remainingSeats === 'number'
                     ? t('onlyLeft', { count: offer.remainingSeats })
                     : t('fewSeatsLeft')}
@@ -182,11 +182,11 @@ export function OfferCard({ offer, onSelect, onPressIn }: OfferCardProps) {
               </View>
             ) : offer.availability === 'SOLD_OUT' ? (
               <View className="bg-muted px-2 py-0.5 rounded-lg">
-                <Text className="text-muted-foreground text-[10px] font-extrabold">{t('soldOut')}</Text>
+                <Text className="text-muted-foreground text-[11px] font-extrabold">{t('soldOut')}</Text>
               </View>
             ) : (
               <View className="bg-success/10 border border-success/20 px-2 py-0.5 rounded-lg">
-                <Text className="text-success text-[10px] font-extrabold">
+                <Text className="text-success text-[11px] font-extrabold">
                   {typeof offer.remainingSeats === 'number'
                     ? t('seatsAvailable', { count: offer.remainingSeats })
                     : t('seatsAvailableLabel')}

@@ -179,29 +179,29 @@ export const FontFamily = {
 } as const;
 
 export const FontSize = {
-  display: 32,
-  h1: 28,
-  h2: 22,
-  h3: 18,
-  h4: 15,
-  bodyLg: 16,
-  bodyMd: 14,
-  bodySm: 12,
-  caption: 11,
-  micro: 10,
+   display: 36,
+   h1: 30,
+   h2: 24,
+   h3: 19,
+   h4: 16,
+   bodyLg: 17,
+   bodyMd: 15,
+   bodySm: 13,
+   caption: 12,
+   micro: 11,
 } as const;
 
 export const LineHeight = {
-  display: 40,
-  h1: 34,
-  h2: 28,
-  h3: 24,
-  h4: 20,
-  bodyLg: 24,
-  bodyMd: 20,
-  bodySm: 18,
-  caption: 15,
-  micro: 14,
+   display: 44,
+   h1: 36,
+   h2: 30,
+   h3: 26,
+   h4: 22,
+   bodyLg: 26,
+   bodyMd: 22,
+   bodySm: 19,
+   caption: 16,
+   micro: 15,
 } as const;
 
 export const FontWeight = {

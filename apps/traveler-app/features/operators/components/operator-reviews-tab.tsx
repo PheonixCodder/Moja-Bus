@@ -1,4 +1,4 @@
-﻿import { View, Text } from 'react-native';
+import { View, Text } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { Comment01Icon } from '@hugeicons/core-free-icons';

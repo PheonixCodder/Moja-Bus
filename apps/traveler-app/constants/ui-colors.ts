@@ -1,11 +1,11 @@
-ï»¿// ============================================================
-// Traveler App â€” JS Colour Constants for Non-CSS Contexts
+// ============================================================
+// Traveler App — JS Colour Constants for Non-CSS Contexts
 //
 // Use for: icon color props, placeholderTextColor,
 // Switch trackColor/thumbColor, ActivityIndicator color.
 //
-// Do NOT use for NativeWind className props â€” use CSS tokens there.
-// Rule: Any value here must come from @moja/theme/tokens â€” no raw hex.
+// Do NOT use for NativeWind className props — use CSS tokens there.
+// Rule: Any value here must come from @moja/theme/tokens — no raw hex.
 // ============================================================
 
 import { Palette, Colors } from "@moja/theme/tokens";
@@ -20,7 +20,7 @@ export const IconColors = {
 	muted:      Colors.light.textMuted,      // "#a1a1aa"
 	brand:      Palette.rose[500],           // "#ee237c"
 	onBrand:    "#ffffff",                   // white icon on primary-coloured backgrounds
-	onCard:     Colors.light.card,           // "#ffffff" â€” icon inside coloured button
+	onCard:     Colors.light.card,           // "#ffffff" — icon inside coloured button
 	success:    Palette.emerald[500],        // "#10b981"
 	warning:    Palette.amber[500],          // "#f59e0b"
 	error:      Palette.red[500],            // "#ef4444"

@@ -1,4 +1,8 @@
-import { emailOTPClient, phoneNumberClient } from "better-auth/client/plugins";
+import {
+	emailOTPClient,
+	phoneNumberClient,
+	inferAdditionalFields,
+} from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 import Constants from "expo-constants";
 import * as Linking from "expo-linking";
@@ -26,6 +30,7 @@ export const authClient = createAuthClient({
 	plugins: [
 		emailOTPClient(),
 		phoneNumberClient(),
+		inferAdditionalFields,
 		expoClient({
 			scheme: "traveler-app",
 			storage: SecureStore,

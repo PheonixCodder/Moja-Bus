@@ -34,6 +34,7 @@ export const UpdateRoleSchema = z.object({
   role: InvitableStaffRoleSchema,
   /** When true, replace member permissions with ROLE_TEMPLATES[role] */
   resetPermissions: z.boolean().default(true),
+  assignedTerminalId: z.string().nullable().optional(),
   reason: z.string().max(500).optional(),
 });
 
@@ -70,6 +71,7 @@ export const CreateInvitationSchema = z.object({
   role: InvitableStaffRoleSchema,
   permissions: PermissionListSchema.min(1, "Select at least one permission"),
   jobTitle: z.string().max(100).optional(),
+  assignedTerminalId: z.string().nullable().optional(),
   message: z.string().max(500).optional(),
   expiryDays: z.number().int().min(1).max(30).default(7),
 });

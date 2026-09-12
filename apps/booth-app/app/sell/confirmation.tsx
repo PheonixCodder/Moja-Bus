@@ -1,14 +1,18 @@
 import {
   CheckCircle,
+  PrinterIcon,
   Share01Icon,
   ShoppingCart01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Text, View } from "react-native";
+import { Button } from "@/components/ui/button";
 import { BoothFeedback } from "@/lib/haptics";
+import { printTicket } from "@/lib/bluetooth-print";
 import { useSellSession } from "@/stores/sell-session";
+import { useSessionStore } from "@/stores/session";
 import { IconColors } from "@/constants/ui-colors";
 
 export default function ConfirmationScreen() {
@@ -20,6 +24,7 @@ export default function ConfirmationScreen() {
 
   const sellSession = useSellSession();
   const resetSellSession = useSellSession((s) => s.reset);
+  const session = useSessionStore();
 
   function handleSellAnother() {
     BoothFeedback.tap();
@@ -29,7 +34,20 @@ export default function ConfirmationScreen() {
 
   function handleShare() {
     BoothFeedback.tap();
-    // Phase 7: native share sheet
+  }
+
+  async function handlePrint() {
+    BoothFeedback.tap();
+    await printTicket({
+      passengerName: sellSession.passengerName ?? "Passager",
+      bookingReference: bookingId?.slice(0, 8) ?? "MJ-TICKET",
+      route: `${session.terminal?.name ?? "Départ"} → Arrivée`,
+      departureDate: new Date().toLocaleDateString("fr-FR"),
+      seatLabel: sellSession.seatId ?? null,
+      amountXOF: sellSession.fareAmountXOF ?? 0,
+      terminalName: session.terminal?.name ?? "Terminal",
+      companyName: session.profile?.companyName ?? "Moja Ride",
+    });
   }
 
   return (
@@ -55,25 +73,38 @@ export default function ConfirmationScreen() {
       </View>
 
       <View className="w-full gap-3 mt-8 max-w-sm">
-        <TouchableOpacity
-          className="border border-border rounded-xl py-3.5 flex-row items-center justify-center gap-2"
+        <Button
+          variant="outline"
+          className="min-h-[48px] h-12 flex-row items-center justify-center gap-2"
+          onPress={handlePrint}
+        >
+          <HugeiconsIcon icon={PrinterIcon} size={18} color={IconColors.muted} />
+          <Text className="text-foreground font-medium">
+            {t("confirmation.printButton")}
+          </Text>
+        </Button>
+
+        <Button
+          variant="outline"
+          className="min-h-[48px] h-12 flex-row items-center justify-center gap-2"
           onPress={handleShare}
         >
           <HugeiconsIcon icon={Share01Icon} size={18} color={IconColors.muted} />
           <Text className="text-foreground/70 font-medium">
             {t("confirmation.shareButton")}
           </Text>
-        </TouchableOpacity>
+        </Button>
 
-        <TouchableOpacity
-          className="bg-primary rounded-xl py-4 flex-row items-center justify-center gap-2"
+        <Button
+          variant="default"
+          className="min-h-[48px] h-12 flex-row items-center justify-center gap-2"
           onPress={handleSellAnother}
         >
           <HugeiconsIcon icon={ShoppingCart01Icon} size={18} color="white" />
           <Text className="text-white font-semibold">
             {t("confirmation.sellAnother")}
           </Text>
-        </TouchableOpacity>
+        </Button>
       </View>
     </View>
   );

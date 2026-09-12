@@ -217,6 +217,7 @@ export const invitationRouter = createTRPCRouter({
               data: {
                 role: invitation.role,
                 jobTitle: invitation.jobTitle ?? null,
+                assignedTerminalId: (invitation as any).assignedTerminalId ?? null,
                 permissions: grantedPermissions,
                 permissionsUpdatedAt: new Date(),
                 status: "ACTIVE",
@@ -231,6 +232,7 @@ export const invitationRouter = createTRPCRouter({
                 companyId: invitation.companyId,
                 role: invitation.role,
                 jobTitle: invitation.jobTitle ?? null,
+                assignedTerminalId: (invitation as any).assignedTerminalId ?? null,
                 permissions: grantedPermissions,
                 permissionsUpdatedAt: new Date(),
                 status: "ACTIVE",

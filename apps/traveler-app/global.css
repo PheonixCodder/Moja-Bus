@@ -15,19 +15,32 @@
 }
 
 @theme {
-  /* ── Body / UI — Outfit ────────────────────────────── */
-  --font-sans:              "Outfit";
-  --font-outfit:            "Outfit";
-  --font-outfit-medium:     "Outfit-Medium";
-  --font-outfit-semibold:   "Outfit-SemiBold";
-  --font-outfit-bold:       "Outfit-Bold";
-  /* ── Headings — Raleway ────────────────────────────── */
-  --font-heading:           "Raleway";
-  --font-raleway:           "Raleway";
-  --font-raleway-semibold:  "Raleway-SemiBold";
-  --font-raleway-bold:      "Raleway-Bold";
-  --font-raleway-extrabold: "Raleway-ExtraBold";
-}
+   /* ── Body / UI — Outfit ────────────────────────────── */
+   --font-sans:              "Outfit";
+   --font-outfit:            "Outfit";
+   --font-outfit-medium:     "Outfit-Medium";
+   --font-outfit-semibold:   "Outfit-SemiBold";
+   --font-outfit-bold:       "Outfit-Bold";
+   /* ── Headings — Raleway ────────────────────────────── */
+   --font-heading:           "Raleway";
+   --font-raleway:           "Raleway";
+   --font-raleway-semibold:  "Raleway-SemiBold";
+   --font-raleway-bold:      "Raleway-Bold";
+   --font-raleway-extrabold: "Raleway-ExtraBold";
+
+   /* Typography Scale — Increased for competitive parity */
+   --text-xs:   13px;
+   --text-sm:   15px;
+   --text-base: 17px;
+   --text-lg:   19px;
+   --text-xl:   24px;
+   --text-2xl:  30px;
+   --text-3xl:  36px;
+
+   --leading-tight:   16px;
+   --leading-normal:  20px;
+   --leading-relaxed: 26px;
+ }
 
 /* Typography @utility helpers (h1, h2, h3, h4, body-lg, body-md, body-sm, caption, micro)
    are inherited from @moja/theme/global.css — do not redeclare here. */

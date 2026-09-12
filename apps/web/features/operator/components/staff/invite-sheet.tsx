@@ -42,6 +42,7 @@ const INVITABLE_ROLES: InvitableStaffRole[] = [
   "TREASURY",
   "DISPATCHER",
   "CONDUCTOR",
+  "BOOTH",
 ];
 
 interface InviteSheetProps {

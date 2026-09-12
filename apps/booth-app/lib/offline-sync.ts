@@ -11,6 +11,12 @@ import { useOfflineQueue } from "@/stores/offline-queue";
 
 const MAX_HOLD_AGE_MS = 90 * 60 * 1000;
 
+export type CreateCashSaleResult = {
+  bookingId: string;
+  boothSaleId?: string;
+  confirmed?: boolean;
+};
+
 type CreateCashSaleFn = (input: {
   tripId: string;
   terminalId: string;
@@ -26,7 +32,7 @@ type CreateCashSaleFn = (input: {
   wasOffline: boolean;
   walkedUpPassenger: boolean;
   passengerAccountCreated: boolean;
-}) => Promise<unknown>;
+}) => Promise<CreateCashSaleResult | unknown>;
 
 type ReportUrbanConflictFn = (input: {
   tripId: string;

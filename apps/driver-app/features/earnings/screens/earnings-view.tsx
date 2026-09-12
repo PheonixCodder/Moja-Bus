@@ -138,14 +138,14 @@ export function EarningsView() {
 					{/* Breakdown Grid */}
 					<View className="flex-row items-center gap-4 pt-4 border-t border-border">
 						<View className="flex-1 gap-0.5">
-							<Text className="text-[10px] uppercase text-muted-foreground font-bold">{t("todayLabel")}</Text>
+							<Text className="text-[11px] uppercase text-muted-foreground font-bold">{t("todayLabel")}</Text>
 							<Text className="text-[15px] font-bold text-foreground font-mono">
 								{todayEarnings.toLocaleString()} XOF
 							</Text>
 						</View>
 						<View className="w-[1px] h-8 bg-border" />
 						<View className="flex-1 gap-0.5">
-							<Text className="text-[10px] uppercase text-muted-foreground font-bold">{t("tripsCompletedLabel")}</Text>
+							<Text className="text-[11px] uppercase text-muted-foreground font-bold">{t("tripsCompletedLabel")}</Text>
 							<Text className="text-[15px] font-bold text-success font-mono">
 								{totalTrips} {t("tripsCompleted")}
 							</Text>
@@ -229,11 +229,11 @@ export function EarningsView() {
 												{comp.weekEarningsXof.toLocaleString()} XOF
 											</Text>
 											{comp.payModel === "PER_TRIP" ? (
-												<Text className="text-[10px] text-muted-foreground">
+												<Text className="text-[11px] text-muted-foreground">
 													{t("carrierWeekTrips", { trips: comp.weekTrips })}
 												</Text>
 											) : (
-												<Text className="text-[10px] text-muted-foreground">
+												<Text className="text-[11px] text-muted-foreground">
 													{t("carrierWeekMinutes", { minutes: comp.weekMinutes })}
 												</Text>
 											)}
@@ -242,7 +242,7 @@ export function EarningsView() {
 
 									{/* Today's per-carrier earnings row */}
 									<View className="flex-row items-center justify-between pt-2 mt-1 border-t border-border">
-										<Text className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("todayLabel")}</Text>
+										<Text className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("todayLabel")}</Text>
 										<Text className="text-xs font-bold font-mono text-muted-foreground">
 											{comp.todayEarningsXof.toLocaleString()} XOF
 										</Text>

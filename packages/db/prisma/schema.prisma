@@ -820,10 +820,15 @@ model Operator {
   // Booth App — sales made by this staff member at a terminal counter
   boothSales BoothSale[] @relation("BoothSaleStaff")
 
+  // Assigned terminal for counter staff and station dispatchers
+  assignedTerminalId String?
+  assignedTerminal   CompanyLocation? @relation("OperatorAssignedTerminal", fields: [assignedTerminalId], references: [id], onDelete: SetNull)
+
   @@unique([userId, companyId])
   @@index([companyId])
   @@index([userId])
   @@index([role])
+  @@index([assignedTerminalId])
   @@map("operator")
 }
 
@@ -1209,6 +1214,10 @@ model CompanyLocation {
 
   // Booth App — counter sales made from this terminal
   boothSales BoothSale[] @relation("BoothSaleTerminal")
+
+  // Assigned staff & pending invitations scoped to this terminal
+  assignedOperators   Operator[]        @relation("OperatorAssignedTerminal")
+  assignedInvitations StaffInvitation[] @relation("InvitationAssignedTerminal")
 
   @@index([companyId])
   @@index([cityId])
@@ -2274,12 +2283,18 @@ model StaffInvitation {
   invitedBy    User             @relation("InvitedBy", fields: [invitedById], references: [id])
   acceptedById String?
   acceptedBy   User?            @relation("AcceptedBy", fields: [acceptedById], references: [id])
+
+  // Optional pre-assigned terminal for station cashiers / dispatchers
+  assignedTerminalId String?
+  assignedTerminal   CompanyLocation? @relation("InvitationAssignedTerminal", fields: [assignedTerminalId], references: [id], onDelete: SetNull)
+
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
 
   @@index([companyId])
   @@index([email])
   @@index([token])
+  @@index([assignedTerminalId])
   @@map("staff_invitation")
 }
 

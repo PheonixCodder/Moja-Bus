@@ -1,4 +1,4 @@
-﻿import { ArrowLeft02Icon } from "@hugeicons/core-free-icons";
+import { ArrowLeft02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { type Href, router } from "expo-router";
 import { Pressable, View } from "react-native";

@@ -66,6 +66,7 @@ export const paymentsRouter = createTRPCRouter({
         seatCount: input.seatCount,
         convenienceFeeBps: base.convenienceFeeBps,
         waiveConvenienceFee,
+        paymentMethod,
         userId: ctx.user?.id ?? null,
         code: input.code,
         autoApply: input.autoApply,
@@ -73,6 +74,12 @@ export const paymentsRouter = createTRPCRouter({
         creditAmountXOF: input.creditAmountXOF,
         excludeHoldGroupId: input.excludeHoldGroupId,
       });
+
+      // If the ticket is 100% covered by discounts/credits, convenience fee is 0
+      const isZeroCash =
+        quote.postDiscountSubtotalXOF === 0 ||
+        quote.creditAppliedXOF >= quote.postDiscountSubtotalXOF;
+      const effectiveWaiveFee = waiveConvenienceFee || isZeroCash;
 
       const { resolveCheckoutPayable } = await import(
         "@/features/payments/lib/checkout-payable"
@@ -84,7 +91,7 @@ export const paymentsRouter = createTRPCRouter({
         feeDiscountXOF: quote.feeDiscountXOF,
         creditAppliedXOF: quote.creditAppliedXOF,
         chargeAmountXOF: quote.chargeAmountXOF,
-        paymentMethod,
+        paymentMethod: isZeroCash ? "ZERO_CASH" : paymentMethod,
       });
 
       const { signCheckoutQuote } = await import(
@@ -93,11 +100,11 @@ export const paymentsRouter = createTRPCRouter({
       const quoteId = signCheckoutQuote({
         offerId: input.offerId,
         seatCount: input.seatCount,
-        paymentMethod,
+        paymentMethod: isZeroCash ? "WALLET" : paymentMethod,
         code: input.code ?? null,
         autoApply: input.autoApply,
         useCredits: input.useCredits,
-        waiveConvenienceFee,
+        waiveConvenienceFee: effectiveWaiveFee,
         chargeAmountXOF: quote.chargeAmountXOF,
         postDiscountSubtotalXOF: quote.postDiscountSubtotalXOF,
         convenienceFeeXOF: quote.convenienceFeeXOF,
@@ -110,7 +117,7 @@ export const paymentsRouter = createTRPCRouter({
         ...base,
         quoteId,
         paymentMethod,
-        waiveConvenienceFee,
+        waiveConvenienceFee: effectiveWaiveFee,
         subtotalBaseXOF: quote.postDiscountSubtotalXOF,
         convenienceFeeXOF: quote.convenienceFeeXOF,
         chargeAmountXOF: quote.chargeAmountXOF,

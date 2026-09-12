@@ -83,7 +83,7 @@ export function NotificationRow({ item, onPress }: NotificationRowProps) {
 							{item.body}
 						</Text>
 					) : null}
-					<Text className="text-[10px] font-medium text-muted-foreground">{timeAgo(item.createdAt)}</Text>
+					<Text className="text-[11px] font-medium text-muted-foreground">{timeAgo(item.createdAt)}</Text>
 				</View>
 			</View>
 		</Pressable>

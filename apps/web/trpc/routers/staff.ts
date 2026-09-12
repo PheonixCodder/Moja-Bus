@@ -280,6 +280,9 @@ export const staffRouter = createTRPCRouter({
           permissions: nextPermissions,
           permissionsUpdatedAt: new Date(),
           permissionsUpdatedBy: ctx.user.id,
+          ...(input.assignedTerminalId !== undefined
+            ? { assignedTerminalId: input.assignedTerminalId }
+            : {}),
         },
         include: memberInclude,
       });
@@ -711,6 +714,7 @@ export const staffRouter = createTRPCRouter({
           permissions: input.permissions,
           jobTitle: input.jobTitle ?? null,
           message: input.message ?? null,
+          assignedTerminalId: input.assignedTerminalId ?? null,
           token: hashedToken,
           expiresAt,
           invitedById: ctx.user.id,

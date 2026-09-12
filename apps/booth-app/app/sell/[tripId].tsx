@@ -23,7 +23,10 @@ import { IconColors } from "@/constants/ui-colors";
 
 export default function TripSeatScreen() {
   const { t } = useTranslation();
-  const { tripId } = useLocalSearchParams<{ tripId: string }>();
+  const { tripId, destinationTerminalId } = useLocalSearchParams<{
+    tripId: string;
+    destinationTerminalId?: string;
+  }>();
   const trpc = useTRPC();
   const terminal = useSessionStore((s) => s.terminal);
 
@@ -84,13 +87,18 @@ export default function TripSeatScreen() {
       (s) => s.seatId === selectedSeatId,
     );
 
+    const resolvedDestId =
+      destinationTerminalId ||
+      sellSession.destinationTerminalId ||
+      "";
+
     setTrip(tripId, isIntercity);
     setSeat(
       selectedSeatId,
       selectedTripSeat ? selectedTripSeat.tripSeatId : null,
     );
     setFare(seatMap.priceXOF);
-    setTerminals(terminal.id, "");
+    setTerminals(terminal.id, resolvedDestId);
 
     router.push({
       pathname: "/sell/passenger",
@@ -98,6 +106,7 @@ export default function TripSeatScreen() {
         tripId,
         seatId: selectedSeatId ?? "",
         tripSeatId: selectedTripSeat?.tripSeatId ?? "",
+        destinationTerminalId: resolvedDestId,
         isIntercity: String(isIntercity),
       },
     });

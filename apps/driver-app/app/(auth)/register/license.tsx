@@ -297,7 +297,7 @@ export default function RegisterStep2LicenseScreen() {
 									) : (
 										<View className="w-full h-full bg-card items-center justify-center gap-1">
 											<HugeiconsIcon icon={CheckmarkCircle02Icon} size={24} color={colors.semantic.success} />
-											<Text className="text-[10px] font-bold text-success">{t("photoFrontUploaded", "Recto enregistré")}</Text>
+											<Text className="text-[11px] font-bold text-success">{t("photoFrontUploaded", "Recto enregistré")}</Text>
 										</View>
 									)}
 									<View className="absolute top-1.5 right-1.5 bg-card rounded-full p-1">
@@ -328,7 +328,7 @@ export default function RegisterStep2LicenseScreen() {
 									) : (
 										<View className="w-full h-full bg-card items-center justify-center gap-1">
 											<HugeiconsIcon icon={CheckmarkCircle02Icon} size={24} color={colors.semantic.success} />
-											<Text className="text-[10px] font-bold text-success">{t("photoBackUploaded", "Verso enregistré")}</Text>
+											<Text className="text-[11px] font-bold text-success">{t("photoBackUploaded", "Verso enregistré")}</Text>
 										</View>
 									)}
 									<View className="absolute top-1.5 right-1.5 bg-card rounded-full p-1">

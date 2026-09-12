@@ -100,6 +100,7 @@ export default function SellTab() {
           }
           renderItem={({ item }) => {
             const destStop = item.tripStops.find((s) => s.isDropoff);
+            const destTerminalId = destStop?.terminalId ?? "";
             const destName =
               destStop?.terminal?.cityRelation?.name ??
               destStop?.terminal?.name ??
@@ -116,7 +117,10 @@ export default function SellTab() {
                   BoothFeedback.tap();
                   router.push({
                     pathname: "/sell/[tripId]",
-                    params: { tripId: item.id },
+                    params: {
+                      tripId: item.id,
+                      destinationTerminalId: destTerminalId,
+                    },
                   });
                 }}
               >

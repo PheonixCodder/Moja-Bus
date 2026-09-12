@@ -1,80 +1,34 @@
-import type React from "react";
-import { useState } from "react";
-import { Text, TextInput, type TextInputProps, View } from "react-native";
-import { colors } from "@/constants/theme";
+import { Platform, TextInput } from "react-native";
 import { cn } from "@/lib/utils";
 
-export interface InputProps extends TextInputProps {
-  label?: string;
-  error?: string;
-  hint?: string;
-  leftIcon?: React.ReactNode;
-  rightIcon?: React.ReactNode;
-  containerClassName?: string;
+function Input({
+	className,
+	...props
+}: React.ComponentProps<typeof TextInput> & React.RefAttributes<TextInput>) {
+	return (
+		<TextInput
+			className={cn(
+				"border-input bg-background text-foreground flex min-h-12 h-12 w-full min-w-0 flex-row items-center rounded-xl border px-3.5 py-2 text-base leading-5 shadow-sm shadow-black/5",
+				props.editable === false &&
+					cn(
+						"opacity-50",
+						Platform.select({
+							web: "disabled:pointer-events-none disabled:cursor-not-allowed",
+						}),
+					),
+				Platform.select({
+					web: cn(
+						"placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground outline-none transition-[color,box-shadow] md:text-sm",
+						"focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+						"aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+					),
+					native: "placeholder:text-muted-foreground/50",
+				}),
+				className,
+			)}
+			{...props}
+		/>
+	);
 }
 
-export function Input({
-  label,
-  error,
-  hint,
-  leftIcon,
-  rightIcon,
-  className,
-  containerClassName,
-  onFocus,
-  onBlur,
-  placeholderTextColor,
-  ...props
-}: InputProps) {
-  const [isFocused, setIsFocused] = useState(false);
-
-  return (
-    <View className={cn("w-full gap-1.5", containerClassName)}>
-      {label ? (
-        <Text className="text-xs font-bold text-foreground/80 uppercase tracking-wider">
-          {label}
-        </Text>
-      ) : null}
-
-      <View
-        className={cn(
-          "flex-row items-center bg-card border rounded-2xl px-4 h-14",
-          isFocused
-            ? "border-primary bg-card"
-            : error
-              ? "border-destructive"
-              : "border-border",
-          className,
-        )}
-      >
-        {leftIcon ? <View className="mr-2.5">{leftIcon}</View> : null}
-
-        <TextInput
-          placeholderTextColor={
-            placeholderTextColor ?? colors.neutral.textMuted
-          }
-          className="flex-1 text-foreground font-medium text-sm h-full"
-          onFocus={(e) => {
-            setIsFocused(true);
-            onFocus?.(e);
-          }}
-          onBlur={(e) => {
-            setIsFocused(false);
-            onBlur?.(e);
-          }}
-          {...props}
-        />
-
-        {rightIcon ? <View className="ml-2.5">{rightIcon}</View> : null}
-      </View>
-
-      {error ? (
-        <Text className="text-[11px] font-medium text-destructive mt-0.5">
-          {error}
-        </Text>
-      ) : hint ? (
-        <Text className="text-[11px] text-muted-foreground mt-0.5">{hint}</Text>
-      ) : null}
-    </View>
-  );
-}
+export { Input };

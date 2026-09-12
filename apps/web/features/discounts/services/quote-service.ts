@@ -82,6 +82,7 @@ export type CheckoutDiscountParams = {
   seatCount: number;
   convenienceFeeBps: number;
   waiveConvenienceFee?: boolean | undefined;
+  paymentMethod?: "PAYSTACK" | "WALLET" | undefined;
   userId?: string | null | undefined;
   code?: string | undefined;
   autoApply?: boolean | undefined;
@@ -160,6 +161,7 @@ export async function quoteCheckoutDiscounts(
       preDiscountSubtotalXOF,
       convenienceFeeBps: input.convenienceFeeBps,
       waiveConvenienceFee: input.waiveConvenienceFee,
+      paymentMethod: input.paymentMethod,
       userId: input.userId ?? null,
       phone: userRow?.phoneNumber ?? null,
       completedBookingCount,
@@ -431,6 +433,7 @@ export async function refreezeHoldDiscounts(
       seatCount: holdGroup.seatCount,
       convenienceFeeBps: holdGroup.pricingSnapshot?.convenienceFeeBps ?? 250,
       waiveConvenienceFee: input.waiveConvenienceFee ?? false,
+      paymentMethod: input.waiveConvenienceFee ? "WALLET" : "PAYSTACK",
       userId: input.userId,
       code: input.code,
       autoApply: input.autoApply,

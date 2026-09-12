@@ -284,13 +284,13 @@ export default function LoginView() {
 									},
 									input: {
 										color: colors.neutral.textPrimary,
-										fontSize: 16,
+										fontSize: 17,
 										fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
 										backgroundColor: "transparent",
 									},
 									callingCode: {
 										color: colors.neutral.textSecondary,
-										fontSize: 15,
+										fontSize: 16,
 									},
 								}}
 								phoneInputPlaceholderTextColor={colors.neutral.textMuted}
@@ -353,7 +353,7 @@ export default function LoginView() {
 									},
 									pinCodeTextStyle: {
 										color: colors.neutral.textPrimary,
-										fontSize: 20,
+										fontSize: 24,
 										fontWeight: "800",
 										fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
 									},
