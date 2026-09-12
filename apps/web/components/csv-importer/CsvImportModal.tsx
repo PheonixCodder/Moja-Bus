@@ -20,8 +20,7 @@ import {
   RotateCcw,
   Upload,
 } from "lucide-react";
-import { useCallback, useState } from "react";
-import { useDropzone } from "react-dropzone";
+import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import { autoDetectColumnMapping } from "@/lib/csv/fuzzy-matcher";
 import { parseCsv } from "@/lib/csv/parser";
@@ -91,11 +90,8 @@ export function CsvImportModal({
   };
 
   // Process file upload
-  const onDrop = useCallback(
-    (acceptedFiles: File[]) => {
-      const selectedFile = acceptedFiles[0];
-      if (!selectedFile) return;
-
+  const processFile = useCallback(
+    (selectedFile: File) => {
       const reader = new FileReader();
       reader.onload = (e) => {
         const text = e.target?.result as string;
@@ -135,15 +131,37 @@ export function CsvImportModal({
     [config.columns],
   );
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      "text/csv": [".csv"],
-      "text/tab-separated-values": [".tsv"],
-      "text/plain": [".txt"],
-    },
-    maxFiles: 1,
-  });
+  const [isDragActive, setIsDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0];
+    if (selected) {
+      processFile(selected);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragActive(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragActive(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragActive(false);
+    const dropped = e.dataTransfer.files?.[0];
+    if (dropped) {
+      processFile(dropped);
+    }
+  };
 
   const handleDownloadSample = () => {
     const csvContent = generateSampleCsv(config);
@@ -310,14 +328,30 @@ export function CsvImportModal({
 
             {/* Dropzone */}
             <div
-              {...getRootProps()}
-              className={`cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
+              onClick={() => fileInputRef.current?.click()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  fileInputRef.current?.click();
+                }
+              }}
+              tabIndex={0}
+              role="button"
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
                 isDragActive
                   ? "border-primary bg-primary/10"
                   : "border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/20"
               }`}
             >
-              <input {...getInputProps()} />
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values,text/plain"
+                className="hidden"
+                onChange={handleFileChange}
+              />
               <div className="flex flex-col items-center justify-center space-y-2">
                 <div className="rounded-full bg-muted p-3">
                   <Upload className="h-6 w-6 text-muted-foreground" />
