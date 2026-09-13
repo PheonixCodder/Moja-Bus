@@ -16,7 +16,14 @@
       "tooManyAttempts": "Trop de tentatives. Veuillez réessayer plus tard.",
       "errorInvalid": "Code de vérification incorrect",
       "failedToSend": "Échec de l'envoi du code. Vérifiez votre connexion.",
-      "errorNoAccess": "Vous n'avez pas accès au guichet. Contactez votre administrateur."
+      "errorNoAccess": "Vous n'avez pas accès au guichet. Contactez votre administrateur.",
+      "errorNoAccount": "Aucun compte trouvé. Veuillez vous inscrire via votre entreprise.",
+      "errorInvalidRole": "Votre type de compte ne permet pas l'accès au guichet.",
+      "errorAdminNotAllowed": "Les administrateurs ne peuvent pas utiliser l'application de guichet. Veuillez utiliser le tableau de bord web.",
+      "errorNoOperator": "Profil d'opérateur introuvable. Veuillez contacter votre administrateur d'entreprise.",
+      "errorNotBoothEligible": "Votre rôle ne donne pas accès au guichet.",
+      "errorCompanyNotActive": "Votre compte d'entreprise n'est pas actif. Contactez le support Moja Ride.",
+      "errorAccessDenied": "Accès refusé. Veuillez vérifier vos identifiants."
     }
   },
   "terminalSelect": {
@@ -31,14 +38,34 @@
     "tabLabel": "Vente",
     "title": "Voyages du jour",
     "noTrips": "Aucun voyage au départ de ce terminal aujourd'hui",
-    "searchPlaceholder": "Rechercher une destination...",
-    "availableSeats": "{{count}} siège(s) disponible(s)",
+    "searchPlaceholder": "Rechercher une destination, car, quai...",
+    "availableSeats": "{{count}} places disponibles",
     "selectSeat": "Choisir un siège",
     "nextAvailable": "Prochain siège disponible",
     "offlineBanner": "HORS LIGNE — {{count}} siège(s) en réserve",
     "offlineExpired": "Réserve expirée — reconnectez-vous pour continuer les ventes",
     "nextAvailableOffline": "siège(s) disponible(s) en réserve hors ligne",
-    "pickFromPool": "Choisir dans la réserve"
+    "pickFromPool": "Choisir dans la réserve",
+    "soldOut": "Complet",
+    "seatsAvailable": "{{count}} places",
+    "seatsRemaining": "{{count}} restantes",
+    "lastSeats": "Dernières places",
+    "departureIn": "Dans {{time}}",
+    "nextDeparture": "DÉPART IMMINENT",
+    "sellThisTrip": "Vendre ce trajet",
+    "allDestinations": "Tous",
+    "departingSoon": "Départs imminents",
+    "shiftDrawer": "Caisse espèces",
+    "ticketsSold": "Billets vendus",
+    "poolHolds": "Pool hors-ligne",
+    "occupiedSeats": "{{booked}}/{{total}} places",
+    "todaySchedule": "Tous les départs du jour",
+    "noMatchingTrips": "Aucun voyage ne correspond à votre recherche",
+    "tryDifferentSearch": "Essayez une autre recherche ou réinitialisez le filtre.",
+    "checkAgainLater": "Les horaires du jour apparaîtront dès qu'ils seront programmés.",
+    "resetSearch": "Réinitialiser les filtres",
+    "gateLabel": "Quai",
+    "onlineStatus": "En ligne"
   },
   "passenger": {
     "title": "Passager",
@@ -126,6 +153,12 @@
   "offline": {
     "conflictBanner": "{{count}} réservation(s) en conflit — votre responsable a été notifié",
     "pending": "en attente"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Tout marquer comme lu",
+    "emptyTitle": "Aucune notification",
+    "emptySubtitle": "Vous serez averti des alertes de service et des mises à jour de caisse ici."
   },
   "errors": {
     "network": "Erreur réseau. Vérifiez votre connexion.",

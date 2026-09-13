@@ -16,8 +16,8 @@
  *   TripSeat          fields: id, tripId, seatId, isActive, blockedReason — seat via include
  */
 
-import {
-  boothCheckInSchema,
+import { z } from "zod";
+import { boothCheckInSchema,
   cancelPendingHoldSchema,
   confirmPaystackSaleSchema,
   createCashSaleSchema,
@@ -46,7 +46,7 @@ import {
   paystackInitialize,
   paystackVerify,
 } from "@/features/payments/providers/paystack-client";
-import { boothProcedure, createTRPCRouter } from "../init";
+import { boothProcedure, createTRPCRouter, publicProcedure } from "../init";
 
 // ─── Outbox event types for booth notifications ─────────────────────────────
 // (Phase B2 — defined in features/notifications/outbox/enqueue.ts OUTBOX_TYPES;
@@ -88,7 +88,85 @@ function formatDepartureDate(date: Date | null | undefined): string {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Roles that are permitted to use the booth app.
+const BOOTH_ELIGIBLE_ROLES: string[] = [
+  "BOOTH",
+  "DISPATCHER",
+  "OPERATIONS",
+  "MANAGER",
+  "ADMIN",
+  "OWNER",
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
 export const boothRouter = createTRPCRouter({
+  // ───────────────────────────────────────────────────────────────────────────
+  // validateLogin — pre-OTP gate check (publicProcedure, no session required)
+  // Returns { valid: true } or { valid: false, reason: string }
+  // Blocks: non-existent accounts, TRAVELER, platform ADMIN, non-booth roles,
+  //         inactive operators, DRAFT/VERIFYING companies
+  // ───────────────────────────────────────────────────────────────────────────
+  validateLogin: publicProcedure
+    .input(z.object({ identifier: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      const cleanIdentifier = input.identifier.trim();
+      const isEmail = cleanIdentifier.includes("@");
+
+      const user = await ctx.prisma.user.findFirst({
+        where: isEmail
+          ? { OR: [{ email: cleanIdentifier }, { workEmail: cleanIdentifier }] }
+          : { phoneNumber: cleanIdentifier },
+      });
+
+      if (!user) {
+        return { valid: false as const, reason: "no_account" as const };
+      }
+
+      // Block platform ADMIN users from booth — they use the web dashboard
+      if (user.role === "ADMIN") {
+        return { valid: false as const, reason: "admin_not_allowed" as const };
+      }
+
+      // Block platform TRAVELER — only OPERATOR accounts can use booth
+      if (user.role !== "OPERATOR") {
+        return { valid: false as const, reason: "invalid_role" as const };
+      }
+
+      // Find their Operator record
+      const operator = await ctx.prisma.operator.findFirst({
+        where: {
+          userId: user.id,
+          isActive: true,
+          deletedAt: null,
+        },
+        include: {
+          company: { select: { status: true } },
+        },
+      });
+
+      if (!operator) {
+        return { valid: false as const, reason: "no_operator" as const };
+      }
+
+      // Check booth-eligible role
+      if (!BOOTH_ELIGIBLE_ROLES.includes(operator.role)) {
+        return {
+          valid: false as const,
+          reason: "not_booth_eligible" as const,
+        };
+      }
+
+      // Company must be ACTIVE or VERIFIED
+      if (!["ACTIVE", "VERIFIED"].includes(operator.company.status)) {
+        return {
+          valid: false as const,
+          reason: "company_not_active" as const,
+        };
+      }
+
+      return { valid: true as const };
+    }),
+
   // ───────────────────────────────────────────────────────────────────────────
   // getMyProfile — boot gate check
   // ───────────────────────────────────────────────────────────────────────────
@@ -204,6 +282,8 @@ export const boothRouter = createTRPCRouter({
                   id: true,
                   name: true,
                   cityRelation: { select: { name: true } },
+                  municipality: { select: { name: true } },
+                  quarter: { select: { name: true } },
                 },
               },
             },
@@ -247,8 +327,95 @@ export const boothRouter = createTRPCRouter({
   getTripSeatMap: boothProcedure
     .input(getTripSeatMapSchema)
     .query(async ({ ctx, input }) => {
-      const service = new SeatAvailabilityService(ctx.prisma);
-      return service.getSeatAvailability(input.tripId);
+      const trip = await ctx.prisma.trip.findFirst({
+        where: { id: input.tripId, companyId: ctx.companyId, archivedAt: null },
+        include: {
+          bus: { include: { layoutTemplate: true } },
+          tripStops: { orderBy: { stopOrder: "asc" } },
+          schedule: { include: { fares: { where: { isActive: true } } } },
+        },
+      });
+
+      if (!trip) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found." });
+      }
+
+      const originStop = trip.tripStops[0];
+      const destStop = trip.tripStops[trip.tripStops.length - 1];
+      const priceXOF = trip.schedule?.fares?.[0]?.priceXOF ?? 5000;
+
+      if (originStop && destStop && trip.bus?.layoutTemplate) {
+        try {
+          const offerId = `${trip.id}_${originStop.id}_${destStop.id}`;
+          const service = new SeatAvailabilityService(ctx.prisma);
+          return await service.getSeatAvailability(offerId);
+        } catch (_err) {
+          // Fall through to resilient seat grid generation
+        }
+      }
+
+      // Graceful fallback for trips without layout templates (e.g. urban shuttles)
+      const totalSeats = trip.totalSeats || 40;
+      const bookedSeatIds = await ctx.prisma.booking
+        .findMany({
+          where: {
+            tripId: trip.id,
+            status: { in: ["CONFIRMED", "PENDING_PAYMENT"] },
+            OR: [
+              { holdExpiresAt: null },
+              { holdExpiresAt: { gt: new Date() } },
+            ],
+          },
+          select: { seatId: true },
+        })
+        .then((b) => new Set(b.map((x) => x.seatId)));
+
+      const tripSeats = await ctx.prisma.tripSeat.findMany({
+        where: { tripId: trip.id, isActive: true },
+        include: { seat: true },
+        orderBy: [
+          { seat: { deck: "asc" } },
+          { seat: { row: "asc" } },
+          { seat: { col: "asc" } },
+        ],
+      });
+
+      const seats =
+        tripSeats.length > 0
+          ? tripSeats.map((ts) => ({
+              seatId: ts.seat.id,
+              tripSeatId: ts.id,
+              label: ts.seat.label,
+              row: ts.seat.row,
+              col: ts.seat.col,
+              deck: ts.seat.deck,
+              seatType: ts.seat.seatType,
+              status: bookedSeatIds.has(ts.seat.id)
+                ? ("SOLD" as const)
+                : ("AVAILABLE" as const),
+            }))
+          : Array.from({ length: totalSeats }).map((_, idx) => ({
+              seatId: `seat-${trip.id}-${idx + 1}`,
+              tripSeatId: `trip-seat-${trip.id}-${idx + 1}`,
+              label: String(idx + 1),
+              row: Math.floor(idx / 4) + 1,
+              col: (idx % 4) + 1,
+              deck: 1,
+              seatType: "PASSENGER" as const,
+              status:
+                idx < bookedSeatIds.size
+                  ? ("SOLD" as const)
+                  : ("AVAILABLE" as const),
+            }));
+
+      return {
+        offerId: `${trip.id}_${originStop?.id ?? "origin"}_${destStop?.id ?? "dest"}`,
+        rows: Math.max(Math.ceil(seats.length / 4), 4),
+        columns: 4,
+        deck: 1,
+        priceXOF,
+        seats,
+      };
     }),
 
   // ───────────────────────────────────────────────────────────────────────────

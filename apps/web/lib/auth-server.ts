@@ -278,11 +278,18 @@ export const auth = betterAuth({
       sendOTP: async ({ phoneNumber: phone, code }) => {
         await sendAuthOtp({ identifier: phone, otp: code, type: "sign-in" });
       },
-      signUpOnVerification: {
-        getTempEmail: (phone) =>
-          `${phone.replace(/\s+/g, "")}@guest.mojaride.ci`,
-        getTempName: (phone) => `User ${phone}`,
-      },
+      // Phase B2 — disabled for booth-app context via env var.
+      // The validateLogin pre-OTP gate in the booth router prevents
+      // new accounts from being created through the booth login screen.
+      // Only set BOOTH_DISABLE_PHONE_SIGNUP=true when deploying the booth app.
+      signUpOnVerification:
+        process.env["BOOTH_DISABLE_PHONE_SIGNUP"] === "true"
+          ? (false as unknown as any)
+          : ({
+              getTempEmail: (phoneNumber: string) =>
+                `${phoneNumber.replace(/\s+/g, "")}@guest.mojaride.ci`,
+              getTempName: (phoneNumber: string) => `User ${phoneNumber}`,
+            } as unknown as any),
     }),
   ],
 });

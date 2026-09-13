@@ -11,6 +11,8 @@ export interface SellSessionState {
   passengerEmail: string | null;
   passengerPhone: string | null;
   isNewAccount: boolean;
+  originLabel: string | null;
+  destinationLabel: string | null;
   terminalId: string | null;
   destinationTerminalId: string | null;
   fareAmountXOF: number | null;
@@ -27,6 +29,7 @@ export interface SellSessionState {
   }) => void;
   setFare: (amountXOF: number) => void;
   setTerminals: (terminalId: string, destinationTerminalId: string) => void;
+  setRouteLabels: (originLabel: string, destinationLabel: string) => void;
   validateSession: () => {
     valid: boolean;
     errors: string[];
@@ -45,6 +48,8 @@ const initialState = {
   passengerEmail: null,
   passengerPhone: null,
   isNewAccount: false,
+  originLabel: null,
+  destinationLabel: null,
   terminalId: null,
   destinationTerminalId: null,
   fareAmountXOF: null,
@@ -59,6 +64,8 @@ export const useSellSession = create<SellSessionState>((set, get) => ({
   setFare: (amountXOF) => set({ fareAmountXOF: amountXOF }),
   setTerminals: (terminalId, destinationTerminalId) =>
     set({ terminalId, destinationTerminalId }),
+  setRouteLabels: (originLabel, destinationLabel) =>
+    set({ originLabel, destinationLabel }),
   validateSession: () => {
     const s = get();
     const errors: string[] = [];

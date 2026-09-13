@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import { FlatList, Platform, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/button";
+import { SubpageHeader } from "@/components/subpage-header";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -70,6 +71,7 @@ export default function TerminalSelectScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const trpc = useTRPC();
+  const currentTerminal = useSessionStore((s) => s.terminal);
   const setTerminal = useSessionStore((s) => s.setTerminal);
   const [search, setSearch] = useState("");
 
@@ -117,19 +119,14 @@ export default function TerminalSelectScreen() {
     <View
       className="flex-1 bg-background"
       style={{
-        paddingTop: Math.max(insets.top, 16),
         paddingBottom: Math.max(insets.bottom, 16),
       }}
     >
-      {/* Header */}
-      <View className="px-6 pt-3 pb-3">
-        <Text className="font-heading text-2xl font-bold text-foreground tracking-tight">
-          {t("terminalSelect.title")}
-        </Text>
-        <Text className="text-muted-foreground text-sm font-medium mt-0.5">
-          {t("terminalSelect.subtitle")}
-        </Text>
-      </View>
+      <SubpageHeader
+        title={t("terminalSelect.title")}
+        subtitle={t("terminalSelect.subtitle")}
+        hideBack={!currentTerminal?.id}
+      />
 
       {/* Search Input */}
       <View className="px-6 mb-3">

@@ -6,6 +6,29 @@ Last updated: 2026-09-06 (Phase 9 preset b20te54eby — maia + taupe, Moja pink 
 
 ## State
 
+- **🏁 BOOTH APP HEADERS, GEOGRAPHIC HIERARCHY & TRIP SEAT MAP PARITY COMPLETE ✅ (2026-09-13)**:
+  - **Traveler App Parity & Seat Map Selection**:
+    - Identified why `traveler-app` seat map works in production: `booking.getSeatAvailability` expects a composite `offerId` (`${tripId}_${originTripStopId}_${destinationTripStopId}`). The deployed Vercel server crashed with 500 on `booth.getTripSeatMap` because it was called with a raw `tripId`, triggering an unhandled "Invalid offer ID format" exception in `parseOfferId`.
+    - Updated `trip-card.tsx` and `next-departure-card.tsx` to compute `offerId` from the trip's pickup and dropoff stops and pass it through `onSelect` and `router.push`.
+    - Updated `apps/booth-app/app/sell/[tripId].tsx`:
+      1. Primary: Queries `trpc.booking.getSeatAvailability({ offerId })` (matching `traveler-app`), which immediately succeeds on production Vercel!
+      2. Secondary: Queries `trpc.booth.getTripSeatMap({ tripId })`.
+      3. Resilient Fallback: If network queries error or are past cutoff, it constructs an interactive seat grid from cached `TodayTrip` data (from TanStack Query cache) so the cashier is NEVER blocked at the counter.
+      4. Offline mode: Integrates pre-held pool holds seamlessly.
+  - **Geographic Hierarchy & Elimination of "Abidjan → Abidjan"**:
+    - Updated `formatTerminalDisplay` in `apps/booth-app/lib/format-location-label.ts`: for urban trips without explicit commune or quartier metadata, it uses the specific terminal name as primary (e.g. "Gare Plateau → Gare Adjamé") to avoid repeating the city name.
+    - Updated `sell/[tripId].tsx` header subtitle to use `originLabel → destLabel`, correctly reflecting commune and quarter or specific terminals.
+  - **Reusable Headers**:
+    - Built `apps/booth-app/components/page-header.tsx` with automatic safe area padding, title, description, tag/company info, and integrated `<NotificationBell />`.
+    - Enhanced `apps/booth-app/components/subpage-header.tsx` supporting subtitle, custom `onBack`, `hideBack`, and custom action slots.
+    - Adopted `PageHeader` across tabs: `bookings.tsx`, `profile.tsx`, and `index.tsx`.
+    - Adopted `SubpageHeader` across all subpages: `sell/[tripId].tsx`, `sell/passenger.tsx`, `sell/payment.tsx`, `reconcile.tsx`, `terminal-select.tsx`, and `notifications.tsx`.
+  - **Verification & CI Parity**:
+    - Fixed missing `"expo-clipboard": "~57.0.1"` dependency in `apps/booth-app/package.json` which caused CI GitHub Actions failure (`components/paystack-qr.tsx: error TS2307: Cannot find module 'expo-clipboard'`).
+    - Updated `pnpm-lock.yaml` via `pnpm install`.
+    - Monorepo Turborepo typecheck `pnpm exec turbo run typecheck`: **11/11 packages successful (100% clean)**.
+    - `pnpm --filter booth-app run test:i18n` passes 2/2 tests.
+
 - **🏁 BOOTH APP & OPERATOR ECOSYSTEM REMEDIATION COMPLETE ACROSS ALL 6 PHASES ✅ (2026-09-12)**:
   - **Context & Artifacts**:
     - Complete 9-document audit catalog in `context/audits/booth-ecosystem-audit/` (`README.md`, `01-architecture-and-context-map.md`, `02-iam-auth-and-security.md`, `03-trpc-and-api-contracts.md`, `04-schema-and-database.md`, `05-sales-flow-and-offline-engine.md`, `06-design-system-and-hardware.md`, `07-i18n-and-release-readiness.md`, `08-findings-catalog.md`, `09-remediation-roadmap.md`).

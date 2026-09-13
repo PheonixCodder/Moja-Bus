@@ -15,6 +15,7 @@ import { AuthField } from "@/features/auth/components/auth-field";
 import { AuthShell } from "@/features/auth/components/auth-shell";
 import { authClient, refreshSession } from "@/lib/auth-client";
 import { BoothFeedback } from "@/lib/haptics";
+import { getTrpcClient } from "@/lib/trpc";
 
 type AuthStep = "input" | "otp";
 
@@ -67,15 +68,38 @@ function normalizePhoneNumber(raw: string): string {
   return cleaned;
 }
 
+/** Map validateLogin reason strings to user-facing messages */
+function getValidationMessage(
+  reason: string,
+  t: (key: string) => string,
+): string {
+  switch (reason) {
+    case "no_account":
+      return t("auth.login.errorNoAccount");
+    case "invalid_role":
+      return t("auth.login.errorInvalidRole");
+    case "admin_not_allowed":
+      return t("auth.login.errorAdminNotAllowed");
+    case "no_operator":
+      return t("auth.login.errorNoOperator");
+    case "not_booth_eligible":
+      return t("auth.login.errorNotBoothEligible");
+    case "company_not_active":
+      return t("auth.login.errorCompanyNotActive");
+    default:
+      return t("auth.login.errorAccessDenied");
+  }
+}
+
 export default function LoginScreen() {
   const { data: session, isPending: sessionPending } = authClient.useSession();
   const { t } = useTranslation();
-
   const [step, setStep] = useState<AuthStep>("input");
   const [identifier, setIdentifier] = useState("");
   const [method, setMethod] = useState<"phone" | "email">("email");
   const [otp, setOtp] = useState("");
   const [isPending, setIsPending] = useState(false);
+  const [isChecking, setIsChecking] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
   const slideAnim = useRef(new Animated.Value(0)).current;
@@ -129,6 +153,27 @@ export default function LoginScreen() {
       finalIdentifier = normalizePhoneNumber(finalIdentifier);
     } else {
       finalIdentifier = finalIdentifier.toLowerCase();
+    }
+
+    // Pre-OTP validation: check if this identifier is a valid booth operator
+    setIsChecking(true);
+    try {
+      const trpc = getTrpcClient();
+      const result = await trpc.booth.validateLogin.mutate({
+        identifier: finalIdentifier,
+      });
+
+      if (!result.valid) {
+        setMessage(getValidationMessage(result.reason, t));
+        void BoothFeedback.tap();
+        return;
+      }
+    } catch (err) {
+      void BoothFeedback.tap();
+      setMessage(t("auth.login.errorAccessDenied"));
+      return;
+    } finally {
+      setIsChecking(false);
     }
 
     setIsPending(true);
@@ -267,7 +312,7 @@ export default function LoginScreen() {
             <AuthButton
               label={t("auth.login.sendCode")}
               pendingLabel={t("auth.login.sendingCode")}
-              isPending={isPending}
+              isPending={isPending || isChecking}
               onPress={handleSendCode}
             />
           </View>

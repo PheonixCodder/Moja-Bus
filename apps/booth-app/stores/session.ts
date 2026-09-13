@@ -82,3 +82,7 @@ export const selectCashierName = (state: SessionState): string =>
 
 export const selectCompanyName = (state: SessionState): string =>
   state.profile?.companyName ?? "Moja Ride";
+
+export const selectOperatorProfile = (
+  state: SessionState,
+): OperatorProfile | null => state.profile;

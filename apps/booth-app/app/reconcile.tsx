@@ -25,6 +25,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SubpageHeader } from "@/components/subpage-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -91,45 +92,34 @@ export default function ReconcileScreen() {
   }
 
   return (
-    <View
-      className="flex-1 bg-background"
-      style={{
-        paddingTop: Math.max(insets.top, 16),
-      }}
-    >
-      {/* Top App Bar */}
-      <View className="flex-row items-center justify-between px-6 pt-3 pb-4 border-b border-border">
-        <View>
-          <Text className="font-heading text-2xl font-bold text-foreground tracking-tight">
-            {t("reconcile.title")}
-          </Text>
-          <Text className="text-muted-foreground text-xs mt-0.5">
-            {format(new Date(), "d MMMM yyyy", { locale })} ·{" "}
-            {terminal?.name ?? ""}
-          </Text>
-        </View>
-        <Pressable
-          className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary active:opacity-75"
-          onPress={() => {
-            if (isFetching) return;
-            BoothFeedback.tap();
-            void refetch();
-          }}
-        >
-          {isFetching ? (
-            <ActivityIndicator size="small" color={IconColors.brand} />
-          ) : (
-            <HugeiconsIcon
-              icon={RefreshIcon}
-              size={14}
-              color={IconColors.muted}
-            />
-          )}
-          <Text className="text-xs font-semibold text-secondary-foreground">
-            {isFetching ? t("reconcile.refreshing") : t("reconcile.refresh")}
-          </Text>
-        </Pressable>
-      </View>
+    <View className="flex-1 bg-background">
+      <SubpageHeader
+        title={t("reconcile.title")}
+        subtitle={`${format(new Date(), "d MMMM yyyy", { locale })} · ${terminal?.name ?? ""}`}
+        rightAction={
+          <Pressable
+            className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/60 border border-border/70 active:opacity-75"
+            onPress={() => {
+              if (isFetching) return;
+              BoothFeedback.tap();
+              void refetch();
+            }}
+          >
+            {isFetching ? (
+              <ActivityIndicator size="small" color={IconColors.brand} />
+            ) : (
+              <HugeiconsIcon
+                icon={RefreshIcon}
+                size={14}
+                color={IconColors.muted}
+              />
+            )}
+            <Text className="text-xs font-semibold text-secondary-foreground">
+              {isFetching ? t("reconcile.refreshing") : t("reconcile.refresh")}
+            </Text>
+          </Pressable>
+        }
+      />
 
       {/* Body */}
       {isPending || !data ? (
