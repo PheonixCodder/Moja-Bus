@@ -26,6 +26,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -144,16 +145,11 @@ export default function ProfileTab() {
     : "OP";
 
   return (
-    <View
-      className="flex-1 bg-background"
-      style={{ paddingTop: Math.max(insets.top, 16) }}
-    >
-      {/* Header */}
-      <View className="px-6 pt-3 pb-4 border-b border-border">
-        <Text className="font-heading text-2xl font-bold text-foreground tracking-tight">
-          {t("profile.tabLabel")}
-        </Text>
-      </View>
+    <View className="flex-1 bg-background">
+      <PageHeader
+        title={t("profile.tabLabel")}
+        description={`${profile?.companyName ?? "Moja Ride"} · ${terminal?.name ?? "Guichet"}`}
+      />
 
       <ScrollView
         className="flex-1"

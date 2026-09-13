@@ -32,8 +32,15 @@ export default function ConfirmationScreen() {
   const passengerName = useSellSession((s) => s.passengerName);
   const seatId = useSellSession((s) => s.seatId);
   const fareAmountXOF = useSellSession((s) => s.fareAmountXOF ?? 0);
+  const originLabel = useSellSession((s) => s.originLabel);
+  const destinationLabel = useSellSession((s) => s.destinationLabel);
   const resetSellSession = useSellSession((s) => s.reset);
   const [printing, setPrinting] = useState(false);
+
+  const routeString =
+    originLabel && destinationLabel
+      ? `${originLabel} → ${destinationLabel}`
+      : `${useSessionStore.getState().terminal?.name ?? "Départ"} → Arrivée`;
 
   useEffect(() => {
     void BoothFeedback.paymentSuccess();
@@ -47,13 +54,12 @@ export default function ConfirmationScreen() {
 
   async function handleShare() {
     void BoothFeedback.lightTap();
-    const session = useSessionStore.getState();
     const sellSession = useSellSession.getState();
     const reference = bookingId?.slice(0, 8) ?? "MJ-TICKET";
     const message = [
       `🎟️ Billet Moja Ride — Réf: #${reference}`,
       `Passager : ${sellSession.passengerName ?? "Passager"}`,
-      `Trajet : ${session.terminal?.name ?? "Départ"} → Arrivée`,
+      `Trajet : ${routeString}`,
       `Siège : ${sellSession.seatId ?? "Non spécifié"}`,
       `Montant : ${(sellSession.fareAmountXOF ?? 0).toLocaleString("fr-CI")} XOF`,
       `Statut : ${isOffline === "true" ? "Payé en espèces (hors ligne)" : "Confirmé"}`,
@@ -76,7 +82,7 @@ export default function ConfirmationScreen() {
       const res = await printTicket({
         passengerName: sellSession.passengerName ?? "Passager",
         bookingReference: bookingId?.slice(0, 8) ?? "MJ-TICKET",
-        route: `${session.terminal?.name ?? "Départ"} → Arrivée`,
+        route: routeString,
         departureDate: new Date().toLocaleDateString("fr-FR"),
         seatLabel: sellSession.seatId ?? null,
         amountXOF: sellSession.fareAmountXOF ?? 0,
@@ -178,6 +184,17 @@ export default function ConfirmationScreen() {
             </View>
           ) : null}
         </View>
+
+        {originLabel && destinationLabel ? (
+          <View className="py-2 border-t border-border/40">
+            <Text className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+              Trajet
+            </Text>
+            <Text className="text-sm font-bold text-foreground mt-0.5">
+              {originLabel} → {destinationLabel}
+            </Text>
+          </View>
+        ) : null}
 
         <View className="pt-3 border-t border-border/50 flex-row items-center justify-between">
           <Text className="text-xs text-muted-foreground uppercase font-semibold">

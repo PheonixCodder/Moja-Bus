@@ -17,6 +17,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PaystackQR } from "@/components/paystack-qr";
+import { SubpageHeader } from "@/components/subpage-header";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { IconColors } from "@/constants/ui-colors";
@@ -240,44 +241,23 @@ export default function PaymentScreen() {
   }
 
   return (
-    <View
-      style={{ paddingTop: Math.max(insets.top, 16) }}
-      className="flex-1 bg-background"
-    >
-      {/* Top Header Bar */}
-      <View className="flex-row items-center px-5 pb-4 gap-3 border-b border-border/60">
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessibilityLabel="Retour"
-          className="w-11 h-11 rounded-2xl bg-card border border-border items-center justify-center active:bg-muted"
-          onPress={() => {
-            void BoothFeedback.tap();
-            if (mode === "paystack") {
-              setMode("select");
-              setPaystackData(null);
-            } else {
-              router.back();
-            }
-          }}
-        >
-          <HugeiconsIcon
-            icon={ArrowLeft01Icon}
-            size={20}
-            color={IconColors.default}
-          />
-        </TouchableOpacity>
-
-        <View className="flex-1">
-          <Text className="font-heading text-xl font-bold text-foreground">
-            {t("payment.title")}
-          </Text>
-          <Text className="text-muted-foreground text-xs font-medium mt-0.5">
-            Étape 3 sur 3 · Encaissement
-          </Text>
-        </View>
-
-        {!isOnline ? <Badge variant="offline" label="Mode Hors-Ligne" /> : null}
-      </View>
+    <View className="flex-1 bg-background">
+      <SubpageHeader
+        title={t("payment.title")}
+        subtitle="Étape 3 sur 3 · Encaissement"
+        onBack={() => {
+          void BoothFeedback.tap();
+          if (mode === "paystack") {
+            setMode("select");
+            setPaystackData(null);
+          } else {
+            router.back();
+          }
+        }}
+        rightAction={
+          !isOnline ? <Badge variant="offline" label="Mode Hors-Ligne" /> : undefined
+        }
+      />
 
       {mode === "select" ? (
         <View className="flex-1 px-5 pt-5 gap-5">

@@ -16,7 +16,14 @@
       "tooManyAttempts": "Too many attempts. Please try again later.",
       "errorInvalid": "Invalid verification code",
       "failedToSend": "Failed to send code. Please check your connection.",
-      "errorNoAccess": "No booth access for this user. Contact your administrator."
+      "errorNoAccess": "No booth access for this user. Contact your administrator.",
+      "errorNoAccount": "No account found. Please sign up through your company.",
+      "errorInvalidRole": "Your account type does not allow booth access.",
+      "errorAdminNotAllowed": "Administrators cannot use the booth app. Please use the web dashboard.",
+      "errorNoOperator": "Operator profile not found. Please contact your company administrator.",
+      "errorNotBoothEligible": "Your role does not have booth access.",
+      "errorCompanyNotActive": "Your company account is not active. Contact Moja Ride support.",
+      "errorAccessDenied": "Access denied. Please verify your credentials."
     }
   },
   "terminalSelect": {
@@ -31,14 +38,34 @@
     "tabLabel": "Sell",
     "title": "Today's Trips",
     "noTrips": "No trips scheduled for today",
-    "searchPlaceholder": "Search trips...",
-    "availableSeats": "{available} / {total} seats",
+    "searchPlaceholder": "Search destination, bus, gate...",
+    "availableSeats": "{{count}} seats available",
     "selectSeat": "Select Seat",
     "nextAvailable": "Next available trip",
     "offlineBanner": "Offline — {{count}} seat(s) in pool",
     "offlineExpired": "Offline pool expired — reconnect to continue sales",
     "nextAvailableOffline": "seat(s) available in offline pool",
-    "pickFromPool": "Pick from pool"
+    "pickFromPool": "Pick from pool",
+    "soldOut": "Sold Out",
+    "seatsAvailable": "{{count}} seats",
+    "seatsRemaining": "{{count}} left",
+    "lastSeats": "Last seats",
+    "departureIn": "In {{time}}",
+    "nextDeparture": "DEPARTING SOON",
+    "sellThisTrip": "Sell this trip",
+    "allDestinations": "All",
+    "departingSoon": "Departing soon",
+    "shiftDrawer": "Cash drawer",
+    "ticketsSold": "Tickets sold",
+    "poolHolds": "Offline pool",
+    "occupiedSeats": "{{booked}}/{{total}} seats",
+    "todaySchedule": "Today's schedule",
+    "noMatchingTrips": "No trips match your search",
+    "tryDifferentSearch": "Try another search or reset your filter.",
+    "checkAgainLater": "Today's departures will appear once scheduled.",
+    "resetSearch": "Reset filters",
+    "gateLabel": "Gate",
+    "onlineStatus": "Online"
   },
   "passenger": {
     "title": "Passenger",
@@ -126,6 +153,12 @@
   "offline": {
     "conflictBanner": "{{count}} intercity seat conflict(s) — notified to management",
     "pending": "pending sync"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "emptyTitle": "No notifications yet",
+    "emptySubtitle": "You will be alerted about service alerts and register updates here."
   },
   "errors": {
     "network": "Network error — check your connection",

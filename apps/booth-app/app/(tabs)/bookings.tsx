@@ -25,6 +25,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { OfflineBanner } from "@/components/offline-banner";
+import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -195,21 +196,13 @@ export default function BookingsTab() {
   );
 
   return (
-    <View
-      className="flex-1 bg-background"
-      style={{ paddingTop: Math.max(insets.top, 16) }}
-    >
+    <View className="flex-1 bg-background">
       <OfflineBanner />
 
-      {/* Header */}
-      <View className="px-6 pt-3 pb-3">
-        <Text className="font-heading text-2xl font-bold text-foreground tracking-tight">
-          {t("bookings.title")}
-        </Text>
-        <Text className="text-muted-foreground text-sm font-medium mt-0.5">
-          {todayDate} · {terminalName}
-        </Text>
-      </View>
+      <PageHeader
+        title={t("bookings.title")}
+        description={`${todayDate} · ${terminalName}`}
+      />
 
       {/* Filter Tabs */}
       <View className="flex-row px-6 gap-2 mb-3">
