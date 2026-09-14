@@ -2946,12 +2946,14 @@ export const adminRouter = createTRPCRouter({
         input.action === "APPROVE" &&
         !driver.licenseFrontUrl &&
         !driver.licenseBackUrl &&
-        !driver.medicalDocUrl
+        !driver.medicalDocUrl &&
+        !driver.cacrFrontUrl &&
+        !driver.cacrBackUrl
       ) {
         throw new TRPCError({
           code: "PRECONDITION_FAILED",
           message:
-            "Attach at least one compliance document (licence or medical) before approving this driver.",
+            "Attach at least one compliance document (licence, CACR, or medical) before approving this driver.",
         });
       }
 

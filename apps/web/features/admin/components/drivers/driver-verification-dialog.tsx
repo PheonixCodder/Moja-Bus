@@ -146,7 +146,10 @@ export function DriverVerificationDialog({
               </p>
               <div className="flex items-center gap-3 mt-1.5">
                 <span className="text-xs font-semibold px-2 py-0.5 rounded bg-primary/10 text-primary font-mono">
-                  Class {driver.licenseCategory} Commercial
+                  {driver.licenseCategories && driver.licenseCategories.length > 0
+                    ? `Classes ${driver.licenseCategories.join(", ")}`
+                    : `Class ${driver.licenseCategory}`}{" "}
+                  Commercial
                 </span>
                 <span className="text-xs text-muted-foreground flex items-center gap-1">
                   <Award className="size-3.5" /> {driver.yearsOfExperience}{" "}
@@ -190,6 +193,24 @@ export function DriverVerificationDialog({
             </div>
           </div>
 
+          {driver.cacrNumber && (
+            <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 space-y-2">
+              <span className="text-xs font-semibold uppercase text-primary">
+                CACR Certification (Heavy / Bus)
+              </span>
+              <p className="text-base font-mono font-bold text-foreground flex items-center gap-2">
+                <CreditCard className="size-4 text-muted-foreground" />
+                {driver.cacrNumber}
+              </p>
+              {driver.cacrExpiryDate && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Calendar className="size-3.5" />
+                  Expires: {new Date(driver.cacrExpiryDate).toLocaleDateString()}
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Document Previews — Phase-2 audit: on-demand presigned rendering
               via <DriverDocPreview>; the medical certificate now previews too
               (it always gated approval but was never visible). */}
@@ -220,6 +241,24 @@ export function DriverVerificationDialog({
                 label="Medical Certificate"
                 storedValue={driver.medicalDocUrl ?? null}
               />
+              {driver.cacrFrontUrl && (
+                <DriverDocPreview
+                  audience="admin"
+                  driverProfileId={driver.id}
+                  docType="driver-cacr-front"
+                  label="CACR (Front)"
+                  storedValue={driver.cacrFrontUrl}
+                />
+              )}
+              {driver.cacrBackUrl && (
+                <DriverDocPreview
+                  audience="admin"
+                  driverProfileId={driver.id}
+                  docType="driver-cacr-back"
+                  label="CACR (Back)"
+                  storedValue={driver.cacrBackUrl}
+                />
+              )}
             </div>
           </div>
 

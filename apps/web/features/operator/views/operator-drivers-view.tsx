@@ -358,9 +358,20 @@ export function OperatorDriversView() {
                         </span>
                         <span>•</span>
                         <span className="font-mono font-medium">
-                          Lic: {driver.licenseNumber} (Class{" "}
-                          {driver.licenseCategory})
+                          Lic: {driver.licenseNumber} (
+                          {driver.licenseCategories && driver.licenseCategories.length > 0
+                            ? `Class ${driver.licenseCategories.join("/")}`
+                            : `Class ${driver.licenseCategory}`}
+                          )
                         </span>
+                        {driver.cacrNumber && (
+                          <>
+                            <span>•</span>
+                            <span className="text-[11px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">
+                              CACR
+                            </span>
+                          </>
+                        )}
                         <span>•</span>
                         <span className="inline-flex items-center gap-1 text-warning font-semibold">
                           <Star className="size-3 fill-warning" />

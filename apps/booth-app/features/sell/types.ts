@@ -47,6 +47,7 @@ export interface TodayTrip {
   schedule?: TripSchedule | null;
   bus?: TripBus | null;
   tripStops: TripStop[];
+  isClosed?: boolean;
 }
 
 export type DestinationFilter = "ALL" | "IMMINENT" | string;

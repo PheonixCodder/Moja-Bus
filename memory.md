@@ -6,6 +6,78 @@ Last updated: 2026-09-06 (Phase 9 preset b20te54eby — maia + taupe, Moja pink 
 
 ## State
 
+- **🏁 DRIVER ONBOARDING REFACTOR, MULTI-LICENSE CATEGORIES & CACR COMPLIANCE COMPLETE ✅ (2026-09-13)**:
+  - **Loop Bug Resolution & Server-Persisted Onboarding Progress (`apps/driver-app`, `packages/db`, `apps/web`)**:
+    - **Root Cause Identified**:
+      1. Better Auth assigns `user.role = "TRAVELER"` on phone OTP signup. `apps/driver-app/app/index.tsx` was immediately rejecting non-driver roles and calling `signOut()`.
+      2. In `status.tsx`, a 350ms `setTimeout` called `store.reset()`. This wiped the Zustand store while previous screens were unmounting; `useWizardGuard` on `carrier.tsx` detected empty fields and fired `router.replace("/register")`, causing an infinite 1-2-3-4-1-2... loop.
+      3. `useWizardGuard` relied strictly on asynchronous client-side `AsyncStorage` Zustand rehydration with zero server-backed step tracking.
+    - **Architecture Implemented**:
+      - Created `DriverOnboarding` table in Postgres (`model DriverOnboarding` with `DriverOnboardingStep` enum: `PERSONAL`, `LICENSE`, `DOCUMENTS`, `CARRIER`, `COMPLETED`).
+      - Created Prisma migration `20260913120000_driver_onboarding_multi_license_cacr` with backfill.
+      - Added `getOnboardingProgress` and `saveOnboardingStep` tRPC procedures to `apps/web/trpc/routers/drivers.ts`.
+      - Updated `index.tsx` and `login.tsx` in `apps/driver-app` to check onboarding progress: users with active driver onboarding are allowed through and routed to their authoritative server step.
+      - Updated `register/index.tsx`, `register/license.tsx`, and `register/documents.tsx` to persist draft state to server on each step and hydrate state upon reload.
+      - Removed the destructive `store.reset()` timeout in `status.tsx`.
+  - **Multi-License Categories Support (`B`, `C`, `D`, `E`)**:
+    - Added `licenseCategories LicenseCategory[] @default([D])` to `DriverProfile`.
+    - Drivers can hold multiple commercial and non-commercial categories simultaneously (minimum 1 required).
+    - Updated schemas (`createDriverSchema`, `driverSelfRegisterSchema`, `updateDriverSchema`) with `licenseCategories: z.array(LicenseCategorySchema).min(1).default(["D"])`.
+    - Updated `licenseMeetsRequirement(driverLicense: string | string[], required)` to support category arrays.
+    - Updated `apps/driver-app/app/(auth)/register/license.tsx` with multi-select category toggles.
+    - Updated `AddDriverModal` in `apps/web` with multi-category selector pills.
+    - Updated trip assignment logic in `apps/web/trpc/routers/trips.ts` and `drivers.ts` (`listAssignableDrivers`) to check all held categories.
+    - Updated Operator and Admin driver tables/dialogs (`admin-driver-verifications-view.tsx`, `operator-drivers-view.tsx`, `driver-detail-view.tsx`, `verify-driver-dialog.tsx`, `driver-verification-dialog.tsx`) to display held classes (e.g. `Classes B/D/E`).
+  - **CACR (Certificat d'Aptitude de Conducteur Routier) Compliance**:
+    - Added `cacrNumber`, `cacrExpiryDate`, `cacrFrontUrl`, `cacrBackUrl` to `DriverProfile`.
+    - Enforced mandatory 2-sided document capture (Recto & Verso) + serial number + future expiry date for drivers holding commercial heavy/bus categories (`C`, `D`, `E`). Bypassed if driver only holds category `B`.
+    - Added `"driver-cacr-front"` and `"driver-cacr-back"` to `DriverDocType`, `DriverDocPurpose`, and storage segment paths (`documents/drivers/[userId]/cacr-front/`, `cacr-back/`).
+    - Added CACR photo capture in `apps/driver-app/app/(auth)/register/documents.tsx`.
+    - Added CACR uploads and inputs in Operator `AddDriverModal` in `apps/web`.
+    - Added CACR presigned document previews in Operator and Admin verification dialogs (`DriverDocPreview` with `docType="driver-cacr-front"` and `"driver-cacr-back"`).
+    - Enforced CACR compliance checks in `verifyDriver` procedures (precondition to approving verification status) and in trip dispatch (`trips.ts:assignDriver`).
+  - **Verification**:
+    - `pnpm --filter web typecheck`: 0 errors (clean compilation).
+    - `pnpm --filter driver-app typecheck`: 0 errors (clean compilation).
+    - `pnpm --filter driver-app test`: 42/42 tests passed.
+    - `pnpm --filter web exec tsx --test features/driver/lib/__tests__/driver-doc-access.test.ts`: 12/12 tests passed.
+
+- **🏁 BOOTH APP REDESIGN & FINTECH POLISH COMPLETE ✅ (2026-09-13)**:
+  - **Trips List 30-Minute Cutoff & Partitioning (`(tabs)/index.tsx`, `use-sell-trips.ts`, `trip-card.tsx`)**:
+    - Filtered out all trips prior to today's local date (`departureDate < startOfToday`).
+    - Enforced 30-minute booking and boarding cutoff (`diffMinutes < 30 || availableSeats <= 0`).
+    - Partitioned and sorted trips: Approaching bookable trips at the top (sorted ascending by departure time); closed/expired departures moved to the end of the list with dimmed contrast, `closedDeparture` badge ("Départ clôturé"), and disabled selection.
+    - Updated `imminentTrip` spotlight and filter chip to strictly match open bookable trips (30m to 75m).
+  - **Mistouch-Proof Checkout & Live Cash Change Calculator (`app/sell/payment.tsx`)**:
+    - Isolated loading state (`loadingMethod: "cash" | "paystack" | null`) so triggering Cash never causes Mobile Money to show a spinner.
+    - Added Cash Confirmation Modal with passenger and route summary, net amount due in FCFA, interactive quick cash pills for West African CFA banknotes (exact, 5 000, 10 000, 20 000, 50 000), numeric tendered input, and live change computation (`Monnaie à rendre : XX FCFA` or `Montant insuffisant`).
+    - Added Paystack Mobile Money / Card confirmation modal to prevent accidental QR code generation at the counter.
+  - **Bookings Tab Financial Ledger & Inspection Drawer (`(tabs)/bookings.tsx`, `apps/web/trpc/routers/booth.ts`)**:
+    - Replaced raw ISO dates with localized dates (`Aujourd'hui, 13 sept. 2026 · [Terminal]`).
+    - Rebuilt financial balance KPI cards with live XOF amounts and count badges for both Cash and Mobile sales.
+    - Replaced disjointed circular filter with an inset segmented control (`Toutes`, `Espèces`, `Mobile`).
+    - Redesigned transaction rows into modern banking ledger rows with passenger initials avatars, monospace booking references (`MJ-XXXXXX`), timestamps, and bold monetary badges.
+    - **Customer Inspection Drawer**: Added a comprehensive bottom-sheet drawer when tapping any booking card. Displays:
+      - Passenger full name, phone number, email, and verification status (differentiating passengers with identical names).
+      - Booking reference with one-tap copy button (`expo-clipboard`) and haptic feedback.
+      - Trip route (`origin → destination`), scheduled departure date & time, assigned seat number, bus registration plate, and boarding gate.
+      - Total amount paid, payment method pill, staff cashier name, and confirmation timestamp.
+      - **Thermal Receipt Reprint**: Direct reprint action (`printTicket(...)`) on paired Bluetooth thermal printer.
+  - **Android TextInput Crash Resolution (`app/sell/payment.tsx`)**:
+    - Resolved `Error while updating property 'fontFamily' of a view managed by: AndroidTextInput (ReadableNativeArray cannot be cast to java.lang.String)` by removing font-family class tokens (`font-heading font-black`) from the numeric tendered `TextInput`.
+  - **Safe Area & Layout Geometry Parity (`(tabs)/profile.tsx`, `(tabs)/bookings.tsx`)**:
+    - Aligned spacing with `(tabs)/index.tsx`: 20px uniform horizontal gutters (`paddingHorizontal: 20`) replacing uneven `px-6`.
+    - Added generous dynamic bottom padding (`insets.bottom + 100`) so content (including the logout row and last transactions) comfortably clears the bottom tab bar and Android navigation bars without being clipped.
+  - **Profile Tab Grouped Cards Redesign (`(tabs)/profile.tsx`)**:
+    - Replaced floating isolated pill cards with cohesive inset grouped rounded cards ("Terminal & Matériel", "Opérations Guichet", "Préférences").
+    - Resolved untranslated keys (`reconcile.subtitle` and `profile.printer`) with full parity across `fr.json` and `en.json`.
+    - Added verified Cashier Identity card with initials avatar, `BOOTH` role pill, company chip, and live "En service" status dot.
+    - Replaced oversized red logout button with an inset destructive logout row.
+  - **Verification**:
+    - `pnpm --filter booth-app typecheck`: 0 errors (clean compilation).
+    - `pnpm --filter web typecheck`: 0 errors (clean compilation).
+    - `pnpm --filter booth-app test:i18n`: 2/2 tests passed (100% key parity, 0 mojibake).
+
 - **🏁 BOOTH APP HEADERS, GEOGRAPHIC HIERARCHY & TRIP SEAT MAP PARITY COMPLETE ✅ (2026-09-13)**:
   - **Traveler App Parity & Seat Map Selection**:
     - Identified why `traveler-app` seat map works in production: `booking.getSeatAvailability` expects a composite `offerId` (`${tripId}_${originTripStopId}_${destinationTripStopId}`). The deployed Vercel server crashed with 500 on `booth.getTripSeatMap` because it was called with a raw `tripId`, triggering an unhandled "Invalid offer ID format" exception in `parseOfferId`.
@@ -24,8 +96,9 @@ Last updated: 2026-09-06 (Phase 9 preset b20te54eby — maia + taupe, Moja pink 
     - Adopted `PageHeader` across tabs: `bookings.tsx`, `profile.tsx`, and `index.tsx`.
     - Adopted `SubpageHeader` across all subpages: `sell/[tripId].tsx`, `sell/passenger.tsx`, `sell/payment.tsx`, `reconcile.tsx`, `terminal-select.tsx`, and `notifications.tsx`.
   - **Verification & CI Parity**:
+    - Adapted `PassengerSeatMap` from `traveler-app` to `booth-app` (`apps/booth-app/components/seat-map.tsx` and `apps/booth-app/lib/seat-grid.ts`) with column headers (A, B, C, D), row numbers, and bilingual FRONT OF BUS badge.
+    - Resolved `ReactNativeCss: className ... added or removed a variable after the initial render` warning and fixed the cascaded `Maximum update depth exceeded` infinite loop by adding `will-change-variable`, wrapping `SeatCell` in `React.memo`, memoizing grid/headers, and eliminating dynamic shadow CSS variable thrashing.
     - Fixed missing `"expo-clipboard": "~57.0.1"` dependency in `apps/booth-app/package.json` which caused CI GitHub Actions failure (`components/paystack-qr.tsx: error TS2307: Cannot find module 'expo-clipboard'`).
-    - Updated `pnpm-lock.yaml` via `pnpm install`.
     - Monorepo Turborepo typecheck `pnpm exec turbo run typecheck`: **11/11 packages successful (100% clean)**.
     - `pnpm --filter booth-app run test:i18n` passes 2/2 tests.
 

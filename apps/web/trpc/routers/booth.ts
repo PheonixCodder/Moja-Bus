@@ -1279,11 +1279,40 @@ export const boothRouter = createTRPCRouter({
                 farePaid: true,
                 status: true,
                 checkedInAt: true,
+                seat: {
+                  select: {
+                    id: true,
+                    label: true,
+                  },
+                },
+                user: {
+                  select: {
+                    email: true,
+                    phoneNumber: true,
+                  },
+                },
+                originTripStop: {
+                  select: {
+                    terminal: { select: { name: true } },
+                  },
+                },
+                destinationTripStop: {
+                  select: {
+                    terminal: { select: { name: true } },
+                  },
+                },
                 trip: {
                   select: {
                     id: true,
                     departureDate: true,
                     serviceType: true,
+                    gate: true,
+                    bus: {
+                      select: {
+                        registrationPlate: true,
+                        internalName: true,
+                      },
+                    },
                   },
                 },
               },

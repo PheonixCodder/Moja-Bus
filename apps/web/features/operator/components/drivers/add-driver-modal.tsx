@@ -46,6 +46,17 @@ type AmbiguousBinding = {
   maskedPhone: string;
 };
 
+const LICENSE_CATEGORIES: Array<{
+  category: "B" | "C" | "D" | "E";
+  label: string;
+  desc: string;
+}> = [
+  { category: "B", label: "Class B", desc: "Van / Light (< 3.5T)" },
+  { category: "C", label: "Class C", desc: "Heavy Truck (> 3.5T)" },
+  { category: "D", label: "Class D", desc: "Passenger Bus (> 8 seats)" },
+  { category: "E", label: "Class E", desc: "Articulated Coach / Trailer" },
+];
+
 export function AddDriverModal({ open, onOpenChange }: AddDriverModalProps) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -63,9 +74,13 @@ export function AddDriverModal({ open, onOpenChange }: AddDriverModalProps) {
     front?: { key: string; name: string };
     back?: { key: string; name: string };
   }>({});
-  const [uploadingDoc, setUploadingDoc] = useState<"front" | "back" | null>(
-    null,
-  );
+  const [cacrDocs, setCacrDocs] = useState<{
+    front?: { key: string; name: string };
+    back?: { key: string; name: string };
+  }>({});
+  const [uploadingDoc, setUploadingDoc] = useState<
+    "front" | "back" | "cacrFront" | "cacrBack" | null
+  >(null);
 
   const presignMutation = useMutation(
     trpc.storage.presignUpload.mutationOptions(),
@@ -97,10 +112,48 @@ export function AddDriverModal({ open, onOpenChange }: AddDriverModalProps) {
       setValue(
         side === "front" ? "licenseFrontUrl" : "licenseBackUrl",
         objectKey,
+        { shouldValidate: true },
       );
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Document upload failed",
+      );
+    } finally {
+      setUploadingDoc(null);
+    }
+  };
+
+  const uploadCacrDoc = async (side: "front" | "back", file: File) => {
+    setUploadingDoc(side === "front" ? "cacrFront" : "cacrBack");
+    try {
+      const contentType = file.type || "application/octet-stream";
+      const { uploadUrl, objectKey } = await presignMutation.mutateAsync({
+        purpose:
+          side === "front" ? "driver-cacr-front" : "driver-cacr-back",
+        fileName: file.name,
+        contentType,
+        fileSize: file.size,
+      });
+      const put = await fetch(uploadUrl, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": contentType },
+      });
+      if (!put.ok) {
+        throw new Error(`Storage rejected the upload (${put.status})`);
+      }
+      setCacrDocs((prev) => ({
+        ...prev,
+        [side]: { key: objectKey, name: file.name },
+      }));
+      setValue(
+        side === "front" ? "cacrFrontUrl" : "cacrBackUrl",
+        objectKey,
+        { shouldValidate: true },
+      );
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "CACR upload failed",
       );
     } finally {
       setUploadingDoc(null);
@@ -128,7 +181,9 @@ export function AddDriverModal({ open, onOpenChange }: AddDriverModalProps) {
       phone: "",
       licenseNumber: "",
       licenseCategory: "D",
+      licenseCategories: ["D"],
       licenseExpiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+      cacrNumber: "",
       yearsOfExperience: 3,
       employmentType: "EXCLUSIVE_INTERCITY",
       badgeNumber: "",
@@ -144,6 +199,7 @@ export function AddDriverModal({ open, onOpenChange }: AddDriverModalProps) {
       setBindingConflict(null);
       setAmbiguousBinding(null);
       setLicenseDocs({});
+      setCacrDocs({});
       setHandoff({
         phone: variables.phone,
         accountCreated: result.accountCreated,
@@ -220,11 +276,31 @@ export function AddDriverModal({ open, onOpenChange }: AddDriverModalProps) {
     setBindingConflict(null);
     setAmbiguousBinding(null);
     setLicenseDocs({});
+    setCacrDocs({});
     setHandoff(null);
     onOpenChange(false);
   };
 
-  const selectedCategory = watch("licenseCategory");
+  const selectedCategories = watch("licenseCategories") ?? ["D"];
+  const requiresCacr = selectedCategories.some((c) =>
+    ["C", "D", "E"].includes(c),
+  );
+
+  const toggleCategory = (cat: "B" | "C" | "D" | "E") => {
+    let updated: Array<"B" | "C" | "D" | "E">;
+    if (selectedCategories.includes(cat)) {
+      if (selectedCategories.length === 1) {
+        toast.error("At least one license category is required");
+        return;
+      }
+      updated = selectedCategories.filter((c) => c !== cat);
+    } else {
+      updated = [...selectedCategories, cat];
+    }
+    setValue("licenseCategories", updated, { shouldValidate: true });
+    setValue("licenseCategory", updated[0], { shouldValidate: true });
+  };
+
   const selectedEmployment = watch("employmentType");
 
   return (
@@ -343,7 +419,7 @@ export function AddDriverModal({ open, onOpenChange }: AddDriverModalProps) {
                     Driving License & Credentials
                   </h4>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <Label htmlFor="licenseNumber">License Number *</Label>
                       <Input
@@ -359,34 +435,6 @@ export function AddDriverModal({ open, onOpenChange }: AddDriverModalProps) {
                     </div>
 
                     <div className="space-y-1.5">
-                      <Label>License Class *</Label>
-                      <Select
-                        value={selectedCategory}
-                        onValueChange={(val: any) =>
-                          setValue("licenseCategory", val)
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="B">
-                            Class B (Van / Light)
-                          </SelectItem>
-                          <SelectItem value="C">
-                            Class C (Heavy Truck)
-                          </SelectItem>
-                          <SelectItem value="D">
-                            Class D (Passenger Bus)
-                          </SelectItem>
-                          <SelectItem value="E">
-                            Class E (Articulated Coach)
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-1.5">
                       <Label htmlFor="yearsOfExperience">Years Exp.</Label>
                       <Input
                         id="yearsOfExperience"
@@ -398,6 +446,44 @@ export function AddDriverModal({ open, onOpenChange }: AddDriverModalProps) {
                         })}
                       />
                     </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>License Categories Held * (Select all that apply)</Label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {LICENSE_CATEGORIES.map((item) => {
+                        const isSelected = selectedCategories.includes(item.category);
+                        return (
+                          <button
+                            key={item.category}
+                            type="button"
+                            onClick={() => toggleCategory(item.category)}
+                            className={`p-2.5 rounded-lg border text-left transition-colors flex flex-col justify-between ${
+                              isSelected
+                                ? "border-primary bg-primary/10 text-primary"
+                                : "border-border bg-card text-muted-foreground hover:border-border/80"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-sm text-foreground">
+                                {item.label}
+                              </span>
+                              {isSelected && (
+                                <span className="text-xs font-semibold text-primary">✓</span>
+                              )}
+                            </div>
+                            <span className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">
+                              {item.desc}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {errors.licenseCategories && (
+                      <p className="text-xs text-destructive">
+                        {errors.licenseCategories.message}
+                      </p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -496,6 +582,106 @@ export function AddDriverModal({ open, onOpenChange }: AddDriverModalProps) {
                       driver can be verified.
                     </p>
                   </div>
+
+                  {/* CACR Section for commercial classes C, D, E */}
+                  {requiresCacr && (
+                    <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <h5 className="text-sm font-bold text-foreground">
+                            CACR (Certificat d&apos;Aptitude de Conducteur Routier)
+                          </h5>
+                          <p className="text-xs text-muted-foreground">
+                            Mandatory compliance requirement for commercial categories C, D, and E.
+                          </p>
+                        </div>
+                        <span className="text-[11px] font-bold uppercase tracking-wider bg-primary/15 text-primary px-2 py-0.5 rounded-full">
+                          Required
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="cacrNumber">CACR Serial Number *</Label>
+                          <Input
+                            id="cacrNumber"
+                            placeholder="e.g. CACR-2024-99182"
+                            {...register("cacrNumber")}
+                          />
+                          {errors.cacrNumber && (
+                            <p className="text-xs text-destructive">
+                              {errors.cacrNumber.message}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="cacrExpiryDate">CACR Expiry Date *</Label>
+                          <Input
+                            id="cacrExpiryDate"
+                            type="date"
+                            onChange={(e) =>
+                              setValue(
+                                "cacrExpiryDate",
+                                e.target.value ? new Date(e.target.value) : undefined,
+                                { shouldValidate: true },
+                              )
+                            }
+                          />
+                          {errors.cacrExpiryDate && (
+                            <p className="text-xs text-destructive">
+                              {errors.cacrExpiryDate.message}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {(["front", "back"] as const).map((side) => (
+                            <div key={side} className="space-y-1.5">
+                              <Label htmlFor={`cacr-${side}-input`}>
+                                CACR {side === "front" ? "Recto (Front)" : "Verso (Back)"} *
+                              </Label>
+                              <Input
+                                id={`cacr-${side}-input`}
+                                type="file"
+                                accept="image/*,.pdf"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const f = e.target.files?.[0];
+                                  if (f) void uploadCacrDoc(side, f);
+                                  e.target.value = "";
+                                }}
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                className="w-full justify-start font-normal"
+                                disabled={uploadingDoc !== null}
+                                onClick={() =>
+                                  document
+                                    .getElementById(`cacr-${side}-input`)
+                                    ?.click()
+                                }
+                              >
+                                {uploadingDoc === (side === "front" ? "cacrFront" : "cacrBack")
+                                  ? "Uploading…"
+                                  : cacrDocs[side]
+                                    ? `✓ ${cacrDocs[side]!.name}`
+                                    : "Upload image or PDF"}
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                        {(errors.cacrFrontUrl || errors.cacrBackUrl) && (
+                          <p className="text-xs text-destructive">
+                            {errors.cacrFrontUrl?.message || errors.cacrBackUrl?.message}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="space-y-1.5">
                     <Label htmlFor="notes">Internal Operational Notes</Label>

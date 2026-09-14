@@ -110,6 +110,8 @@ export default function RegisterStep1Screen() {
 		}
 	};
 
+	const saveStep = useMutation(trpc.drivers.saveOnboardingStep.mutationOptions());
+
 	const handleNext = () => {
 		if (!nameInput.trim()) {
 			Alert.alert(t("fieldRequired"), t("fullNameRequiredMsg"));
@@ -128,13 +130,22 @@ export default function RegisterStep1Screen() {
 		}
 
 		DriverFeedback.tap();
-		updateData({
+		const stepData = {
 			fullName: nameInput.trim(),
 			phone: effectivePhone.trim(),
 			yearsOfExperience: parseInt(expInput, 10) || 1,
 			profileSelfieUri: selfieKey || profileSelfieUri,
+		};
+		updateData({
+			...stepData,
 			profileSelfieLocalPreview: selfieUri || profileSelfieLocalPreview,
 			currentStep: 2,
+		});
+
+		saveStep.mutate({
+			step: "PERSONAL",
+			stepData,
+			nextStep: "LICENSE",
 		});
 
 		router.push("/(auth)/register/license");

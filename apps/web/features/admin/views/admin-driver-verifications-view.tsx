@@ -301,12 +301,24 @@ export function AdminDriverVerificationsView() {
                         <CreditCard className="size-3.5 text-muted-foreground" />
                         {driver.licenseNumber}
                       </p>
-                      <Badge
-                        variant="outline"
-                        className="text-xs font-bold px-1.5 py-0"
-                      >
-                        Class {driver.licenseCategory}
-                      </Badge>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <Badge
+                          variant="outline"
+                          className="text-xs font-bold px-1.5 py-0"
+                        >
+                          {driver.licenseCategories && driver.licenseCategories.length > 0
+                            ? `Class ${driver.licenseCategories.join("/")}`
+                            : `Class ${driver.licenseCategory}`}
+                        </Badge>
+                        {driver.cacrNumber && (
+                          <Badge
+                            variant="secondary"
+                            className="text-[10px] font-bold px-1 py-0 bg-primary/10 text-primary border-primary/20"
+                          >
+                            CACR
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </TableCell>
 

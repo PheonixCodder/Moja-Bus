@@ -84,9 +84,16 @@ export default function RegisterStep4CarrierScreen() {
 				phone: store.phone,
 				licenseNumber: store.licenseNumber,
 				licenseCategory: store.licenseCategory,
+				licenseCategories: store.licenseCategories?.length
+					? store.licenseCategories
+					: [store.licenseCategory || "D"],
 				licenseExpiryDate: new Date(store.licenseExpiryDate),
 				licenseFrontUrl: store.licenseFrontUri || undefined,
 				licenseBackUrl: store.licenseBackUri || undefined,
+				cacrNumber: store.cacrNumber || undefined,
+				cacrExpiryDate: store.cacrExpiryDate ? new Date(store.cacrExpiryDate) : undefined,
+				cacrFrontUrl: store.cacrFrontUri || undefined,
+				cacrBackUrl: store.cacrBackUri || undefined,
 				yearsOfExperience: store.yearsOfExperience,
 				selfieUrl: store.profileSelfieUri || undefined,
 				medicalDocUrl: store.medicalDocUri || undefined,

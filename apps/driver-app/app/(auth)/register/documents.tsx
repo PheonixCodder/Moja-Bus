@@ -5,7 +5,7 @@ import {
 	Text,
 	Image,
 	Alert,
-	TouchableOpacity,
+	Pressable,
 } from "react-native";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
@@ -17,6 +17,9 @@ import {
 	SecurityCheckIcon,
 	ArrowRight01Icon,
 	CheckmarkCircle02Icon,
+	Camera01Icon,
+	CreditCardIcon,
+	Calendar01Icon,
 } from "@hugeicons/core-free-icons";
 import { useDriverRegistrationStore } from "@/stores/driver-registration";
 import { useWizardGuard } from "@/hooks/use-wizard-guard";
@@ -36,17 +39,32 @@ export default function RegisterStep3DocumentsScreen() {
 	useWizardGuard(3);
 
 	const {
+		licenseCategory,
+		licenseCategories,
 		nationalIdNumber,
 		medicalDocUri,
 		medicalDocLocalPreview,
+		cacrNumber,
+		cacrExpiryDate,
+		cacrFrontUri,
+		cacrFrontLocalPreview,
+		cacrBackUri,
+		cacrBackLocalPreview,
 		updateData,
 	} = useDriverRegistrationStore();
+
+	const categories = licenseCategories?.length
+		? licenseCategories
+		: [licenseCategory || "D"];
+	const requiresCacr = categories.some((c) => ["C", "D", "E"].includes(c));
 
 	useEffect(() => {
 		updateData({ currentStep: 3 });
 	}, [updateData]);
+
 	const trpc = useTRPC();
 	const presign = useMutation(trpc.storage.presignUpload.mutationOptions());
+	const saveStep = useMutation(trpc.drivers.saveOnboardingStep.mutationOptions());
 
 	const [idInput, setIdInput] = useState(nationalIdNumber);
 	const [medicalUri, setMedicalUri] = useState<string | null>(
@@ -54,6 +72,21 @@ export default function RegisterStep3DocumentsScreen() {
 	);
 	const [medicalKey, setMedicalKey] = useState<string | null>(
 		medicalDocUri?.startsWith("documents/") ? medicalDocUri : null,
+	);
+
+	const [cacrNumberInput, setCacrNumberInput] = useState(cacrNumber || "");
+	const [cacrExpiryInput, setCacrExpiryInput] = useState(cacrExpiryDate || "");
+	const [cacrFrontUriState, setCacrFrontUriState] = useState<string | null>(
+		cacrFrontLocalPreview || (cacrFrontUri && !cacrFrontUri.startsWith("documents/") ? cacrFrontUri : null)
+	);
+	const [cacrBackUriState, setCacrBackUriState] = useState<string | null>(
+		cacrBackLocalPreview || (cacrBackUri && !cacrBackUri.startsWith("documents/") ? cacrBackUri : null)
+	);
+	const [cacrFrontKey, setCacrFrontKey] = useState<string | null>(
+		cacrFrontUri?.startsWith("documents/") ? cacrFrontUri : null,
+	);
+	const [cacrBackKey, setCacrBackKey] = useState<string | null>(
+		cacrBackUri?.startsWith("documents/") ? cacrBackUri : null,
 	);
 
 	const handleCaptureMedical = async () => {
@@ -95,6 +128,57 @@ export default function RegisterStep3DocumentsScreen() {
 		}
 	};
 
+	const handleCaptureCacr = async (side: "front" | "back") => {
+		DriverFeedback.tap();
+		const { status } = await ImagePicker.requestCameraPermissionsAsync();
+		if (status !== "granted") {
+			Alert.alert(t("cameraPermission"), t("cameraPermissionMsg", "Accès à la caméra requis"));
+			return;
+		}
+
+		const result = await ImagePicker.launchCameraAsync({
+			allowsEditing: true,
+			aspect: [4, 3],
+			quality: 0.7,
+		});
+
+		if (!result.canceled && result.assets?.[0]?.uri) {
+			const localUri = result.assets[0].uri;
+			if (side === "front") {
+				setCacrFrontUriState(localUri);
+			} else {
+				setCacrBackUriState(localUri);
+			}
+
+			const storedKey = await uploadCapturedDocument({
+				presign: presign.mutateAsync as never,
+				localUri,
+				fileName: `cacr-${side}.jpg`,
+				purpose: side === "front" ? "driver-cacr-front" : "driver-cacr-back",
+			});
+			if (!storedKey) {
+				Alert.alert(
+					t("selfieUploadFailed"),
+					t("selfieUploadFailedMsg"),
+				);
+				return;
+			}
+			if (side === "front") {
+				setCacrFrontKey(storedKey);
+				updateData({
+					cacrFrontUri: storedKey,
+					cacrFrontLocalPreview: localUri,
+				});
+			} else {
+				setCacrBackKey(storedKey);
+				updateData({
+					cacrBackUri: storedKey,
+					cacrBackLocalPreview: localUri,
+				});
+			}
+		}
+	};
+
 	const handleNext = () => {
 		if (!idInput.trim()) {
 			Alert.alert(t("fieldRequired"), t("cniRequired"));
@@ -108,12 +192,59 @@ export default function RegisterStep3DocumentsScreen() {
 			return;
 		}
 
+		if (requiresCacr) {
+			if (!cacrNumberInput.trim()) {
+				Alert.alert(t("fieldRequired"), t("cacrNumberRequired", "Le numéro de CACR est obligatoire pour votre catégorie de permis."));
+				return;
+			}
+			if (!cacrExpiryInput.trim()) {
+				Alert.alert(t("fieldRequired"), t("cacrExpiryRequired", "La date d'expiration du CACR est obligatoire."));
+				return;
+			}
+
+			const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+			if (!dateRegex.test(cacrExpiryInput.trim())) {
+				Alert.alert(t("invalidDateFormat"), t("invalidDateFormatMsg"));
+				return;
+			}
+
+			const parsedDate = new Date(cacrExpiryInput.trim());
+			if (isNaN(parsedDate.getTime()) || parsedDate.getTime() < Date.now()) {
+				Alert.alert(t("licenseExpired", "Document expiré"), t("cacrExpiredMsg", "La date d'expiration du CACR doit être valide et future."));
+				return;
+			}
+
+			if ((cacrFrontUriState && !cacrFrontKey) || (cacrBackUriState && !cacrBackKey) || (!cacrFrontKey && !cacrFrontUriState) || (!cacrBackKey && !cacrBackUriState)) {
+				Alert.alert(
+					t("photosNotUploaded", "Photos manquantes"),
+					t("cacrPhotosRequiredMsg", "Veuillez photographier le recto et le verso de votre CACR.")
+				);
+				return;
+			}
+		}
+
 		DriverFeedback.tap();
-		updateData({
+		const stepData = {
 			nationalIdNumber: idInput.trim(),
 			medicalDocUri: medicalKey || medicalDocUri,
+			cacrNumber: requiresCacr ? cacrNumberInput.trim() : undefined,
+			cacrExpiryDate: requiresCacr ? cacrExpiryInput.trim() : undefined,
+			cacrFrontUrl: requiresCacr ? (cacrFrontKey || cacrFrontUri) : undefined,
+			cacrBackUrl: requiresCacr ? (cacrBackKey || cacrBackUri) : undefined,
+		};
+
+		updateData({
+			...stepData,
 			medicalDocLocalPreview: medicalUri || medicalDocLocalPreview,
+			cacrFrontLocalPreview: cacrFrontUriState || cacrFrontLocalPreview,
+			cacrBackLocalPreview: cacrBackUriState || cacrBackLocalPreview,
 			currentStep: 4,
+		});
+
+		saveStep.mutate({
+			step: "DOCUMENTS",
+			stepData,
+			nextStep: "CARRIER",
 		});
 
 		router.push("/(auth)/register/carrier");
@@ -162,6 +293,111 @@ export default function RegisterStep3DocumentsScreen() {
 						/>
 					</View>
 				</Card>
+
+				{/* CACR Section (Required for C, D, E categories) */}
+				{requiresCacr && (
+					<Card className="p-5 gap-3">
+						<View className="flex-row items-center justify-between">
+							<Text className="text-base font-extrabold text-foreground tracking-tight">
+								{t("cacrTitle", "Certificat d'Aptitude (CACR)")}
+							</Text>
+							<View className="bg-primary/15 px-2.5 py-1 rounded-full">
+								<Text className="text-xs font-bold text-primary uppercase">
+									{t("cacrRequiredBadge", "Obligatoire (C/D/E)")}
+								</Text>
+							</View>
+						</View>
+						<Text className="text-xs text-muted-foreground leading-5">
+							{t("cacrSubtitle", "Conformément à la réglementation des transports routiers interurbains et poids lourds, le CACR est obligatoire.")}
+						</Text>
+
+						<View className="gap-4 pt-1">
+							<Input
+								label={t("cacrNumberLabel", "Numéro de CACR")}
+								placeholder={t("cacrNumberPlaceholder", "Ex: CACR-2024-XXXXX")}
+								value={cacrNumberInput}
+								onChangeText={setCacrNumberInput}
+								leftIcon={<HugeiconsIcon icon={CreditCardIcon} size={18} color={colors.neutral.textMuted} />}
+							/>
+
+							<Input
+								label={t("cacrExpiryLabel", "Date d'expiration du CACR")}
+								placeholder={t("licenseExpiryPlaceholder", "AAAA-MM-JJ")}
+								value={cacrExpiryInput}
+								onChangeText={setCacrExpiryInput}
+								leftIcon={<HugeiconsIcon icon={Calendar01Icon} size={18} color={colors.neutral.textMuted} />}
+							/>
+						</View>
+
+						<Text className="text-xs font-semibold text-muted-foreground pt-1">
+							{t("cacrPhotosTitle", "Photos du certificat (Recto & Verso)")}
+						</Text>
+
+						<View className="flex-row gap-3">
+							{/* CACR Recto */}
+							<View className="flex-1 gap-1.5">
+								<Text className="text-xs font-semibold text-muted-foreground">{t("photoFront", "Recto")}</Text>
+								{cacrFrontUriState || cacrFrontKey ? (
+									<Pressable
+										onPress={() => handleCaptureCacr("front")}
+										className="relative h-24 rounded-2xl overflow-hidden border border-border"
+									>
+										{cacrFrontUriState ? (
+											<Image source={{ uri: cacrFrontUriState }} className="w-full h-full" />
+										) : (
+											<View className="w-full h-full bg-card items-center justify-center gap-1">
+												<HugeiconsIcon icon={CheckmarkCircle02Icon} size={24} color={colors.semantic.success} />
+												<Text className="text-xs font-bold text-success">{t("photoFrontUploaded", "Recto enregistré")}</Text>
+											</View>
+										)}
+										<View className="absolute top-1.5 right-1.5 bg-card rounded-full p-1">
+											<HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} color={colors.semantic.success} />
+										</View>
+									</Pressable>
+								) : (
+									<Pressable
+										onPress={() => handleCaptureCacr("front")}
+										className="h-24 border-1.5 border-dashed border-border rounded-2xl items-center justify-center bg-background gap-1.5"
+									>
+										<HugeiconsIcon icon={Camera01Icon} size={22} color={colors.primary.rose} />
+										<Text className="text-xs font-bold text-foreground">{t("takeFront", "Photo Recto")}</Text>
+									</Pressable>
+								)}
+							</View>
+
+							{/* CACR Verso */}
+							<View className="flex-1 gap-1.5">
+								<Text className="text-xs font-semibold text-muted-foreground">{t("photoBack", "Verso")}</Text>
+								{cacrBackUriState || cacrBackKey ? (
+									<Pressable
+										onPress={() => handleCaptureCacr("back")}
+										className="relative h-24 rounded-2xl overflow-hidden border border-border"
+									>
+										{cacrBackUriState ? (
+											<Image source={{ uri: cacrBackUriState }} className="w-full h-full" />
+										) : (
+											<View className="w-full h-full bg-card items-center justify-center gap-1">
+												<HugeiconsIcon icon={CheckmarkCircle02Icon} size={24} color={colors.semantic.success} />
+												<Text className="text-xs font-bold text-success">{t("photoBackUploaded", "Verso enregistré")}</Text>
+											</View>
+										)}
+										<View className="absolute top-1.5 right-1.5 bg-card rounded-full p-1">
+											<HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} color={colors.semantic.success} />
+										</View>
+									</Pressable>
+								) : (
+									<Pressable
+										onPress={() => handleCaptureCacr("back")}
+										className="h-24 border-1.5 border-dashed border-border rounded-2xl items-center justify-center bg-background gap-1.5"
+									>
+										<HugeiconsIcon icon={Camera01Icon} size={22} color={colors.primary.rose} />
+										<Text className="text-xs font-bold text-foreground">{t("takeBack", "Photo Verso")}</Text>
+									</Pressable>
+								)}
+							</View>
+						</View>
+					</Card>
+				)}
 
 				<Card className="p-5 gap-3">
 					<View className="flex-row items-center justify-between">

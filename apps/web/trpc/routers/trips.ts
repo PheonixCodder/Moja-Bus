@@ -1844,13 +1844,17 @@ export const tripsRouter = createTRPCRouter({
 
       // License gate — CI ordering B < C < D < E vs the bus type requirement
       const requiredLicense = trip.bus?.busType?.requiredLicenseCategory;
+      const driverCategories =
+        driver.licenseCategories && driver.licenseCategories.length > 0
+          ? driver.licenseCategories
+          : [driver.licenseCategory];
       if (
         requiredLicense &&
-        !licenseMeetsRequirement(driver.licenseCategory, requiredLicense)
+        !licenseMeetsRequirement(driverCategories, requiredLicense)
       ) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: `License mismatch: this bus (${trip.bus?.busType?.name ?? "type"}) requires class ${requiredLicense}; driver holds ${driver.licenseCategory}.`,
+          message: `License mismatch: this bus (${trip.bus?.busType?.name ?? "type"}) requires class ${requiredLicense}; driver holds ${driverCategories.join(", ")}.`,
         });
       }
 
@@ -1862,6 +1866,25 @@ export const tripsRouter = createTRPCRouter({
           code: "BAD_REQUEST",
           message: `Cannot assign driver: their license expires ${driver.licenseExpiryDate ? new Date(driver.licenseExpiryDate).toISOString().slice(0, 10) : "before"} this trip ends (${licenceThrough.toISOString().slice(0, 10)}).`,
         });
+      }
+
+      if (
+        requiredLicense &&
+        ["C", "D", "E"].includes(requiredLicense) &&
+        (!driver.cacrNumber || (driver.cacrExpiryDate && driver.cacrExpiryDate < licenceThrough))
+      ) {
+        if (!driver.cacrNumber) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Cannot assign driver: CACR certification is required for commercial heavy/bus categories.",
+          });
+        }
+        if (driver.cacrExpiryDate && driver.cacrExpiryDate < licenceThrough) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Cannot assign driver: their CACR expires before this trip ends (${licenceThrough.toISOString().slice(0, 10)}).`,
+          });
+        }
       }
 
       // Phase 3 (3.1 / D1) — mode-compatibility guard:

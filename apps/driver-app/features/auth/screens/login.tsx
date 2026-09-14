@@ -198,19 +198,36 @@ export default function LoginView() {
 			// otherwise getCookie() may still return empty right after verify.
 			await ensureAuthCookiesFresh();
 
-			// Smart routing based on driver profile verification status
+			// Smart routing based on driver profile verification status & onboarding progress
 			const trpcClient = getTrpcClient();
-			const statusData = await trpcClient.drivers.getMyVerificationStatus
-				.query()
-				.catch(() => null);
+			const [statusData, onboardingData] = await Promise.all([
+				trpcClient.drivers.getMyVerificationStatus.query().catch(() => null),
+				trpcClient.drivers.getOnboardingProgress.query().catch(() => null),
+			]);
 
 			if (!statusData?.driver) {
+				if (onboardingData?.draftData) {
+					useDriverRegistrationStore
+						.getState()
+						.hydrateFromServer(onboardingData.draftData);
+				}
+				const stepRoutes: Record<string, string> = {
+					PERSONAL: "/(auth)/register",
+					LICENSE: "/(auth)/register/license",
+					DOCUMENTS: "/(auth)/register/documents",
+					CARRIER: "/(auth)/register/carrier",
+				};
+				const currentStep = onboardingData?.currentStep || "PERSONAL";
+				if (currentStep === "COMPLETED") {
+					router.replace("/(auth)/register/status");
+					return;
+				}
+				const target = (stepRoutes[currentStep] || "/(auth)/register") as any;
 				useDriverRegistrationStore.getState().updateData({
 					phone: formattedPhone,
-					currentStep: 1,
 					verifiedAt: new Date().toISOString(),
 				});
-				router.replace("/(auth)/register");
+				router.replace(target);
 				return;
 			}
 

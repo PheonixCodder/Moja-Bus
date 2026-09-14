@@ -52,6 +52,30 @@ export const DRIVER_PAY_MODELS = [
 export type DriverPayModel = (typeof DRIVER_PAY_MODELS)[number];
 export const DriverPayModelSchema = z.enum(DRIVER_PAY_MODELS);
 
+export const DRIVER_ONBOARDING_STEPS = [
+  "PERSONAL",
+  "LICENSE",
+  "DOCUMENTS",
+  "CARRIER",
+  "COMPLETED",
+] as const;
+export type DriverOnboardingStep = (typeof DRIVER_ONBOARDING_STEPS)[number];
+export const DriverOnboardingStepSchema = z.enum(DRIVER_ONBOARDING_STEPS);
+
+export const getDriverOnboardingProgressSchema = z.object({}).optional();
+export type GetDriverOnboardingProgressInput = z.infer<
+  typeof getDriverOnboardingProgressSchema
+>;
+
+export const saveDriverOnboardingStepSchema = z.object({
+  step: DriverOnboardingStepSchema,
+  stepData: z.record(z.string(), z.unknown()),
+  nextStep: DriverOnboardingStepSchema.optional(),
+});
+export type SaveDriverOnboardingStepInput = z.infer<
+  typeof saveDriverOnboardingStepSchema
+>;
+
 
 // ============================================
 // OPERATOR CRUD SCHEMAS
@@ -89,39 +113,82 @@ export const driverDocReferenceSchema = z
     "Must be a storage object key (documents/…) or an https URL",
   );
 
-export const createDriverSchema = z.object({
-  fullName: z.string().min(2, "Full name is required").max(100),
-  email: z.string().email("Valid email required"),
-  phone: z.string().min(6, "Valid phone number required"),
-  licenseNumber: z.string().min(3, "License number is required").max(50),
-  licenseCategory: LicenseCategorySchema.default("D"),
-  licenseExpiryDate: z.coerce.date(),
-  licenseFrontUrl: driverDocReferenceSchema.optional(),
-  licenseBackUrl: driverDocReferenceSchema.optional(),
-  yearsOfExperience: z.number().int().min(0).max(60).default(1),
-  medicalClearanceDate: z.coerce.date().optional(),
-  medicalDocUrl: driverDocReferenceSchema.optional(),
-  employmentType: DriverEmploymentTypeSchema.default("EXCLUSIVE_INTERCITY"),
-  payModel: DriverPayModelSchema.default("HOURLY"),
-  payRateXOF: z.number().int().min(0).optional(),
-  badgeNumber: z.string().max(50).optional(),
-  notes: z.string().max(500).optional(),
-  /**
-   * P1-7: when the email/phone matches an existing account, the operator must
-   * explicitly confirm attaching a DriverProfile to it. The first attempt
-   * without this flag receives EXISTING_USER_BINDING_REQUIRED::… instead.
-   */
-  confirmBinding: z.boolean().optional(),
-});
+export const createDriverSchema = z
+  .object({
+    fullName: z.string().min(2, "Full name is required").max(100),
+    email: z.string().email("Valid email required"),
+    phone: z.string().min(6, "Valid phone number required"),
+    licenseNumber: z.string().min(3, "License number is required").max(50),
+    licenseCategory: LicenseCategorySchema.optional(),
+    licenseCategories: z
+      .array(LicenseCategorySchema)
+      .min(1, "Select at least one license category")
+      .default(["D"]),
+    licenseExpiryDate: z.coerce.date(),
+    licenseFrontUrl: driverDocReferenceSchema.optional(),
+    licenseBackUrl: driverDocReferenceSchema.optional(),
+    cacrNumber: z.string().max(50).optional(),
+    cacrExpiryDate: z.coerce.date().optional(),
+    cacrFrontUrl: driverDocReferenceSchema.optional(),
+    cacrBackUrl: driverDocReferenceSchema.optional(),
+    yearsOfExperience: z.number().int().min(0).max(60).default(1),
+    medicalClearanceDate: z.coerce.date().optional(),
+    medicalDocUrl: driverDocReferenceSchema.optional(),
+    employmentType: DriverEmploymentTypeSchema.default("EXCLUSIVE_INTERCITY"),
+    payModel: DriverPayModelSchema.default("HOURLY"),
+    payRateXOF: z.number().int().min(0).optional(),
+    badgeNumber: z.string().max(50).optional(),
+    notes: z.string().max(500).optional(),
+    /**
+     * P1-7: when the email/phone matches an existing account, the operator must
+     * explicitly confirm attaching a DriverProfile to it. The first attempt
+     * without this flag receives EXISTING_USER_BINDING_REQUIRED::… instead.
+     */
+    confirmBinding: z.boolean().optional(),
+  })
+  .superRefine((data, ctx) => {
+    const categories =
+      data.licenseCategories && data.licenseCategories.length > 0
+        ? data.licenseCategories
+        : data.licenseCategory
+          ? [data.licenseCategory]
+          : [];
+    const requiresCacr = categories.some((c) =>
+      ["C", "D", "E"].includes(c as string),
+    );
+    if (requiresCacr) {
+      if (!data.cacrFrontUrl) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["cacrFrontUrl"],
+          message:
+            "CACR Recto (Front) is required for commercial categories C, D, or E",
+        });
+      }
+      if (!data.cacrBackUrl) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["cacrBackUrl"],
+          message:
+            "CACR Verso (Back) is required for commercial categories C, D, or E",
+        });
+      }
+    }
+  });
 export type CreateDriverInput = z.infer<typeof createDriverSchema>;
 
 export const updateDriverSchema = z.object({
   id: z.string().cuid(),
   licenseNumber: z.string().min(3).max(50).optional(),
   licenseCategory: LicenseCategorySchema.optional(),
+  licenseCategories: z.array(LicenseCategorySchema).min(1).optional(),
   licenseExpiryDate: z.coerce.date().optional(),
   licenseFrontUrl: driverDocReferenceSchema.optional(),
   licenseBackUrl: driverDocReferenceSchema.optional(),
+  cacrNumber: z.string().max(50).optional(),
+  cacrExpiryDate: z.coerce.date().optional(),
+  cacrFrontUrl: driverDocReferenceSchema.optional(),
+  cacrBackUrl: driverDocReferenceSchema.optional(),
   yearsOfExperience: z.number().int().min(0).max(60).optional(),
   medicalClearanceDate: z.coerce.date().optional(),
   medicalDocUrl: driverDocReferenceSchema.optional(),
@@ -159,16 +226,21 @@ export const URGENT_DISPATCH_WINDOW_HOURS = 2;
 /** CI commercial license ordering: B < C < D < E. */
 const LICENSE_ORDER = ["B", "C", "D", "E"] as const;
 export function licenseMeetsRequirement(
-  driverLicense: string,
+  driverLicense: string | string[],
   required: string | null | undefined,
 ): boolean {
   if (!required) return true;
-  const di = LICENSE_ORDER.indexOf(
-    driverLicense as (typeof LICENSE_ORDER)[number],
-  );
   const ri = LICENSE_ORDER.indexOf(required as (typeof LICENSE_ORDER)[number]);
-  if (di === -1) return false;
-  return di >= ri;
+  if (ri === -1) return true;
+
+  const heldCategories = Array.isArray(driverLicense)
+    ? driverLicense
+    : [driverLicense];
+
+  return heldCategories.some((cat) => {
+    const di = LICENSE_ORDER.indexOf(cat as (typeof LICENSE_ORDER)[number]);
+    return di !== -1 && di >= ri;
+  });
 }
 
 /**
@@ -350,24 +422,62 @@ export type SubmitTripReviewInput = z.infer<typeof submitTripReviewSchema>;
 // MOBILE DRIVER SELF-SERVICE SCHEMAS
 // ============================================
 
-export const driverSelfRegisterSchema = z.object({
-  fullName: z.string().min(2, "Full name is required").max(100),
-  email: z.string().email().optional(),
-  phone: z.string().min(6, "Valid phone number required"),
-  licenseNumber: z.string().min(3, "License number is required").max(50),
-  licenseCategory: LicenseCategorySchema.default("D"),
-  licenseExpiryDate: z.coerce.date(),
-  licenseFrontUrl: z.string().optional(),
-  licenseBackUrl: z.string().optional(),
-  yearsOfExperience: z.number().int().min(0).max(60).default(1),
-  selfieUrl: z.string().optional(),
-  medicalDocUrl: z.string().optional(),
-  // Phase 15 (F-DV-05) — previously collected by the wizard and silently
-  // dropped; now persisted and honored.
-  nationalIdNumber: z.string().max(50).optional(),
-  employmentType: DriverEmploymentTypeSchema.optional(),
-  carrierInviteCode: z.string().trim().optional(),
-});
+export const driverSelfRegisterSchema = z
+  .object({
+    fullName: z.string().min(2, "Full name is required").max(100),
+    email: z.string().email().optional(),
+    phone: z.string().min(6, "Valid phone number required"),
+    licenseNumber: z.string().min(3, "License number is required").max(50),
+    licenseCategory: LicenseCategorySchema.optional(),
+    licenseCategories: z
+      .array(LicenseCategorySchema)
+      .min(1, "Select at least one license category")
+      .default(["D"]),
+    licenseExpiryDate: z.coerce.date(),
+    licenseFrontUrl: z.string().optional(),
+    licenseBackUrl: z.string().optional(),
+    cacrNumber: z.string().max(50).optional(),
+    cacrExpiryDate: z.coerce.date().optional(),
+    cacrFrontUrl: z.string().optional(),
+    cacrBackUrl: z.string().optional(),
+    yearsOfExperience: z.number().int().min(0).max(60).default(1),
+    selfieUrl: z.string().optional(),
+    medicalDocUrl: z.string().optional(),
+    // Phase 15 (F-DV-05) — previously collected by the wizard and silently
+    // dropped; now persisted and honored.
+    nationalIdNumber: z.string().max(50).optional(),
+    employmentType: DriverEmploymentTypeSchema.optional(),
+    carrierInviteCode: z.string().trim().optional(),
+  })
+  .superRefine((data, ctx) => {
+    const categories =
+      data.licenseCategories && data.licenseCategories.length > 0
+        ? data.licenseCategories
+        : data.licenseCategory
+          ? [data.licenseCategory]
+          : [];
+    const requiresCacr = categories.some((c) =>
+      ["C", "D", "E"].includes(c as string),
+    );
+    if (requiresCacr) {
+      if (!data.cacrFrontUrl) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["cacrFrontUrl"],
+          message:
+            "CACR Recto (Front) is required for commercial categories C, D, or E",
+        });
+      }
+      if (!data.cacrBackUrl) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["cacrBackUrl"],
+          message:
+            "CACR Verso (Back) is required for commercial categories C, D, or E",
+        });
+      }
+    }
+  });
 export type DriverSelfRegisterInput = z.infer<typeof driverSelfRegisterSchema>;
 
 export const driverUpdateStatusSchema = z.object({

@@ -18,6 +18,8 @@ import {
   driverReportVehicleBreakdownSchema,
   driverResumeDutySchema,
   driverSelfRegisterSchema,
+  getDriverOnboardingProgressSchema,
+  saveDriverOnboardingStepSchema,
   // Phase 14/17 (F-DV-07) — shared shift-toggle contract
   driverShiftToggleSchema,
   driverStartTripSchema,
@@ -488,7 +490,10 @@ export const driversRouter = createTRPCRouter({
         whereClause.verificationStatus = verificationStatus;
       }
       if (licenseCategory) {
-        whereClause.licenseCategory = licenseCategory;
+        whereClause.OR = [
+          { licenseCategory },
+          { licenseCategories: { has: licenseCategory } },
+        ];
       }
       if (search) {
         whereClause.OR = [
@@ -801,14 +806,27 @@ export const driversRouter = createTRPCRouter({
             });
           }
 
+          const categories =
+            input.licenseCategories && input.licenseCategories.length > 0
+              ? input.licenseCategories
+              : input.licenseCategory
+                ? [input.licenseCategory]
+                : ["D"];
+          const primaryCategory = categories[0] ?? "D";
+
           driverProfile = await tx.driverProfile.create({
             data: {
               userId: txUser.id,
               licenseNumber: input.licenseNumber,
-              licenseCategory: input.licenseCategory,
+              licenseCategory: primaryCategory as any,
+              licenseCategories: categories as any,
               licenseExpiryDate: input.licenseExpiryDate,
               licenseFrontUrl: input.licenseFrontUrl ?? null,
               licenseBackUrl: input.licenseBackUrl ?? null,
+              cacrNumber: input.cacrNumber ?? null,
+              cacrExpiryDate: input.cacrExpiryDate ?? null,
+              cacrFrontUrl: input.cacrFrontUrl ?? null,
+              cacrBackUrl: input.cacrBackUrl ?? null,
               yearsOfExperience: input.yearsOfExperience,
               medicalClearanceDate: input.medicalClearanceDate ?? null,
               medicalDocUrl: input.medicalDocUrl ?? null,
@@ -934,14 +952,27 @@ export const driversRouter = createTRPCRouter({
 
         const updateData: any = {};
         if (input.licenseNumber) updateData.licenseNumber = input.licenseNumber;
-        if (input.licenseCategory)
+        if (input.licenseCategories && input.licenseCategories.length > 0) {
+          updateData.licenseCategories = input.licenseCategories;
+          updateData.licenseCategory = input.licenseCategories[0];
+        } else if (input.licenseCategory) {
           updateData.licenseCategory = input.licenseCategory;
+          updateData.licenseCategories = [input.licenseCategory];
+        }
         if (input.licenseExpiryDate)
           updateData.licenseExpiryDate = input.licenseExpiryDate;
         if (input.licenseFrontUrl !== undefined)
           updateData.licenseFrontUrl = input.licenseFrontUrl;
         if (input.licenseBackUrl !== undefined)
           updateData.licenseBackUrl = input.licenseBackUrl;
+        if (input.cacrNumber !== undefined)
+          updateData.cacrNumber = input.cacrNumber;
+        if (input.cacrExpiryDate !== undefined)
+          updateData.cacrExpiryDate = input.cacrExpiryDate;
+        if (input.cacrFrontUrl !== undefined)
+          updateData.cacrFrontUrl = input.cacrFrontUrl;
+        if (input.cacrBackUrl !== undefined)
+          updateData.cacrBackUrl = input.cacrBackUrl;
         if (input.yearsOfExperience !== undefined)
           updateData.yearsOfExperience = input.yearsOfExperience;
         if (input.medicalClearanceDate !== undefined)
@@ -1079,12 +1110,14 @@ export const driversRouter = createTRPCRouter({
         input.verificationStatus === "VERIFIED" &&
         !existing.licenseFrontUrl &&
         !existing.licenseBackUrl &&
-        !existing.medicalDocUrl
+        !existing.medicalDocUrl &&
+        !existing.cacrFrontUrl &&
+        !existing.cacrBackUrl
       ) {
         throw new TRPCError({
           code: "PRECONDITION_FAILED",
           message:
-            "Attach at least one compliance document (licence or medical) before verifying this driver.",
+            "Attach at least one compliance document (licence, CACR, or medical) before verifying this driver.",
         });
       }
 
@@ -1525,6 +1558,99 @@ export const driversRouter = createTRPCRouter({
     return driver;
   }),
 
+  getOnboardingProgress: protectedProcedure
+    .input(getDriverOnboardingProgressSchema)
+    .query(async ({ ctx }) => {
+      // 1. If user already has a DriverProfile, onboarding is already completed
+      const profile = await ctx.prisma.driverProfile.findUnique({
+        where: { userId: ctx.user.id },
+        select: {
+          id: true,
+          verificationStatus: true,
+          status: true,
+        },
+      });
+
+      if (profile) {
+        return {
+          status: "COMPLETED" as const,
+          hasProfile: true,
+          currentStep: "COMPLETED" as const,
+          completedSteps: ["PERSONAL", "LICENSE", "DOCUMENTS", "CARRIER"],
+          draftData: {},
+          verificationStatus: profile.verificationStatus,
+        };
+      }
+
+      // 2. Find or create DriverOnboarding record
+      let onboarding = await ctx.prisma.driverOnboarding.findUnique({
+        where: { userId: ctx.user.id },
+      });
+
+      if (!onboarding) {
+        onboarding = await ctx.prisma.driverOnboarding.create({
+          data: {
+            userId: ctx.user.id,
+            currentStep: "PERSONAL",
+            completedSteps: [],
+            draftData: {
+              phone: ctx.user.phoneNumber ?? "",
+              fullName: ctx.user.fullName ?? "",
+            },
+          },
+        });
+      }
+
+      return {
+        status: onboarding.completedAt
+          ? ("COMPLETED" as const)
+          : ("IN_PROGRESS" as const),
+        hasProfile: false,
+        currentStep: onboarding.currentStep,
+        completedSteps: (onboarding.completedSteps as string[]) ?? [],
+        draftData: (onboarding.draftData as Record<string, unknown>) ?? {},
+        verificationStatus: null,
+      };
+    }),
+
+  saveOnboardingStep: protectedProcedure
+    .input(saveDriverOnboardingStepSchema)
+    .mutation(async ({ ctx, input }) => {
+      const existing = await ctx.prisma.driverOnboarding.findUnique({
+        where: { userId: ctx.user.id },
+      });
+
+      const prevDraft = (existing?.draftData as Record<string, unknown>) || {};
+      const newDraft = { ...prevDraft, ...input.stepData };
+
+      const prevCompleted = (existing?.completedSteps as string[]) || [];
+      const newCompleted = Array.from(new Set([...prevCompleted, input.step]));
+
+      const nextStep = input.nextStep || input.step;
+
+      const updated = await ctx.prisma.driverOnboarding.upsert({
+        where: { userId: ctx.user.id },
+        create: {
+          userId: ctx.user.id,
+          currentStep: nextStep,
+          completedSteps: newCompleted,
+          draftData: newDraft as any,
+        },
+        update: {
+          currentStep: nextStep,
+          completedSteps: newCompleted,
+          draftData: newDraft as any,
+        },
+      });
+
+      return {
+        success: true,
+        currentStep: updated.currentStep,
+        completedSteps: (updated.completedSteps as string[]) ?? [],
+        draftData: (updated.draftData as Record<string, unknown>) ?? {},
+      };
+    }),
+
   getMyVerificationStatus: protectedProcedure.query(async ({ ctx }) => {
     const driver = await ctx.prisma.driverProfile.findUnique({
       where: { userId: ctx.user.id },
@@ -1535,6 +1661,11 @@ export const driversRouter = createTRPCRouter({
         verifiedAt: true,
         licenseNumber: true,
         licenseCategory: true,
+        licenseCategories: true,
+        cacrNumber: true,
+        cacrExpiryDate: true,
+        cacrFrontUrl: true,
+        cacrBackUrl: true,
         status: true,
       },
     });
@@ -1614,10 +1745,19 @@ export const driversRouter = createTRPCRouter({
         });
       }
 
+      const categories =
+        input.licenseCategories && input.licenseCategories.length > 0
+          ? input.licenseCategories
+          : input.licenseCategory
+            ? [input.licenseCategory]
+            : ["D"];
+      const primaryCategory = categories[0] ?? "D";
+
       await ctx.prisma.user.update({
         where: { id: ctx.user.id },
         data: {
           fullName: input.fullName,
+          role: "DRIVER",
           ...(ctx.user.phoneNumber ? {} : { phoneNumber: finalPhone }),
           ...(input.selfieUrl ? { image: input.selfieUrl } : {}),
         },
@@ -1628,16 +1768,37 @@ export const driversRouter = createTRPCRouter({
         data: {
           userId: ctx.user.id,
           licenseNumber: input.licenseNumber,
-          licenseCategory: input.licenseCategory,
+          licenseCategory: primaryCategory as any,
+          licenseCategories: categories as any,
           licenseExpiryDate: input.licenseExpiryDate,
           licenseFrontUrl: input.licenseFrontUrl ?? null,
           licenseBackUrl: input.licenseBackUrl ?? null,
+          cacrNumber: input.cacrNumber ?? null,
+          cacrExpiryDate: input.cacrExpiryDate ?? null,
+          cacrFrontUrl: input.cacrFrontUrl ?? null,
+          cacrBackUrl: input.cacrBackUrl ?? null,
           yearsOfExperience: input.yearsOfExperience,
           medicalDocUrl: input.medicalDocUrl ?? null,
           // Phase 15 (F-DV-05) — what the wizard collects is what we store.
           nationalIdNumber: input.nationalIdNumber ?? null,
           verificationStatus: "PENDING",
           status: "OFFLINE",
+        },
+      });
+
+      // Mark DriverOnboarding as completed
+      await ctx.prisma.driverOnboarding.upsert({
+        where: { userId: ctx.user.id },
+        create: {
+          userId: ctx.user.id,
+          currentStep: "COMPLETED",
+          completedSteps: ["PERSONAL", "LICENSE", "DOCUMENTS", "CARRIER"],
+          completedAt: new Date(),
+        },
+        update: {
+          currentStep: "COMPLETED",
+          completedSteps: ["PERSONAL", "LICENSE", "DOCUMENTS", "CARRIER"],
+          completedAt: new Date(),
         },
       });
 
@@ -4326,6 +4487,9 @@ export const driversRouter = createTRPCRouter({
           select: {
             id: true,
             licenseCategory: true,
+            licenseCategories: true,
+            cacrNumber: true,
+            cacrExpiryDate: true,
             // Phase 14 ride-along fix — was missing from this select, so the
             // licence-expiry half of licenseOk silently passed everyone.
             licenseExpiryDate: true,
@@ -4488,6 +4652,7 @@ export const driversRouter = createTRPCRouter({
             image: d.user.image,
             phoneNumber: d.user.phoneNumber,
             licenseCategory: d.licenseCategory,
+            licenseCategories: d.licenseCategories,
             yearsOfExperience: d.yearsOfExperience,
             averageRating: d.averageRating,
             safetyScore: d.safetyScore,
@@ -4496,13 +4661,23 @@ export const driversRouter = createTRPCRouter({
             employmentType,
             // Phase 3 (3.1) — soft signal: greys out mismatched candidates
             modeOk: isModeCompatible(employmentType, trip.serviceType),
-            // Phase 14 (F-OP-03) — class fit AND licence valid through the run.
+            // Phase 14 (F-OP-03) — class fit AND licence valid through the run + CACR for heavy/bus
             licenseOk:
-              licenseMeetsRequirement(d.licenseCategory, requiredLicense) &&
+              licenseMeetsRequirement(
+                d.licenseCategories && d.licenseCategories.length > 0
+                  ? d.licenseCategories
+                  : d.licenseCategory,
+                requiredLicense,
+              ) &&
               isLicenseUsableThrough(
                 d.licenseExpiryDate,
                 trip.estimatedArrival ?? trip.departureDate,
-              ),
+              ) &&
+              (!requiredLicense ||
+                !["C", "D", "E"].includes(requiredLicense) ||
+                (Boolean(d.cacrNumber) &&
+                  (!d.cacrExpiryDate ||
+                    d.cacrExpiryDate >= (trip.estimatedArrival ?? trip.departureDate)))),
             conflict,
             rolesOnTrip: rolesByDriver.get(d.id) ?? [],
           };
