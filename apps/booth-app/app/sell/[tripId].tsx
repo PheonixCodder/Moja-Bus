@@ -2,7 +2,7 @@ import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -71,17 +71,16 @@ export default function TripSeatScreen() {
     [poolHolds],
   );
 
-  // Retrieve cached trip from todayTrips query
-  const todayTripsData = queryClient.getQueryData<{
-    trips: TodayTrip[];
-    totalTrips: number;
-    imminentTrips: number;
-  }>(trpc.booth.getTodayTrips.queryKey({ terminalId: terminal?.id ?? "" }));
-
-  const cachedTrip = useMemo(
-    () => todayTripsData?.trips?.find((t) => t.id === currentTripId),
-    [todayTripsData, currentTripId],
-  );
+  // Retrieve cached trip from todayTrips query stably
+  const cachedTrip = useMemo(() => {
+    if (!currentTripId) return undefined;
+    const cache = queryClient.getQueryData<{
+      trips: TodayTrip[];
+      totalTrips: number;
+      imminentTrips: number;
+    }>(trpc.booth.getTodayTrips.queryKey({ terminalId: terminal?.id ?? "" }));
+    return cache?.trips?.find((t) => t.id === currentTripId);
+  }, [queryClient, trpc, terminal?.id, currentTripId]);
 
   // Compute composite offerId (tripId_originStopId_destStopId) matching traveler-app
   const effectiveOfferId = useMemo(() => {
@@ -99,6 +98,8 @@ export default function TripSeatScreen() {
     return "";
   }, [paramOfferId, cachedTrip]);
 
+  const hasOfferId = Boolean(effectiveOfferId);
+
   // Primary: Query booking.getSeatAvailability via offerId (identical to traveler-app)
   const {
     data: availabilityData,
@@ -108,13 +109,13 @@ export default function TripSeatScreen() {
     trpc.booking.getSeatAvailability.queryOptions(
       { offerId: effectiveOfferId },
       {
-        enabled: Boolean(effectiveOfferId && isOnline),
+        enabled: Boolean(hasOfferId && isOnline),
         retry: 1,
       },
     ),
   );
 
-  // Secondary: Query booth.getTripSeatMap via tripId
+  // Secondary: Query booth.getTripSeatMap via tripId (only if no offerId)
   const {
     data: boothSeatMap,
     isPending: isBoothPending,
@@ -123,13 +124,48 @@ export default function TripSeatScreen() {
     trpc.booth.getTripSeatMap.queryOptions(
       { tripId: currentTripId },
       {
-        enabled: Boolean(
-          currentTripId && isOnline && !availabilityData && !effectiveOfferId,
-        ),
+        enabled: Boolean(!hasOfferId && currentTripId && isOnline),
         retry: 1,
       },
     ),
   );
+
+  // Stably memoized synthetic seats from cached trip info
+  const fallbackSynthSeats = useMemo(() => {
+    if (!cachedTrip) return null;
+    const totalSeats = cachedTrip.totalSeats || 40;
+    const bookedCount = cachedTrip.bookedCount || 0;
+    const farePrice =
+      cachedTrip.schedule?.fares?.[0]?.priceXOF ??
+      sessionFareAmountXOF ??
+      5000;
+    const synthSeats: Seat[] = Array.from({ length: totalSeats }).map(
+      (_, idx) => ({
+        seatId: `seat-${cachedTrip.id}-${idx + 1}`,
+        tripSeatId: `trip-seat-${cachedTrip.id}-${idx + 1}`,
+        label: String(idx + 1),
+        row: Math.floor(idx / 4) + 1,
+        col: (idx % 4) + 1,
+        deck: 1,
+        seatType: "PASSENGER",
+        status:
+          idx < bookedCount ? ("SOLD" as const) : ("AVAILABLE" as const),
+      }),
+    );
+    return {
+      rows: Math.max(Math.ceil(totalSeats / 4), 4),
+      columns: 4,
+      deck: 1,
+      priceXOF: farePrice,
+      seats: synthSeats,
+    };
+  }, [
+    cachedTrip?.id,
+    cachedTrip?.totalSeats,
+    cachedTrip?.bookedCount,
+    cachedTrip?.schedule?.fares,
+    sessionFareAmountXOF,
+  ]);
 
   // Unified seat map resolution with graceful fallbacks
   const resolvedSeatMap = useMemo(() => {
@@ -175,33 +211,8 @@ export default function TripSeatScreen() {
 
     // 4. Resilient Fallback: If network queries are done loading or errored,
     // construct an interactive seat grid from cached trip data so the cashier is NEVER blocked!
-    if (cachedTrip) {
-      const totalSeats = cachedTrip.totalSeats || 40;
-      const bookedCount = cachedTrip.bookedCount || 0;
-      const farePrice =
-        cachedTrip.schedule?.fares?.[0]?.priceXOF ??
-        sessionFareAmountXOF ??
-        5000;
-      const synthSeats: Seat[] = Array.from({ length: totalSeats }).map(
-        (_, idx) => ({
-          seatId: `seat-${cachedTrip.id}-${idx + 1}`,
-          tripSeatId: `trip-seat-${cachedTrip.id}-${idx + 1}`,
-          label: String(idx + 1),
-          row: Math.floor(idx / 4) + 1,
-          col: (idx % 4) + 1,
-          deck: 1,
-          seatType: "PASSENGER",
-          status:
-            idx < bookedCount ? ("SOLD" as const) : ("AVAILABLE" as const),
-        }),
-      );
-      return {
-        rows: Math.max(Math.ceil(totalSeats / 4), 4),
-        columns: 4,
-        deck: 1,
-        priceXOF: farePrice,
-        seats: synthSeats,
-      };
+    if (fallbackSynthSeats) {
+      return fallbackSynthSeats;
     }
 
     return null;
@@ -210,13 +221,14 @@ export default function TripSeatScreen() {
     boothSeatMap,
     isOnline,
     poolHolds,
+    fallbackSynthSeats,
     cachedTrip,
     sessionFareAmountXOF,
   ]);
 
   const isPending =
     (isAvailabilityPending && Boolean(effectiveOfferId)) ||
-    (isBoothPending && !availabilityData);
+    (isBoothPending && !hasOfferId);
 
   const isIntercity = resolvedSeatMap
     ? resolvedSeatMap.seats.length > 10
@@ -230,17 +242,20 @@ export default function TripSeatScreen() {
     );
   }, [resolvedSeatMap, selectedSeatId]);
 
-  function handleSeatSelect(seat: Seat) {
-    if (!isOnline && !availableOfflineSeatIds.has(seat.seatId)) {
-      Alert.alert(
-        "Siège non disponible hors-ligne",
-        "En mode hors ligne, vous ne pouvez sélectionner que les sièges réservés dans votre lot.",
-      );
-      return;
-    }
+  const handleSeatSelect = useCallback(
+    (seat: Seat) => {
+      if (!isOnline && !availableOfflineSeatIds.has(seat.seatId)) {
+        Alert.alert(
+          "Siège non disponible hors-ligne",
+          "En mode hors ligne, vous ne pouvez sélectionner que les sièges réservés dans votre lot.",
+        );
+        return;
+      }
 
-    setSelectedSeatId(seat.seatId === selectedSeatId ? null : seat.seatId);
-  }
+      setSelectedSeatId((prev) => (prev === seat.seatId ? null : seat.seatId));
+    },
+    [isOnline, availableOfflineSeatIds],
+  );
 
   function handlePickFromPool() {
     if (isOnline || !currentTripId) return;
@@ -376,16 +391,37 @@ export default function TripSeatScreen() {
         }
       />
 
-      {/* Seat Map */}
-      <SeatMap
-        rows={resolvedSeatMap.rows}
-        columns={resolvedSeatMap.columns}
-        deck={resolvedSeatMap.deck}
-        seats={resolvedSeatMap.seats}
-        selectedSeatId={selectedSeatId}
-        onSeatSelect={handleSeatSelect}
-        offlineAvailableSeatIds={isOnline ? undefined : availableOfflineSeatIds}
-      />
+      <View className="flex-1 px-4 pt-3">
+        {/* Quick status bar */}
+        <View className="flex-row items-center justify-between bg-card border border-border rounded-2xl px-4 py-3 mb-3 shadow-xs">
+          <View>
+            <Text className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+              {t("sell.seatSelection", "Sélection de place")}
+            </Text>
+            <Text className="text-sm font-extrabold text-foreground mt-0.5">
+              {isIntercity ? "Siège numéroté obligatoire" : "Placement libre ou numéroté"}
+            </Text>
+          </View>
+          <View className="bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-full">
+            <Text className="text-primary text-xs font-black">
+              {selectedTripSeat ? `Siège ${selectedTripSeat.label}` : "1 Passager"}
+            </Text>
+          </View>
+        </View>
+
+        {/* Modern Seat Map Card Container */}
+        <View className="flex-1 bg-card rounded-3xl p-4 shadow-xs border border-border">
+          <SeatMap
+            rows={resolvedSeatMap.rows}
+            columns={resolvedSeatMap.columns}
+            deck={resolvedSeatMap.deck}
+            seats={resolvedSeatMap.seats}
+            selectedSeatId={selectedSeatId}
+            onSeatSelect={handleSeatSelect}
+            offlineAvailableSeatIds={isOnline ? undefined : availableOfflineSeatIds}
+          />
+        </View>
+      </View>
 
       {/* Bottom Sticky Action Bar with Safe Area */}
       <View

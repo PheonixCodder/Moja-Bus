@@ -65,7 +65,9 @@ export function VerifyDriverDialog({
   const hasComplianceDoc = !!(
     dossier?.licenseFrontUrl ||
     dossier?.licenseBackUrl ||
-    dossier?.medicalDocUrl
+    dossier?.medicalDocUrl ||
+    dossier?.cacrFrontUrl ||
+    dossier?.cacrBackUrl
   );
 
   const handleAction = (status: "VERIFIED" | "REJECTED") => {
@@ -79,7 +81,7 @@ export function VerifyDriverDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold">
             Driver Compliance Verification
@@ -87,7 +89,10 @@ export function VerifyDriverDialog({
           <DialogDescription>
             Verify commercial driving credentials for{" "}
             <span className="font-semibold text-foreground">{driverName}</span>{" "}
-            (License: <span className="font-mono">{licenseNumber}</span>).
+            (License: <span className="font-mono">{licenseNumber}</span>
+            {dossier?.licenseCategories?.length
+              ? ` • Classes: ${dossier.licenseCategories.join(", ")}`
+              : ""}).
           </DialogDescription>
         </DialogHeader>
 
@@ -115,6 +120,24 @@ export function VerifyDriverDialog({
                 label="Medical Certificate"
                 storedValue={dossier?.medicalDocUrl ?? null}
               />
+              {(dossier?.cacrFrontUrl || dossier?.cacrBackUrl) && (
+                <>
+                  <DriverDocPreview
+                    audience="operator"
+                    driverProfileId={driverId}
+                    docType="driver-cacr-front"
+                    label="CACR (Front)"
+                    storedValue={dossier?.cacrFrontUrl ?? null}
+                  />
+                  <DriverDocPreview
+                    audience="operator"
+                    driverProfileId={driverId}
+                    docType="driver-cacr-back"
+                    label="CACR (Back)"
+                    storedValue={dossier?.cacrBackUrl ?? null}
+                  />
+                </>
+              )}
             </div>
           )}
           <div className="text-xs text-muted-foreground bg-muted p-3 rounded-lg space-y-1">
@@ -124,8 +147,11 @@ export function VerifyDriverDialog({
             <ul className="list-disc list-inside space-y-0.5">
               <li>License is valid and not expired.</li>
               <li>
-                Category Class matches commercial passenger coach standards
-                (Class D/E).
+                Category Classes:{" "}
+                <span className="font-semibold text-foreground">
+                  {dossier?.licenseCategories?.join(", ") || dossier?.licenseCategory || "D"}
+                </span>
+                {dossier?.cacrNumber ? ` • CACR: ${dossier.cacrNumber}` : ""}
               </li>
               <li>Identity matches verified national records.</li>
             </ul>

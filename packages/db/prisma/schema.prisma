@@ -282,6 +282,14 @@ enum LicenseCategory {
   E
 }
 
+enum DriverOnboardingStep {
+  PERSONAL
+  LICENSE
+  DOCUMENTS
+  CARRIER
+  COMPLETED
+}
+
 enum DriverOfferStatus {
   PENDING
   COUNTERED
@@ -475,6 +483,7 @@ model User {
 
   // Driver relations
   driverProfile            DriverProfile?
+  driverOnboarding         DriverOnboarding?
   driversVerified          DriverProfile[]    @relation("DriverVerifiedBy")
 
   @@index([role])
@@ -2340,6 +2349,7 @@ model DriverProfile {
   // Professional Credentials
   licenseNumber        String                   @unique
   licenseCategory      LicenseCategory          @default(D)
+  licenseCategories    LicenseCategory[]        @default([D])
   licenseExpiryDate    DateTime
   licenseFrontUrl      String?
   licenseBackUrl       String?
@@ -2349,6 +2359,12 @@ model DriverProfile {
   // Phase 15 (F-DV-05) — collected by the self-registration wizard; previously
   // dropped on the floor (the column existed only on Operator).
   nationalIdNumber     String?
+
+  // CACR (Certificat d'Aptitude de Conducteur Routier — required for categories C, D, E)
+  cacrNumber           String?
+  cacrExpiryDate       DateTime?
+  cacrFrontUrl         String?
+  cacrBackUrl          String?
   
   // Platform Verification
   verificationStatus   DriverVerificationStatus @default(PENDING)
@@ -2392,6 +2408,23 @@ model DriverProfile {
   @@index([verificationStatus])
   @@index([licenseNumber])
   @@map("driver_profile")
+}
+
+model DriverOnboarding {
+  id             String               @id @default(cuid())
+  userId         String               @unique
+  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  currentStep    DriverOnboardingStep @default(PERSONAL)
+  completedSteps Json                 @default("[]")
+  draftData      Json                 @default("{}")
+
+  startedAt      DateTime             @default(now())
+  lastSeenAt     DateTime             @updatedAt
+  completedAt    DateTime?
+
+  @@index([userId])
+  @@map("driver_onboarding")
 }
 
 

@@ -49,6 +49,7 @@ export default function RegisterStep2LicenseScreen() {
 	const {
 		licenseNumber,
 		licenseCategory,
+		licenseCategories,
 		licenseExpiryDate,
 		licenseFrontUri,
 		licenseFrontLocalPreview,
@@ -62,7 +63,11 @@ export default function RegisterStep2LicenseScreen() {
 	}, [updateData]);
 
 	const [numberInput, setNumberInput] = useState(licenseNumber);
-	const [categorySelect, setCategorySelect] = useState<LicenseCategoryType>(licenseCategory || "D");
+	const [selectedCategories, setSelectedCategories] = useState<LicenseCategoryType[]>(
+		licenseCategories && licenseCategories.length > 0
+			? licenseCategories
+			: [licenseCategory || "D"]
+	);
 	const [expiryInput, setExpiryInput] = useState(licenseExpiryDate);
 	const [frontUri, setFrontUri] = useState<string | null>(
 		licenseFrontLocalPreview || (licenseFrontUri && !licenseFrontUri.startsWith("documents/") ? licenseFrontUri : null)
@@ -78,6 +83,22 @@ export default function RegisterStep2LicenseScreen() {
 	);
 	const trpc = useTRPC();
 	const presign = useMutation(trpc.storage.presignUpload.mutationOptions());
+	const saveStep = useMutation(trpc.drivers.saveOnboardingStep.mutationOptions());
+
+	const toggleCategory = (cat: LicenseCategoryType) => {
+		DriverFeedback.tap();
+		setSelectedCategories((prev) => {
+			if (prev.includes(cat)) {
+				if (prev.length === 1) {
+					Alert.alert(t("fieldRequired"), "Sélectionnez au moins une catégorie de permis.");
+					return prev;
+				}
+				return prev.filter((c) => c !== cat);
+			} else {
+				return [...prev, cat];
+			}
+		});
+	};
 
 	const handleCaptureDocument = async (type: "front" | "back") => {
 		DriverFeedback.tap();
@@ -163,16 +184,31 @@ export default function RegisterStep2LicenseScreen() {
 			return;
 		}
 
+		if (selectedCategories.length === 0) {
+			Alert.alert(t("fieldRequired"), "Sélectionnez au moins une catégorie de permis.");
+			return;
+		}
+
 		DriverFeedback.tap();
-		updateData({
+		const stepData = {
 			licenseNumber: numberInput.trim(),
-			licenseCategory: categorySelect,
+			licenseCategories: selectedCategories,
+			licenseCategory: selectedCategories[0] || "D",
 			licenseExpiryDate: expiryInput.trim(),
 			licenseFrontUri: frontKey || licenseFrontUri,
-			licenseFrontLocalPreview: frontUri || licenseFrontLocalPreview,
 			licenseBackUri: backKey || licenseBackUri,
+		};
+		updateData({
+			...stepData,
+			licenseFrontLocalPreview: frontUri || licenseFrontLocalPreview,
 			licenseBackLocalPreview: backUri || licenseBackLocalPreview,
 			currentStep: 3,
+		});
+
+		saveStep.mutate({
+			step: "LICENSE",
+			stepData,
+			nextStep: "DOCUMENTS",
 		});
 
 		router.push("/(auth)/register/documents");
@@ -213,13 +249,12 @@ export default function RegisterStep2LicenseScreen() {
 
 					<View className="gap-2.5 pt-1">
 						{LICENSE_CATEGORY_KEYS.map((item) => {
-							const isSelected = categorySelect === item.category;
+							const isSelected = selectedCategories.includes(item.category);
 							return (
 								<Pressable
 									key={item.category}
 									onPress={() => {
-										DriverFeedback.tap();
-										setCategorySelect(item.category);
+										toggleCategory(item.category);
 									}}
 									className={`p-3.5 rounded-2xl border-1.5 gap-1.5 ${
 										isSelected

@@ -45,6 +45,34 @@ export function useSellTrips() {
 
   const rawTrips = (tripsQuery.data as TodayTrip[] | undefined) ?? [];
 
+  // 1. Hide all trips prior to today's local date (< today midnight)
+  // 2. Compute 30-minute booking cutoff: diffMinutes < 30 means booking has expired
+  const processedTrips = useMemo(() => {
+    const todayMidnight = new Date();
+    todayMidnight.setHours(0, 0, 0, 0);
+    const todayMidnightMs = todayMidnight.getTime();
+    const now = Date.now();
+
+    return rawTrips
+      .filter((trip) => {
+        const depMs = new Date(trip.departureDate).getTime();
+        return depMs >= todayMidnightMs;
+      })
+      .map((trip) => {
+        const depMs = new Date(trip.departureDate).getTime();
+        const diffMin = Math.round((depMs - now) / (60 * 1000));
+        const isClosed =
+          diffMin < 30 ||
+          trip.availableSeats <= 0 ||
+          trip.status === "COMPLETED" ||
+          trip.status === "CANCELLED";
+        return {
+          ...trip,
+          isClosed,
+        };
+      });
+  }, [rawTrips]);
+
   // Offline pool count
   const allHoldPools = useHoldPoolStore((state) => state.pools);
   const offlinePoolCount = useMemo(() => {
@@ -56,7 +84,7 @@ export function useSellTrips() {
   // Unique destination labels & counts using geographic hierarchy
   const destinations = useMemo(() => {
     const counts = new Map<string, number>();
-    rawTrips.forEach((trip) => {
+    processedTrips.forEach((trip) => {
       const dropoff = trip.tripStops.find((s) => s.isDropoff);
       const isUrban = trip.serviceType === "URBAN";
       const display = formatTerminalDisplay(dropoff?.terminal, isUrban);
@@ -69,29 +97,37 @@ export function useSellTrips() {
       name,
       count,
     }));
-  }, [rawTrips]);
+  }, [processedTrips]);
 
-  // Next departure candidate (< 75 min)
+  // Next departure candidate (strictly between 30 and 75 min, open and available)
   const { imminentTrip, imminentCount } = useMemo(() => {
     const now = Date.now();
-    const imminentList = rawTrips.filter((t) => {
-      const diffMs = new Date(t.departureDate).getTime() - now;
-      const diffMin = Math.round(diffMs / (60 * 1000));
-      return diffMin >= -10 && diffMin <= 75 && t.availableSeats > 0;
-    });
+    const imminentList = processedTrips
+      .filter((t) => {
+        if (t.isClosed) return false;
+        const diffMs = new Date(t.departureDate).getTime() - now;
+        const diffMin = Math.round(diffMs / (60 * 1000));
+        return diffMin >= 30 && diffMin <= 75 && t.availableSeats > 0;
+      })
+      .sort(
+        (a, b) =>
+          new Date(a.departureDate).getTime() -
+          new Date(b.departureDate).getTime(),
+      );
 
     return {
       imminentTrip: imminentList[0] ?? null,
       imminentCount: imminentList.length,
     };
-  }, [rawTrips]);
+  }, [processedTrips]);
 
   // Filtered trips based on search text and destination chip
+  // Sorted: Open/approaching trips first (ascending by time), then closed trips (at the end)
   const filteredTrips = useMemo(() => {
     const query = search.trim().toLowerCase();
     const now = Date.now();
 
-    return rawTrips.filter((trip) => {
+    const matched = processedTrips.filter((trip) => {
       const dropoff = trip.tripStops.find((s) => s.isDropoff);
       const isUrban = trip.serviceType === "URBAN";
       const display = formatTerminalDisplay(dropoff?.terminal, isUrban);
@@ -107,9 +143,10 @@ export function useSellTrips() {
 
       // Match destination filter chip
       if (selectedFilter === "IMMINENT") {
+        if (trip.isClosed) return false;
         const diffMs = new Date(trip.departureDate).getTime() - now;
         const diffMin = Math.round(diffMs / (60 * 1000));
-        if (diffMin < -10 || diffMin > 75) return false;
+        if (diffMin < 30 || diffMin > 75 || trip.availableSeats <= 0) return false;
       } else if (selectedFilter !== "ALL") {
         if (destLabel.toLowerCase() !== selectedFilter.toLowerCase()) {
           return false;
@@ -130,11 +167,37 @@ export function useSellTrips() {
         gateText.toLowerCase().includes(query)
       );
     });
-  }, [rawTrips, search, selectedFilter]);
+
+    // Partition: approaching open trips at the top (ascending by departure time),
+    // closed/expired trips at the end of the list (ascending by departure time)
+    const openTrips: TodayTrip[] = [];
+    const closedTrips: TodayTrip[] = [];
+
+    matched.forEach((trip) => {
+      if (trip.isClosed) {
+        closedTrips.push(trip);
+      } else {
+        openTrips.push(trip);
+      }
+    });
+
+    openTrips.sort(
+      (a, b) =>
+        new Date(a.departureDate).getTime() -
+        new Date(b.departureDate).getTime(),
+    );
+    closedTrips.sort(
+      (a, b) =>
+        new Date(a.departureDate).getTime() -
+        new Date(b.departureDate).getTime(),
+    );
+
+    return [...openTrips, ...closedTrips];
+  }, [processedTrips, search, selectedFilter]);
 
   return {
     trips: filteredTrips,
-    totalCount: rawTrips.length,
+    totalCount: processedTrips.length,
     destinations,
     imminentTrip,
     imminentCount,

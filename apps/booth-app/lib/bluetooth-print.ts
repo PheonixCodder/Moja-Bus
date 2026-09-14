@@ -21,6 +21,9 @@ interface TicketData {
   amountXOF: number;
   terminalName: string;
   companyName: string;
+  busPlate?: string;
+  gate?: string;
+  cashierName?: string;
 }
 
 interface PrinterDevice {
@@ -99,10 +102,19 @@ export async function printTicket(
       ...(data.seatLabel
         ? [{ type: "TEXT", value: `Siège : ${data.seatLabel}` }]
         : []),
+      ...(data.busPlate
+        ? [{ type: "TEXT", value: `Véhicule : ${data.busPlate}` }]
+        : []),
+      ...(data.gate
+        ? [{ type: "TEXT", value: `Quai : ${data.gate}` }]
+        : []),
       {
         type: "TEXT",
         value: `Montant : ${data.amountXOF.toLocaleString("fr-CI")} XOF`,
       },
+      ...(data.cashierName
+        ? [{ type: "TEXT", value: `Guichet : ${data.cashierName}` }]
+        : []),
       { type: "SEPARATOR" },
       { type: "TEXT", value: `Terminal : ${data.terminalName}` },
       {

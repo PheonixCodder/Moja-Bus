@@ -36,6 +36,7 @@ async function fetchDriverStatus(): Promise<{
 	hasProfile: boolean;
 	status: string | null;
 	hasPref: boolean;
+	onboarding: any;
 }> {
 	try {
 		// Flush auth cookies into memory before making tRPC calls.
@@ -44,18 +45,20 @@ async function fetchDriverStatus(): Promise<{
 		// having no driver profile.
 		await ensureAuthCookiesFresh();
 		const trpc = getTrpcClient();
-		const [statusRes, prefRes] = await Promise.all([
+		const [statusRes, prefRes, onboardingRes] = await Promise.all([
 			trpc.drivers.getMyVerificationStatus.query().catch(() => null),
 			trpc.drivers.getMyServicePreference.query().catch(() => null),
+			trpc.drivers.getOnboardingProgress.query().catch(() => null),
 		]);
 		return {
 			hasProfile: Boolean(statusRes?.driver),
 			status: statusRes?.driver?.verificationStatus ?? null,
 			hasPref: prefRes?.preference != null,
+			onboarding: onboardingRes ?? null,
 		};
 	} catch (err) {
 		console.warn("[Boot] status check unavailable:", err);
-		return { hasProfile: false, status: null, hasPref: false };
+		return { hasProfile: false, status: null, hasPref: false, onboarding: null };
 	}
 }
 
@@ -80,22 +83,51 @@ export default function IndexScreen() {
 					return;
 				}
 
-				// 1. DRIVER role path
-				if (user.role === "DRIVER") {
-					setRoleMode("DRIVER");
+				// 1. Check driver / onboarding state
+				if (user.role === "DRIVER" || user.role === "TRAVELER") {
 					const driverData = await fetchDriverStatus();
 					if (!isMounted) return;
 
-					if (!driverData.hasProfile) {
-						setAuthState("needs-register");
-					} else if (driverData.status !== "VERIFIED") {
-						setAuthState("needs-status");
-					} else if (!driverData.hasPref) {
-						setAuthState("needs-pref");
-					} else {
-						setAuthState("authenticated");
+					// If user has a driver profile OR has an onboarding draft in progress
+					if (
+						driverData.hasProfile ||
+						driverData.onboarding ||
+						user.role === "DRIVER"
+					) {
+						setRoleMode("DRIVER");
+						if (driverData.onboarding?.draftData) {
+							useDriverRegistrationStore
+								.getState()
+								.hydrateFromServer(driverData.onboarding.draftData);
+						}
+
+						if (!driverData.hasProfile) {
+							const currentServerStep =
+								driverData.onboarding?.currentStep || "PERSONAL";
+							if (currentServerStep === "COMPLETED") {
+								setAuthState("needs-status");
+							} else {
+								const stepMap: Record<string, number> = {
+									PERSONAL: 1,
+									LICENSE: 2,
+									DOCUMENTS: 3,
+									CARRIER: 4,
+								};
+								useDriverRegistrationStore.getState().updateData({
+									currentStep: stepMap[currentServerStep] || 1,
+									verifiedAt: new Date().toISOString(),
+								});
+								setAuthState("needs-register");
+							}
+						} else if (driverData.status !== "VERIFIED") {
+							setAuthState("needs-status");
+						} else if (!driverData.hasPref) {
+							setAuthState("needs-pref");
+						} else {
+							setAuthState("authenticated");
+						}
+						return;
 					}
-					return;
 				}
 
 				// 2. OPERATOR role path (allowed ONLY if staff role is CONDUCTOR)
@@ -123,7 +155,7 @@ export default function IndexScreen() {
 					return;
 				}
 
-				// 3. Any other role (TRAVELER, ADMIN)
+				// 3. Any other role (pure TRAVELER, ADMIN)
 				Toast.show({
 					type: "error",
 					text1: "Accès refusé",

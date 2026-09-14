@@ -23,11 +23,21 @@ describe("expectedDriverDocPrefix", () => {
       expectedDriverDocPrefix(USER, "driver-medical-doc"),
       `documents/drivers/${USER}/medical/`,
     );
+    assert.equal(
+      expectedDriverDocPrefix(USER, "driver-cacr-front"),
+      `documents/drivers/${USER}/cacr-front/`,
+    );
+    assert.equal(
+      expectedDriverDocPrefix(USER, "driver-cacr-back"),
+      `documents/drivers/${USER}/cacr-back/`,
+    );
   });
 
   it("keeps segments in sync with the purposes registry naming", () => {
     // Guard against someone renaming a segment here but not in purposes.ts
     assert.deepEqual(Object.keys(DRIVER_DOC_SEGMENTS).sort(), [
+      "driver-cacr-back",
+      "driver-cacr-front",
       "driver-license-back",
       "driver-license-front",
       "driver-medical-doc",

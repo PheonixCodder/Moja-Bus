@@ -16,6 +16,8 @@ import { z } from "zod";
 export const DRIVER_DOC_TYPES = [
   "driver-license-front",
   "driver-license-back",
+  "driver-cacr-front",
+  "driver-cacr-back",
   "driver-medical-doc",
   "driver-selfie",
 ] as const;
@@ -26,6 +28,8 @@ export type DriverDocType = (typeof DRIVER_DOC_TYPES)[number];
 export const DRIVER_DOC_SEGMENTS: Record<DriverDocType, string> = {
   "driver-license-front": "license-front",
   "driver-license-back": "license-back",
+  "driver-cacr-front": "cacr-front",
+  "driver-cacr-back": "cacr-back",
   "driver-medical-doc": "medical",
   "driver-selfie": "selfie",
 };

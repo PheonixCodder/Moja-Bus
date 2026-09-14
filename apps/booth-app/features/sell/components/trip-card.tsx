@@ -69,9 +69,17 @@ export const TripCard = React.memo(function TripCard({
   const busLabel = item.bus?.registrationPlate ?? item.bus?.internalName;
   const gateLabel = item.gate;
   const isSoldOut = item.availableSeats === 0;
-  const isLowSeats = item.availableSeats > 0 && item.availableSeats <= 5;
+  const isClosed =
+    item.isClosed ??
+    (diffMinutes < 30 ||
+      isSoldOut ||
+      item.status === "COMPLETED" ||
+      item.status === "CANCELLED");
+  const isLowSeats =
+    !isClosed && item.availableSeats > 0 && item.availableSeats <= 5;
 
   const handlePress = () => {
+    if (isClosed) return;
     BoothFeedback.selection();
     onSelect(item.id, destTerminalId, originLabel, destLabel, offerId);
   };
@@ -79,11 +87,11 @@ export const TripCard = React.memo(function TripCard({
   return (
     <Pressable
       onPress={handlePress}
-      disabled={isSoldOut}
+      disabled={isClosed}
       accessibilityRole="button"
-      accessibilityLabel={`${departureTime} ${originLabel} vers ${destLabel}`}
+      accessibilityLabel={`${departureTime} ${originLabel} vers ${destLabel}${isClosed ? " — " + t("sell.closedDeparture") : ""}`}
       className={`bg-card rounded-2xl border p-4 shadow-xs active:scale-[0.99] transition-transform ${
-        isSoldOut
+        isClosed
           ? "opacity-60 border-border/40 bg-muted/20"
           : isLowSeats
             ? "border-amber-300/80 bg-amber-50/20"
@@ -104,7 +112,13 @@ export const TripCard = React.memo(function TripCard({
             </Text>
           </View>
 
-          {diffMinutes > 0 && diffMinutes <= 90 ? (
+          {isClosed ? (
+            <View className="bg-muted/80 border border-border/60 px-2 py-0.5 rounded-full">
+              <Text className="text-[10px] font-bold text-muted-foreground">
+                {t("sell.closedDeparture")}
+              </Text>
+            </View>
+          ) : diffMinutes > 0 && diffMinutes <= 90 ? (
             <View className="bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">
               <Text className="text-[10px] font-black text-primary">
                 {t("sell.departureIn", { time: `${diffMinutes} min` })}
@@ -199,8 +213,8 @@ export const TripCard = React.memo(function TripCard({
         {/* Sleek Seat Availability Indicator */}
         <View
           className={`flex-row items-center gap-1.5 px-2.5 py-1 rounded-full border ${
-            isSoldOut
-              ? "bg-muted border-border/40"
+            isClosed
+              ? "bg-muted/70 border-border/40"
               : isLowSeats
                 ? "bg-amber-500/10 border-amber-500/25"
                 : "bg-muted/50 border-border/60"
@@ -208,7 +222,7 @@ export const TripCard = React.memo(function TripCard({
         >
           <View
             className={`size-1.5 rounded-full ${
-              isSoldOut
+              isClosed
                 ? "bg-zinc-400"
                 : isLowSeats
                   ? "bg-amber-500"
@@ -217,15 +231,17 @@ export const TripCard = React.memo(function TripCard({
           />
           <Text
             className={`text-xs font-extrabold ${
-              isSoldOut
+              isClosed
                 ? "text-muted-foreground"
                 : isLowSeats
                   ? "text-amber-800"
                   : "text-foreground"
             }`}
           >
-            {isSoldOut
-              ? t("sell.soldOut")
+            {isClosed
+              ? isSoldOut
+                ? t("sell.soldOut")
+                : t("sell.closedDeparture")
               : isLowSeats
                 ? t("sell.seatsRemaining", { count: item.availableSeats })
                 : t("sell.seatsAvailable", { count: item.availableSeats })}

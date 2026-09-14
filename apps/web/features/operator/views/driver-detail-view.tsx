@@ -239,9 +239,24 @@ export function DriverDetailView({ driverId }: DriverDetailViewProps) {
                     License Category
                   </div>
                   <div className="font-bold text-foreground mt-0.5">
-                    Class {driver.licenseCategory} (Passenger Bus)
+                    {driver.licenseCategories && driver.licenseCategories.length > 0
+                      ? `Classes ${driver.licenseCategories.join(", ")}`
+                      : `Class ${driver.licenseCategory}`}
                   </div>
                 </div>
+                {driver.cacrNumber && (
+                  <div>
+                    <div className="text-xs text-muted-foreground">
+                      CACR Certification
+                    </div>
+                    <div className="font-medium text-foreground mt-0.5">
+                      {driver.cacrNumber}
+                      {driver.cacrExpiryDate
+                        ? ` (Exp: ${new Date(driver.cacrExpiryDate).toLocaleDateString()})`
+                        : ""}
+                    </div>
+                  </div>
+                )}
                 <div>
                   <div className="text-xs text-muted-foreground">
                     Expiry Date
@@ -331,6 +346,24 @@ export function DriverDetailView({ driverId }: DriverDetailViewProps) {
                 label="Medical Certificate"
                 storedValue={driver.medicalDocUrl ?? null}
               />
+              {driver.cacrFrontUrl && (
+                <DriverDocPreview
+                  audience="operator"
+                  driverProfileId={driverId}
+                  docType="driver-cacr-front"
+                  label="CACR (Front)"
+                  storedValue={driver.cacrFrontUrl}
+                />
+              )}
+              {driver.cacrBackUrl && (
+                <DriverDocPreview
+                  audience="operator"
+                  driverProfileId={driverId}
+                  docType="driver-cacr-back"
+                  label="CACR (Back)"
+                  storedValue={driver.cacrBackUrl}
+                />
+              )}
             </div>
           </div>
         </TabsContent>

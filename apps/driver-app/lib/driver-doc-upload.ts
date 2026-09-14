@@ -2,6 +2,8 @@
 export type DriverDocPurpose =
 	| "driver-license-front"
 	| "driver-license-back"
+	| "driver-cacr-front"
+	| "driver-cacr-back"
 	| "driver-selfie"
 	| "driver-medical-doc";
 

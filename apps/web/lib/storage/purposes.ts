@@ -23,6 +23,8 @@ export type StoragePurposeId =
   | "operator-document"
   | "driver-license-front"
   | "driver-license-back"
+  | "driver-cacr-front"
+  | "driver-cacr-back"
   | "driver-selfie"
   | "driver-medical-doc"
   | "operator-logo"
@@ -132,6 +134,34 @@ export const STORAGE_PURPOSES: Record<StoragePurposeId, StoragePurposeConfig> =
       keepVersions: true,
       key: (ctx) =>
         `documents/drivers/${ctx.userId}/license-back/${crypto.randomUUID()}-${safeName(ctx.fileName ?? "license")}`,
+    },
+    "driver-cacr-front": {
+      id: "driver-cacr-front",
+      visibility: "private",
+      iam: "passenger",
+      limits: {
+        maxBytes: 10 * MB,
+        allowedMime: [/^image\//, /^application\/pdf$/],
+      },
+      image: { maxDim: 1600, quality: 0.85, toWebp: false },
+      cacheControl: "",
+      keepVersions: true,
+      key: (ctx) =>
+        `documents/drivers/${ctx.userId}/cacr-front/${crypto.randomUUID()}-${safeName(ctx.fileName ?? "cacr-front")}`,
+    },
+    "driver-cacr-back": {
+      id: "driver-cacr-back",
+      visibility: "private",
+      iam: "passenger",
+      limits: {
+        maxBytes: 10 * MB,
+        allowedMime: [/^image\//, /^application\/pdf$/],
+      },
+      image: { maxDim: 1600, quality: 0.85, toWebp: false },
+      cacheControl: "",
+      keepVersions: true,
+      key: (ctx) =>
+        `documents/drivers/${ctx.userId}/cacr-back/${crypto.randomUUID()}-${safeName(ctx.fileName ?? "cacr-back")}`,
     },
     "driver-selfie": {
       id: "driver-selfie",
