@@ -1,0 +1,184 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Semantic version to release (e.g. 1.0.0). If empty, version is read from package.json"
+        required: false
+        type: string
+  push:
+    tags:
+      - "v*"
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  preflight:
+    name: Preflight & Version Resolution
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.resolve.outputs.version }}
+      tag: ${{ steps.resolve.outputs.tag }}
+      repo_lower: ${{ steps.resolve.outputs.repo_lower }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Resolve Version and Repository Name
+        id: resolve
+        run: |
+          set -euo pipefail
+
+          # 1. Resolve Version
+          if [ -n "${{ github.event.inputs.version || '' }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          elif [[ "${GITHUB_REF:-}" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/v}"
+          else
+            VERSION=$(node -p "require('./package.json').version")
+          fi
+
+          # Strip any leading 'v' if user accidentally typed v1.0.0
+          VERSION="${VERSION#v}"
+
+          # Validate semver format
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "Error: Version '$VERSION' is not valid semver (e.g. 1.0.0 or 1.0.0-beta.1)" >&2
+            exit 1
+          fi
+
+          TAG="v$VERSION"
+          REPO_LOWER=$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
+
+          echo "Resolved version: $VERSION"
+          echo "Resolved tag: $TAG"
+          echo "Repository (lowercase): $REPO_LOWER"
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "repo_lower=$REPO_LOWER" >> "$GITHUB_OUTPUT"
+
+  quality-gate:
+    name: Typecheck · Lint Quality Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck workspace
+        run: pnpm exec turbo run typecheck
+
+      - name: Lint workspace
+        run: pnpm exec turbo run lint
+        continue-on-error: true
+
+  build-and-push:
+    name: Build & Push GHCR Container Packages
+    needs: [preflight, quality-gate]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & Push Migrate Image to GHCR
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          target: migrate
+          push: true
+          tags: |
+            ghcr.io/${{ needs.preflight.outputs.repo_lower }}/migrate:${{ needs.preflight.outputs.version }}
+            ghcr.io/${{ needs.preflight.outputs.repo_lower }}/migrate:${{ needs.preflight.outputs.tag }}
+            ghcr.io/${{ needs.preflight.outputs.repo_lower }}/migrate:${{ github.sha }}
+            ghcr.io/${{ needs.preflight.outputs.repo_lower }}/migrate:latest
+          build-args: |
+            DATABASE_URL=${{ secrets.DATABASE_URL_BUILD }}
+          cache-from: type=gha,scope=ghcr-migrate
+          cache-to: type=gha,mode=max,scope=ghcr-migrate
+
+      - name: Build & Push Web Image to GHCR
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ needs.preflight.outputs.repo_lower }}/web:${{ needs.preflight.outputs.version }}
+            ghcr.io/${{ needs.preflight.outputs.repo_lower }}/web:${{ needs.preflight.outputs.tag }}
+            ghcr.io/${{ needs.preflight.outputs.repo_lower }}/web:${{ github.sha }}
+            ghcr.io/${{ needs.preflight.outputs.repo_lower }}/web:latest
+          build-args: |
+            DATABASE_URL=${{ secrets.DATABASE_URL_BUILD }}
+            NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY }}
+            NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
+            NEXT_PUBLIC_APP_NAME=${{ secrets.NEXT_PUBLIC_APP_NAME }}
+            NEXT_PUBLIC_PAYSTACK_CHECKOUT_MODE=${{ secrets.NEXT_PUBLIC_PAYSTACK_CHECKOUT_MODE }}
+            NEXT_PUBLIC_NOVU_APP_ID=${{ secrets.NEXT_PUBLIC_NOVU_APP_ID }}
+            NEXT_PUBLIC_POSTHOG_KEY=${{ secrets.NEXT_PUBLIC_POSTHOG_KEY }}
+            NEXT_PUBLIC_POSTHOG_HOST=${{ secrets.NEXT_PUBLIC_POSTHOG_HOST }}
+          cache-from: type=gha,scope=ghcr-web
+          cache-to: type=gha,mode=max,scope=ghcr-web
+
+  publish-release:
+    name: Create GitHub Release
+    needs: [preflight, build-and-push]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Mint GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.preflight.outputs.tag }}
+          VERSION: ${{ needs.preflight.outputs.version }}
+          REPO_LOWER: ${{ needs.preflight.outputs.repo_lower }}
+        run: |
+          set -euo pipefail
+
+          cat <<EOF > release-notes.md
+          ### 📦 Published Container Packages
+
+          | Package | Image Reference |
+          | :--- | :--- |
+          | **Web Application** | \`ghcr.io/${REPO_LOWER}/web:${VERSION}\` |
+          | **Database Migrations** | \`ghcr.io/${REPO_LOWER}/migrate:${VERSION}\` |
+
+          ---
+          EOF
+
+          # Create or update GitHub Release with auto-generated commit notes
+          gh release create "$TAG" \
+            --title "Release $TAG" \
+            --notes-file release-notes.md \
+            --generate-notes
