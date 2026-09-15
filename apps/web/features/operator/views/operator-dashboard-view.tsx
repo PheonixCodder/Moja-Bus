@@ -108,7 +108,7 @@ export function OperatorDashboardView() {
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-10">
       {/* Top Banner and Quick Status */}
-      <div className="relative overflow-hidden rounded-2xl bg-card border border-border p-6 text-card-foreground shadow-lg">
+      <div className="relative overflow-hidden rounded-2xl bg-card border border-border p-6 text-card-foreground shadow-none">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-3">
             <span
