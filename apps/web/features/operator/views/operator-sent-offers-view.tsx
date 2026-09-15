@@ -227,7 +227,10 @@ function CounterBackForm({
 export function OperatorSentOffersView() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const [params] = useQueryStates(sentOffersSearchParams);
+  const [params, setParams] = useQueryStates(sentOffersSearchParams, {
+    history: "push",
+    shallow: true,
+  });
   const [page, setPage] = useState(1);
   const [counterBackOfferId, setCounterBackOfferId] = useState<string | null>(
     null,
@@ -331,23 +334,19 @@ export function OperatorSentOffersView() {
       {/* Status tabs */}
       <div className="flex flex-wrap gap-1.5">
         {STATUS_TABS.map((tab) => (
-          <Link
+          <Button
             key={tab.value}
-            href={
-              tab.value === "ACTIVE"
-                ? "/dashboard/operator/drivers/offers"
-                : `/dashboard/operator/drivers/offers?status=${tab.value}`
-            }
+            type="button"
+            variant={params.status === tab.value ? "default" : "outline"}
+            size="sm"
+            onClick={() => {
+              void setParams({ status: tab.value });
+              setPage(1);
+            }}
+            className="rounded-full px-3.5 py-1.5 h-auto text-xs font-semibold"
           >
-            <Button
-              type="button"
-              variant={params.status === tab.value ? "default" : "outline"}
-              size="sm"
-              className="rounded-full px-3.5 py-1.5 h-auto text-xs font-semibold"
-            >
-              {tab.label}
-            </Button>
-          </Link>
+            {tab.label}
+          </Button>
         ))}
       </div>
 

@@ -5,7 +5,7 @@ import { HydrateClient, trpc, prefetch } from "@/trpc/server";
 import { ledgerSearchParamsCache } from "@/features/admin/lib/search-params";
 import { AdminLedgerView } from "@/features/admin/views/admin-ledger-view";
 import { DashboardHeader } from "@/features/admin/components/dashboard-header";
-import { SearchParams } from "nuqs";
+import type { SearchParams } from "nuqs/server";
 
 interface LedgerPageProps {
   searchParams: Promise<SearchParams>;

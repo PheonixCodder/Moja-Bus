@@ -6,6 +6,32 @@ Last updated: 2026-09-06 (Phase 9 preset b20te54eby — maia + taupe, Moja pink 
 
 ## State
 
+- **🏁 NUQS STATE MANAGEMENT AUDIT & CODEBASE REMEDIATION COMPLETE ✅ (2026-09-14)**:
+  - **Full Audit & Standards Alignment (`context/services/nuqs`, `context/audits/nuqs-web/`)**:
+    - Conducted a comprehensive audit across all pages, views, and components in `apps/web`.
+    - Documented findings in `context/audits/nuqs-web/` (System Map, Rule Evaluations, Findings Catalog, Remediation Plan, Release Checklist).
+    - Achieved **Grade A+** verification across all 8 architectural rules.
+  - **Remediations Executed across `apps/web`**:
+    - **Hydration Alignment & Server Prefetch**:
+      - Integrated `searchParams: Promise<SearchParams>` and `*SearchParamsCache.parse(await searchParams)` across Schedules, Staff, Settlements, Ledger, Routes, Drivers, and Fleet pages.
+      - Prefetched queries with matching filters via `trpc.*.queryOptions` before client hydration, eliminating client waterfall flashes.
+    - **Import Standards & Clean Architecture**:
+      - Zero server pages import from `"nuqs"` (all use `"nuqs/server"`).
+      - Zero client views import from `"nuqs/server"` (only shared cache/schema files in `lib/` do).
+      - Removed redundant nested `<NuqsAdapter>` in `promotions/page.tsx` (single root adapter in `layout.tsx`).
+    - **URL State Synchronization**:
+      - Operator Routes: Created `features/operator/lib/routes/route-search-params.ts`, wired `OperatorRoutesView` with `useQueryStates(routeSearchParams)`.
+      - Operator Drivers: Created `features/operator/lib/drivers/driver-search-params.ts`, wired `OperatorDriversView` with `useQueryStates(driverSearchParams)`.
+      - Operator Fleet: Created `features/operator/lib/fleet/fleet-search-params.ts`, wired `OperatorFleetView` with `useQueryStates(fleetSearchParams)`, replaced `useSearchParams` and `window.location.pathname`.
+      - Admin Activity Logs: Unified 4 separate `useQueryState` calls into `useQueryStates(adminActivityLogsParamsSchema)`.
+      - Operator Sent Offers: Replaced `<Link>` navigation on status tabs with `setParams({ status: tab.value })`.
+    - **Search Input Debouncing & History Hygiene**:
+      - Added 300ms input buffering in Bookings, Admin Users, Terminals, Drivers, Routes, Fleet, and Activity Logs, preventing URL rewriting on every keystroke.
+  - **Verification & Jira Tracking**:
+    - `pnpm --filter=web typecheck`: 0 errors (clean compilation).
+    - `SCRUM-10` ("Fix Nuqs bugs in the complete web app across all pages") transitioned to **Done** in Jira with detailed audit notes.
+    - `docs/jira/backlog-and-epics.md` updated with `SCRUM-10` under Completed Issues.
+
 - **🏁 DRIVER ONBOARDING REFACTOR, MULTI-LICENSE CATEGORIES & CACR COMPLIANCE COMPLETE ✅ (2026-09-13)**:
   - **Loop Bug Resolution & Server-Persisted Onboarding Progress (`apps/driver-app`, `packages/db`, `apps/web`)**:
     - **Root Cause Identified**:

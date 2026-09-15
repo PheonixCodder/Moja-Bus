@@ -8,7 +8,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Download, ScanLine, Search } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useQueryStates } from "nuqs";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { BookingDetailDrawer } from "@/features/operator/components/bookings/booking-detail-drawer";
 import { BookingsList } from "@/features/operator/components/bookings/bookings-list";
@@ -37,7 +37,20 @@ export function OperatorBookingsView() {
   const canCheckIn = canAny(["bookings:update", "bookings:checkin"]);
   const [params, setParams] = useQueryStates(bookingListParsers);
   const { filter, q, status, tripId, page, detail } = params;
-  const debouncedQ = useDebounce(q, 300);
+
+  // Local state for instant typing with debounced URL updates
+  const [searchVal, setSearchVal] = useState(q);
+  const debouncedSearchVal = useDebounce(searchVal, 300);
+
+  useEffect(() => {
+    if (debouncedSearchVal !== q) {
+      void setParams({ q: debouncedSearchVal, page: 1 });
+    }
+  }, [debouncedSearchVal, q, setParams]);
+
+  useEffect(() => {
+    setSearchVal(q);
+  }, [q]);
 
   const checkInMutation = useMutation(
     trpc.operator.checkInBooking.mutationOptions({
@@ -71,7 +84,7 @@ export function OperatorBookingsView() {
 
   const listInput = {
     filter,
-    search: debouncedQ.trim() || undefined,
+    search: q.trim() || undefined,
     status: status === "ALL" ? undefined : status,
     tripId: tripId || undefined,
     limit: PAGE_SIZE,
@@ -203,8 +216,8 @@ export function OperatorBookingsView() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
-            value={q}
-            onChange={(e) => void setParams({ q: e.target.value, page: 1 })}
+            value={searchVal}
+            onChange={(e) => setSearchVal(e.target.value)}
             placeholder={t("searchPlaceholder")}
             className="pl-9"
           />

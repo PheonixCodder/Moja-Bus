@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { HydrateClient, trpc, prefetch } from "@/trpc/server";
 import { AdminSettlementsView } from "@/features/admin/views/admin-settlements-view";
 import { AdminPageShell } from "@/features/admin/components/admin-page-shell";
-import { SearchParams } from "nuqs";
+import type { SearchParams } from "nuqs/server";
 import { settlementsSearchParamsCache } from "@/features/admin/lib/search-params";
 
 interface SettlementsPageProps {

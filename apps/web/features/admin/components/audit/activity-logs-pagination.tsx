@@ -3,7 +3,8 @@
 import { Button } from "@moja/ui/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { parseAsInteger, useQueryState } from "nuqs";
+import { useQueryState } from "nuqs";
+import { adminActivityLogsParamsSchema } from "@/features/admin/lib/search-params";
 
 interface ActivityLogsPaginationProps {
   hasMore: boolean;
@@ -13,7 +14,10 @@ export function ActivityLogsPagination({
   hasMore,
 }: ActivityLogsPaginationProps) {
   const t = useTranslations("adminDashboard.activityLogsPagination");
-  const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(0));
+  const [page, setPage] = useQueryState(
+    "page",
+    adminActivityLogsParamsSchema.page,
+  );
 
   const currentPage = page; // 0-indexed
   const displayPage = currentPage + 1; // 1-indexed for display

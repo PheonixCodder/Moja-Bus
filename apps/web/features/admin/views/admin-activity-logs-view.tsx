@@ -13,8 +13,10 @@ import {
 import { Spinner } from "@moja/ui/components/ui/spinner";
 import { Search, X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
-import { Suspense, useState } from "react";
+import { useQueryStates } from "nuqs";
+import { Suspense, useEffect, useState } from "react";
+import { adminActivityLogsParamsSchema } from "@/features/admin/lib/search-params";
+import { useDebounce } from "@/features/search/hooks/use-debounce";
 import { ActivityLogsTable } from "../components/audit/activity-logs-table";
 
 const CHANNELS = [
@@ -72,38 +74,30 @@ const TEMPLATE_OPTIONS = [
 
 export function AdminActivityLogsView() {
   const t = useTranslations("adminDashboard.adminActivityLogsView");
-  const [search, setSearch] = useQueryState(
-    "search",
-    parseAsString.withDefault(""),
-  );
-  const [channel, setChannel] = useQueryState(
-    "channel",
-    parseAsString.withDefault(""),
-  );
-  const [template, setTemplate] = useQueryState(
-    "template",
-    parseAsString.withDefault(""),
-  );
-  const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(0));
+  const [params, setParams] = useQueryStates(adminActivityLogsParamsSchema);
 
-  const [searchInput, setSearchInput] = useState(search);
+  const [searchInput, setSearchInput] = useState(params.search);
+  const debouncedSearch = useDebounce(searchInput, 300);
 
-  const handleSearchChange = (val: string) => {
-    setSearchInput(val);
-    const timeout = setTimeout(() => {
-      setSearch(val || null);
-      setPage(0);
-    }, 350);
-    return () => clearTimeout(timeout);
-  };
+  useEffect(() => {
+    if (debouncedSearch !== params.search) {
+      void setParams({ search: debouncedSearch || null, page: 0 });
+    }
+  }, [debouncedSearch, params.search, setParams]);
 
-  const hasFilters = !!search || !!channel || !!template;
+  useEffect(() => {
+    setSearchInput(params.search);
+  }, [params.search]);
+
+  const hasFilters = !!params.search || !!params.channel || !!params.template;
 
   const clearFilters = () => {
-    setSearch(null);
-    setChannel(null);
-    setTemplate(null);
-    setPage(0);
+    void setParams({
+      search: null,
+      channel: null,
+      template: null,
+      page: 0,
+    });
     setSearchInput("");
   };
 
@@ -118,15 +112,14 @@ export function AdminActivityLogsView() {
             placeholder={t("searchPlaceholder")}
             className="pl-8"
             value={searchInput}
-            onChange={(e) => handleSearchChange(e.target.value)}
+            onChange={(e) => setSearchInput(e.target.value)}
           />
         </div>
 
         <Select
-          value={channel || "__all__"}
+          value={params.channel || "__all__"}
           onValueChange={(v) => {
-            setChannel(v === "__all__" ? null : v);
-            setPage(0);
+            void setParams({ channel: v === "__all__" ? null : v, page: 0 });
           }}
         >
           <SelectTrigger className="w-[160px]">
@@ -143,10 +136,9 @@ export function AdminActivityLogsView() {
         </Select>
 
         <Select
-          value={template || "__all__"}
+          value={params.template || "__all__"}
           onValueChange={(v) => {
-            setTemplate(v === "__all__" ? null : v);
-            setPage(0);
+            void setParams({ template: v === "__all__" ? null : v, page: 0 });
           }}
         >
           <SelectTrigger className="w-[200px]">

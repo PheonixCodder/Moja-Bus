@@ -46,8 +46,8 @@ import {
   UserX,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { parseAsInteger, useQueryState } from "nuqs";
-import { useState } from "react";
+import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useTRPC } from "@/trpc/client";
 
@@ -56,18 +56,37 @@ export function AdminUsersView() {
   const queryClient = useQueryClient();
   const t = useTranslations("adminDashboard.adminUsersView");
 
-  const [searchQuery, setSearchQuery] = useQueryState("q", {
-    defaultValue: "",
-  });
-  const [selectedRole, setSelectedRole] = useQueryState("role", {
-    defaultValue: "",
-  });
+  const [searchQuery, setSearchQuery] = useQueryState(
+    "q",
+    parseAsString.withDefault(""),
+  );
+  const [selectedRole, setSelectedRole] = useQueryState(
+    "role",
+    parseAsString.withDefault(""),
+  );
   const [currentPageParam, setCurrentPageParam] = useQueryState(
     "page",
     parseAsInteger.withDefault(1),
   );
   const currentPage = currentPageParam - 1; // 0-indexed internally
   const pageSize = 20;
+
+  // Local state for instant typing with debounced URL update
+  const [searchVal, setSearchVal] = useState(searchQuery);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchVal !== searchQuery) {
+        void setSearchQuery(searchVal);
+        void setCurrentPageParam(1);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchVal, searchQuery, setSearchQuery, setCurrentPageParam]);
+
+  useEffect(() => {
+    setSearchVal(searchQuery);
+  }, [searchQuery]);
 
   // Dialog State
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
@@ -171,11 +190,8 @@ export function AdminUsersView() {
             <Input
               type="text"
               placeholder={t("searchPlaceholder")}
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPageParam(1);
-              }}
+              value={searchVal}
+              onChange={(e) => setSearchVal(e.target.value)}
               className="h-10 pl-9 pr-4 text-sm"
             />
           </div>

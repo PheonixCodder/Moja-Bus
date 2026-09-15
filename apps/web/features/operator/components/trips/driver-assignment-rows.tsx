@@ -34,21 +34,45 @@ const pendingRef: { current: PendingAttempt } = {
 
 const ROLE_CONFIG: Record<
   Role,
-  { icon: typeof UserCheck; labelKey: string; accent: string }
+  {
+    icon: typeof UserCheck;
+    labelKey: string;
+    placeholderKey: string;
+    searchingKey: string;
+    noEligibleKey: string;
+    unassignAriaKey: string;
+    replaceConfirmTitleKey: string;
+    accent: string;
+  }
 > = {
   PRIMARY: {
     icon: UserCheck,
     labelKey: "driverRow.primary",
+    placeholderKey: "driverAssignPlaceholder",
+    searchingKey: "driverSearching",
+    noEligibleKey: "driverNoEligible",
+    unassignAriaKey: "unassignAria",
+    replaceConfirmTitleKey: "replaceConfirmTitle",
     accent: "text-primary",
   },
   RELIEF: {
     icon: Users,
     labelKey: "driverRow.relief",
+    placeholderKey: "reliefAssignPlaceholder",
+    searchingKey: "driverSearching",
+    noEligibleKey: "reliefNoEligible",
+    unassignAriaKey: "unassignReliefAria",
+    replaceConfirmTitleKey: "replaceReliefConfirmTitle",
     accent: "text-primary/80",
   },
   CONDUCTOR: {
     icon: ClipboardCheck,
     labelKey: "driverRow.conductor",
+    placeholderKey: "conductorAssignPlaceholder",
+    searchingKey: "conductorSearching",
+    noEligibleKey: "conductorNoEligible",
+    unassignAriaKey: "unassignConductorAria",
+    replaceConfirmTitleKey: "replaceConductorConfirmTitle",
     accent: "text-primary/70",
   },
 };
@@ -135,7 +159,7 @@ export function DriverAssignmentRows({
   const assignConductorMutation = useMutation({
     ...trpc.trips.assignConductor.mutationOptions(),
     onSuccess: () => {
-      toast.success(t("driverAssigned"));
+      toast.success(t("conductorAssigned"));
       invalidateBoards();
     },
     onError: (err: any) => toast.error(err?.message || t("failedAssignDriver")),
@@ -144,7 +168,7 @@ export function DriverAssignmentRows({
   const unassignConductorMutation = useMutation({
     ...trpc.trips.unassignConductor.mutationOptions(),
     onSuccess: () => {
-      toast.success(t("driverUnassignedToast"));
+      toast.success(t("conductorUnassignedToast"));
       invalidateBoards();
     },
     onError: (err: any) => toast.error(err?.message || t("failedAssignDriver")),
@@ -160,7 +184,7 @@ export function DriverAssignmentRows({
     if (occupant && occupant.id !== selectedId) {
       if (
         !window.confirm(
-          `${t("replaceConfirmTitle")}\n\n${t("replaceConfirmMessage", { name: occupant.name })}`,
+          `${t(ROLE_CONFIG[role].replaceConfirmTitleKey)}\n\n${t("replaceConfirmMessage", { name: occupant.name })}`,
         )
       ) {
         return;
@@ -217,7 +241,7 @@ export function DriverAssignmentRows({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  aria-label={t("unassignAria")}
+                  aria-label={t(cfg.unassignAriaKey)}
                   className="ml-0.5 h-auto w-auto rounded-full p-0.5 text-success hover:bg-success/20 hover:text-success"
                   onClick={() => {
                     if (role === "CONDUCTOR") {
@@ -248,13 +272,13 @@ export function DriverAssignmentRows({
                   <ComboboxInput
                     placeholder={
                       conductorsQuery.isLoading
-                        ? t("driverSearching")
-                        : t("driverAssignPlaceholder")
+                        ? t(cfg.searchingKey)
+                        : t(cfg.placeholderKey)
                     }
                     className="h-8 w-full text-xs"
                   />
                   <ComboboxContent>
-                    <ComboboxEmpty>{t("driverNoEligible")}</ComboboxEmpty>
+                    <ComboboxEmpty>{t(cfg.noEligibleKey)}</ComboboxEmpty>
                     <ComboboxList>
                       {conductors.map((c) => (
                         <ComboboxItem
@@ -292,13 +316,13 @@ export function DriverAssignmentRows({
                   <ComboboxInput
                     placeholder={
                       eligibleQuery.isLoading
-                        ? t("driverSearching")
-                        : t("driverAssignPlaceholder")
+                        ? t(cfg.searchingKey)
+                        : t(cfg.placeholderKey)
                     }
                     className="h-8 w-full text-xs"
                   />
                   <ComboboxContent>
-                    <ComboboxEmpty>{t("driverNoEligible")}</ComboboxEmpty>
+                    <ComboboxEmpty>{t(cfg.noEligibleKey)}</ComboboxEmpty>
                     <ComboboxList>
                       {drivers.map((d) => {
                         const ineligible =

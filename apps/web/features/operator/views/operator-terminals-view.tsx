@@ -40,7 +40,7 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { parseAsBoolean, parseAsString, useQueryState } from "nuqs";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   CsvImportModal,
@@ -51,6 +51,7 @@ import { StatCard } from "@/features/operator/components/stat-card";
 import { TerminalEditorSheet } from "@/features/operator/components/terminals/terminal-editor-sheet";
 import { TerminalsTable } from "@/features/operator/components/terminals/terminals-table";
 import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
+import { useDebounce } from "@/features/operator/hooks/useDebounce";
 import { formatLocationLabel } from "@/lib/format-location-label";
 import { useTRPC } from "@/trpc/client";
 
@@ -80,6 +81,20 @@ export function OperatorTerminalsView() {
     "drawer",
     parseAsBoolean.withDefault(false),
   );
+
+  // Local state for instant typing with debounced URL update
+  const [searchVal, setSearchVal] = useState(search);
+  const debouncedSearch = useDebounce(searchVal, 300);
+
+  useEffect(() => {
+    if (debouncedSearch !== search) {
+      void setSearch(debouncedSearch);
+    }
+  }, [debouncedSearch, search, setSearch]);
+
+  useEffect(() => {
+    setSearchVal(search);
+  }, [search]);
 
   const [editingLocation, setEditingLocation] = useState<any>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -337,8 +352,8 @@ export function OperatorTerminalsView() {
           <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
           <Input
             placeholder={t("searchPlaceholder")}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={searchVal}
+            onChange={(e) => setSearchVal(e.target.value)}
             className="pl-9"
           />
         </div>

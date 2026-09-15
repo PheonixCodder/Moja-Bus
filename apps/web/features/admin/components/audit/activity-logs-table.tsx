@@ -14,8 +14,9 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { Eye } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
+import { useQueryStates } from "nuqs";
 import { useState } from "react";
+import { adminActivityLogsParamsSchema } from "@/features/admin/lib/search-params";
 import { useTRPC } from "@/trpc/client";
 import { ActivityLogDetailDialog } from "./activity-log-detail-dialog";
 import { ActivityLogsPagination } from "./activity-logs-pagination";
@@ -31,10 +32,9 @@ const CHANNEL_COLORS: Record<string, string> = {
 export function ActivityLogsTable() {
   const t = useTranslations("adminDashboard.activityLogsTable");
   const trpc = useTRPC();
-  const [search] = useQueryState("search", parseAsString.withDefault(""));
-  const [channel] = useQueryState("channel", parseAsString.withDefault(""));
-  const [template] = useQueryState("template", parseAsString.withDefault(""));
-  const [page] = useQueryState("page", parseAsInteger.withDefault(0));
+  const [{ search, channel, template, page }] = useQueryStates(
+    adminActivityLogsParamsSchema,
+  );
   const [selectedLog, setSelectedLog] = useState<any | null>(null);
 
   const { data } = useSuspenseQuery(

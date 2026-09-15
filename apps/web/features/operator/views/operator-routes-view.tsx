@@ -27,7 +27,8 @@ import {
   Upload,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useQueryStates } from "nuqs";
 import { toast } from "sonner";
 import {
   CsvImportModal,
@@ -40,6 +41,11 @@ import { RouteFormDrawer } from "@/features/operator/components/routes/route-for
 import { RouteSuccessPanel } from "@/features/operator/components/routes/route-success-panel";
 import { StatCard } from "@/features/operator/components/stat-card";
 import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
+import { useDebounce } from "@/features/operator/hooks/useDebounce";
+import {
+  ROUTE_STATUS_OPTIONS,
+  routeSearchParams,
+} from "@/features/operator/lib/routes/route-search-params";
 import type { RouterOutputs } from "@/trpc/client";
 import { useTRPC } from "@/trpc/client";
 
@@ -51,14 +57,25 @@ export function OperatorRoutesView() {
   const { can } = useStaffPermissions();
   const queryClient = useQueryClient();
 
-  const [statusFilter, setStatusFilter] = useState("ALL");
-  const [search, setSearch] = useState("");
+  const [{ q, status }, setParams] = useQueryStates(routeSearchParams);
+  const [searchVal, setSearchVal] = useState(q);
+  const debouncedSearch = useDebounce(searchVal, 300);
+
+  useEffect(() => {
+    if (debouncedSearch !== q) {
+      void setParams({ q: debouncedSearch || null });
+    }
+  }, [debouncedSearch, q, setParams]);
+
+  useEffect(() => {
+    setSearchVal(q);
+  }, [q]);
 
   const canManageRoute = can("routes:create") || can("routes:update");
 
   const { data: routes } = useSuspenseQuery(
     trpc.routes.list.queryOptions({
-      showArchived: statusFilter === "ARCHIVED" || statusFilter === "ALL",
+      showArchived: status === "ARCHIVED" || status === "ALL",
     }),
   );
   // S2: only fetch terminals when the user can actually open the route form
@@ -102,24 +119,24 @@ export function OperatorRoutesView() {
   const filteredRoutes = useMemo(() => {
     if (!routes) return [];
     return routes.filter((r) => {
-      const q = search.toLowerCase().trim();
+      const searchStr = q.toLowerCase().trim();
       const matchesSearch =
-        !q ||
-        r.name.toLowerCase().includes(q) ||
+        !searchStr ||
+        r.name.toLowerCase().includes(searchStr) ||
         (r.originTerminal?.name &&
-          r.originTerminal.name.toLowerCase().includes(q)) ||
+          r.originTerminal.name.toLowerCase().includes(searchStr)) ||
         (r.originTerminal?.cityRelation?.name &&
-          r.originTerminal.cityRelation.name.toLowerCase().includes(q)) ||
+          r.originTerminal.cityRelation.name.toLowerCase().includes(searchStr)) ||
         (r.destTerminal?.name &&
-          r.destTerminal.name.toLowerCase().includes(q)) ||
+          r.destTerminal.name.toLowerCase().includes(searchStr)) ||
         (r.destTerminal?.cityRelation?.name &&
-          r.destTerminal.cityRelation.name.toLowerCase().includes(q));
+          r.destTerminal.cityRelation.name.toLowerCase().includes(searchStr));
 
-      const matchesStatus = statusFilter === "ALL" || r.status === statusFilter;
+      const matchesStatus = status === "ALL" || r.status === status;
 
       return matchesSearch && matchesStatus;
     });
-  }, [routes, search, statusFilter]);
+  }, [routes, q, status]);
 
   const stats = useMemo(() => {
     const list = routes ?? [];
@@ -231,19 +248,19 @@ export function OperatorRoutesView() {
           <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
           <Input
             placeholder={t("searchPlaceholder")}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={searchVal}
+            onChange={(e) => setSearchVal(e.target.value)}
             className="pl-9"
           />
         </div>
 
         <div className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
-          {["ALL", "ACTIVE", "DRAFT", "SUSPENDED", "ARCHIVED"].map((s) => (
+          {ROUTE_STATUS_OPTIONS.map((s) => (
             <Button
               key={s}
-              variant={statusFilter === s ? "default" : "outline"}
+              variant={status === s ? "default" : "outline"}
               size="sm"
-              onClick={() => setStatusFilter(s)}
+              onClick={() => setParams({ status: s })}
               className="text-xs uppercase tracking-wider font-semibold"
             >
               {s === "ALL" ? t("status.ALL") : t(`status.${s}`)}
