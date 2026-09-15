@@ -38,6 +38,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { TicketScanner } from "@/features/operator/components/ticket-scanner";
+import { KpiCard, KpiGrid } from "@/features/operator/components/kpi";
 import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
 import { getCompanyStatusPresentation } from "@/features/operator/lib/company-status";
 import { formatDateWithWeekday } from "@/lib/format-date";
@@ -152,98 +153,54 @@ export function OperatorDashboardView() {
       </div>
 
       {/* KPI Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <KpiGrid cols={4}>
         {/* KPI 1: Today's Revenue */}
-        <Card className="border-border bg-surface hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              {t("revenueTitle")}
-            </CardTitle>
-            <div className="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
-              <CreditCard className="w-4 h-4" />
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-1">
-            <div className="text-2xl font-bold font-mono tracking-tight text-foreground">
-              {formatCurrency(stats?.revenueTodayXOF ?? 0)}
-            </div>
-            <p className="text-[10px] text-muted-foreground">
-              {t("revenueDesc")}
-            </p>
-          </CardContent>
-        </Card>
+        <KpiCard
+          label={t("revenueTitle")}
+          value={formatCurrency(stats?.revenueTodayXOF ?? 0)}
+          subtext={t("revenueDesc")}
+          icon={CreditCard}
+        />
 
         {/* KPI 2: Today's Bookings */}
-        <Card className="border-border bg-surface hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              {t("bookingsTitle")}
-            </CardTitle>
-            <div className="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
-              <Ticket className="w-4 h-4" />
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-1">
-            <div className="text-2xl font-bold font-mono tracking-tight text-foreground">
-              {stats?.totalBookingsToday ?? 0}
-            </div>
-            <p className="text-[10px] text-muted-foreground">
-              {t("bookingsDesc")}
-            </p>
-          </CardContent>
-        </Card>
+        <KpiCard
+          label={t("bookingsTitle")}
+          value={stats?.totalBookingsToday ?? 0}
+          subtext={t("bookingsDesc")}
+          icon={Ticket}
+        />
 
         {/* KPI 3: Occupancy Rate */}
-        <Card className="border-border bg-surface hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              {t("occupancyTitle")}
-            </CardTitle>
-            <div className="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
-              <Users className="w-4 h-4" />
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="flex items-baseline justify-between">
-              <div className="text-2xl font-bold font-mono tracking-tight text-foreground">
-                {stats?.occupancyRateToday ?? 0}%
-              </div>
-              <span className="text-[9px] font-semibold text-muted-foreground">
-                {t("occupancyTarget")}
-              </span>
-            </div>
+        <KpiCard
+          label={t("occupancyTitle")}
+          value={`${stats?.occupancyRateToday ?? 0}%`}
+          subtext={t("occupancyTarget")}
+          icon={Users}
+          action={
             <Progress
               value={stats?.occupancyRateToday ?? 0}
-              className="h-1.5 bg-border"
+              className="h-1.5 bg-border mt-1"
             />
-          </CardContent>
-        </Card>
+          }
+        />
 
         {/* KPI 4: Active Fleet */}
         {stats?.totalBuses != null && (
-          <Card className="border-border bg-surface hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                {t("fleetTitle")}
-              </CardTitle>
-              <div className="w-7 h-7 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
-                <Bus className="w-4 h-4" />
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-1">
-              <div className="text-2xl font-bold font-mono tracking-tight text-foreground">
+          <KpiCard
+            label={t("fleetTitle")}
+            value={
+              <>
                 {stats.activeBuses}{" "}
                 <span className="text-sm font-normal text-muted-foreground">
                   / {stats.totalBuses}
                 </span>
-              </div>
-              <p className="text-[10px] text-muted-foreground">
-                {t("fleetDesc")}
-              </p>
-            </CardContent>
-          </Card>
+              </>
+            }
+            subtext={t("fleetDesc")}
+            icon={Bus}
+          />
         )}
-      </div>
+      </KpiGrid>
 
       {/* Main Grid Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">

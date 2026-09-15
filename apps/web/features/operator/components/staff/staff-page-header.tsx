@@ -3,6 +3,7 @@
 import { Users, UserPlus } from "lucide-react";
 import { Button } from "@moja/ui/components/ui/button";
 import { useTranslations } from "next-intl";
+import { PageHeaderAction } from "@/features/operator/components/header";
 
 interface StaffPageHeaderProps {
   canInvite: boolean;
@@ -13,18 +14,12 @@ export function StaffPageHeader({ canInvite, onInvite }: StaffPageHeaderProps) {
   const t = useTranslations("operatorDashboard.staff");
   return (
     <div className="border-b border-border bg-card px-6 py-5 shrink-0">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold font-display tracking-tight text-foreground flex items-center gap-2">
-            <Users className="size-5.5 text-primary" />
-            {t("title")}
-          </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            {t("headerDescription")}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {canInvite ? (
+      <PageHeaderAction
+        title={t("title")}
+        description={t("headerDescription")}
+        icon={Users}
+        actions={
+          canInvite ? (
             <Button
               size="sm"
               className="h-8.5 text-xs font-semibold"
@@ -33,9 +28,9 @@ export function StaffPageHeader({ canInvite, onInvite }: StaffPageHeaderProps) {
               <UserPlus className="size-4 mr-1.5" />
               {t("invite")}
             </Button>
-          ) : null}
-        </div>
-      </div>
+          ) : null
+        }
+      />
     </div>
   );
 }

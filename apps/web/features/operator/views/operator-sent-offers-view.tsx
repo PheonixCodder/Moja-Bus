@@ -31,6 +31,7 @@ import Link from "next/link";
 import { parseAsString, useQueryStates } from "nuqs";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { PageHeaderAction } from "@/features/operator/components/header";
 import { useTRPC } from "@/trpc/client";
 
 // ─── URL state ───────────────────────────────────────────────────────────────
@@ -320,16 +321,11 @@ export function OperatorSentOffersView() {
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-5">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
-          <Send className="size-7 text-primary" />
-          Sent Offers
-        </h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Track every employment offer — responses, counter-proposals, and
-          expirations.
-        </p>
-      </div>
+      <PageHeaderAction
+        title="Sent Offers"
+        description="Track every employment offer — responses, counter-proposals, and expirations."
+        icon={Send}
+      />
 
       {/* Status tabs */}
       <div className="flex flex-wrap gap-1.5">

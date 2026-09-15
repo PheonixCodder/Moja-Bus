@@ -20,6 +20,7 @@ import { Radio, RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useQueryStates } from "nuqs";
 import { useMemo, useState } from "react";
+import { PageHeaderLive } from "@/features/operator/components/header";
 import { ManifestDrawer } from "@/features/operator/components/trips/manifest-drawer";
 import { TripCard } from "@/features/operator/components/trips/trip-card";
 import { TripsToolbar } from "@/features/operator/components/trips/trips-toolbar";
@@ -166,78 +167,88 @@ export function OperatorTripsView() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center gap-2 px-5 py-3 border-b border-border bg-muted/30 shrink-0 flex-wrap">
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={() => void setParams({ status: "ALL", page: 1 })}
-          className={cn(
-            "flex items-center gap-1.5 rounded-full border px-2.5 py-1 h-auto text-xs font-medium transition-colors",
-            status === "ALL"
-              ? "border-primary bg-primary/10 text-primary"
-              : "border-border text-muted-foreground hover:bg-muted",
-          )}
-        >
-          {t("all")}
-          <span className="font-mono font-bold">
-            {allCount === null ? "—" : allCount}
-          </span>
-        </Button>
-        {STATUS_CHIPS.map((chip) => {
-          const count = statusCounts[chip.status] ?? 0;
-          const active = status === chip.status;
-          if (count === 0 && !active) return null;
-          return (
-            <Button
-              key={chip.status}
-              type="button"
-              variant="ghost"
-              onClick={() =>
-                void setParams({
-                  status: active ? "ALL" : chip.status,
-                  page: 1,
-                })
-              }
-              className={cn(
-                "flex items-center gap-1.5 rounded-full border px-2.5 py-1 h-auto text-xs font-medium transition-colors",
-                active
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border text-muted-foreground hover:bg-muted",
-              )}
-            >
-              <span className={cn("size-2 rounded-full", chip.dot)} />
-              {chip.label}
-              <span className="font-mono font-bold">{count}</span>
-            </Button>
-          );
-        })}
-        <div className="ml-auto flex items-center gap-2 flex-wrap justify-end">
-          {windowLabel ? (
-            <span className="text-[11px] text-muted-foreground">
-              {t("windowRange", {
-                start: windowLabel.startDate,
-                end: windowLabel.endDate,
+      <div className="px-5 py-3 border-b border-border bg-muted/30 shrink-0">
+        <PageHeaderLive
+          statusPills={
+            <>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => void setParams({ status: "ALL", page: 1 })}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-full border px-2.5 py-1 h-auto text-xs font-medium transition-colors",
+                  status === "ALL"
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:bg-muted",
+                )}
+              >
+                {t("all")}
+                <span className="font-mono font-bold">
+                  {allCount === null ? "—" : allCount}
+                </span>
+              </Button>
+              {STATUS_CHIPS.map((chip) => {
+                const count = statusCounts[chip.status] ?? 0;
+                const active = status === chip.status;
+                if (count === 0 && !active) return null;
+                return (
+                  <Button
+                    key={chip.status}
+                    type="button"
+                    variant="ghost"
+                    onClick={() =>
+                      void setParams({
+                        status: active ? "ALL" : chip.status,
+                        page: 1,
+                      })
+                    }
+                    className={cn(
+                      "flex items-center gap-1.5 rounded-full border px-2.5 py-1 h-auto text-xs font-medium transition-colors",
+                      active
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border text-muted-foreground hover:bg-muted",
+                    )}
+                  >
+                    <span className={cn("size-2 rounded-full", chip.dot)} />
+                    {chip.label}
+                    <span className="font-mono font-bold">{count}</span>
+                  </Button>
+                );
               })}
-            </span>
-          ) : null}
-          <span className="text-[11px] text-muted-foreground">
-            {t("totalInfo", {
-              total: listData.total,
-              page: listData.page,
-              pageCount: listData.pageCount,
-            })}
-          </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 text-xs gap-1.5"
-            onClick={() => handleRefresh()}
-            disabled={refreshing}
-          >
-            <RefreshCw className={cn("size-3", refreshing && "animate-spin")} />
-            {t("refresh")}
-          </Button>
-        </div>
+            </>
+          }
+          metadata={
+            <div className="flex items-center gap-2 flex-wrap">
+              {windowLabel ? (
+                <span>
+                  {t("windowRange", {
+                    start: windowLabel.startDate,
+                    end: windowLabel.endDate,
+                  })}
+                </span>
+              ) : null}
+              <span>
+                {t("totalInfo", {
+                  total: listData.total,
+                  page: listData.page,
+                  pageCount: listData.pageCount,
+                })}
+              </span>
+            </div>
+          }
+          refreshAction={
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs gap-1.5"
+              onClick={() => handleRefresh()}
+              disabled={refreshing}
+            >
+              <RefreshCw className={cn("size-3", refreshing && "animate-spin")} />
+              {t("refresh")}
+            </Button>
+          }
+        />
       </div>
 
       <div className="px-5 py-3 border-b border-border shrink-0">

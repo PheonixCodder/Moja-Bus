@@ -30,6 +30,8 @@ import {
 import { Badge } from "@moja/ui/components/ui/badge";
 import { Spinner } from "@moja/ui/components/ui/spinner";
 import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
+import { PageHeaderAction } from "@/features/operator/components/header";
+import { KpiCard, KpiGrid } from "@/features/operator/components/kpi";
 
 export function OperatorWithdrawView() {
   const t = useTranslations("operatorDashboard.withdraw");
@@ -146,14 +148,10 @@ export function OperatorWithdrawView() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-bold font-display tracking-tight text-foreground">
-          {t("title")}
-        </h1>
-        <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
-          {t("description")}
-        </p>
-      </div>
+      <PageHeaderAction
+        title={t("title")}
+        description={t("description")}
+      />
 
       {!bankVerified ? (
         <div className="rounded-lg border border-warning/20 bg-warning/10 p-4 flex flex-col sm:flex-row sm:items-center gap-3">
@@ -184,49 +182,33 @@ export function OperatorWithdrawView() {
         </div>
       ) : null}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-success/5 border-success/20">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-success flex items-center gap-2">
-              <Wallet className="h-4 w-4" />
-              {t("availableBalance")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-foreground">
-              {new Intl.NumberFormat("en-US", {
-                style: "currency",
-                currency: "XOF",
-                maximumFractionDigits: 0,
-              }).format(availableBalance)}
-            </div>
-            <p className="text-xs text-success mt-1">
-              {t("readyForWithdrawal")}
-            </p>
-          </CardContent>
-        </Card>
+      <KpiGrid cols={2}>
+        <KpiCard
+          label={t("availableBalance")}
+          value={new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "XOF",
+            maximumFractionDigits: 0,
+          }).format(availableBalance)}
+          subtext={t("readyForWithdrawal")}
+          icon={Wallet}
+          statusColor="success"
+          className="bg-emerald-500/5 border-emerald-500/20 dark:bg-emerald-950/20"
+          iconContainerClassName="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+        />
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Info className="h-4 w-4" />
-              {t("inEscrow")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-foreground">
-              {new Intl.NumberFormat("en-US", {
-                style: "currency",
-                currency: "XOF",
-                maximumFractionDigits: 0,
-              }).format(escrowBalance)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {t("escrowDescription")}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+        <KpiCard
+          label={t("inEscrow")}
+          value={new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "XOF",
+            maximumFractionDigits: 0,
+          }).format(escrowBalance)}
+          subtext={t("escrowDescription")}
+          icon={Info}
+          iconContainerClassName="bg-muted text-muted-foreground"
+        />
+      </KpiGrid>
 
       {can("withdrawals:create") ? (
         <Card>

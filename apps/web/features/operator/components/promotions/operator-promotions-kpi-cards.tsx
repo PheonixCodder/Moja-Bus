@@ -1,8 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Card } from "@moja/ui/components/ui/card";
 import { CheckCircle2, Coins, Megaphone } from "lucide-react";
+import { KpiCard, KpiGrid } from "@/features/operator/components/kpi";
 
 interface OperatorPromotionsKpiCardsProps {
   activePromos: number;
@@ -20,55 +20,35 @@ export function OperatorPromotionsKpiCards({
   const t = useTranslations("operatorDashboard.promotions.kpi");
 
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
-      <Card className="flex items-center gap-4 p-5 shadow-xs border-border bg-card">
-        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-warning/10 text-warning ring-1 ring-warning/20">
-          <Megaphone className="size-5" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium text-muted-foreground">
-            {t("activePromos")}
-          </p>
-          <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-foreground">
-            {isLoading ? "—" : activePromos}
-          </p>
-        </div>
-      </Card>
+    <KpiGrid cols={3}>
+      <KpiCard
+        label={t("activePromos")}
+        value={activePromos}
+        icon={Megaphone}
+        isLoading={isLoading}
+        iconContainerClassName="bg-amber-500/10 text-amber-600 dark:text-amber-400"
+      />
 
-      <Card className="flex items-center gap-4 p-5 shadow-xs border-border bg-card">
-        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-success/10 text-success ring-1 ring-success/20">
-          <CheckCircle2 className="size-5" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium text-muted-foreground">
-            {t("confirmedRedemptions")}
-          </p>
-          <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-foreground">
-            {isLoading ? "—" : confirmedRedemptions.toLocaleString()}
-          </p>
-        </div>
-      </Card>
+      <KpiCard
+        label={t("confirmedRedemptions")}
+        value={confirmedRedemptions.toLocaleString()}
+        icon={CheckCircle2}
+        isLoading={isLoading}
+        iconContainerClassName="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+      />
 
-      <Card className="flex items-center gap-4 p-5 shadow-xs border-border bg-card">
-        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
-          <Coins className="size-5" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium text-muted-foreground">
-            {t("operatorFunded")}
-          </p>
-          <p className="mt-0.5 font-display text-2xl font-bold tracking-tight tabular-nums text-foreground">
-            {isLoading ? (
-              "—"
-            ) : (
-              <>
-                {operatorFundedXOF.toLocaleString()}{" "}
-                <span className="text-xs font-medium text-muted-foreground/70">XOF</span>
-              </>
-            )}
-          </p>
-        </div>
-      </Card>
-    </div>
+      <KpiCard
+        label={t("operatorFunded")}
+        value={
+          <>
+            {operatorFundedXOF.toLocaleString()}{" "}
+            <span className="text-xs font-medium text-muted-foreground/70">XOF</span>
+          </>
+        }
+        icon={Coins}
+        isLoading={isLoading}
+        iconContainerClassName="bg-primary/10 text-primary"
+      />
+    </KpiGrid>
   );
 }
