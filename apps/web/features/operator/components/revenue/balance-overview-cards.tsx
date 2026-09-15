@@ -6,6 +6,7 @@ import { toSafeDisplayNumber } from "@/lib/money";
 import { ArrowRight, Wallet, Clock, TrendingUp } from "lucide-react";
 import { Button } from "@moja/ui/components/ui/button";
 import Link from "next/link";
+import { KpiCard, KpiGrid } from "@/features/operator/components/kpi";
 
 export function BalanceOverviewCards({
   availableBalance,
@@ -21,70 +22,53 @@ export function BalanceOverviewCards({
   const reserved = toSafeDisplayNumber(reservedBalance);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <KpiGrid cols={3}>
       {/* Net Earnings (Period) */}
-      <div className="bg-card rounded-xl border border-border p-6 shadow-sm flex flex-col justify-between">
-        <div>
-          <div className="flex items-center text-sm font-medium text-muted-foreground mb-2">
-            <TrendingUp className="h-4 w-4 mr-2" />
-            {t("netEarnings")}
-          </div>
-          <div className="text-3xl font-display font-bold text-foreground">
-            {formatXOF(netEarnings)}
-          </div>
-          <p className="text-xs text-muted-foreground mt-2">{t("netEarningsDesc")}</p>
-        </div>
-      </div>
+      <KpiCard
+        label={t("netEarnings")}
+        value={formatXOF(netEarnings)}
+        subtext={t("netEarningsDesc")}
+        icon={TrendingUp}
+      />
 
       {/* Escrow/Pending Balance (Live) */}
-      <div className="bg-muted/40 rounded-xl border border-border p-6 shadow-sm flex flex-col justify-between">
-        <div>
-          <div className="flex items-center text-sm font-medium text-muted-foreground mb-2">
-            <Clock className="h-4 w-4 mr-2" />
-            {t("inEscrow")}
-          </div>
-          <div className="text-3xl font-display font-bold text-foreground">
-            {formatXOF(reserved)}
-          </div>
-          <p className="text-xs text-muted-foreground mt-2">{t("inEscrowDesc")}</p>
-        </div>
-      </div>
+      <KpiCard
+        label={t("inEscrow")}
+        value={formatXOF(reserved)}
+        subtext={t("inEscrowDesc")}
+        icon={Clock}
+        iconContainerClassName="bg-muted text-muted-foreground"
+      />
 
       {/* Available Balance (Live) */}
-      <div className="bg-primary/5 rounded-xl border border-primary/20 p-6 shadow-sm flex flex-col justify-between relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-4 opacity-10">
-          <Wallet className="h-16 w-16 text-primary" />
-        </div>
-        <div className="relative z-10">
-          <div className="flex items-center text-sm font-medium text-primary/80 mb-2">
-            <Wallet className="h-4 w-4 mr-2" />
-            {t("availableToWithdraw")}
-          </div>
-          <div className="text-3xl font-display font-bold text-primary">
-            {formatXOF(available)}
-          </div>
-          <p className="text-xs text-primary/60 mt-2">{t("availableDesc")}</p>
-        </div>
-
-        {available > 0 ? (
-          <Button
-            render={<Link href="/dashboard/operator/withdraw" />}
-            nativeButton={false}
-            className="w-full mt-6 bg-primary hover:bg-primary/90 text-primary-foreground relative z-10"
-          >
-            {t("requestWithdrawal")}
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        ) : (
-          <Button
-            disabled
-            className="w-full mt-6 bg-primary hover:bg-primary/90 text-primary-foreground relative z-10"
-          >
-            {t("requestWithdrawal")}
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        )}
-      </div>
-    </div>
+      <KpiCard
+        label={t("availableToWithdraw")}
+        value={formatXOF(available)}
+        subtext={t("availableDesc")}
+        icon={Wallet}
+        statusColor="primary"
+        className="border-primary/20 bg-primary/5 dark:bg-primary/10"
+        action={
+          available > 0 ? (
+            <Button
+              render={<Link href="/dashboard/operator/withdraw" />}
+              nativeButton={false}
+              className="w-full mt-2 bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              {t("requestWithdrawal")}
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          ) : (
+            <Button
+              disabled
+              className="w-full mt-2 bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              {t("requestWithdrawal")}
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          )
+        }
+      />
+    </KpiGrid>
   );
 }

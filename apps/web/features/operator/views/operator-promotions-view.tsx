@@ -18,7 +18,7 @@ import {
   type PromoDrawerTab,
 } from "../components/promotions/operator-promotion-drawer";
 import { OperatorPromotionOptInsCard } from "../components/promotions/operator-promotion-opt-ins-card";
-import { OperatorPageHeader } from "../components/operator-page-header";
+import { PageHeaderAction } from "../components/header";
 import { useTranslations } from "next-intl";
 
 export function OperatorPromotionsView() {
@@ -255,7 +255,8 @@ export function OperatorPromotionsView() {
 
   return (
     <>
-      <OperatorPageHeader
+      <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+        <PageHeaderAction
         title={t("pageTitle")}
         description={t("pageDescription")}
         actions={
@@ -266,8 +267,7 @@ export function OperatorPromotionsView() {
         }
       />
 
-      <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
-        {/* KPI Summary */}
+      {/* KPI Summary */}
         <OperatorPromotionsKpiCards
           activePromos={summary?.activeCampaigns ?? 0}
           confirmedRedemptions={summary?.confirmedRedemptions ?? 0}

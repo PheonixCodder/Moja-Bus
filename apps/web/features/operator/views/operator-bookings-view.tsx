@@ -19,6 +19,7 @@ import {
 import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
 import { useDebounce } from "@/features/operator/hooks/useDebounce";
 import { bookingListParsers } from "@/features/operator/lib/bookings/booking-search-params";
+import { PageHeaderAction } from "@/features/operator/components/header";
 import { useTRPC } from "@/trpc/client";
 
 const PAGE_SIZE = 50;
@@ -93,60 +94,60 @@ export function OperatorBookingsView() {
 
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">{t("title")}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{t("description")}</p>
-        </div>
-        <div className="flex gap-2 shrink-0">
-          {can("revenue:export") && (
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={async () => {
-                try {
-                  const result = await queryClient.fetchQuery(
-                    trpc.operator.exportBookingsCsv.queryOptions({
-                      ...listInput,
-                      limit: 100,
-                      offset: 0,
-                    }),
-                  );
-                  const blob = new Blob([result.csv], {
-                    type: "text/csv;charset=utf-8",
-                  });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = `bookings-${filter}.csv`;
-                  a.click();
-                  URL.revokeObjectURL(url);
-                  toast.success(t("toast.exported", { count: result.count }));
-                } catch (err: unknown) {
-                  const message =
-                    err instanceof Error
-                      ? err.message
-                      : t("toast.exportFailed");
-                  toast.error(message);
-                }
-              }}
-            >
-              <Download className="size-4" />
-              {t("exportCsv")}
-            </Button>
-          )}
-          {canCheckIn ? (
-            <Button
-              variant="secondary"
-              className="gap-2"
-              onClick={() => void setParams({ detail: "scan" })}
-            >
-              <ScanLine className="size-4" />
-              {t("scanTicket")}
-            </Button>
-          ) : null}
-        </div>
-      </div>
+      <PageHeaderAction
+        title={t("title")}
+        description={t("description")}
+        actions={
+          <>
+            {can("revenue:export") && (
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={async () => {
+                  try {
+                    const result = await queryClient.fetchQuery(
+                      trpc.operator.exportBookingsCsv.queryOptions({
+                        ...listInput,
+                        limit: 100,
+                        offset: 0,
+                      }),
+                    );
+                    const blob = new Blob([result.csv], {
+                      type: "text/csv;charset=utf-8",
+                    });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `bookings-${filter}.csv`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    toast.success(t("toast.exported", { count: result.count }));
+                  } catch (err: unknown) {
+                    const message =
+                      err instanceof Error
+                        ? err.message
+                        : t("toast.exportFailed");
+                    toast.error(message);
+                  }
+                }}
+              >
+                <Download className="size-4" />
+                {t("exportCsv")}
+              </Button>
+            )}
+            {canCheckIn ? (
+              <Button
+                variant="secondary"
+                className="gap-2"
+                onClick={() => void setParams({ detail: "scan" })}
+              >
+                <ScanLine className="size-4" />
+                {t("scanTicket")}
+              </Button>
+            ) : null}
+          </>
+        }
+      />
 
       <div className="flex flex-wrap gap-2">
         {FILTERS.map((item) => (

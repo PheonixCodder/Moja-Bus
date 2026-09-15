@@ -27,6 +27,7 @@ import { useTRPC } from "@/trpc/client";
 import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
 import { reviewCorridorLabel } from "@/features/operator/lib/reviews/corridor-label";
 import { formatDateTime } from "@/lib/format-date";
+import { PageHeaderAction } from "@/features/operator/components/header";
 
 function StarRating({
   rating,
@@ -128,12 +129,10 @@ export function OperatorReviewsView() {
 
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
-      <div>
-        <h1 className="text-xl font-bold tracking-tight text-foreground">
-          {t("title")}
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">{t("description")}</p>
-      </div>
+      <PageHeaderAction
+        title={t("title")}
+        description={t("description")}
+      />
 
       <div className="rounded-lg border border-border bg-card p-5 shadow-sm flex items-center gap-5">
         <div className="text-center">

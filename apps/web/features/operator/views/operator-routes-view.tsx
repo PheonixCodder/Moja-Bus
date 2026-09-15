@@ -39,7 +39,8 @@ import { DeleteRouteDialog } from "@/features/operator/components/routes/delete-
 import { RouteCard } from "@/features/operator/components/routes/route-card";
 import { RouteFormDrawer } from "@/features/operator/components/routes/route-form-drawer";
 import { RouteSuccessPanel } from "@/features/operator/components/routes/route-success-panel";
-import { StatCard } from "@/features/operator/components/stat-card";
+import { PageHeaderAction } from "@/features/operator/components/header";
+import { KpiCard, KpiGrid } from "@/features/operator/components/kpi";
 import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
 import { useDebounce } from "@/features/operator/hooks/useDebounce";
 import {
@@ -172,69 +173,65 @@ export function OperatorRoutesView() {
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            {t("pageTitle")}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {t("pageDescription")}
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2 shrink-0">
-          <Button
-            variant="outline"
-            onClick={handleExportCsv}
-            disabled={isExporting}
-            className="gap-1.5"
-          >
-            <Download className="size-4" />
-            {isExporting ? "Exporting..." : "Export CSV"}
-          </Button>
-
-          {can("routes:create") ? (
+      <PageHeaderAction
+        title={t("pageTitle")}
+        description={t("pageDescription")}
+        actions={
+          <>
             <Button
               variant="outline"
-              onClick={() => setImportModalOpen(true)}
+              onClick={handleExportCsv}
+              disabled={isExporting}
               className="gap-1.5"
             >
-              <Upload className="size-4" />
-              Import CSV
+              <Download className="size-4" />
+              {isExporting ? "Exporting..." : "Export CSV"}
             </Button>
-          ) : null}
 
-          {can("routes:create") ? (
-            <Button onClick={handleAddNew} className="shrink-0 gap-1.5">
-              <Plus className="size-4" />
-              {t("createRoute")}
-            </Button>
-          ) : null}
-        </div>
-      </div>
+            {can("routes:create") ? (
+              <Button
+                variant="outline"
+                onClick={() => setImportModalOpen(true)}
+                className="gap-1.5"
+              >
+                <Upload className="size-4" />
+                Import CSV
+              </Button>
+            ) : null}
+
+            {can("routes:create") ? (
+              <Button onClick={handleAddNew} className="shrink-0 gap-1.5">
+                <Plus className="size-4" />
+                {t("createRoute")}
+              </Button>
+            ) : null}
+          </>
+        }
+      />
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <StatCard
+      <KpiGrid cols={4}>
+        <KpiCard
           label={t("kpi.totalRoutes")}
           value={stats.total}
           icon={RouteIcon}
         />
-        <StatCard
+        <KpiCard
           label={t("kpi.activeRoutes")}
           value={stats.active}
           icon={CheckCircle2}
         />
-        <StatCard
+        <KpiCard
           label={t("kpi.draftRoutes")}
           value={stats.drafts}
           icon={MapIcon}
         />
-        <StatCard
+        <KpiCard
           label={t("kpi.suspended")}
           value={stats.suspended}
           icon={Clock}
         />
-      </div>
+      </KpiGrid>
 
       {/* Success Callout Panel */}
       <RouteSuccessPanel

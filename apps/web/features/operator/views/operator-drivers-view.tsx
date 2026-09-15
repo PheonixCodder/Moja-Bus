@@ -39,6 +39,8 @@ import {
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useQueryStates } from "nuqs";
+import { PageHeaderAction } from "@/features/operator/components/header";
+import { KpiCard, KpiGrid } from "@/features/operator/components/kpi";
 import { AddDriverModal } from "@/features/operator/components/drivers/add-driver-modal";
 import { DriverStatusBadge } from "@/features/operator/components/drivers/driver-status-badge";
 import { LicenseExpiryBadge } from "@/features/operator/components/drivers/license-expiry-badge";
@@ -124,83 +126,55 @@ export function OperatorDriversView() {
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
-            <UserCheck className="size-7 text-primary" />
-            Driver Fleet Management
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Manage commercial drivers, license verifications, performance
-            reviews, and real-time trip allocations.
-          </p>
-        </div>
+      <PageHeaderAction
+        title="Driver Fleet Management"
+        description="Manage commercial drivers, license verifications, performance reviews, and real-time trip allocations."
+        icon={UserCheck}
+        actions={
+          <>
+            <Link href="/dashboard/operator/drivers/map">
+              <Button variant="outline" className="gap-2">
+                <Radio className="size-4 text-emerald-500 animate-pulse" />
+                Live Fleet Map
+              </Button>
+            </Link>
 
-        <div className="flex items-center gap-2 shrink-0">
-          <Link href="/dashboard/operator/drivers/map">
-            <Button variant="outline" className="gap-2">
-              <Radio className="size-4 text-emerald-500 animate-pulse" />
-              Live Fleet Map
-            </Button>
-          </Link>
-
-          {canManage && (
-            <Button onClick={() => setAddModalOpen(true)} className="gap-2">
-              <Plus className="size-4" />
-              Onboard Driver
-            </Button>
-          )}
-        </div>
-      </div>
+            {canManage && (
+              <Button onClick={() => setAddModalOpen(true)} className="gap-2">
+                <Plus className="size-4" />
+                Onboard Driver
+              </Button>
+            )}
+          </>
+        }
+      />
 
       {/* KPI Metrics */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="p-4 rounded-xl border border-border bg-card shadow-sm">
-          <div className="text-xs font-medium text-muted-foreground">
-            Total Fleet Drivers
-          </div>
-          <div className="text-2xl font-bold mt-1">{total}</div>
-          <div className="text-xs text-muted-foreground mt-0.5">
-            Active company affiliations
-          </div>
-        </div>
-
-        <div className="p-4 rounded-xl border border-border bg-card shadow-sm">
-          <div className="text-xs font-medium text-muted-foreground">
-            On Duty / Active
-          </div>
-          <div className="text-2xl font-bold mt-1 text-success">
-            {onDutyCount}
-          </div>
-          <div className="text-xs text-muted-foreground mt-0.5">
-            Available or on trip
-          </div>
-        </div>
-
-        <div className="p-4 rounded-xl border border-border bg-card shadow-sm">
-          <div className="text-xs font-medium text-muted-foreground">
-            Verified Licenses
-          </div>
-          <div className="text-2xl font-bold mt-1 text-primary">
-            {verifiedCount}
-          </div>
-          <div className="text-xs text-muted-foreground mt-0.5">
-            Compliance cleared
-          </div>
-        </div>
-
-        <div className="p-4 rounded-xl border border-border bg-card shadow-sm">
-          <div className="text-xs font-medium text-muted-foreground">
-            Pending Verification
-          </div>
-          <div className="text-2xl font-bold mt-1 text-warning">
-            {pendingCount}
-          </div>
-          <div className="text-xs text-muted-foreground mt-0.5">
-            Requires compliance review
-          </div>
-        </div>
-      </div>
+      <KpiGrid cols={4}>
+        <KpiCard
+          label="Total Fleet Drivers"
+          value={total}
+          subtext="Active company affiliations"
+        />
+        <KpiCard
+          label="On Duty / Active"
+          value={onDutyCount}
+          subtext="Available or on trip"
+          statusColor="success"
+        />
+        <KpiCard
+          label="Verified Licenses"
+          value={verifiedCount}
+          subtext="Compliance cleared"
+          statusColor="primary"
+        />
+        <KpiCard
+          label="Pending Verification"
+          value={pendingCount}
+          subtext="Requires compliance review"
+          statusColor="warning"
+        />
+      </KpiGrid>
 
       {/* Filters Toolbar */}
       <div className="flex flex-col sm:flex-row gap-3 items-center justify-between p-3 rounded-xl border border-border bg-card">

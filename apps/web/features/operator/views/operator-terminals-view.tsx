@@ -47,7 +47,8 @@ import {
   downloadCsvFile,
   TERMINALS_CSV_TEMPLATE,
 } from "@/components/csv-importer";
-import { StatCard } from "@/features/operator/components/stat-card";
+import { PageHeaderAction } from "@/features/operator/components/header";
+import { KpiCard, KpiGrid } from "@/features/operator/components/kpi";
 import { TerminalEditorSheet } from "@/features/operator/components/terminals/terminal-editor-sheet";
 import { TerminalsTable } from "@/features/operator/components/terminals/terminals-table";
 import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
@@ -279,73 +280,69 @@ export function OperatorTerminalsView() {
 
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            {t("pageTitle")}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {t("pageDescription")}
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2 shrink-0">
-          <Button
-            variant="outline"
-            onClick={handleExportCsv}
-            disabled={isExporting}
-            className="gap-1.5"
-          >
-            <Download className="size-4" />
-            {isExporting ? "Exporting..." : "Export CSV"}
-          </Button>
-
-          {can("terminals:create") ? (
+      <PageHeaderAction
+        title={t("pageTitle")}
+        description={t("pageDescription")}
+        actions={
+          <>
             <Button
               variant="outline"
-              onClick={() => setImportModalOpen(true)}
+              onClick={handleExportCsv}
+              disabled={isExporting}
               className="gap-1.5"
             >
-              <Upload className="size-4" />
-              Import CSV
+              <Download className="size-4" />
+              {isExporting ? "Exporting..." : "Export CSV"}
             </Button>
-          ) : null}
 
-          {can("terminals:create") ? (
-            <Button onClick={handleAddNew} className="shrink-0 gap-1.5">
-              <Plus className="size-4" />
-              {t("addLocation")}
-            </Button>
-          ) : null}
-        </div>
-      </div>
+            {can("terminals:create") ? (
+              <Button
+                variant="outline"
+                onClick={() => setImportModalOpen(true)}
+                className="gap-1.5"
+              >
+                <Upload className="size-4" />
+                Import CSV
+              </Button>
+            ) : null}
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        <StatCard
+            {can("terminals:create") ? (
+              <Button onClick={handleAddNew} className="shrink-0 gap-1.5">
+                <Plus className="size-4" />
+                {t("addLocation")}
+              </Button>
+            ) : null}
+          </>
+        }
+      />
+
+      <KpiGrid cols={5}>
+        <KpiCard
           label={t("kpi.totalLocations")}
           value={stats.total}
           icon={Building}
         />
-        <StatCard
+        <KpiCard
           label={t("kpi.passengerTerminals")}
           value={stats.terminals}
           icon={MapPin}
         />
-        <StatCard
+        <KpiCard
           label={t("kpi.depotsOffices")}
           value={stats.depots}
           icon={Navigation}
         />
-        <StatCard
+        <KpiCard
           label={t("kpi.activeSites")}
           value={stats.active}
           icon={CheckCircle}
         />
-        <StatCard
+        <KpiCard
           label={t("kpi.pendingCaptures")}
           value={stats.pending}
           icon={Link2}
         />
-      </div>
+      </KpiGrid>
 
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="relative w-full sm:w-80">

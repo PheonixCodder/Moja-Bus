@@ -73,6 +73,8 @@ import {
   downloadCsvFile,
   FLEET_CSV_TEMPLATE,
 } from "@/components/csv-importer";
+import { PageHeaderTabbed } from "@/features/operator/components/header";
+import { KpiCard, KpiGrid } from "@/features/operator/components/kpi";
 import { AccessDeniedCard } from "@/features/operator/components/access-denied-card";
 import { AddBusModal } from "@/features/operator/components/add-bus-modal";
 import { AddBusTypeDialog } from "@/features/operator/components/fleet/add-bus-type-dialog";
@@ -111,49 +113,7 @@ const STATUS_CONFIG = {
   },
 } as const;
 
-// ──────────────────────────────────────────────
-// KPI Card
-// ──────────────────────────────────────────────
 
-interface StatCardProps {
-  label: string;
-  value: number | string;
-  icon: React.ElementType;
-  iconClassName?: string;
-  sub?: string;
-}
-
-function StatCard({
-  label,
-  value,
-  icon: Icon,
-  iconClassName,
-  sub,
-}: StatCardProps) {
-  return (
-    <Card className="border-border bg-card shadow-none">
-      <CardContent className="p-4 flex items-start justify-between gap-3">
-        <div className="space-y-1">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            {label}
-          </p>
-          <p className="text-2xl font-bold tracking-tight text-foreground">
-            {value}
-          </p>
-          {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
-        </div>
-        <div
-          className={cn(
-            "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10",
-            iconClassName,
-          )}
-        >
-          <Icon className="size-4 text-primary" />
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
 
 // ──────────────────────────────────────────────
 // Bus Card
@@ -986,18 +946,12 @@ export function OperatorFleetView() {
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-background">
       {/* ── Page Header ── */}
-      <div className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur-sm">
-        <div className="px-6 py-4 flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-lg font-bold tracking-tight text-foreground">
-              {t("pageTitle")}
-            </h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {t("vehicleRegistered", { count: stats?.total ?? 0 })}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            {params.tab === "buses" ? (
+      <div className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur-sm px-6 pt-4">
+        <PageHeaderTabbed
+          title={t("pageTitle")}
+          description={t("vehicleRegistered", { count: stats?.total ?? 0 })}
+          actions={
+            params.tab === "buses" ? (
               <>
                 <Button
                   size="sm"
@@ -1045,47 +999,47 @@ export function OperatorFleetView() {
                   </Button>
                 )}
               </>
-            ) : null}
-          </div>
-        </div>
-
-        {/* ── Tab Bar ── */}
-        <div className="px-6 flex items-center gap-1">
-          {(
-            [
-              { id: "buses", label: t("tabs.buses"), count: stats?.total },
-              { id: "layouts", label: t("tabs.layouts"), count: undefined },
-            ] as const
-          ).map((tab) => (
-            <Button
-              key={tab.id}
-              type="button"
-              variant="ghost"
-              id={`fleet-tab-${tab.id}`}
-              onClick={() => void setParams({ tab: tab.id })}
-              className={cn(
-                "relative flex items-center gap-2 px-4 py-2.5 h-auto text-sm font-medium transition-colors duration-150 border-b-2 -mb-px rounded-none shadow-none",
-                params.tab === tab.id
-                  ? "border-primary text-foreground"
-                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-border",
-              )}
-            >
-              {tab.label}
-              {tab.count !== undefined && tab.count > 0 && (
-                <span
+            ) : null
+          }
+          tabs={
+            <div className="flex items-center gap-1">
+              {(
+                [
+                  { id: "buses", label: t("tabs.buses"), count: stats?.total },
+                  { id: "layouts", label: t("tabs.layouts"), count: undefined },
+                ] as const
+              ).map((tab) => (
+                <Button
+                  key={tab.id}
+                  type="button"
+                  variant="ghost"
+                  id={`fleet-tab-${tab.id}`}
+                  onClick={() => void setParams({ tab: tab.id })}
                   className={cn(
-                    "inline-flex items-center justify-center rounded-full text-[10px] font-bold h-4 min-w-4 px-1 transition-colors",
+                    "relative flex items-center gap-2 px-4 py-2.5 h-auto text-sm font-medium transition-colors duration-150 border-b-2 -mb-px rounded-none shadow-none",
                     params.tab === tab.id
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground",
+                      ? "border-primary text-foreground"
+                      : "border-transparent text-muted-foreground hover:text-foreground hover:border-border",
                   )}
                 >
-                  {tab.count}
-                </span>
-              )}
-            </Button>
-          ))}
-        </div>
+                  {tab.label}
+                  {tab.count !== undefined && tab.count > 0 && (
+                    <span
+                      className={cn(
+                        "inline-flex items-center justify-center rounded-full text-[10px] font-bold h-4 min-w-4 px-1 transition-colors",
+                        params.tab === tab.id
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground",
+                      )}
+                    >
+                      {tab.count}
+                    </span>
+                  )}
+                </Button>
+              ))}
+            </div>
+          }
+        />
       </div>
 
       {/* ── Tab Content ── */}
@@ -1103,37 +1057,37 @@ export function OperatorFleetView() {
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
           {/* ── KPI Stats ── */}
           {stats && (
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-              <StatCard
+            <KpiGrid cols={5}>
+              <KpiCard
                 label={t("kpi.totalVehicles")}
                 value={stats.total}
                 icon={BusFront}
               />
-              <StatCard
+              <KpiCard
                 label={t("kpi.active")}
                 value={stats.active}
                 icon={Activity}
-                iconClassName="bg-chart-2/10 [&>svg]:text-chart-2"
+                iconContainerClassName="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
               />
-              <StatCard
+              <KpiCard
                 label={t("kpi.maintenance")}
                 value={stats.maintenance}
                 icon={Wrench}
-                iconClassName="bg-chart-4/10 [&>svg]:text-chart-4"
+                iconContainerClassName="bg-amber-500/10 text-amber-600 dark:text-amber-400"
               />
-              <StatCard
+              <KpiCard
                 label={t("kpi.retired")}
                 value={stats.retired}
                 icon={Archive}
-                iconClassName="bg-muted [&>svg]:text-muted-foreground"
+                iconContainerClassName="bg-muted text-muted-foreground"
               />
-              <StatCard
+              <KpiCard
                 label={t("kpi.totalCapacity")}
                 value={stats.totalSeats}
                 icon={Armchair}
-                sub={t("kpi.passengerSeats")}
+                subtext={t("kpi.passengerSeats")}
               />
-            </div>
+            </KpiGrid>
           )}
 
           {/* ── Search & Filter ── */}

@@ -16,6 +16,8 @@ import { CalendarIcon, ChevronDown, Download } from "lucide-react";
 import { cn } from "@moja/ui/lib/utils";
 import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
 
+import { PageHeaderControl } from "@/features/operator/components/header";
+
 export function RevenueHeader() {
   const t = useTranslations("operatorDashboard.revenue");
   const { can } = useStaffPermissions();
@@ -46,17 +48,10 @@ export function RevenueHeader() {
   }
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-bold font-display tracking-tight text-slate-900">
-          {t("header.title")}
-        </h1>
-        <p className="text-sm text-slate-500 max-w-2xl leading-relaxed">
-          {t("header.subtitle")}
-        </p>
-      </div>
-
-      <div className="flex items-center gap-3">
+    <PageHeaderControl
+      title={t("header.title")}
+      description={t("header.subtitle")}
+      controls={
         <Popover>
           <PopoverTrigger
             render={
@@ -135,14 +130,15 @@ export function RevenueHeader() {
             </div>
           </PopoverContent>
         </Popover>
-
-        {can("revenue:export") ? (
+      }
+      actions={
+        can("revenue:export") ? (
           <Button variant="outline" className="bg-white" onClick={handleExport}>
             <Download className="mr-2 h-4 w-4" />
             {t("export")}
           </Button>
-        ) : null}
-      </div>
-    </div>
+        ) : null
+      }
+    />
   );
 }

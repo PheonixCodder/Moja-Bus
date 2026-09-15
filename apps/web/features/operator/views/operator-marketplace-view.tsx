@@ -32,6 +32,7 @@ import {
   MarketplaceDriverCard,
 } from "@/features/operator/components/drivers/marketplace-driver-card";
 import { SendOfferDialog } from "@/features/operator/components/drivers/send-offer-dialog";
+import { PageHeaderAction } from "@/features/operator/components/header";
 import { useTRPC } from "@/trpc/client";
 
 // ─── URL Search Params (nuqs) ─────────────────────────────────────────────────
@@ -311,28 +312,23 @@ export function OperatorMarketplaceView() {
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
-            Driver Marketplace
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Browse {total > 0 ? `${total} ` : ""}verified, available commercial
-            drivers.
-          </p>
-        </div>
-        {activeFilterCount > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={resetAllFilters}
-            className="gap-2 text-xs"
-          >
-            <X className="size-3.5" />
-            Clear {activeFilterCount} filter{activeFilterCount > 1 ? "s" : ""}
-          </Button>
-        )}
-      </div>
+      <PageHeaderAction
+        title="Driver Marketplace"
+        description={`Browse ${total > 0 ? `${total} ` : ""}verified, available commercial drivers.`}
+        actions={
+          activeFilterCount > 0 ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={resetAllFilters}
+              className="gap-2 text-xs"
+            >
+              <X className="size-3.5" />
+              Clear {activeFilterCount} filter{activeFilterCount > 1 ? "s" : ""}
+            </Button>
+          ) : null
+        }
+      />
 
       {/* Filter Toolbar */}
       <div className="flex flex-wrap items-center gap-2 p-3 rounded-xl border border-border bg-card">
