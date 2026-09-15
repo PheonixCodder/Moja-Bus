@@ -63,9 +63,10 @@ import {
   Wifi,
   Wrench,
 } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Suspense, useCallback, useEffect, useState } from "react";
+import { useQueryStates } from "nuqs";
 import { toast } from "sonner";
 import {
   CsvImportModal,
@@ -78,6 +79,8 @@ import { AddBusTypeDialog } from "@/features/operator/components/fleet/add-bus-t
 import { LayoutBuilderSheet } from "@/features/operator/components/layout-builder-sheet";
 import { SeatMapPreview } from "@/features/operator/components/seat-map-preview";
 import { useStaffPermissions } from "@/features/operator/hooks/use-staff-permissions";
+import { useDebounce } from "@/features/operator/hooks/useDebounce";
+import { fleetSearchParams } from "@/features/operator/lib/fleet/fleet-search-params";
 import type { RouterOutputs } from "@/trpc/client";
 import { useTRPC } from "@/trpc/client";
 
@@ -869,8 +872,6 @@ export function OperatorFleetView() {
     return <AccessDeniedCard permission="fleet:read" />;
   }
 
-  const searchParams = useSearchParams();
-  const router = useRouter();
   const queryClient = useQueryClient();
   const trpc = useTRPC();
 
@@ -881,15 +882,32 @@ export function OperatorFleetView() {
   const buses = data.buses;
   const stats = data.stats;
 
-  const [activeTab, setActiveTab] = useState<"buses" | "layouts">("buses");
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [params, setParams] = useQueryStates(fleetSearchParams);
+  const [searchVal, setSearchVal] = useState(params.q);
+  const debouncedSearch = useDebounce(searchVal, 300);
+
+  useEffect(() => {
+    if (debouncedSearch !== params.q) {
+      void setParams({ q: debouncedSearch || null });
+    }
+  }, [debouncedSearch, params.q, setParams]);
+
+  useEffect(() => {
+    setSearchVal(params.q);
+  }, [params.q]);
 
   // Modals
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [busTypeDialogOpen, setBusTypeDialogOpen] = useState(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+
+  useEffect(() => {
+    if (params.action === "new") {
+      setAddModalOpen(true);
+      void setParams({ action: null });
+    }
+  }, [params.action, setParams]);
 
   const batchImportMutation = useMutation(
     trpc.fleet.batchImport.mutationOptions({
@@ -914,13 +932,6 @@ export function OperatorFleetView() {
     }
   };
 
-  useEffect(() => {
-    if (searchParams && searchParams.get("action") === "new") {
-      setAddModalOpen(true);
-      router.replace(window.location.pathname);
-    }
-  }, [searchParams, router]);
-
   const [editingBus, setEditingBus] = useState<Bus | null>(null);
   const [deletingBus, setDeletingBus] = useState<Bus | null>(null);
 
@@ -936,11 +947,11 @@ export function OperatorFleetView() {
   // Filtered buses
   const filteredBuses = buses.filter((bus) => {
     const matchSearch =
-      !search ||
-      bus.registrationPlate.toLowerCase().includes(search.toLowerCase()) ||
-      bus.internalName?.toLowerCase().includes(search.toLowerCase()) ||
-      bus.busType?.name.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = statusFilter === "ALL" || bus.status === statusFilter;
+      !params.q ||
+      bus.registrationPlate.toLowerCase().includes(params.q.toLowerCase()) ||
+      bus.internalName?.toLowerCase().includes(params.q.toLowerCase()) ||
+      bus.busType?.name.toLowerCase().includes(params.q.toLowerCase());
+    const matchStatus = params.status === "ALL" || bus.status === params.status;
     return matchSearch && matchStatus;
   });
 
@@ -986,7 +997,7 @@ export function OperatorFleetView() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            {activeTab === "buses" ? (
+            {params.tab === "buses" ? (
               <>
                 <Button
                   size="sm"
@@ -1051,10 +1062,10 @@ export function OperatorFleetView() {
               type="button"
               variant="ghost"
               id={`fleet-tab-${tab.id}`}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => void setParams({ tab: tab.id })}
               className={cn(
                 "relative flex items-center gap-2 px-4 py-2.5 h-auto text-sm font-medium transition-colors duration-150 border-b-2 -mb-px rounded-none shadow-none",
-                activeTab === tab.id
+                params.tab === tab.id
                   ? "border-primary text-foreground"
                   : "border-transparent text-muted-foreground hover:text-foreground hover:border-border",
               )}
@@ -1064,7 +1075,7 @@ export function OperatorFleetView() {
                 <span
                   className={cn(
                     "inline-flex items-center justify-center rounded-full text-[10px] font-bold h-4 min-w-4 px-1 transition-colors",
-                    activeTab === tab.id
+                    params.tab === tab.id
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted text-muted-foreground",
                   )}
@@ -1078,7 +1089,7 @@ export function OperatorFleetView() {
       </div>
 
       {/* ── Tab Content ── */}
-      {activeTab === "layouts" ? (
+      {params.tab === "layouts" ? (
         <Suspense
           fallback={
             <div className="flex items-center justify-center py-16">
@@ -1133,8 +1144,8 @@ export function OperatorFleetView() {
                 <Input
                   placeholder={t("searchPlaceholder")}
                   className="pl-8 h-8 text-xs bg-card border-border"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  value={searchVal}
+                  onChange={(e) => setSearchVal(e.target.value)}
                 />
               </div>
               <div className="flex items-center gap-2">
@@ -1149,23 +1160,23 @@ export function OperatorFleetView() {
                     { value: "INACTIVE", label: t("status.INACTIVE") },
                     { value: "RETIRED", label: t("status.RETIRED") },
                   ]}
-                  value={statusFilter}
-                  onValueChange={(v) => setStatusFilter(v ?? "ALL")}
+                  value={params.status}
+                  onValueChange={(v) => void setParams({ status: v ?? "ALL" })}
                 >
                   <ComboboxInput
                     id="fleet-status-filter"
                     placeholder={t("selectStatus")}
                     className="h-8 text-xs bg-card border-border w-full sm:w-40"
                     value={
-                      statusFilter === "ALL"
+                      params.status === "ALL"
                         ? t("allStatuses")
-                        : statusFilter === "ACTIVE"
+                        : params.status === "ACTIVE"
                           ? t("status.ACTIVE")
-                          : statusFilter === "MAINTENANCE"
+                          : params.status === "MAINTENANCE"
                             ? t("status.MAINTENANCE")
-                            : statusFilter === "INACTIVE"
+                            : params.status === "INACTIVE"
                               ? t("status.INACTIVE")
-                              : statusFilter === "RETIRED"
+                              : params.status === "RETIRED"
                                 ? t("status.RETIRED")
                                 : ""
                     }
@@ -1193,7 +1204,7 @@ export function OperatorFleetView() {
                 </Combobox>
               </div>
             </div>
-            {(search || statusFilter !== "ALL") && (
+            {(params.q || params.status !== "ALL") && (
               <span className="text-xs text-muted-foreground shrink-0">
                 {t("results", { count: filteredBuses.length })}
               </span>
@@ -1209,17 +1220,17 @@ export function OperatorFleetView() {
                 </EmptyMedia>
                 <EmptyHeader>
                   <EmptyTitle>
-                    {search || statusFilter !== "ALL"
+                    {params.q || params.status !== "ALL"
                       ? t("empty.noResultsTitle")
                       : t("empty.emptyTitle")}
                   </EmptyTitle>
                   <EmptyDescription>
-                    {search || statusFilter !== "ALL"
+                    {params.q || params.status !== "ALL"
                       ? t("empty.noResultsDescription")
                       : t("empty.emptyDescription")}
                   </EmptyDescription>
                 </EmptyHeader>
-                {!search && statusFilter === "ALL" && can("fleet:create") && (
+                {!params.q && params.status === "ALL" && can("fleet:create") && (
                   <EmptyContent>
                     <Button
                       size="sm"

@@ -37,23 +37,32 @@ import {
   UserCheck,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useQueryStates } from "nuqs";
 import { AddDriverModal } from "@/features/operator/components/drivers/add-driver-modal";
 import { DriverStatusBadge } from "@/features/operator/components/drivers/driver-status-badge";
 import { LicenseExpiryBadge } from "@/features/operator/components/drivers/license-expiry-badge";
 import { VerifyDriverDialog } from "@/features/operator/components/drivers/verify-driver-dialog";
 import { useDebounce } from "@/features/operator/hooks/useDebounce";
+import { driverSearchParams } from "@/features/operator/lib/drivers/driver-search-params";
 import { useTRPC } from "@/trpc/client";
 
 export function OperatorDriversView() {
   const trpc = useTRPC();
-  const [search, setSearch] = useState("");
+  const [params, setParams] = useQueryStates(driverSearchParams);
+  const [search, setSearch] = useState(params.q);
   const debouncedSearch = useDebounce(search, 300);
-  const [statusFilter, setStatusFilter] = useState<string>("ALL");
-  const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
-  // Phase 27 (F-OP-15) — server-supported filters finally reachable from the UI.
-  const [verificationFilter, setVerificationFilter] = useState<string>("ALL");
-  const [employmentFilter, setEmploymentFilter] = useState<string>("ALL");
+
+  useEffect(() => {
+    if (debouncedSearch !== params.q) {
+      void setParams({ q: debouncedSearch || null, page: 1 });
+    }
+  }, [debouncedSearch, params.q, setParams]);
+
+  useEffect(() => {
+    setSearch(params.q);
+  }, [params.q]);
+
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [verifyTarget, setVerifyTarget] = useState<{
     id: string;
@@ -69,24 +78,23 @@ export function OperatorDriversView() {
   // Phase 13 (F-OP-04) — accumulate pagination (marketplace pattern): rosters
   // larger than one page stay fully visible instead of silently truncated.
   const ROSTER_PAGE_SIZE = 50;
-  const [page, setPage] = useState(1);
   const [accumulated, setAccumulated] = useState<
     NonNullable<typeof driversQuery.data>["items"]
   >([]);
   const [lastFilterKey, setLastFilterKey] = useState("");
-  const filterKey = `${debouncedSearch}|${statusFilter}|${categoryFilter}|${verificationFilter}|${employmentFilter}`;
+  const filterKey = `${params.q}|${params.status}|${params.category}|${params.verification}|${params.employment}`;
 
   const driversQuery = useQuery({
     ...trpc.drivers.listDrivers.queryOptions({
       search: debouncedSearch || undefined,
-      status: statusFilter !== "ALL" ? (statusFilter as any) : undefined,
+      status: params.status !== "ALL" ? (params.status as any) : undefined,
       licenseCategory:
-        categoryFilter !== "ALL" ? (categoryFilter as any) : undefined,
+        params.category !== "ALL" ? (params.category as any) : undefined,
       verificationStatus:
-        verificationFilter !== "ALL" ? (verificationFilter as any) : undefined,
+        params.verification !== "ALL" ? (params.verification as any) : undefined,
       employmentType:
-        employmentFilter !== "ALL" ? (employmentFilter as any) : undefined,
-      page,
+        params.employment !== "ALL" ? (params.employment as any) : undefined,
+      page: params.page,
       limit: ROSTER_PAGE_SIZE,
     }),
     placeholderData: (prev) => prev,
@@ -95,7 +103,6 @@ export function OperatorDriversView() {
   // Reset accumulation when filters/search change
   if (filterKey !== lastFilterKey && !driversQuery.isLoading) {
     setLastFilterKey(filterKey);
-    setPage(1);
     setAccumulated([]);
   }
 
@@ -105,7 +112,7 @@ export function OperatorDriversView() {
   // Merge without duplicates so refetches never double rows
   const knownIds = new Set(accumulated.map((d) => d.id));
   const newOnes = incoming.filter((d) => !knownIds.has(d.id));
-  const drivers = page === 1 ? incoming : [...accumulated, ...newOnes];
+  const drivers = params.page === 1 ? incoming : [...accumulated, ...newOnes];
   const hasMore = drivers.length < total;
 
   // P3-4 — server aggregates under the same filters; accurate beyond page 1.
@@ -209,9 +216,9 @@ export function OperatorDriversView() {
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <Select
-            value={statusFilter}
+            value={params.status}
             onValueChange={(val: string | null) => {
-              if (val) setStatusFilter(val);
+              if (val) void setParams({ status: val, page: 1 });
             }}
           >
             <SelectTrigger className="w-full sm:w-36">
@@ -233,9 +240,9 @@ export function OperatorDriversView() {
           {/* Phase 27 (F-OP-15) — verification + contract-type filters, both
               already supported server-side. */}
           <Select
-            value={verificationFilter}
+            value={params.verification}
             onValueChange={(val: string | null) => {
-              if (val) setVerificationFilter(val);
+              if (val) void setParams({ verification: val, page: 1 });
             }}
           >
             <SelectTrigger className="w-full sm:w-40">
@@ -252,9 +259,9 @@ export function OperatorDriversView() {
           </Select>
 
           <Select
-            value={employmentFilter}
+            value={params.employment}
             onValueChange={(val: string | null) => {
-              if (val) setEmploymentFilter(val);
+              if (val) void setParams({ employment: val, page: 1 });
             }}
           >
             <SelectTrigger className="w-full sm:w-44">
@@ -271,9 +278,9 @@ export function OperatorDriversView() {
           </Select>
 
           <Select
-            value={categoryFilter}
+            value={params.category}
             onValueChange={(val: string | null) => {
-              if (val) setCategoryFilter(val);
+              if (val) void setParams({ category: val, page: 1 });
             }}
           >
             <SelectTrigger className="w-full sm:w-36">
@@ -303,7 +310,7 @@ export function OperatorDriversView() {
               No drivers found
             </div>
             <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-              {search || statusFilter !== "ALL"
+              {params.q || params.status !== "ALL"
                 ? "Try adjusting your search criteria or status filters."
                 : "Get started by onboarding your commercial bus drivers to assign them to trips."}
             </p>
@@ -464,7 +471,7 @@ export function OperatorDriversView() {
                 <Button
                   variant="outline"
                   disabled={driversQuery.isFetching}
-                  onClick={() => setPage((p) => p + 1)}
+                  onClick={() => void setParams({ page: params.page + 1 })}
                 >
                   {driversQuery.isFetching
                     ? "Loading…"

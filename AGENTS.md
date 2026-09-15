@@ -10,6 +10,7 @@ This repository operates under **Context-Driven Development (CDD)**. Before writ
 3. **Layered Context Navigation**:
    - For Global Platform / Architecture: Read `context/architecture.md` and `context/code-standards.md`.
    - For App-Specific Work: Read the relevant app context — `apps/web/context/overview.md`, `apps/traveler-app/context/overview.md`, or `apps/driver-app/context/overview.md`.
+   - For Jira & Project Management: Read `docs/jira/README.md` and `docs/jira/backlog-and-epics.md` before updating tasks or sprints.
    - For Third-Party Integrations: Read `context/services/[service-name]/index.md` (e.g. `paystack`, `novu`, `better-auth`, `mapbox-telemetry`).
    - For Domain Specs: Read `context/domain-specs/` (auth, payments, blog, etc.).
    - For Active Audits: Read `context/audits/README.md` for the standard template.

@@ -17,18 +17,28 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@moja/ui/components/ui/drawer";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@moja/ui/components/ui/empty";
 import { Input } from "@moja/ui/components/ui/input";
 import { Spinner } from "@moja/ui/components/ui/spinner";
+import { Tabs, TabsList, TabsTrigger } from "@moja/ui/components/ui/tabs";
 import { cn } from "@moja/ui/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
+  Armchair,
   ArrowRight,
   Calendar,
   CheckCircle2,
   Clock,
   RefreshCw,
   ScanLine,
+  Users,
   XCircle,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -408,36 +418,33 @@ export function ManifestDrawer({
                 </div>
               </div>
             ) : null}
-            <div className="flex gap-1 border-b border-border -mb-2">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setView("passengers")}
-                className={cn(
-                  "px-3 py-2 h-auto text-xs font-bold border-b-2 rounded-none -mb-px hover:bg-transparent",
-                  view === "passengers"
-                    ? "border-primary text-primary"
-                    : "border-transparent text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {t("tabPassengers")}
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setView("seatmap")}
-                className={cn(
-                  "px-3 py-2 h-auto text-xs font-bold border-b-2 rounded-none -mb-px hover:bg-transparent",
-                  view === "seatmap"
-                    ? "border-primary text-primary"
-                    : "border-transparent text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {t("tabSeatMap")}
-              </Button>
-            </div>
+            <Tabs
+              value={view}
+              onValueChange={(val) => setView(val as "passengers" | "seatmap")}
+              className="w-full"
+            >
+              <TabsList className="grid w-full grid-cols-2 p-1 bg-muted/80 rounded-lg h-9 border border-border/50">
+                <TabsTrigger
+                  value="passengers"
+                  className="h-7 text-xs font-semibold rounded-md px-3 flex items-center justify-center gap-1.5 transition-all data-active:bg-background data-active:text-foreground data-active:shadow-sm"
+                >
+                  <Users className="size-3.5" />
+                  <span>{t("tabPassengers")}</span>
+                  {confirmedBookings.length > 0 ? (
+                    <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary">
+                      {confirmedBookings.length}
+                    </span>
+                  ) : null}
+                </TabsTrigger>
+                <TabsTrigger
+                  value="seatmap"
+                  className="h-7 text-xs font-semibold rounded-md px-3 flex items-center justify-center gap-1.5 transition-all data-active:bg-background data-active:text-foreground data-active:shadow-sm"
+                >
+                  <Armchair className="size-3.5" />
+                  <span>{t("tabSeatMap")}</span>
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
 
             {view === "passengers" && canUpdate && buses.length > 0 ? (
               <div className="space-y-2">
@@ -545,23 +552,6 @@ export function ManifestDrawer({
               </div>
             ) : null}
 
-            {view === "seatmap" ? (
-              <div className="space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  {t("seatMapTitle")}
-                </h4>
-                {isSeatLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Spinner className="size-6 text-primary" />
-                  </div>
-                ) : (
-                  <SegmentOccupancySection
-                    trip={trip}
-                    seats={seatData?.seats ?? []}
-                  />
-                )}
-              </div>
-            ) : null}
 
             {view === "passengers" &&
             (confirmedBookings.length > 0 || holdBookings.length > 0) ? (
@@ -789,6 +779,87 @@ export function ManifestDrawer({
                     </div>
                   </div>
                 ) : null}
+              </div>
+            ) : null}
+
+            {view === "passengers" &&
+            confirmedBookings.length === 0 &&
+            holdBookings.length === 0 ? (
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  {t("tabPassengers")}
+                </h4>
+                <Empty className="py-8 border border-dashed border-border rounded-lg">
+                  <EmptyMedia>
+                    <Users className="size-8 text-muted-foreground/40" />
+                  </EmptyMedia>
+                  <EmptyHeader>
+                    <EmptyTitle className="text-sm font-semibold">
+                      {t("noPassengers")}
+                    </EmptyTitle>
+                    <EmptyDescription className="text-xs text-muted-foreground">
+                      {t("noPassengersDesc")}
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              </div>
+            ) : null}
+
+            {view === "seatmap" ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    {t("seatMapTitle")}
+                  </h4>
+                  {trip.busId ? (() => {
+                    const b = buses.find((x) => x.id === trip.busId);
+                    return b ? (
+                      <span className="text-xs text-muted-foreground font-medium">
+                        {b.registrationPlate}
+                        {b.internalName ? ` \u2014 ${b.internalName}` : ""}
+                      </span>
+                    ) : null;
+                  })() : null}
+                </div>
+
+                {isSeatLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Spinner className="size-6 text-primary" />
+                  </div>
+                ) : !trip.busId ? (
+                  <Empty className="py-8 border border-dashed border-border rounded-lg">
+                    <EmptyMedia>
+                      <Armchair className="size-8 text-muted-foreground/40" />
+                    </EmptyMedia>
+                    <EmptyHeader>
+                      <EmptyTitle className="text-sm font-semibold">
+                        {t("noSeatMapTitle")}
+                      </EmptyTitle>
+                      <EmptyDescription className="text-xs text-muted-foreground">
+                        {t("noSeatMapNoBusDesc")}
+                      </EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
+                ) : !seatData?.seats || seatData.seats.length === 0 ? (
+                  <Empty className="py-8 border border-dashed border-border rounded-lg">
+                    <EmptyMedia>
+                      <Armchair className="size-8 text-muted-foreground/40" />
+                    </EmptyMedia>
+                    <EmptyHeader>
+                      <EmptyTitle className="text-sm font-semibold">
+                        {t("noSeatMapTitle")}
+                      </EmptyTitle>
+                      <EmptyDescription className="text-xs text-muted-foreground">
+                        {t("noSeatMapConfiguredDesc")}
+                      </EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
+                ) : (
+                  <SegmentOccupancySection
+                    trip={trip}
+                    seats={seatData.seats}
+                  />
+                )}
               </div>
             ) : null}
 
