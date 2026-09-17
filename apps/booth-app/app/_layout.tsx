@@ -21,6 +21,9 @@ import { flushOfflineQueue } from "@/lib/offline-sync";
 import { NAV_THEME } from "@/lib/theme";
 import { TRPCReactProvider, useTRPC } from "@/lib/trpc";
 import { useOfflineQueue } from "@/stores/offline-queue";
+import { PostHogProvider as PHProvider } from "posthog-react-native";
+import { posthog } from "@/lib/posthog";
+import { PostHogNavigationTracker } from "@/components/posthog-tracker";
 
 // Prevent splash auto-hide until the boot gate (index.tsx) finishes its
 // async auth/profile/terminal checks.
@@ -151,41 +154,52 @@ export default function RootLayout() {
     return null;
   }
 
+  const content = (
+    <TRPCReactProvider>
+      <AuthenticatedNovuProvider>
+        <StatusBar style="dark" />
+        <ReconnectHandler />
+        <ThemeProvider value={NAV_THEME}>
+          <View
+            className="flex-1 light"
+            style={{ backgroundColor: colors.neutral.background }}
+          >
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: {
+                  flex: 1,
+                  backgroundColor: colors.neutral.background,
+                },
+                animation: "slide_from_right",
+              }}
+            >
+              <Stack.Screen name="index" />
+              <Stack.Screen name="terminal-select" />
+              <Stack.Screen name="reconcile" />
+              <Stack.Screen name="notifications" />
+              <Stack.Screen name="(auth)" />
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="sell" />
+            </Stack>
+            <Toast />
+            <PortalHost />
+          </View>
+        </ThemeProvider>
+      </AuthenticatedNovuProvider>
+    </TRPCReactProvider>
+  );
+
   return (
     <SafeAreaProvider>
-      <TRPCReactProvider>
-        <AuthenticatedNovuProvider>
-          <StatusBar style="dark" />
-          <ReconnectHandler />
-          <ThemeProvider value={NAV_THEME}>
-            <View
-              className="flex-1 light"
-              style={{ backgroundColor: colors.neutral.background }}
-            >
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                  contentStyle: {
-                    flex: 1,
-                    backgroundColor: colors.neutral.background,
-                  },
-                  animation: "slide_from_right",
-                }}
-              >
-                <Stack.Screen name="index" />
-                <Stack.Screen name="terminal-select" />
-                <Stack.Screen name="reconcile" />
-                <Stack.Screen name="notifications" />
-                <Stack.Screen name="(auth)" />
-                <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="sell" />
-              </Stack>
-              <Toast />
-              <PortalHost />
-            </View>
-          </ThemeProvider>
-        </AuthenticatedNovuProvider>
-      </TRPCReactProvider>
+      {posthog ? (
+        <PHProvider client={posthog}>
+          <PostHogNavigationTracker />
+          {content}
+        </PHProvider>
+      ) : (
+        content
+      )}
     </SafeAreaProvider>
   );
 }

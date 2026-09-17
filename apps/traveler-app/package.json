@@ -22,6 +22,7 @@
 		"@expo/vector-icons": "^15.1.1",
 		"@hugeicons/core-free-icons": "^4.2.3",
 		"@hugeicons/react-native": "^1.0.15",
+		"@moja/analytics": "workspace:*",
 		"@moja/schemas": "workspace:*",
 		"@moja/shared": "workspace:*",
 		"@moja/theme": "workspace:*",

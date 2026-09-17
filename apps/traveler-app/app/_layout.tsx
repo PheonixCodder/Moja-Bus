@@ -20,6 +20,7 @@ import { usePushToken } from "@/hooks/use-push-token";
 import { authClient } from "@/lib/auth-client";
 import { storePendingReferralCode } from "@/lib/pending-referral";
 import { posthog } from "@/lib/posthog";
+import { PostHogNavigationTracker } from "@/components/posthog-tracker";
 import { TRPCReactProvider, useTRPC } from "@/lib/trpc";
 import { Colors } from "@/constants/theme";
 import { NAV_THEME } from "@/lib/theme";
@@ -246,7 +247,14 @@ export default function RootLayout() {
 
 	return (
 		<SafeAreaProvider>
-			{posthog ? <PHProvider client={posthog}>{content}</PHProvider> : content}
+			{posthog ? (
+				<PHProvider client={posthog}>
+					<PostHogNavigationTracker />
+					{content}
+				</PHProvider>
+			) : (
+				content
+			)}
 		</SafeAreaProvider>
 	);
 }

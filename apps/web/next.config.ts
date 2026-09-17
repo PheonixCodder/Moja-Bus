@@ -27,8 +27,25 @@ const nextConfig: NextConfig = {
   output: "standalone",
   // Monorepo tracing root — required so output-file-tracing picks up workspace
   // packages and shared deps that live outside apps/web.
-  outputFileTracingRoot: path.join(__dirname, "../.."),
-  transpilePackages: ["@moja/ui", "@moja/schemas", "@moja/db"],
+  transpilePackages: ["@moja/ui", "@moja/schemas", "@moja/db", "@moja/analytics"],
+  // Skip trailing slash redirect for PostHog ingestion routes
+  skipTrailingSlashRedirect: true,
+  async rewrites() {
+    return [
+      {
+        source: "/ingest/static/:path*",
+        destination: "https://eu-assets.i.posthog.com/static/:path*",
+      },
+      {
+        source: "/ingest/:path*",
+        destination: "https://eu.i.posthog.com/:path*",
+      },
+      {
+        source: "/ingest/decide",
+        destination: "https://eu.i.posthog.com/decide",
+      },
+    ];
+  },
   // Kept external (not bundled). better-auth is required dynamically by the
   // app; the Prisma driver adapter + pg are loaded via createRequire in
   // @moja/db, so they must stay as real node_modules at runtime.
