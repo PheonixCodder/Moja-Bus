@@ -8,7 +8,6 @@ import { PostHogIdentitySync } from "./posthog-identity-sync";
 import {
   POSTHOG_EU_HOST,
   POSTHOG_EU_UI_HOST,
-  POSTHOG_INGEST_PROXY_PATH,
   POSTHOG_SDK_DEFAULTS,
 } from "@moja/analytics";
 
@@ -18,24 +17,37 @@ const POSTHOG_HOST = process.env["NEXT_PUBLIC_POSTHOG_HOST"] || POSTHOG_EU_HOST;
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!POSTHOG_KEY) {
+      if (process.env.NODE_ENV === "development") {
+        console.warn("[PostHog] NEXT_PUBLIC_POSTHOG_KEY is not set. Analytics disabled.");
+      }
       return;
     }
 
-    // In the browser, use the /ingest rewrite proxy to avoid ad-blockers,
-    // pointing ui_host to PostHog EU cloud dashboard.
     const isLocalhost =
       typeof window !== "undefined" &&
       (window.location.hostname === "localhost" ||
         window.location.hostname === "127.0.0.1");
 
+    // In production, route through /ingest reverse proxy to bypass ad-blockers.
+    // In local development, route directly to POSTHOG_HOST unless explicitly specified.
+    const resolvedApiHost =
+      process.env["NEXT_PUBLIC_POSTHOG_HOST"] ||
+      (isLocalhost ? POSTHOG_HOST : "/ingest");
+
     posthog.init(POSTHOG_KEY, {
-      api_host: POSTHOG_INGEST_PROXY_PATH,
+      api_host: resolvedApiHost,
       ui_host: POSTHOG_EU_UI_HOST,
       defaults: POSTHOG_SDK_DEFAULTS,
       person_profiles: "identified_only",
-      capture_pageview: false, // Captured manually by PostHogPageView for App Router SPA transitions
+      capture_pageview: true, // Capture pageviews immediately
       capture_pageleave: true,
       opt_out_useragent_filter: isLocalhost,
+      loaded: (ph) => {
+        if (process.env.NODE_ENV === "development") {
+          ph.debug();
+          console.log("[PostHog] Initialized successfully with EU Cloud.");
+        }
+      },
     });
   }, []);
 
