@@ -20,6 +20,7 @@ import { AmenityChips } from "@/features/booking/lib/amenities";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 import type { RouterOutputs } from "@/trpc/client";
+import { captureWebAnalyticsEvent } from "@/lib/posthog";
 
 type SearchOffer = RouterOutputs["search"]["search"]["offers"][number];
 
@@ -52,6 +53,13 @@ export const OfferCard = memo(function OfferCard({
 
   async function handleSelectSeats() {
     if (isSoldOut) return;
+
+    captureWebAnalyticsEvent("trip_selected", {
+      schedule_id: offer.offerId,
+      operator_id: offer.companyId,
+      price: offer.priceXOF,
+      departure_time: offer.departureTime instanceof Date ? offer.departureTime.toISOString() : String(offer.departureTime),
+    });
 
     await setBookingOfferId(offer.offerId);
   }

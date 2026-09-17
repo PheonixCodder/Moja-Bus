@@ -19,6 +19,7 @@ import { HomeHeader } from "@/features/home/components/home-header";
 import { BookingDialog } from "@/features/booking/components/booking-dialog";
 import { toast } from "sonner";
 import type { RouterOutputs } from "@/trpc/client";
+import { captureWebAnalyticsEvent } from "@/lib/posthog";
 
 const FILTER_STORAGE_KEY = "search_filters";
 
@@ -169,6 +170,13 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
       // New search — reset accumulated list
       prevCriteriaKey.current = criteriaKey;
       setAllOffers(results.offers);
+
+      captureWebAnalyticsEvent("search_results_viewed", {
+        results_count: results.total,
+        has_results: results.offers.length > 0,
+        origin_name: params.fromTerminalName || undefined,
+        destination_name: params.toTerminalName || undefined,
+      });
     } else {
       // Load More — append to list
       setAllOffers((prev) => {
@@ -218,6 +226,16 @@ export function SearchPageClient({ user }: SearchPageClientProps) {
       date: string;
       passengers: number;
     }) => {
+      captureWebAnalyticsEvent("trip_searched", {
+        origin_id: criteria.from,
+        destination_id: criteria.to,
+        origin_name: criteria.fromCompanyName || undefined,
+        destination_name: criteria.toCompanyName || undefined,
+        departure_date: criteria.date,
+        passenger_count: criteria.passengers,
+        source: "web",
+      });
+
       const cleared = {
         operators: [],
         amenities: [],

@@ -18,6 +18,9 @@ import { usePushToken } from "@/hooks/use-push-token";
 import { UrgentDispatchGate } from "@/components/urgent-dispatch-gate";
 import { NAV_THEME } from "@/lib/theme";
 import { colors } from "@/constants/theme";
+import { PostHogProvider as PHProvider } from "posthog-react-native";
+import { posthog } from "@/lib/posthog";
+import { PostHogNavigationTracker } from "@/components/posthog-tracker";
 
 const isExpoGo = Constants.appOwnership === "expo";
 
@@ -162,48 +165,53 @@ export default function RootLayout() {
 		return null;
 	}
 
+	const content = (
+		<TRPCReactProvider>
+			<AuthenticatedNovuProvider>
+				<ThemeProvider value={NAV_THEME}>
+					<StatusBar style="light" />
+					<View
+						className="flex-1 dark"
+						style={{ backgroundColor: colors.neutral.background }}
+					>
+						<Stack
+							screenOptions={{
+								headerShown: false,
+								contentStyle: { flex: 1, backgroundColor: colors.neutral.background },
+								animation: "slide_from_right",
+							}}
+						>
+							<Stack.Screen name="index" />
+							<Stack.Screen name="(auth)/login" />
+							<Stack.Screen name="(auth)/preferences" />
+							<Stack.Screen name="(auth)/register" />
+							<Stack.Screen name="(tabs)" />
+							<Stack.Screen name="notifications" />
+							<Stack.Screen
+								name="trip/[id]/manifest"
+								options={{
+									presentation: "modal",
+									animation: "slide_from_bottom",
+								}}
+							/>
+						</Stack>
+						<Toast />
+					</View>
+				</ThemeProvider>
+			</AuthenticatedNovuProvider>
+		</TRPCReactProvider>
+	);
+
 	return (
 		<SafeAreaProvider>
-			<TRPCReactProvider>
-				<AuthenticatedNovuProvider>
-					<ThemeProvider value={NAV_THEME}>
-						<StatusBar style="light" />
-						{/*
-						  className="dark" forces NativeWind to resolve .dark CSS variables
-						  for ALL descendant components. This is the single switch that makes
-						  bg-background, text-foreground, bg-card, border-border etc. render
-						  the dark palette. Without this, NativeWind resolves :root (light).
-						*/}
-						<View
-							className="flex-1 dark"
-							style={{ backgroundColor: colors.neutral.background }}
-						>
-							<Stack
-								screenOptions={{
-									headerShown: false,
-									contentStyle: { flex: 1, backgroundColor: colors.neutral.background },
-									animation: "slide_from_right",
-								}}
-							>
-								<Stack.Screen name="index" />
-								<Stack.Screen name="(auth)/login" />
-								<Stack.Screen name="(auth)/preferences" />
-								<Stack.Screen name="(auth)/register" />
-								<Stack.Screen name="(tabs)" />
-								<Stack.Screen name="notifications" />
-								<Stack.Screen
-									name="trip/[id]/manifest"
-									options={{
-										presentation: "modal",
-										animation: "slide_from_bottom",
-									}}
-								/>
-							</Stack>
-							<Toast />
-						</View>
-					</ThemeProvider>
-				</AuthenticatedNovuProvider>
-			</TRPCReactProvider>
+			{posthog ? (
+				<PHProvider client={posthog}>
+					<PostHogNavigationTracker />
+					{content}
+				</PHProvider>
+			) : (
+				content
+			)}
 		</SafeAreaProvider>
 	);
 }

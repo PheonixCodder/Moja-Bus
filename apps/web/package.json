@@ -23,6 +23,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@hookform/resolvers": "^5.4.0",
     "@mdxeditor/editor": "^4.0.4",
+    "@moja/analytics": "workspace:*",
     "@moja/config": "workspace:*",
     "@moja/db": "workspace:*",
     "@moja/schemas": "workspace:*",
