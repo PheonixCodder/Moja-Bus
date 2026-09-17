@@ -158,7 +158,7 @@ services:
     networks: [app]
 
   status:
-    image: louislam/uptime-kuma:1
+    image: louislam/uptime-kuma:2
     logging: *default-logging
     volumes:
       - kuma_data:/app/data
