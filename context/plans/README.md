@@ -42,5 +42,6 @@ Each plan follows this structure (produced automatically by `/architect`):
 
 ## Current Plans
 
+- [tRPC Architecture Remediation Master Plan](./trpc-remediation/README.md) — 5-phase engineering roadmap restoring end-to-end type safety, monorepo package isolation, cache hygiene, and router modularization across all 4 apps.
 - [Operator Master Asset Import & Export Plan](./operator-asset-import-export-plan.md) — Apollo-style CSV import and export system for Terminals, Fleets, Routes, and Schedules with column auto-detection, field mapping, and preview validation.
 

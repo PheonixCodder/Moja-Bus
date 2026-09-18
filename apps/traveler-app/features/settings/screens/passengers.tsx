@@ -21,6 +21,7 @@ import {
 	useUpdateSavedPassenger,
 } from "@/hooks/use-passengers";
 import { authClient } from "@/lib/auth-client";
+import { useTRPC } from "@/lib/trpc";
 import { PassengerCard } from "../components/passenger-card";
 import { PassengerDeleteSheet } from "../components/passenger-delete-sheet";
 import type { PassengerFormData } from "../components/passenger-form-sheet";
@@ -30,6 +31,7 @@ export function PassengersView() {
 	const insets = useSafeAreaInsets();
 	const { t } = useTranslation("settings");
 	const queryClient = useQueryClient();
+	const trpc = useTRPC();
 
 	const { data: session, isPending: sessionPending } = authClient.useSession();
 	const isAuth = !!session?.user;
@@ -46,8 +48,8 @@ export function PassengersView() {
 		useState<SavedPassengerDTO | null>(null);
 
 	const invalidate = useCallback(() => {
-		queryClient.invalidateQueries();
-	}, [queryClient]);
+		queryClient.invalidateQueries(trpc.passenger.listSaved.queryFilter());
+	}, [queryClient, trpc]);
 
 	const handleCreate = (form: PassengerFormData) => {
 		createMutation.mutate(

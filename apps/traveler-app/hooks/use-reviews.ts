@@ -19,30 +19,8 @@ export interface SubmitReviewInput {
 	content?: string | null;
 }
 
-interface TrpcQuery<TInput, TOutput> {
-	queryOptions: (input: TInput) => {
-		queryKey: unknown[];
-		queryFn: () => Promise<TOutput>;
-	};
-}
-
-interface TrpcMutation<TInput, TOutput> {
-	mutationOptions: () => {
-		mutationFn: (input: TInput) => Promise<TOutput>;
-	};
-}
-
-type PassengerRouter = {
-	getUserReviews: TrpcQuery<void, UserReviewDTO[]>;
-	submitReview: TrpcMutation<SubmitReviewInput, { id: string }>;
-};
-
-type TypedTRPC = {
-	passenger: PassengerRouter;
-};
-
 export function useUserReviews(enabled?: boolean) {
-	const trpc = useTRPC() as unknown as TypedTRPC;
+	const trpc = useTRPC();
 	return useQuery({
 		...trpc.passenger.getUserReviews.queryOptions(),
 		enabled,
@@ -50,12 +28,12 @@ export function useUserReviews(enabled?: boolean) {
 }
 
 export function useSubmitReview() {
-	const trpc = useTRPC() as unknown as TypedTRPC;
+	const trpc = useTRPC();
 	const queryClient = useQueryClient();
 	return useMutation({
 		...trpc.passenger.submitReview.mutationOptions(),
 		onSuccess: () => {
-			queryClient.invalidateQueries();
+			queryClient.invalidateQueries(trpc.passenger.getUserReviews.queryFilter());
 		},
 	});
 }

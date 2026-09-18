@@ -33,41 +33,7 @@ interface ProfileResponse {
 	user: UserInfo;
 }
 
-interface TrpcQuery<TInput, TOutput> {
-	queryOptions: (input: TInput) => {
-		queryKey: unknown[];
-		queryFn: () => Promise<TOutput>;
-		meta?: Record<string, unknown>;
-	};
-}
-
-interface TrpcMutation<TInput, TOutput> {
-	mutationOptions: () => {
-		mutationFn: (input: TInput) => Promise<TOutput>;
-	};
-}
-
-type PassengerRouter = {
-	getPreferences: TrpcQuery<void, ProfileResponse>;
-	updatePreferences: TrpcMutation<
-		{
-			fullName?: string;
-			phone?: string;
-			dateOfBirth?: string;
-			preferredSeat?: "WINDOW" | "AISLE" | "NONE";
-			preferredClass?: "ECONOMY" | "STANDARD" | "VIP";
-			marketingOptIn?: boolean;
-		},
-		ProfileResponse
-	>;
-	updateAvatar: TrpcMutation<{ image: string }, { success: boolean }>;
-};
-
-type TypedTRPC = {
-	passenger: PassengerRouter;
-};
-
-function mapProfileToPersonalInfo(profile: ProfileResponse): PersonalInfoData {
+function mapProfileToPersonalInfo(profile: any): PersonalInfoData {
 	return {
 		id: profile.id,
 		fullName: profile.user.fullName,
@@ -82,7 +48,7 @@ function mapProfileToPersonalInfo(profile: ProfileResponse): PersonalInfoData {
 }
 
 export function usePersonalInfo(enabled?: boolean) {
-	const trpc = useTRPC() as unknown as TypedTRPC;
+	const trpc = useTRPC();
 	const query = useQuery({
 		...trpc.passenger.getPreferences.queryOptions(),
 		enabled,
@@ -92,12 +58,12 @@ export function usePersonalInfo(enabled?: boolean) {
 }
 
 export function useUpdatePersonalInfo() {
-	const trpc = useTRPC() as unknown as TypedTRPC;
+	const trpc = useTRPC();
 	return useMutation(trpc.passenger.updatePreferences.mutationOptions());
 }
 
 export function useUpdateAvatar() {
-	const trpc = useTRPC() as unknown as TypedTRPC;
+	const trpc = useTRPC();
 	return useMutation(trpc.passenger.updateAvatar.mutationOptions());
 }
 

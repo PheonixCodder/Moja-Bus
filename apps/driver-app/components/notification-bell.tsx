@@ -8,33 +8,9 @@ import { useTRPC } from "@/lib/trpc";
 import { authClient } from "@/lib/auth-client";
 import { colors } from "@/constants/theme";
 
-interface NotificationTokenResponse {
-	subscriberId: string;
-	subscriberHash: string;
-	appId: string;
-}
-
-interface TrpcQuery<TInput, TOutput> {
-	queryOptions: (
-		input: TInput,
-		opts?: { staleTime?: number; enabled?: boolean },
-	) => {
-		queryKey: unknown[];
-		queryFn: () => Promise<TOutput>;
-	};
-}
-
-interface PublicRouter {
-	getNotificationToken: TrpcQuery<undefined, NotificationTokenResponse>;
-}
-
-interface TypedTRPC {
-	public: PublicRouter;
-}
-
 export function NotificationBell() {
 	const { data: session, isPending: sessionPending } = authClient.useSession();
-	const trpc = useTRPC() as unknown as TypedTRPC;
+	const trpc = useTRPC();
 	const { data: token, isPending: tokenPending } = useQuery({
 		...trpc.public.getNotificationToken.queryOptions(undefined, {
 			staleTime: Infinity,

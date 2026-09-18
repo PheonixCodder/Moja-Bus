@@ -24,6 +24,7 @@
     "@hugeicons/react-native": "^1.0.15",
     "@moja/analytics": "workspace:*",
     "@moja/schemas": "workspace:*",
+    "@moja/shared": "workspace:*",
     "@moja/theme": "workspace:*",
     "@novu/react-native": "^3.18.1",
     "@react-native-async-storage/async-storage": "2.2.0",
@@ -95,13 +96,14 @@
     "superjson": "^2.2.6",
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4",
-    "zod": "^3.24.0",
+    "zod": "^4.4.3",
     "zustand": "^5.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.26.10",
     "@biomejs/biome": "^2.3.9",
     "@moja/typescript": "workspace:*",
+    "@moja/web": "workspace:*",
     "@tailwindcss/postcss": "^4",
     "@types/react": "~19.2.10",
     "babel-plugin-module-resolver": "^5.0.3",

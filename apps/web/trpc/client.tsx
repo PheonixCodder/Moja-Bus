@@ -26,10 +26,14 @@ function getBaseUrl() {
   if (typeof window !== "undefined") {
     return "";
   }
-  if (process.env["APP_URL"]) {
-    return process.env["APP_URL"];
+  if (process.env["VERCEL_URL"]) {
+    return `https://${process.env["VERCEL_URL"]}`;
   }
-  return "http://localhost:3000";
+  return (
+    process.env["NEXT_PUBLIC_APP_URL"] ??
+    process.env["APP_URL"] ??
+    "http://localhost:3000"
+  );
 }
 
 export function TRPCReactProvider({ children }: { children: React.ReactNode }) {
@@ -49,7 +53,7 @@ export function TRPCReactProvider({ children }: { children: React.ReactNode }) {
           },
           headers() {
             return {
-              "x-trpc-source": typeof window === "undefined" ? "rsc" : "client",
+              "x-trpc-source": typeof window === "undefined" ? "ssr" : "client",
             };
           },
         }),

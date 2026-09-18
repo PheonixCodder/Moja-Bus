@@ -6,7 +6,7 @@ const WALLET_LEDGER_PAGE_SIZE = 10;
 
 export function useSettingsPrefetch() {
 	const queryClient = useQueryClient();
-	const trpc = useTRPC() as any;
+	const trpc = useTRPC();
 	const { prefetchIfAuthed } = usePrefetchGuard();
 
 	const prefetchWallet = () => {

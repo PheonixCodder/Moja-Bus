@@ -1,4 +1,4 @@
-import { getPrismaClient } from "@moja/db";
+import { getPrismaClient, type Prisma } from "@moja/db";
 import { canOperateRuns, type StaffRole } from "@moja/schemas";
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
@@ -11,7 +11,12 @@ export async function createContextFromHeaders(
   headers: Headers,
   resHeaders?: Headers,
 ) {
-  let response: any;
+  let response:
+    | (typeof auth.$Infer.Session & {
+        user: typeof auth.$Infer.Session.user & { fullName?: string | null };
+      })
+    | null
+    | undefined;
   let res: Headers | undefined;
 
   try {
@@ -20,7 +25,7 @@ export async function createContextFromHeaders(
       returnHeaders: true,
     });
     res = result.headers;
-    response = result.response;
+    response = result.response as typeof response;
   } catch (err) {
     console.error("[auth] getSession threw:", err);
   }
@@ -38,7 +43,14 @@ export async function createContextFromHeaders(
 
   return {
     prisma: getPrismaClient(),
-    user: response?.user,
+    user: response?.user
+      ? {
+          ...response.user,
+          fullName:
+            response.user.fullName ?? response.user.name ?? "",
+        }
+      : undefined,
+    session: response?.session,
     headers,
     /** Fetch adapter response headers — use to append Set-Cookie. */
     resHeaders,
@@ -220,9 +232,21 @@ export const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   // admin procedures, contact admin) from: (a) role-ADMIN users with no staff
   // row, and (b) SUSPENDED staff whose underlying user.role is still ADMIN.
   // (Permits per-procedure keys, enforced below via requireAdminPermission.)
-  const adminStaff = await ctx.prisma.adminStaff.findUnique({
-    where: { userId: ctx.user.id, deletedAt: null },
-  });
+  const cacheKey = `admin_staff:${ctx.user.id}`;
+  const cached = ctx._cache.get(cacheKey) as
+    | Awaited<ReturnType<typeof ctx.prisma.adminStaff.findUnique>>
+    | undefined;
+
+  const adminStaff =
+    cached ??
+    (await ctx.prisma.adminStaff.findUnique({
+      where: { userId: ctx.user.id, deletedAt: null },
+    }));
+
+  if (!cached && adminStaff) {
+    ctx._cache.set(cacheKey, adminStaff);
+  }
+
   if (!adminStaff) {
     throw new TRPCError({
       code: "FORBIDDEN",
@@ -247,17 +271,31 @@ export const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
 
 export const adminStaffProcedure = adminProcedure;
 
+type DriverProfilePayload = Prisma.DriverProfileGetPayload<{
+  include: {
+    companyAffiliations: {
+      where: { isActive: true };
+      include: {
+        company: {
+          select: {
+            id: true;
+            name: true;
+            slug: true;
+            logoUrl: true;
+          };
+        };
+      };
+    };
+  };
+}>;
+
 /**
  * Shared loader for every driver-facing procedure: resolves the caller's
  * DriverProfile (per-request cache) or refuses access.
  */
 const loadDriverProfile = protectedProcedure.use(async ({ ctx, next }) => {
   const cacheKey = `driver:${ctx.user.id}`;
-  const cached = ctx._cache.get(cacheKey) as
-    | (Awaited<ReturnType<typeof ctx.prisma.driverProfile.findUnique>> & {
-        companyAffiliations: any[];
-      })
-    | undefined;
+  const cached = ctx._cache.get(cacheKey) as DriverProfilePayload | undefined;
 
   const driverProfile =
     cached ??
@@ -308,15 +346,24 @@ const loadDriverProfile = protectedProcedure.use(async ({ ctx, next }) => {
     });
 
     if (operatorStaff) {
-      const conductorCrewProfile: any = {
+      const conductorCrewProfile = {
         id: operatorStaff.id,
         userId: ctx.user.id,
         status: "AVAILABLE",
         verificationStatus: "VERIFIED",
-        currentTripId: null,
+        currentTripId: null as string | null,
         licenseNumber: "STAFF_CONDUCTOR",
         licenseCategory: "STAFF",
-        licenseExpiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+        licenseCategories: ["STAFF"],
+        licenseExpiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+        lastLatitude: null as number | null,
+        lastLongitude: null as number | null,
+        totalTripsCompleted: 0,
+        totalDistanceKm: 0,
+        averageRating: null as number | null,
+        safetyScore: null as number | null,
+        createdAt: operatorStaff.createdAt,
+        updatedAt: operatorStaff.updatedAt,
         companyAffiliations: operatorStaff.company
           ? [
               {
@@ -325,10 +372,15 @@ const loadDriverProfile = protectedProcedure.use(async ({ ctx, next }) => {
                 driverProfileId: operatorStaff.id,
                 company: operatorStaff.company,
                 isActive: true,
+                hiredAt: operatorStaff.joinedAt,
+                role: "CONDUCTOR",
+                badgeNumber: null as string | null,
               },
             ]
           : [],
         operatorStaff,
+      } as unknown as DriverProfilePayload & {
+        operatorStaff: typeof operatorStaff;
       };
 
       return next({
@@ -418,12 +470,30 @@ const BOOTH_ELIGIBLE_ROLES: StaffRole[] = [
   "OWNER",
 ];
 
+type BoothOperatorPayload = Prisma.OperatorGetPayload<{
+  include: {
+    company: {
+      select: {
+        id: true;
+        name: true;
+        slug: true;
+        status: true;
+        logoUrl: true;
+      };
+    };
+    assignedTerminal: {
+      select: {
+        id: true;
+        name: true;
+      };
+    };
+  };
+}>;
+
 export const boothProcedure = protectedProcedure.use(
   async ({ ctx, next }) => {
     const cacheKey = `booth:${ctx.user.id}`;
-    const cached = ctx._cache.get(cacheKey) as
-      | Awaited<ReturnType<typeof ctx.prisma.operator.findFirst>>
-      | undefined;
+    const cached = ctx._cache.get(cacheKey) as BoothOperatorPayload | undefined;
 
     const operator =
       cached ??
@@ -465,13 +535,13 @@ export const boothProcedure = protectedProcedure.use(
       });
     }
 
-    const company = (operator as any).company as {
-      id: string;
-      name: string;
-      slug: string;
-      status: string;
-      logoUrl: string | null;
-    };
+    const company = operator.company;
+    if (!company) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Company details not found.",
+      });
+    }
 
     if (!["ACTIVE", "VERIFIED"].includes(company.status)) {
       throw new TRPCError({

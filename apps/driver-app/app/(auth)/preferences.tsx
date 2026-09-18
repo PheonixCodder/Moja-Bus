@@ -84,7 +84,9 @@ export default function DriverPreferencesScreen() {
 	const saveMutation = useMutation(
 		trpc.drivers.setServicePreference.mutationOptions({
 			onSuccess: () => {
-				queryClient.invalidateQueries();
+				queryClient.invalidateQueries(
+					trpc.drivers.getMyServicePreference.queryFilter()
+				);
 				DriverFeedback.successScan();
 			},
 		})

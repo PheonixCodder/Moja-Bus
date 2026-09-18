@@ -48,7 +48,10 @@ export function BookingsView() {
 
 	const handleRefresh = async () => {
 		setRefreshing(true);
-		await Promise.all([refetch(), queryClient.invalidateQueries()]);
+		await Promise.all([
+			refetch(),
+			queryClient.invalidateQueries(trpc.booking.pathFilter()),
+		]);
 		setRefreshing(false);
 	};
 

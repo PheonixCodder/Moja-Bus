@@ -5,7 +5,7 @@ import { bookingsListInput, HOME_UPCOMING_LIMIT } from "@/features/booking/const
 
 export function useHomePrefetch() {
 	const queryClient = useQueryClient();
-	const trpc = useTRPC() as any;
+	const trpc = useTRPC();
 	const { prefetchIfAuthed } = usePrefetchGuard();
 
 	const prefetchHomeFeed = () => {

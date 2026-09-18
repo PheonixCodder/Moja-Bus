@@ -6,7 +6,7 @@ import {
   bankStepSchema,
   documentSchema,
 } from "@moja/schemas";
-import { operatorCompanyProcedure } from "../../init";
+import { createTRPCRouter, operatorCompanyProcedure } from "../../init";
 import {
   requirePermission,
   requireAnyPermission,
@@ -46,6 +46,10 @@ async function registerRecipientForBank(input: {
   }
 }
 
+/**
+ * @deprecated Use `trpc.operator.settings.<procedureName>` instead.
+ * Flat procedure exports are retained only for legacy backwards compatibility.
+ */
 export const operatorSettingsProcedures = {
   getSettings: operatorCompanyProcedure.query(async ({ ctx }) => {
     requirePermission(ctx, "company:view");
@@ -469,3 +473,6 @@ export const operatorSettingsProcedures = {
       return { success: true };
     }),
 };
+
+export const operatorSettingsRouter = createTRPCRouter(operatorSettingsProcedures);
+

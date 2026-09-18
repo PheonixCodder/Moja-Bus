@@ -55,7 +55,9 @@ export function DriverVerificationDialog({
   const verifyMutation = useMutation(
     trpc.admin.verifyDriver.mutationOptions({
       onSuccess: () => {
-        queryClient.invalidateQueries();
+        queryClient.invalidateQueries(
+          trpc.admin.listDriversForVerification.pathFilter(),
+        );
         toast.success("Driver verification status updated.");
         onOpenChange(false);
         setIsRejecting(false);

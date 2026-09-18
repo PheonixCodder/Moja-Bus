@@ -84,7 +84,8 @@ export function TripsView() {
 	const startTripMutation = useMutation(
 		trpc.drivers.startTrip.mutationOptions({
 			onSuccess: () => {
-				queryClient.invalidateQueries();
+				queryClient.invalidateQueries(trpc.drivers.getMyTrips.pathFilter());
+				queryClient.invalidateQueries(trpc.trips.pathFilter());
 			},
 		})
 	);
@@ -92,7 +93,8 @@ export function TripsView() {
 	const takeOverTripMutation = useMutation(
 		trpc.drivers.handoverTripControl.mutationOptions({
 			onSuccess: () => {
-				queryClient.invalidateQueries();
+				queryClient.invalidateQueries(trpc.drivers.getMyTrips.pathFilter());
+				queryClient.invalidateQueries(trpc.trips.pathFilter());
 			},
 		})
 	);

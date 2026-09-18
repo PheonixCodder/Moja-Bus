@@ -22,7 +22,7 @@ type SortKey = 'all' | 'routes' | 'buses';
 export function OperatorsListView() {
   const { t } = useTranslation('operators');
   const insets = useSafeAreaInsets();
-  const trpc = useTRPC() as any;
+  const trpc = useTRPC();
 
   const { data: operators, isLoading } = useQuery({
     ...trpc.public.listOperators.queryOptions(),

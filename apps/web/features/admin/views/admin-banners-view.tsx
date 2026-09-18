@@ -59,7 +59,7 @@ export function AdminBannersView() {
   const handleToggleActive = async (banner: PromoBanner, active: boolean) => {
     try {
       await updateMutation.mutateAsync({ id: banner.id, isActive: active });
-      await queryClient.invalidateQueries();
+      await queryClient.invalidateQueries(trpc.admin.listBanners.pathFilter());
       toast.success(
         active ? t("toast.bannerActivated") : t("toast.bannerDeactivated"),
       );
@@ -72,7 +72,7 @@ export function AdminBannersView() {
     if (!confirm(t("deleteConfirm"))) return;
     try {
       await deleteMutation.mutateAsync({ id });
-      await queryClient.invalidateQueries();
+      await queryClient.invalidateQueries(trpc.admin.listBanners.pathFilter());
       toast.success(t("toast.bannerDeleted"));
     } catch {
       toast.error(t("toast.deleteFailed"));

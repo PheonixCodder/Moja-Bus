@@ -36,7 +36,7 @@ function getInitials(name: string) {
 export function OperatorProfileView({ slug }: OperatorProfileViewProps) {
   const { t } = useTranslation('operators');
   const insets = useSafeAreaInsets();
-  const trpc = useTRPC() as any;
+  const trpc = useTRPC();
   const [activeTab, setActiveTab] = useState<Tab>('overview');
 
   const { data: operatorData, isLoading, error } = useQuery({
@@ -44,7 +44,7 @@ export function OperatorProfileView({ slug }: OperatorProfileViewProps) {
     staleTime: 10 * 60 * 1000,
   });
 
-  const operator = operatorData as any;
+  const operator = operatorData;
 
   const TABS: { id: Tab; labelKey: keyof typeof import('../../../locales/en/operators.json') }[] = [
     { id: 'overview', labelKey: 'tabOverview' },

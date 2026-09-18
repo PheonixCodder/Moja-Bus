@@ -28,39 +28,15 @@ import { NAV_THEME } from "@/lib/theme";
 const isExpoGo = Constants.appOwnership === "expo";
 
 
-interface TrpcQuery<TInput, TOutput> {
-	queryOptions: (
-		input: TInput,
-		opts?: { staleTime?: number },
-	) => {
-		queryKey: unknown[];
-		queryFn: () => Promise<TOutput>;
-	};
-}
-
-interface NotificationTokenResponse {
-	subscriberId: string;
-	subscriberHash: string;
-	appId: string;
-}
-
-interface PublicRouter {
-	getNotificationToken: TrpcQuery<undefined, NotificationTokenResponse>;
-}
-
-interface TypedTRPC {
-	public: PublicRouter;
-}
-
 function AuthenticatedNovuProvider({
 	children,
 }: {
 	children: React.ReactNode;
 }) {
 	const { data: session, isPending } = authClient.useSession();
-	const trpc = useTRPC() as unknown as TypedTRPC;
+	const trpc = useTRPC();
 	const { data: token } = useQuery({
-		...trpc.public.getNotificationToken.queryOptions(undefined, {
+		...trpc.notifications.getNotificationToken.queryOptions(undefined, {
 			staleTime: Infinity,
 		}),
 		enabled: !!session?.user,

@@ -16,6 +16,7 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ActivityIndicator,
   Alert,
@@ -54,6 +55,7 @@ export default function ProfileTab() {
   const clearSession = useSessionStore((s) => s.clearSession);
   const setLocale = useSessionStore((s) => s.setLocale);
   const { releaseAllHolds } = useHoldPool();
+  const queryClient = useQueryClient();
 
   const [showSwitchModal, setShowSwitchModal] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
@@ -127,6 +129,7 @@ export default function ProfileTab() {
           setLoggingOut(true);
           await releaseAllHolds();
           await signOut();
+          queryClient.clear();
           clearSession();
           setTerminal(null);
           void i18n.changeLanguage("fr");

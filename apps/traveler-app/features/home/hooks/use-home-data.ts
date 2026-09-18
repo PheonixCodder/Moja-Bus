@@ -11,7 +11,7 @@ import { mapBookingToActiveTripCard } from "../lib/map-active-trip";
 import type { PassengerBookingSummary } from "@moja/types";
 
 export function useHomeData() {
-	const trpc = useTRPC() as any;
+	const trpc = useTRPC();
 	const queryClient = useQueryClient();
 	const [refreshing, setRefreshing] = useState(false);
 	const { data: session } = authClient.useSession();
@@ -46,11 +46,17 @@ export function useHomeData() {
 	const onRefresh = useCallback(async () => {
 		setRefreshing(true);
 		try {
-			await queryClient.invalidateQueries();
+			await Promise.all([
+				queryClient.invalidateQueries(trpc.booking.listMyBookings.pathFilter()),
+				queryClient.invalidateQueries(trpc.blog.listActiveBanners.pathFilter()),
+				queryClient.invalidateQueries(trpc.blog.getPublishedPosts.pathFilter()),
+				queryClient.invalidateQueries(trpc.public.listOperators.pathFilter()),
+				queryClient.invalidateQueries(trpc.passenger.getWalletBalance.queryFilter()),
+			]);
 		} finally {
 			setRefreshing(false);
 		}
-	}, [queryClient]);
+	}, [queryClient, trpc]);
 
 	const upcomingBooking = useMemo(() => {
 		const item = (bookingsData as { items?: PassengerBookingSummary[] })

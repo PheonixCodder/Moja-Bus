@@ -13,6 +13,7 @@ import { driversRouter } from "./drivers";
 import { fleetRouter } from "./fleet";
 import { invitationRouter } from "./invitation";
 import { locationsRouter } from "./locations";
+import { notificationsRouter } from "./notifications";
 import { operatorRouter } from "./operator";
 import { passengerRouter } from "./passenger";
 import { paymentsRouter } from "./payments";
@@ -26,6 +27,7 @@ import { terminalsRouter } from "./terminals";
 import { tripsRouter } from "./trips";
 
 export const appRouter = createTRPCRouter({
+  notifications: notificationsRouter,
   booth: boothRouter,
   operator: operatorRouter,
   terminals: terminalsRouter,

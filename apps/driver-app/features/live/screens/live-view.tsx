@@ -74,7 +74,9 @@ export function LiveView() {
 	const completeMutation = useMutation(
 		trpc.drivers.completeTrip.mutationOptions({
 			onSuccess: () => {
-				queryClient.invalidateQueries();
+				queryClient.invalidateQueries(trpc.drivers.getMyProfile.queryFilter());
+				queryClient.invalidateQueries(trpc.drivers.getMyTrips.pathFilter());
+				queryClient.invalidateQueries(trpc.trips.pathFilter());
 			},
 		})
 	);
@@ -160,7 +162,9 @@ export function LiveView() {
 				DriverFeedback.successScan();
 				await stopBackgroundLocationTracking();
 				setTelemetryAuthToken(null);
-				queryClient.invalidateQueries();
+				queryClient.invalidateQueries(trpc.drivers.getMyProfile.queryFilter());
+				queryClient.invalidateQueries(trpc.drivers.getMyTrips.pathFilter());
+				queryClient.invalidateQueries(trpc.trips.pathFilter());
 				Alert.alert(t("handoverTitle"), t("handoverSuccess"));
 				router.replace("/(tabs)/trips");
 			},

@@ -72,7 +72,12 @@ export function ProfileView() {
 	const toggleShiftMutation = useMutation(
 		trpc.drivers.toggleShift.mutationOptions({
 			onSuccess: () => {
-				queryClient.invalidateQueries();
+				queryClient.invalidateQueries(
+					trpc.drivers.getMyCurrentShift.queryFilter()
+				);
+				queryClient.invalidateQueries(
+					trpc.drivers.getMyProfile.queryFilter()
+				);
 			},
 		})
 	);
@@ -80,7 +85,9 @@ export function ProfileView() {
 	const setPreferenceMutation = useMutation(
 		trpc.drivers.setServicePreference.mutationOptions({
 			onSuccess: () => {
-				queryClient.invalidateQueries({ queryKey: trpc.drivers.getMyServicePreference.queryKey() });
+				queryClient.invalidateQueries(
+					trpc.drivers.getMyServicePreference.queryFilter()
+				);
 			},
 		})
 	);
@@ -125,6 +132,7 @@ export function ProfileView() {
 						try {
 							await authClient.signOut();
 						} catch {}
+						queryClient.clear();
 						router.replace("/(auth)/login");
 					},
 				},

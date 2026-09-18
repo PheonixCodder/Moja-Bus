@@ -15,9 +15,11 @@ import { createContextFromHeaders } from "./init";
 
 export const getQueryClient = cache(makeQueryClient);
 
-async function createServerContext() {
-  return createContextFromHeaders(await headers());
-}
+const createServerContext = cache(async () => {
+  const reqHeaders = new Headers(await headers());
+  reqHeaders.set("x-trpc-source", "rsc");
+  return createContextFromHeaders(reqHeaders);
+});
 
 export const trpc = createTRPCOptionsProxy({
   router: appRouter,
