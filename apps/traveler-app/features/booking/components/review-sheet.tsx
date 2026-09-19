@@ -62,7 +62,7 @@ export function ReviewSheet({
 					setComment("");
 					onClose();
 				},
-				onError: (err: Error) => {
+				onError: (err) => {
 					Alert.alert(t("reviewErrorTitle"), err.message || t("reviewFailed"));
 				},
 			},

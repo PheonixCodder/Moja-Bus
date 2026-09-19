@@ -1,7 +1,12 @@
 {
-  "name": "web",
+  "name": "@moja/web",
   "version": "0.1.0",
   "private": true,
+  "exports": {
+    "./trpc/router": {
+      "types": "./trpc/routers/_app.ts"
+    }
+  },
   "scripts": {
     "dev": "next dev",
     "dev:ws": "tsx server.ts",
@@ -102,6 +107,6 @@
     "@types/ws": "^8.18.1",
     "tailwindcss": "^4",
     "tsx": "^4.22.4",
-    "typescript": "^5"
+    "typescript": "~6.0.3"
   }
 }

@@ -47,7 +47,15 @@ export function EarningsView() {
 	const toggleShiftMutation = useMutation(
 		trpc.drivers.toggleShift.mutationOptions({
 			onSuccess: () => {
-				queryClient.invalidateQueries();
+				queryClient.invalidateQueries(
+					trpc.drivers.getMyCurrentShift.queryFilter()
+				);
+				queryClient.invalidateQueries(
+					trpc.drivers.getMyEarnings.queryFilter()
+				);
+				queryClient.invalidateQueries(
+					trpc.drivers.getMyProfile.queryFilter()
+				);
 			},
 		})
 	);

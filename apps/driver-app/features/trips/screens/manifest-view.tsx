@@ -71,7 +71,12 @@ export function ManifestView({ tripId }: ManifestViewProps) {
 	const manualCheckInMutation = useMutation(
 		trpc.drivers.manualCheckInPassenger.mutationOptions({
 			onSuccess: () => {
-				queryClient.invalidateQueries();
+				queryClient.invalidateQueries(
+					trpc.drivers.getMyTripManifest.pathFilter()
+				);
+				queryClient.invalidateQueries(
+					trpc.drivers.getMyTrips.pathFilter()
+				);
 			},
 		})
 	);

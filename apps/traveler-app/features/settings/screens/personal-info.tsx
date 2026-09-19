@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
 import { BottomTabInset, Palette } from "@/constants/theme";
 import { authClient } from "@/lib/auth-client";
+import { useTRPC } from "@/lib/trpc";
 import {
 	usePersonalInfo,
 	useUpdatePersonalInfo,
@@ -20,6 +21,7 @@ import type { PersonalInfoFormData } from "../components/personal-info-form";
 export function PersonalInfoView() {
 	const insets = useSafeAreaInsets();
 	const queryClient = useQueryClient();
+	const trpc = useTRPC();
 	const { t } = useTranslation("settings");
 
 	const { data: session, isPending: sessionPending } = authClient.useSession();
@@ -97,7 +99,7 @@ export function PersonalInfoView() {
 						confirmLabel: "Done",
 						onConfirm: () => {
 							setAlertState((s) => ({ ...s, visible: false }));
-							queryClient.invalidateQueries();
+							queryClient.invalidateQueries(trpc.passenger.pathFilter());
 						},
 					});
 				},

@@ -10,33 +10,9 @@ import { IconColors } from "@/constants/ui-colors";
 import { Colors } from "@/constants/theme";
 import { Text } from "./ui/text";
 
-interface TrpcQuery<TInput, TOutput> {
-	queryOptions: (
-		input: TInput,
-		opts?: { staleTime?: number; enabled?: boolean },
-	) => {
-		queryKey: unknown[];
-		queryFn: () => Promise<TOutput>;
-	};
-}
-
-interface NotificationTokenResponse {
-	subscriberId: string;
-	subscriberHash: string;
-	appId: string;
-}
-
-interface PublicRouter {
-	getNotificationToken: TrpcQuery<undefined, NotificationTokenResponse>;
-}
-
-interface TypedTRPC {
-	public: PublicRouter;
-}
-
 export function NotificationBell() {
 	const { data: session, isPending: sessionPending } = authClient.useSession();
-	const trpc = useTRPC() as unknown as TypedTRPC;
+	const trpc = useTRPC();
 	const { data: token, isPending: tokenPending } = useQuery({
 		...trpc.public.getNotificationToken.queryOptions(undefined, {
 			staleTime: Infinity,

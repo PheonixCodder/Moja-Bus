@@ -8,7 +8,7 @@ import {
 	Linking,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
@@ -35,6 +35,7 @@ export default function RegisterStatusScreen() {
 	const { t } = useTranslation("auth");
 	const router = useRouter();
 	const trpc = useTRPC();
+	const queryClient = useQueryClient();
 
 	const {
 		data: statusData,
@@ -65,6 +66,7 @@ export default function RegisterStatusScreen() {
 		try {
 			await authClient.signOut();
 		} catch {}
+		queryClient.clear();
 		router.replace("/(auth)/login");
 	};
 

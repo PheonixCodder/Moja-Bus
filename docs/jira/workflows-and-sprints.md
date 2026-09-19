@@ -30,7 +30,7 @@ Our Jira Scrum Board uses a 5-stage progressive workflow:
 * **Active Sprint**: `SCRUM Sprint 0` (Sprint ID `2`)
 * **Future Sprint**: `SCRUM Sprint 1` (Sprint ID `1`)
 * **Cadence**: 2 Weeks (10 working days).
-* **Active Sprint Scope**: Operator Core Overhaul (`SCRUM-12`, `SCRUM-13`, `SCRUM-26`, `SCRUM-25`, `SCRUM-27`), Page Redesign Audit (`SCRUM-28`), Nuqs Fixes (`SCRUM-10`), Type Inference (`SCRUM-31`), Component Centralization (`SCRUM-30`).
+* **Active Sprint Scope (Updated 2026-09-17)**: ~~Operator Core Overhaul~~ ✅ (`SCRUM-12`, `SCRUM-13`, `SCRUM-25`, `SCRUM-26`, `SCRUM-27` — **Done**), ~~Nuqs Fixes~~ ✅ (`SCRUM-10` — **Done**), ~~Component Centralization~~ ✅ (`SCRUM-30` — **Done**), Page Redesign Audit (`SCRUM-28` — **In Progress**), Type Inference (`SCRUM-31` — **To Do**).
 * **Mid-Sprint Check**: Verify that `In Progress` items are advancing and blockers are flagged immediately.
 * **Sprint Review & Retrospective**:
   * Demo completed features.

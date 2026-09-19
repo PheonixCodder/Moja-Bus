@@ -7,23 +7,6 @@ import { useTRPC } from "@/lib/trpc";
 
 const isExpoGo = Constants.appOwnership === "expo";
 
-interface TrpcMutation<TInput, TOutput> {
-	mutationOptions: () => {
-		mutationFn: (input: TInput) => Promise<TOutput>;
-	};
-}
-
-interface PublicRouter {
-	registerPushToken: TrpcMutation<
-		{ token: string; platform: string },
-		{ success: boolean }
-	>;
-}
-
-interface TypedTRPC {
-	public: PublicRouter;
-}
-
 async function getPushToken(): Promise<string | null> {
 	if (isExpoGo || !Device.isDevice) {
 		return null;
@@ -60,7 +43,7 @@ async function getPushToken(): Promise<string | null> {
 }
 
 export function usePushToken() {
-	const trpc = useTRPC() as unknown as TypedTRPC;
+	const trpc = useTRPC();
 	const mutation = useMutation(
 		trpc.public.registerPushToken.mutationOptions(),
 	);
@@ -72,8 +55,8 @@ export function usePushToken() {
 		async function register() {
 			const token = await getPushToken();
 			if (!token) return;
-			hasRegistered.current = true;
-			mutation.mutate({ token, platform: Platform.OS });
+			const platform: "ios" | "android" = Platform.OS === "ios" ? "ios" : "android";
+			mutation.mutate({ token, platform });
 		}
 
 		register();

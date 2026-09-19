@@ -3,7 +3,7 @@ import { useTRPC } from "@/lib/trpc";
 
 export function useOperatorsPrefetch() {
 	const queryClient = useQueryClient();
-	const trpc = useTRPC() as any;
+	const trpc = useTRPC();
 
 	const prefetchOperatorsList = () => {
 		queryClient.prefetchQuery(trpc.public.listOperators.queryOptions());

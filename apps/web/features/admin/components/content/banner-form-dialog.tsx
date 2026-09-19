@@ -228,7 +228,7 @@ export function BannerFormDialog({
         toast.success(t("toast.bannerCreated"));
       }
 
-      await queryClient.invalidateQueries();
+      await queryClient.invalidateQueries(trpc.admin.listBanners.pathFilter());
       onOpenChange(false);
     } catch (err: any) {
       toast.error(err?.message || t("toast.saveFailed"));

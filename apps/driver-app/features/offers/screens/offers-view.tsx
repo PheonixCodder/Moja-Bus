@@ -45,9 +45,7 @@ export function OffersView() {
 	const seenMutation = useMutation({
 		...trpc.drivers.markMyOffersSeen.mutationOptions(),
 		onSuccess: () => {
-			queryClient.invalidateQueries({
-				queryKey: trpc.drivers.getMyOffers.queryKey(),
-			});
+			queryClient.invalidateQueries(trpc.drivers.getMyOffers.pathFilter());
 		},
 	});
 
@@ -59,12 +57,8 @@ export function OffersView() {
 		...trpc.drivers.respondToOffer.mutationOptions(),
 		onSuccess: (_data, vars) => {
 			DriverFeedback.successScan();
-			queryClient.invalidateQueries({
-				queryKey: trpc.drivers.getMyOffers.queryKey(),
-			});
-			queryClient.invalidateQueries({
-				queryKey: trpc.drivers.getMyProfile.queryKey(),
-			});
+			queryClient.invalidateQueries(trpc.drivers.getMyOffers.pathFilter());
+			queryClient.invalidateQueries(trpc.drivers.getMyProfile.pathFilter());
 			if (vars.action === "ACCEPT") {
 				router.replace("/(tabs)/trips");
 			}

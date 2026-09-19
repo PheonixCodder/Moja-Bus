@@ -13,14 +13,14 @@ export default function ArticleDetailScreen() {
   const { t } = useTranslation(["home", "common"]);
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const insets = useSafeAreaInsets();
-  const trpc = useTRPC() as any;
+  const trpc = useTRPC();
 
   const { data: postData, isLoading, error } = useQuery({
     ...trpc.blog.getPostBySlug.queryOptions({ slug: slug || "" }),
     enabled: !!slug,
   });
 
-  const post = postData as any;
+  const post = postData;
 
   return (
     <>
@@ -112,7 +112,12 @@ export default function ArticleDetailScreen() {
                 <View className="size-8 rounded-full bg-muted overflow-hidden items-center justify-center">
                   {post.displayAuthorAvatar || post.author?.image ? (
                     <Image
-                      source={{ uri: post.displayAuthorAvatar || post.author?.image }}
+                      source={{
+                        uri:
+                          post.displayAuthorAvatar ||
+                          post.author?.image ||
+                          undefined,
+                      }}
                       className="w-full h-full object-cover"
                     />
                   ) : (

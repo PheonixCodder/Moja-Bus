@@ -1,6 +1,7 @@
 import { type Href, Redirect } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { authClient, ensureAuthCookiesFresh } from "@/lib/auth-client";
 import { getTrpcClient } from "@/lib/trpc";
@@ -68,6 +69,7 @@ import { useUserModeStore } from "@/stores/user-mode";
 export default function IndexScreen() {
 	const [authState, setAuthState] = useState<AuthState>("loading");
 	const setRoleMode = useUserModeStore((s) => s.setRoleMode);
+	const queryClient = useQueryClient();
 
 	useEffect(() => {
 		let isMounted = true;
@@ -151,6 +153,7 @@ export default function IndexScreen() {
 						visibilityTime: 5000,
 					});
 					await authClient.signOut();
+					queryClient.clear();
 					setAuthState("unauthenticated");
 					return;
 				}
@@ -163,6 +166,7 @@ export default function IndexScreen() {
 					visibilityTime: 5000,
 				});
 				await authClient.signOut();
+				queryClient.clear();
 				setAuthState("unauthenticated");
 			} catch {
 				if (isMounted) setAuthState("unauthenticated");

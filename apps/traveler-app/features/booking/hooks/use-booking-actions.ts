@@ -7,7 +7,7 @@ export function useCreateHold() {
 	return useMutation({
 		...trpc.booking.createHold.mutationOptions(),
 		onSuccess: () => {
-			queryClient.invalidateQueries();
+			queryClient.invalidateQueries(trpc.booking.pathFilter());
 		},
 	});
 }
@@ -28,7 +28,8 @@ export function useConfirmBooking() {
 	return useMutation({
 		...trpc.booking.confirmBooking.mutationOptions(),
 		onSuccess: () => {
-			queryClient.invalidateQueries();
+			queryClient.invalidateQueries(trpc.booking.pathFilter());
+			queryClient.invalidateQueries(trpc.passenger.pathFilter());
 		},
 	});
 }
@@ -39,7 +40,7 @@ export function useReleaseHold() {
 	return useMutation({
 		...trpc.booking.releaseHold.mutationOptions(),
 		onSuccess: () => {
-			queryClient.invalidateQueries();
+			queryClient.invalidateQueries(trpc.booking.pathFilter());
 		},
 	});
 }
@@ -50,7 +51,8 @@ export function useCheckoutWithWallet() {
 	return useMutation({
 		...trpc.booking.checkoutWithWallet.mutationOptions(),
 		onSuccess: () => {
-			queryClient.invalidateQueries();
+			queryClient.invalidateQueries(trpc.booking.pathFilter());
+			queryClient.invalidateQueries(trpc.passenger.pathFilter());
 		},
 	});
 }
@@ -61,7 +63,9 @@ export function useCancelBooking() {
 	return useMutation({
 		...trpc.payments.cancelBooking.mutationOptions(),
 		onSuccess: () => {
-			queryClient.invalidateQueries();
+			queryClient.invalidateQueries(trpc.booking.pathFilter());
+			queryClient.invalidateQueries(trpc.passenger.pathFilter());
+			queryClient.invalidateQueries(trpc.payments.pathFilter());
 		},
 	});
 }

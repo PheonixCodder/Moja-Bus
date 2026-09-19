@@ -62,7 +62,10 @@ import { aggregateRevenueRows } from "@/features/payments/lib/revenue-analytics"
 import { PaystackProvider } from "@/features/payments/providers/paystack-provider";
 import { paystackRegisterRecipient } from "@/features/payments/providers/paystack-client";
 import { AccountingEngine } from "@moja/db";
-import { operatorSettingsProcedures } from "./operator/settings";
+import {
+  operatorSettingsProcedures,
+  operatorSettingsRouter,
+} from "./operator/settings";
 
 function maskOperatorCompanyBank<T extends any>(operator: T): T {
   if (!operator || typeof operator !== "object" || !("company" in operator)) {
@@ -1111,6 +1114,8 @@ export const operatorRouter = createTRPCRouter({
     };
   }),
 
+  settings: operatorSettingsRouter,
+  /** @deprecated Migrate calls to `trpc.operator.settings.*` */
   ...operatorSettingsProcedures,
 
   logOnboardingEvent: operatorCompanyProcedure

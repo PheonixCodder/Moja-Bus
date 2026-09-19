@@ -4,7 +4,7 @@ import {
   SmartPhone01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -38,6 +38,7 @@ export default function PaymentScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const fareAmountXOF = useSellSession((s) => s.fareAmountXOF ?? 0);
   const seatId = useSellSession((s) => s.seatId);
   const passengerName = useSellSession((s) => s.passengerName);
@@ -210,6 +211,7 @@ export default function PaymentScreen() {
         passengerAccountCreated: isNewAccount,
       });
 
+      await queryClient.invalidateQueries(trpc.booth.pathFilter());
       setShowCashModal(false);
       void BoothFeedback.paymentSuccess();
       router.replace({
@@ -459,6 +461,7 @@ export default function PaymentScreen() {
                 passengerAccountCreated: currentSession.isNewAccount,
               });
 
+              await queryClient.invalidateQueries(trpc.booth.pathFilter());
               void BoothFeedback.paymentSuccess();
               router.replace({
                 pathname: "/sell/confirmation",
